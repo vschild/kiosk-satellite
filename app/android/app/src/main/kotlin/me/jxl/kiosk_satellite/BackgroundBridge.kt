@@ -1227,6 +1227,10 @@ class BackgroundBridge(
         // waking the screen needs no grant at all (the common case is the
         // kiosk still frontmost, just dark).
         wakeScreen()
+        // A system dream sits above the kiosk. Bringing the task forward
+        // does not end it, so wake it first or the wake word and the alarm
+        // answer underneath the screensaver.
+        if (SystemDream.holding) SystemDream.awaken(context)
         if (!canDrawOverlays()) return false
         return try {
             // Match the current task type so the Activity and its live

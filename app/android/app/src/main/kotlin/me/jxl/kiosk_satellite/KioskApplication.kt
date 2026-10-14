@@ -74,6 +74,7 @@ class KioskApplication : Application(), CameraXConfig.Provider {
     private lateinit var realtimeAudio: RealtimeAudio
     private lateinit var mediaSessions: MediaSessionBridge
     private lateinit var voiceIntents: VoiceIntentBridge
+    private lateinit var systemDream: SystemDreamBridge
 
     override fun onCreate() {
         super.onCreate()
@@ -153,6 +154,7 @@ class KioskApplication : Application(), CameraXConfig.Provider {
         realtimeAudio = RealtimeAudio(applicationContext, messenger)
         mediaSessions = MediaSessionBridge(applicationContext, messenger)
         voiceIntents = VoiceIntentBridge(applicationContext, messenger)
+        systemDream = SystemDreamBridge(applicationContext, messenger)
         EventBroadcastBridge(applicationContext, messenger)
         plugins = me.jxl.kiosk_satellite.plugins.PluginBridge(applicationContext, messenger)
         // Plugin overlays are platform views on the cached engine, built

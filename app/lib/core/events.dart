@@ -87,6 +87,15 @@ class ScreensaverStateChanged extends AppEvent {
   String get wireName => active ? 'screensaverstart' : 'screensaverstop';
 }
 
+/// The Android system screensaver (Daydream) was asked to start, or it
+/// ended. Internal: the kiosk drops its pin and shield while [active], and
+/// a non-null [error] is the sentence shown when the device refused.
+class SystemDreamChanged extends AppEvent {
+  const SystemDreamChanged({required this.active, this.error});
+  final bool active;
+  final String? error;
+}
+
 /// The moment the idle clock will start the screensaver moved (issue
 /// #406): armed or re-armed by a touch, a dismissal or a setting, null when
 /// nothing is counting down (the screensaver off or showing, a voice turn,

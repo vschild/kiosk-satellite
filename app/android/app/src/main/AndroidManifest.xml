@@ -375,5 +375,14 @@
             <action android:name="android.intent.action.MAIN"/>
             <category android:name="android.intent.category.HOME"/>
         </intent>
+        <!-- SystemUI's Somnambulator, the activity that starts the user's
+             screensaver, and the screensaver components themselves. -->
+        <package android:name="com.android.systemui"/>
+        <intent>
+            <action android:name="android.service.dreams.DreamService"/>
+        </intent>
+        <intent>
+            <action android:name="android.settings.DREAM_SETTINGS"/>
+        </intent>
     </queries>
 </manifest>

@@ -16952,6 +16952,66 @@ abstract class UiStrings {
   /// Label, status or guidance in this section.
   ///
   /// In en, this message translates to:
+  /// **'Android screensaver'**
+  String get screensaverModeAndroid;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts the screensaver chosen in Android settings. The dashboard stays as it is and comes back when that screensaver ends.'**
+  String get screensaverAndroidHint;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Android screensaver settings'**
+  String get screensaverAndroidSettingsTitle;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens Settings > Display > Screen saver.'**
+  String get screensaverAndroidSettingsDetail;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Android\'s screensaver is turned off. Turn it on in Settings > Display > Screen saver.'**
+  String get screensaverAndroidTurnedOff;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Android will start the screensaver selected in system settings.'**
+  String get screensaverAndroidWillStart;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'The Android screensaver did not start. This device may not allow apps to launch it. Check Settings > Display > Screen saver, or choose another mode.'**
+  String get screensaverAndroidDidNotStart;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting the Android screensaver is only available on Android.'**
+  String get screensaverAndroidAndroidOnly;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot start the Android screensaver. Check Settings > Display > Screen saver, or choose another mode.'**
+  String get screensaverAndroidCannotStart;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.'**
+  String get screensaverAndroidModernLimit;
+
+  /// Label, status or guidance in this section.
+  ///
+  /// In en, this message translates to:
   /// **'Home Assistant Dashboard screensaver'**
   String get screensaverDashboardSection;
 

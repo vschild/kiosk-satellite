@@ -1995,6 +1995,7 @@ const screensaverMode = SettingDef<String>(
     'website',
     'camera',
     'dashboard',
+    'android',
   ],
   optionLabels: {
     'dim': 'Dim',
@@ -2008,6 +2009,7 @@ const screensaverMode = SettingDef<String>(
     'website': 'Website',
     'camera': 'Camera Streams',
     'dashboard': 'Home Assistant Dashboard',
+    'android': 'Android screensaver',
   },
 );
 

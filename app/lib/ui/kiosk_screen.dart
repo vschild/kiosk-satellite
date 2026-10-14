@@ -36,6 +36,7 @@ import '../managers/browser/socket_watch_script.dart';
 import '../managers/browser/viewport_zoom_script.dart';
 import '../managers/browser/visibility_mask_script.dart';
 import '../managers/browser/url_blacklist.dart';
+import '../managers/screensaver/system_dream.dart';
 import '../managers/browser/ws_filter_script.dart';
 import '../managers/kiosk/app_link.dart';
 import '../managers/kiosk/kiosk_link.dart';
@@ -126,6 +127,7 @@ class _KioskScreenState extends State<KioskScreen>
   StreamSubscription<WakeWordDetected>? _wakeSub;
   StreamSubscription<CameraViewStateChanged>? _cameraSub;
   StreamSubscription<ScreensaverStateChanged>? _saverSub;
+  StreamSubscription<SystemDreamChanged>? _dreamSub;
   StreamSubscription<WebViewRebuildRequested>? _rebuildSub;
   StreamSubscription<WebViewMissing>? _missingSub;
 
@@ -756,6 +758,16 @@ class _KioskScreenState extends State<KioskScreen>
     // dismisses it) and hands them back when it goes.
     _saverSub = c.bus.on<ScreensaverStateChanged>().listen((_) {
       _syncNavCapture();
+    });
+    _dreamSub = c.bus.on<SystemDreamChanged>().listen((event) {
+      final error = event.error;
+      if (error == null || !mounted) return;
+      showToast(
+        context,
+        title: screensaverText(context, 'Android screensaver'),
+        message: screensaverText(context, androidScreensaverMessage(error)),
+        kind: ToastKind.warning,
+      );
     });
     _backSub = c.bus.on<KioskBackPressed>().listen((_) {
       if (!mounted || _settingsOpen) return;
@@ -1462,6 +1474,7 @@ class _KioskScreenState extends State<KioskScreen>
     kioskRouteObserver.unsubscribe(this);
     _cameraSub?.cancel();
     _saverSub?.cancel();
+    _dreamSub?.cancel();
     c.sendspin.nowPlaying.removeListener(_syncVolumeKeys);
     c.pageState.pageDark.removeListener(_pageDarkChanged);
     c.screensaver.activeView.removeListener(_syncVolumeKeys);

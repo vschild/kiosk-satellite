@@ -12,7 +12,7 @@ import {
   cameraToggle,
   glanceEntityEditor,
 } from './cameras.js';
-import { api, depSatisfied, gatedOn, state } from './core.js';
+import { api, cmd, depSatisfied, gatedOn, state } from './core.js';
 import { readOnlyRow } from './device.js';
 import { openEspHomeEntityPicker } from './esphome.js';
 import {
@@ -304,6 +304,10 @@ export function settingRow(s) {
     }
     if (s.key === 'screensaver.screen_off_black' || s.key === 'screensaver.screen_off_minutes') {
       syncScreenOffAdminNotice();
+    }
+    if (s.key === 'screensaver.mode') {
+      const extra = document.querySelector('[data-android-dream]');
+      if (extra) extra.hidden = value !== 'android';
     }
     // The face detection notes answer for Dismiss on motion as it is now
     // (issue #304): motion takes precedence, and the warning under
@@ -1788,5 +1792,89 @@ export function settingRow(s) {
       if (s.type === 'password') inp.placeholder = s.value === '__set__' ? deviceText('•••••• (set)') : deviceText('Not set');
     });
   }
+  if (s.key === 'screensaver.mode') {
+    const fragment = document.createDocumentFragment();
+    fragment.append(row, androidScreensaverExtra(s.value));
+    return fragment;
+  }
   return row;
+}
+
+// The shortcut under Screensaver mode while Android's screensaver is
+// selected. Hidden for every other mode; save() shows it without
+// rebuilding the page. The component name is the system's own label.
+function androidScreensaverExtra(mode) {
+  const box = document.createElement('div');
+  box.dataset.androidDream = '1';
+  box.hidden = mode !== 'android';
+
+  const hint = document.createElement('div');
+  hint.className = 'row';
+  const hintInfo = document.createElement('div');
+  hintInfo.className = 'info';
+  const hintDesc = document.createElement('div');
+  hintDesc.className = 'desc';
+  hintDesc.textContent = screensaverText(
+    'Starts the screensaver chosen in Android settings. The dashboard '
+    + 'stays as it is and comes back when that screensaver ends.');
+  hintInfo.append(hintDesc);
+  hint.append(hintInfo);
+
+  const status = document.createElement('div');
+  status.className = 'desc';
+  status.style.padding = '0 0 8px 0';
+
+  const open = document.createElement('div');
+  open.className = 'row';
+  const info = document.createElement('div');
+  info.className = 'info';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = screensaverText('Android screensaver settings');
+  const detail = document.createElement('div');
+  detail.className = 'desc';
+  detail.textContent = screensaverText('Opens Settings > Display > Screen saver.');
+  info.append(name, detail);
+  const button = document.createElement('button');
+  button.className = 'btn-ghost';
+  button.textContent = screensaverText('Android screensaver settings');
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    try {
+      const out = await cmd('openDreamSettings');
+      if (out?.ok === true) return;
+      status.textContent = screensaverText(
+        'This device cannot start the Android screensaver. Check Settings > '
+        + 'Display > Screen saver, or choose another mode.');
+    } catch (error) {
+      status.textContent = error?.message || screensaverText(
+        'This device cannot start the Android screensaver. Check Settings > '
+        + 'Display > Screen saver, or choose another mode.');
+    } finally {
+      button.disabled = false;
+    }
+  });
+  open.append(info, button);
+  box.append(hint, status, open);
+
+  cmd('systemDreamStatus').then((out) => {
+    if (!box.isConnected || out?.ok !== true) return;
+    const data = out.data || {};
+    if (data.enabled === false) {
+      status.textContent = screensaverText(
+        "Android's screensaver is turned off. Turn it on in Settings > "
+        + 'Display > Screen saver.');
+    } else if (typeof data.sdk === 'number' && data.sdk >= 34) {
+      status.textContent = screensaverText(
+        'On Android 14 and later the system often blocks apps from starting '
+        + 'its screensaver. If nothing appears at the idle timeout, pick '
+        + 'another mode or use a device that still allows it.');
+    } else if (data.label) {
+      status.textContent = String(data.label);
+    } else if (data.enabled === true) {
+      status.textContent = screensaverText(
+        'Android will start the screensaver selected in system settings.');
+    }
+  }).catch(() => {});
+  return box;
 }
