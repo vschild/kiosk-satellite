@@ -67,17 +67,17 @@ class SystemDreamTest {
     @Test
     fun statusReadsTheSecureScreensaverSwitch() {
         val resolver = context.contentResolver
-        Settings.Secure.putString(resolver, Settings.Secure.SCREENSAVER_ENABLED, "0")
+        Settings.Secure.putString(resolver, SystemDream.SCREENSAVER_ENABLED, "0")
         Settings.Secure.putString(
             resolver,
-            Settings.Secure.SCREENSAVER_COMPONENTS,
+            SystemDream.SCREENSAVER_COMPONENTS,
             "com.android.deskclock/.Screensaver",
         )
         val off = SystemDream.readStatus(context)
         assertEquals(false, off["enabled"])
         assertEquals("com.android.deskclock/.Screensaver", off["component"])
 
-        Settings.Secure.putString(resolver, Settings.Secure.SCREENSAVER_ENABLED, null)
+        Settings.Secure.putString(resolver, SystemDream.SCREENSAVER_ENABLED, null)
         assertEquals(true, SystemDream.readStatus(context)["enabled"])
     }
 
@@ -85,7 +85,7 @@ class SystemDreamTest {
     fun aDisabledScreensaverDoesNotLaunch() {
         Settings.Secure.putString(
             context.contentResolver,
-            Settings.Secure.SCREENSAVER_ENABLED,
+            SystemDream.SCREENSAVER_ENABLED,
             "0",
         )
         val started = SystemDream.start(context)

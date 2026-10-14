@@ -34,6 +34,13 @@ internal object SystemDream {
     const val ACTION_DREAMING_STARTED = "android.intent.action.DREAMING_STARTED"
     const val ACTION_DREAMING_STOPPED = "android.intent.action.DREAMING_STOPPED"
 
+    /**
+     * Settings.Secure keys. The Java constants are @hide, so a normal app
+     * compiles against the raw names the platform has used since API 17.
+     */
+    const val SCREENSAVER_ENABLED = "screensaver_enabled"
+    const val SCREENSAVER_COMPONENTS = "screensaver_components"
+
     /** Set while a start is in flight or a dream is up, so bringToFront can wake it. */
     @Volatile
     var holding = false
@@ -80,11 +87,8 @@ internal object SystemDream {
 
     fun readStatus(context: Context): Map<String, Any?> {
         val resolver = context.contentResolver
-        val raw = Settings.Secure.getString(resolver, Settings.Secure.SCREENSAVER_ENABLED)
-        val component = Settings.Secure.getString(
-            resolver,
-            Settings.Secure.SCREENSAVER_COMPONENTS,
-        )
+        val raw = Settings.Secure.getString(resolver, SCREENSAVER_ENABLED)
+        val component = Settings.Secure.getString(resolver, SCREENSAVER_COMPONENTS)
         val first = component?.substringBefore(',')?.trim().orEmpty()
         return mapOf(
             "sdk" to Build.VERSION.SDK_INT,
