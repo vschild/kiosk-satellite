@@ -1,8 +1,8 @@
 # Screensavers
 
-After a period of inactivity, Kiosk Satellite can transition to a clock, a photo frame, a camera wall, a web page, a Home Assistant dashboard view, or a black panel. The display returns to the live dashboard immediately when someone touches the screen, speaks the wake word, or approaches the kiosk.
+After a period of inactivity, Kiosk Satellite can transition to a clock, a photo frame, a camera wall, a web page, a Home Assistant dashboard view, a black panel, or Android's own screensaver. The display returns to the live dashboard immediately when someone touches the screen, speaks the wake word, or approaches the kiosk. Android's screensaver is the exception: the system takes the screen, and the dashboard returns when that screensaver ends.
 
-A core design principle applies to all modes: the screensaver never powers off the physical display. Even the Black mode sets the backlight to zero behind a black overlay while keeping the application fully active underneath. This ensures motion detection, wake word processing, the ESPHome server, and remote administration (including live view) remain fully functional 24/7. Controlling actual display panel power is handled separately using the Screen light entity via the [ESPHome integration](esphome.md).
+A core design principle applies to every mode this app draws itself: the screensaver never powers off the physical display. Even the Black mode sets the backlight to zero behind a black overlay while keeping the application fully active underneath. This ensures motion detection, wake word processing, the ESPHome server, and remote administration (including live view) remain fully functional 24/7. Controlling actual display panel power is handled separately using the Screen light entity via the [ESPHome integration](esphome.md).
 
 ## Setup
 
@@ -56,6 +56,18 @@ Reduces the display backlight to the configured **Dim level** while keeping the 
 ### Black
 
 Displays a completely black screen while leaving the underlying application running. Enabling **Hide all extras** ensures true black output by suppressing widgets, the At a Glance row, and all other visual overlays. It also prevents the At a Glance Home Assistant connection from opening.
+
+### Android screensaver
+
+Starts the screensaver chosen in Android's **Settings > Display > Screen saver** when the idle timeout fires. The dashboard is left exactly as it was: this mode does not dim the backlight, draw an overlay, shift pixels, show widgets, or run **Turn screen off after**. Motion, face, proximity and person detection do not dismiss it. The wake word, an alarm and the intercom bring the kiosk forward and wake the screensaver. When the person touches the screen and Android ends its screensaver, the kiosk returns as it was.
+
+**Android screensaver settings** on the same page opens that system screen (`Settings.ACTION_DREAM_SETTINGS`).
+
+The kiosk drops screen pinning and the lockdown shield while the system screensaver is up, and puts them back when it ends. Otherwise the pin would block the screensaver and the shield would cover it. The ESPHome screensaver-active sensor stays off, because this app's screensaver session never starts.
+
+Android 7 through 13 start it by opening SystemUI's Somnambulator activity, the same door Fully Kiosk Browser uses. That activity asks the system to dream from inside SystemUI, which is allowed to. Android 14 and later removed that behavior: Somnambulator opens and closes without dreaming, and a normal app is not allowed to call the dream service itself. On those versions the app still tries the privileged call and, if the chosen screensaver is an activity rather than a dream service, opens that activity. Many Android 14, 15 and 16 devices will show a message that the screensaver did not start. A build that still ships the old SystemUI, or a device where this app is installed as a privileged system app, can still dream.
+
+The screensaver has to be switched on in Android settings. Some devices also only dream while charging or docked, which is the usual state of a wall kiosk but not of a tablet on battery. If Android has the screensaver switched off, the idle timeout does not open the system settings page.
 
 ### Clock
 

@@ -9844,6 +9844,44 @@ class UiStringsUk extends UiStrings {
       'Вигляд панелі керування Home Assistant, який показує заставка.';
 
   @override
+  String get screensaverModeAndroid => 'Android screensaver';
+
+  @override
+  String get screensaverAndroidHint =>
+      'Starts the screensaver chosen in Android settings. The dashboard stays as it is and comes back when that screensaver ends.';
+
+  @override
+  String get screensaverAndroidSettingsTitle => 'Android screensaver settings';
+
+  @override
+  String get screensaverAndroidSettingsDetail =>
+      'Opens Settings > Display > Screen saver.';
+
+  @override
+  String get screensaverAndroidTurnedOff =>
+      'Android\'s screensaver is turned off. Turn it on in Settings > Display > Screen saver.';
+
+  @override
+  String get screensaverAndroidWillStart =>
+      'Android will start the screensaver selected in system settings.';
+
+  @override
+  String get screensaverAndroidDidNotStart =>
+      'The Android screensaver did not start. This device may not allow apps to launch it. Check Settings > Display > Screen saver, or choose another mode.';
+
+  @override
+  String get screensaverAndroidAndroidOnly =>
+      'Starting the Android screensaver is only available on Android.';
+
+  @override
+  String get screensaverAndroidCannotStart =>
+      'This device cannot start the Android screensaver. Check Settings > Display > Screen saver, or choose another mode.';
+
+  @override
+  String get screensaverAndroidModernLimit =>
+      'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.';
+
+  @override
   String get screensaverDashboardSection =>
       'Заставка панелі керування Home Assistant';
 

@@ -3082,6 +3082,18 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingScreensaverDashboardViewTitle,
       'settingScreensaverDashboardViewDescription' =>
         strings.settingScreensaverDashboardViewDescription,
+      'screensaverModeAndroid' => strings.screensaverModeAndroid,
+      'screensaverAndroidHint' => strings.screensaverAndroidHint,
+      'screensaverAndroidSettingsTitle' =>
+        strings.screensaverAndroidSettingsTitle,
+      'screensaverAndroidSettingsDetail' =>
+        strings.screensaverAndroidSettingsDetail,
+      'screensaverAndroidTurnedOff' => strings.screensaverAndroidTurnedOff,
+      'screensaverAndroidWillStart' => strings.screensaverAndroidWillStart,
+      'screensaverAndroidDidNotStart' => strings.screensaverAndroidDidNotStart,
+      'screensaverAndroidAndroidOnly' => strings.screensaverAndroidAndroidOnly,
+      'screensaverAndroidCannotStart' => strings.screensaverAndroidCannotStart,
+      'screensaverAndroidModernLimit' => strings.screensaverAndroidModernLimit,
       'screensaverDashboardSection' => strings.screensaverDashboardSection,
       'settingScreensaverGlanceScaleTitle' =>
         strings.settingScreensaverGlanceScaleTitle,

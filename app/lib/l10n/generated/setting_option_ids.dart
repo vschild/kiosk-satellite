@@ -51,7 +51,8 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "website": "screensaverModeWebsite",
     "camera": "screensaverModeCamera",
     "weather_mood": "screensaverWeatherMood",
-    "dashboard": "screensaverModeDashboard"
+    "dashboard": "screensaverModeDashboard",
+    "android": "screensaverModeAndroid"
   },
   "screensaver.clock_style": {
     "digital": "screensaverStyleDigital",

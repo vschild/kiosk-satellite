@@ -12,6 +12,7 @@ import '../camera/models.dart' show encodeCameraViewIds;
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import 'screensaver_widgets.dart';
+import 'system_dream.dart';
 
 /// A slideshow's hand on its own deck: a positive [direction] shows the
 /// next slide, a negative one the slide before, either way restarting the
@@ -139,6 +140,8 @@ Map<String, Object?>? activeScheduleEntry(
 ///   dim   — lower brightness to `screensaver.dim_level`
 ///   black — brightness 0 + a black overlay (rendered by the UI layer, which
 ///           watches [overlayActive])
+///   android — no overlay and no brightness change: the idle timeout asks
+///           Android to start the screensaver chosen in system settings
 ///
 /// Dimming and restoring go through 'setBrightness'/'screenOn' registry
 /// commands so this manager never references the screen manager. The
@@ -218,6 +221,27 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// manager's reclaim uses (issue #291). Injectable for tests only.
   Timer? _pauseProbe;
   final Duration _pauseProbeDelay;
+
+  /// Android's own screensaver is up, or a launch is still being confirmed.
+  /// This is not a session: [_active] stays false, so brightness, widgets
+  /// and the screen-off timer are left alone and the dashboard stays as it
+  /// was. The kiosk drops its pin for the same stretch.
+  bool _systemDream = false;
+
+  /// A launch that has proved itself, by the dreaming broadcast or by the
+  /// kiosk still being covered when [_dreamConfirmWait] elapses. Until
+  /// then a pause that comes straight back (Somnambulator opening and
+  /// finishing on Android 14) is not a screensaver.
+  bool _dreamConfirmed = false;
+  Timer? _dreamWatch;
+  Timer? _resumeSettle;
+  static const _dreamConfirmWait = Duration(seconds: 4);
+  static const _dreamResumeSettle = Duration(milliseconds: 800);
+
+  /// Set for the body of a start that is building a real session, so the
+  /// visuals it applies cannot hand that session off to Android mid-way.
+  bool _starting = false;
+  bool _handingOff = false;
 
   /// The `at` of the schedule entry the current visuals were applied under,
   /// so the periodic tick only reapplies on an actual boundary crossing.
@@ -943,6 +967,22 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
         ),
       );
 
+    bus.on<SystemDreamChanged>().listen((event) {
+      if (event.active) {
+        _systemDream = true;
+        _dreamConfirmed = true;
+        _cancelIdleTimer();
+        return;
+      }
+      _systemDream = false;
+      _dreamConfirmed = false;
+      _dreamWatch?.cancel();
+      _dreamWatch = null;
+      _resumeSettle?.cancel();
+      _resumeSettle = null;
+      _resetIdleTimer();
+    });
+
     _resetIdleTimer();
   }
 
@@ -1123,6 +1163,8 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       _lifecyclePaused = true;
+      _resumeSettle?.cancel();
+      _resumeSettle = null;
       _pauseProbe?.cancel();
       _pauseProbe = Timer(_pauseProbeDelay, () async {
         _pauseProbe = null;
@@ -1152,8 +1194,20 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       _pauseProbe = null;
       if (_behindAnotherApp) {
         _behindAnotherApp = false;
-        log.debug(name, 'kiosk back in front; idle clock restarted');
-        _resetIdleTimer();
+        // A confirmed Android screensaver covers the kiosk on purpose.
+        // The idle clock stays down until that screensaver actually ends.
+        if (!_systemDream) {
+          log.debug(name, 'kiosk back in front; idle clock restarted');
+          _resetIdleTimer();
+        }
+      }
+      if (_systemDream && _dreamConfirmed) {
+        _resumeSettle?.cancel();
+        _resumeSettle = Timer(_dreamResumeSettle, () {
+          if (!_systemDream || !_dreamConfirmed || _lifecyclePaused) return;
+          log.info(name, 'Android screensaver ended; kiosk back');
+          unawaited(commands.execute('stopSystemDream', const {}));
+        });
       }
     }
   }
@@ -1468,6 +1522,13 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
 
   Future<void> start({bool force = false, bool forNowPlaying = false}) async {
     if (_active) return;
+    // The Android screensaver is already covering the dashboard. An alarm
+    // or Now Playing still wants this app's own session, so those end the
+    // dream first. An ordinary idle start leaves it alone.
+    if (_systemDream) {
+      if (!force && !forNowPlaying) return;
+      await _endSystemDream();
+    }
     // Say why a start goes nowhere: a page hold that never gets released
     // (a leaked "interaction running" from the dashboard) otherwise reads
     // as "Now Playing launched" followed by nothing at all.
@@ -1501,6 +1562,74 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
         !_settings.get(defs.lockdownAllowScreensaver)) {
       return;
     }
+    // Android's screensaver is a launch, not a session. Now Playing and an
+    // alarm still take the session below: those have to draw in this app.
+    if (!force &&
+        !forNowPlaying &&
+        _effectiveMode == 'android' &&
+        !_nowPlayingTakeover) {
+      await _launchSystemDream();
+      return;
+    }
+    _starting = true;
+    try {
+      await _startSession(forNowPlaying: forNowPlaying);
+    } finally {
+      _starting = false;
+    }
+  }
+
+  /// Ask Android to start the screensaver chosen in system settings, and
+  /// wait briefly to see whether anything actually covered the kiosk.
+  Future<void> _launchSystemDream() async {
+    if (_systemDream) return;
+    final result = await commands.execute('startSystemDream', const {});
+    if (!result.ok) {
+      log.warn(name, 'Android screensaver did not start: ${result.error}');
+      bus.publish(SystemDreamChanged(active: false, error: result.error));
+      _resetIdleTimer();
+      return;
+    }
+    // The dreaming broadcast can land while the command is still in
+    // flight. That confirmation wins over the watchdog.
+    final confirmedDuringStart = _dreamConfirmed;
+    _systemDream = true;
+    if (confirmedDuringStart) return;
+    _dreamConfirmed = false;
+    _cancelIdleTimer();
+    _dreamWatch?.cancel();
+    _dreamWatch = Timer(_dreamConfirmWait, () {
+      unawaited(_confirmSystemDream());
+    });
+  }
+
+  /// A launch that neither paused the kiosk nor announced a dream did not
+  /// start. Put the protections back and say so.
+  Future<void> _confirmSystemDream() async {
+    _dreamWatch = null;
+    if (!_systemDream || _dreamConfirmed) return;
+    if (_lifecyclePaused || _behindAnotherApp) {
+      _dreamConfirmed = true;
+      log.info(name, 'Android screensaver is covering the kiosk');
+      return;
+    }
+    log.warn(name, 'Android screensaver did not stay up');
+    await commands.execute('stopSystemDream', const {'error': 'did_not_start'});
+  }
+
+  Future<void> _endSystemDream() async {
+    _systemDream = false;
+    _dreamConfirmed = false;
+    _dreamWatch?.cancel();
+    _dreamWatch = null;
+    _resumeSettle?.cancel();
+    _resumeSettle = null;
+    await commands.execute('stopSystemDream', const {});
+  }
+
+  /// The session half of [start], split out so a start that is still
+  /// applying its first frame cannot be handed to Android underneath it.
+  Future<void> _startSession({required bool forNowPlaying}) async {
     _active = true;
     _startedForNowPlaying = forNowPlaying;
     _panelDark = false;
@@ -1676,6 +1805,18 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// their brightness override is enabled.
   Future<void> _applyVisuals() async {
     final mode = _effectiveMode;
+    // A running session whose mode becomes Android's screensaver steps
+    // aside: stop restores the dashboard, then the dream covers it. An
+    // alarm, Now Playing and the start that is still building this frame
+    // keep the session.
+    if (!_starting &&
+        mode == 'android' &&
+        !_nowPlayingTakeover &&
+        alarmTakeover.value == null &&
+        !_blanked) {
+      await _handOffToSystemDream();
+      return;
+    }
     final entry = _scheduleEntry;
     _appliedScheduleAt = entry?['at'] as String?;
     _publishMotionPolicy(
@@ -1801,6 +1942,19 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       (_scheduleBrightness != null ||
           _settings.get(defs.screensaverBrightnessEnabled));
 
+  /// Leave a session that was already up and start Android's screensaver
+  /// in its place. A schedule boundary or a mode change lands here.
+  Future<void> _handOffToSystemDream() async {
+    if (_handingOff || _systemDream) return;
+    _handingOff = true;
+    try {
+      if (_active) await stop();
+      await _launchSystemDream();
+    } finally {
+      _handingOff = false;
+    }
+  }
+
   /// Live tweak while the screensaver shows: apply the new level, saving the
   /// restore point first when the toggle just turned on; turning it off
   /// restores the pre-screensaver brightness right away.
@@ -1835,6 +1989,9 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     _restoreNowPlaying = false;
     _restoreForNowPlaying = false;
     _launchOnPlayPending = false;
+    // Wake the Android screensaver before the early return: it is not a
+    // session, so [_active] is false the whole time it is up.
+    if (_systemDream) await _endSystemDream();
     if (!_active) return;
     final nowPlaying = _nowPlayingSession;
     _active = false;
@@ -1950,6 +2107,8 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   Future<void> dispose() async {
     if (Platform.isAndroid) WidgetsBinding.instance.removeObserver(this);
     _pauseProbe?.cancel();
+    _dreamWatch?.cancel();
+    _resumeSettle?.cancel();
     _idleTimer?.cancel();
     _scheduleTimer?.cancel();
     _screenOffTimer?.cancel();

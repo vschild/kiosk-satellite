@@ -70,6 +70,12 @@ class KioskManager extends Manager with WidgetsBindingObserver {
   bool _installPause = false;
   Timer? _installPauseTimer;
 
+  /// Android's screensaver is up (or a launch is in flight). The pin and
+  /// the lockdown shield would cover it, and the reclaim would pull the
+  /// kiosk back over it a second later, so both stand down until the dream
+  /// ends. Not an [AppLaunched]: that arms the launcher's auto-return.
+  bool _systemDream = false;
+
   /// The panel's logical state, mirrored from the screen manager's
   /// announcements, for the HOME press gate in [onHomePressed].
   bool _screenOn = true;
@@ -89,6 +95,7 @@ class KioskManager extends Manager with WidgetsBindingObserver {
   /// BackgroundBridge; the Activity one shows the proper one-tap dialog).
   static const _adminChannel = MethodChannel('kiosk_satellite/admin');
   static const _backgroundChannel = MethodChannel('kiosk_satellite/background');
+  static const _dreamChannel = MethodChannel('kiosk_satellite/system_dream');
   static const _brightnessChannel = MethodChannel('kiosk_satellite/brightness');
   static const _mediaSessionsChannel = MethodChannel(
     'kiosk_satellite/media_sessions',
@@ -304,6 +311,114 @@ class KioskManager extends Manager with WidgetsBindingObserver {
           await _apply();
           return const CommandResult.ok();
         },
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'systemDreamStatus',
+        description:
+            'Whether Android\'s screensaver is switched on, and which one '
+            'is selected. Quiet: the settings page reads it once.',
+        quiet: true,
+        handler: (_) async {
+          if (!Platform.isAndroid) {
+            return const CommandResult.fail('android_only');
+          }
+          try {
+            return CommandResult.ok(
+              _stringKeyMap(
+                await _dreamChannel.invokeMethod<Object?>('status'),
+              ),
+            );
+          } on MissingPluginException {
+            return const CommandResult.fail('android_only');
+          } on PlatformException catch (e) {
+            return CommandResult.fail(e.message ?? 'unavailable');
+          }
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'startSystemDream',
+        description:
+            'Start the screensaver chosen in Android\'s Display settings. '
+            'Drops the kiosk pin and shield first so the dream can cover '
+            'the dashboard, and puts them back if the launch is refused.',
+        handler: (_) async {
+          if (!Platform.isAndroid) {
+            return const CommandResult.fail('android_only');
+          }
+          try {
+            final status = _stringKeyMap(
+              await _dreamChannel.invokeMethod<Object?>('status'),
+            );
+            if (status['enabled'] != true) {
+              return const CommandResult.fail('disabled');
+            }
+            _systemDream = true;
+            await _apply();
+            final started = _stringKeyMap(
+              await _dreamChannel.invokeMethod<Object?>('start'),
+            );
+            if (started['ok'] == true) {
+              log.info(name, 'Android screensaver via ${started['method']}');
+              return CommandResult.ok(started);
+            }
+            _systemDream = false;
+            await _apply();
+            return CommandResult.fail('${started['code'] ?? 'unavailable'}');
+          } on MissingPluginException {
+            _systemDream = false;
+            return const CommandResult.fail('android_only');
+          } on PlatformException catch (e) {
+            _systemDream = false;
+            await _apply();
+            return CommandResult.fail(e.message ?? 'unavailable');
+          }
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'stopSystemDream',
+        description:
+            'Wake Android\'s screensaver, bring the kiosk back and restore '
+            'its pin and shield. error is the failure code to announce '
+            'when the dream never started.',
+        params: const {'error': 'optional failure code, such as did_not_start'},
+        handler: (params) async {
+          if (Platform.isAndroid) {
+            try {
+              await _dreamChannel.invokeMethod<Object?>('stop');
+            } on PlatformException catch (e) {
+              log.info(name, 'Android screensaver stop refused: $e');
+            } on MissingPluginException {
+              // The bridge is gone; the flags still have to come back.
+            }
+          }
+          await _finishSystemDream(error: params['error'] as String?);
+          return const CommandResult.ok();
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'openDreamSettings',
+        description:
+            'Open Android\'s screensaver settings (Settings > Display > '
+            'Screen saver) over the kiosk.',
+        handler: (_) => _openOverKiosk(
+          what: 'Android screensaver settings',
+          package: 'com.android.settings',
+          open: () => _dreamChannel.invokeMethod<bool>('openSettings'),
+          notOpened: 'unavailable',
+          unavailable: 'android_only',
+        ),
       ),
     );
 
@@ -702,6 +817,17 @@ class KioskManager extends Manager with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
+    _dreamChannel.setMethodCallHandler((call) async {
+      if (call.method != 'dreaming') return null;
+      if (call.arguments == true) {
+        _systemDream = true;
+        bus.publish(const SystemDreamChanged(active: true));
+      } else {
+        await _finishSystemDream();
+      }
+      return null;
+    });
+
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'ready':
@@ -849,7 +975,7 @@ class KioskManager extends Manager with WidgetsBindingObserver {
   /// owner coming back from a grant screen they opened themselves, not a
   /// moment to pop a pinning consent dialog over.
   void _repinOnResume() {
-    if (_installPause || menuBusy) return;
+    if (_installPause || _systemDream || menuBusy) return;
     if (!lockdownActive && !_kioskHomeGuard) return;
     final last = _repinAt;
     if (last != null && DateTime.now().difference(last) < _repinCooldown) {
@@ -865,7 +991,7 @@ class KioskManager extends Manager with WidgetsBindingObserver {
     // The pause that follows pauseKioskForInstall is Android's install
     // confirmation coming up, the one screen the reclaim must leave
     // alone, under lockdown included (issue #170).
-    if (_installPause) return;
+    if (_installPause || _systemDream) return;
     if (!lockdownActive) {
       final launched = _appLaunchedAt;
       final sanctioned =
@@ -880,7 +1006,7 @@ class KioskManager extends Manager with WidgetsBindingObserver {
   Future<void> _reclaimForeground() async {
     // Armed before the install pause began (the timer rechecks): stand
     // down rather than cover the install confirmation.
-    if (_installPause) return;
+    if (_installPause || _systemDream) return;
     if (Lifecycle.onScreen) return;
     if (!lockdownActive) {
       if (!_kioskHomeGuard || menuBusy) return;
@@ -939,6 +1065,26 @@ class KioskManager extends Manager with WidgetsBindingObserver {
   @visibleForTesting
   bool pushFlags = Platform.isAndroid;
 
+  /// The dream ended, or the launch never became one. Bring the kiosk back
+  /// if something is still covering it, then restore the pin and shield.
+  /// [error] is announced once; a second stop (the broadcast and the
+  /// command both arrive) does not announce again.
+  Future<void> _finishSystemDream({String? error}) async {
+    if (!_systemDream && error == null) return;
+    final wasUp = _systemDream;
+    _systemDream = false;
+    if (wasUp && !Lifecycle.onScreen) {
+      await commands.execute('bringToFront', const {});
+    }
+    await _apply();
+    bus.publish(SystemDreamChanged(active: false, error: error));
+  }
+
+  Map<String, Object?> _stringKeyMap(Object? raw) {
+    if (raw is! Map) return const {};
+    return {for (final entry in raw.entries) '${entry.key}': entry.value};
+  }
+
   /// Push the armed flags to the Activity. With [force] false the bundle is
   /// all-off regardless of settings (used on exit, where staying pinned
   /// would block the app from closing).
@@ -948,7 +1094,7 @@ class KioskManager extends Manager with WidgetsBindingObserver {
     // that races it (a settings change, a fresh Activity's ready) must not
     // re-arm over Android's install screen. resumeKioskAfterInstall clears
     // the flag before its own apply, so re-arming goes through unharmed.
-    force = force && !_installPause;
+    force = force && !_installPause && !_systemDream;
     // Lockdown arms the whole kiosk bundle without touching the persisted
     // kiosk settings: on exit the device returns to exactly the protections
     // the owner configured, kiosk mode on or off.

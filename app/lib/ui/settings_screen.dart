@@ -28,6 +28,7 @@ import '../managers/screensaver/immich_manager.dart'
 import '../managers/notifications/notification_sounds.dart';
 import '../managers/screensaver/screensaver_manager.dart'
     show upsertScheduleEntry;
+import '../managers/screensaver/system_dream.dart';
 import '../managers/screensaver/screensaver_widgets.dart';
 import '../managers/device/wifi_mac.dart'
     show WifiMacIdentity, WifiMacSource, wifiMacIdentity;
@@ -3165,6 +3166,11 @@ class _CategoryContentState extends State<_CategoryContent> {
           textAlign: TextAlign.end,
         ),
       ),
+    // Android's own screensaver: how to reach its settings, and whether
+    // this device is likely to let the idle timeout start it.
+    if (widget.category == 'Screensaver' &&
+        container.settings.get(screensaverMode) == 'android')
+      screensaverMode.key: _AndroidScreensaverRow(container: container),
     // Keep the permission notice below the action toggle so it stays put.
     if (widget.category == 'Screensaver')
       (container.settings.visible(screensaverScreenOffBlack)
@@ -12444,6 +12450,94 @@ class _WakeToScreensaverRow extends StatelessWidget {
       stack: true,
       subtitle: Text(def.localizedDescription(context)),
       trailing: tightPane(context) ? field : SizedBox(width: 300, child: field),
+    );
+  }
+}
+
+/// The note and the shortcut under Screensaver mode while Android's
+/// screensaver is selected. The status is read once: it only changes in
+/// Android's own settings page, which this row opens.
+class _AndroidScreensaverRow extends StatefulWidget {
+  const _AndroidScreensaverRow({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_AndroidScreensaverRow> createState() => _AndroidScreensaverRowState();
+}
+
+class _AndroidScreensaverRowState extends State<_AndroidScreensaverRow> {
+  Map<String, Object?>? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final result = await widget.container.commands.execute(
+      'systemDreamStatus',
+      const {},
+    );
+    if (!mounted) return;
+    final data = result.data;
+    setState(() {
+      _status = data is Map
+          ? {for (final entry in data.entries) '${entry.key}': entry.value}
+          : const {};
+    });
+  }
+
+  Future<void> _openSettings() async {
+    final result = await widget.container.commands.execute(
+      'openDreamSettings',
+      const {},
+    );
+    if (!mounted || result.ok) return;
+    showToast(
+      context,
+      title: screensaverText(context, androidScreensaverSettingsTitle),
+      message: screensaverText(
+        context,
+        androidScreensaverMessage(result.error),
+      ),
+      kind: ToastKind.warning,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _status;
+    final enabled = status?['enabled'] == true;
+    final sdk = status?['sdk'];
+    final label = status?['label'];
+    final name = label is String && label.isNotEmpty ? label : null;
+    return Column(
+      children: [
+        HintRow(screensaverText(context, androidScreensaverHint)),
+        if (status != null && status['enabled'] == false)
+          WarnRow(screensaverText(context, androidScreensaverTurnedOff)),
+        if (sdk is num && sdk >= 34)
+          WarnRow(screensaverText(context, androidScreensaverModernLimit)),
+        if (enabled && name != null)
+          SettingsRow(
+            title: Text(screensaverText(context, androidScreensaverWillStart)),
+            subtitle: Text(name),
+          )
+        else if (enabled)
+          HintRow(screensaverText(context, androidScreensaverWillStart)),
+        SettingsRow(
+          title: Text(
+            screensaverText(context, androidScreensaverSettingsTitle),
+          ),
+          subtitle: Text(
+            screensaverText(context, androidScreensaverSettingsDetail),
+          ),
+          trailing: const Icon(Icons.open_in_new),
+          onTap: _openSettings,
+        ),
+      ],
     );
   }
 }
