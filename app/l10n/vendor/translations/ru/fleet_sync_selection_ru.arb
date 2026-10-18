@@ -24,5 +24,9 @@
   "fleetOpenAiApiKey": "API-ключ OpenAI",
   "fleetXaiApiKey": "API-ключ xAI",
   "fleetGeminiApiKey": "API-ключ Gemini",
-  "fleetMcpServerToken": "токен сервера MCP"
+  "fleetMcpServerToken": "токен сервера MCP",
+  "fleetPlugins": "Плагины",
+  "fleetPluginSecrets": "Секреты плагинов",
+  "fleetNoPluginsInstalledOnThisKiosk": "На этом киоске нет плагинов",
+  "fleetKiosksOnThisProfileInstallTheseAndTakeTheir": "Киоски с этим профилем устанавливают их и берут их настройки с этого киоска."
 }

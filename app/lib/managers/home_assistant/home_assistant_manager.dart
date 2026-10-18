@@ -1536,7 +1536,7 @@ class HomeAssistantManager extends Manager {
   // A path with a query or fragment is there only when they match too.
   if (location.pathname === route &&
       (!rest || location.search + location.hash === rest)) return 'already';
-  // Around the URL Blacklist's check (urlBlacklistJs).
+  // Around the URL Filter's check (urlFilterJs).
   (history.__ksPushState || history.pushState).call(history, null, '', path);
   window.dispatchEvent(new CustomEvent('location-changed'));
   return 'navigated';
@@ -1852,7 +1852,7 @@ class HomeAssistantManager extends Manager {
   /// honoring the Display precision setting, shows 69.
   ///
   /// [onTranslations] receives Home Assistant's own wording for the states
-  /// of [translationDomain], in the server's language, fetched over the same
+  /// of [translationDomain], in the user's language, fetched over the same
   /// socket (issue #268). A lookup on a separate socket could fail while the
   /// states still arrived, and the widget then spoke English for the rest of
   /// the run (issue #900). Riding the subscription means every reconnect
@@ -1860,7 +1860,7 @@ class HomeAssistantManager extends Manager {
   /// labels already speak it.
   ///
   /// [onStateLabels] receives Home Assistant's wording for the entities'
-  /// states, in the server's language, so a window sensor reads "Closed"
+  /// states, in the user's language, so a window sensor reads "Closed"
   /// rather than "Off" (issue #919). English is fetched too: device class
   /// wording is a translation even there.
   Future<GlanceSubscription?> subscribeEntities(
@@ -2016,8 +2016,15 @@ class HomeAssistantManager extends Manager {
                   if (language != null) {
                     languageKnown(language);
                   } else {
+                    // The user's profile language comes first, as on the
+                    // dashboard. The server's own language only applies
+                    // when the user never picked one.
                     channel.sink.add(
-                      jsonEncode({'id': 3, 'type': 'get_config'}),
+                      jsonEncode({
+                        'id': 7,
+                        'type': 'frontend/get_user_data',
+                        'key': 'language',
+                      }),
                     );
                   }
                 }
@@ -2040,6 +2047,10 @@ class HomeAssistantManager extends Manager {
                     askLabels();
                   } else if (msg['id'] == 5 || msg['id'] == 6) {
                     labelsArrived(msg['id'] as int, null);
+                  } else if (msg['id'] == 7) {
+                    channel.sink.add(
+                      jsonEncode({'id': 3, 'type': 'get_config'}),
+                    );
                   }
                   break;
                 }
@@ -2069,6 +2080,15 @@ class HomeAssistantManager extends Manager {
                     );
                   case 5 || 6:
                     labelsArrived(msg['id'] as int, msg['result']);
+                  case 7:
+                    final language = userLanguage(msg['result']);
+                    if (language != null) {
+                      languageKnown(_language = language);
+                    } else {
+                      channel.sink.add(
+                        jsonEncode({'id': 3, 'type': 'get_config'}),
+                      );
+                    }
                 }
               case 'pong':
                 subscription._pong();
@@ -3278,8 +3298,9 @@ class HomeAssistantManager extends Manager {
     }
   }
 
-  /// The language Home Assistant itself is configured in ("it", "en-GB"),
-  /// from its core config. Cached for the run once the server answers.
+  /// The language Home Assistant speaks to this token's user ("it",
+  /// "en-GB"): the profile language, or the server's own when the user
+  /// never picked one. Cached for the run once the server answers.
   String? _language;
 
   /// Per-domain state translations, keyed by domain. An empty map is a
@@ -3353,6 +3374,15 @@ class HomeAssistantManager extends Manager {
     _holdReleaseTimer?.cancel();
     WidgetsBinding.instance.removeObserver(_brightnessWatch);
   }
+}
+
+/// The profile language out of a `frontend/get_user_data` reply for the
+/// `language` key, as the frontend saves it: `{value: {language: "nl"}}`.
+/// Null when the user never picked one and follows the server.
+String? userLanguage(Object? result) {
+  final value = result is Map ? result['value'] : null;
+  final language = value is Map ? '${value['language'] ?? ''}'.trim() : '';
+  return language.isEmpty ? null : language;
 }
 
 /// The state translations out of a `frontend/get_translations` result, keyed

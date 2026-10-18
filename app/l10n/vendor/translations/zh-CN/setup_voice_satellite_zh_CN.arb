@@ -14,7 +14,7 @@
   "setupAutoplay": "自动播放音频和视频",
   "setupVoiceSkipped": "未安装，已跳过",
   "setupVoiceLead": "将此 Kiosk 设置为 Home Assistant 语音助手。所有设置之后都可修改。",
-  "setupVoiceAddHint": "设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。",
+  "setupVoiceAddAgainHint": "设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。",
   "setupRecommendedWall": "适合壁挂 Kiosk 的设置。",
   "setupVoiceFound": "已发现 Voice Satellite 集成",
   "setupVoiceFoundHelp": "Voice Satellite 现已在 Kiosk Satellite 内运行。可通过迁移保留集成中某个语音卫星的唤醒词、助手和外观，无需重新设置。",

@@ -330,6 +330,39 @@ class PluginRepository {
     return data;
   }
 
+  /// The package of a release already installed, fetched again by its tag
+  /// and accepted only with the SHA-256 it was installed with. A fleet
+  /// leader uses it for plugins installed before packages were kept.
+  Future<Uint8List> downloadRelease({
+    required String repository,
+    required String tag,
+    required String id,
+    required String version,
+    required String digest,
+  }) async {
+    final repo = repositoryUrl(repository);
+    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,150}$').hasMatch(tag) ||
+        !RegExp(r'^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$').hasMatch(id) ||
+        !RegExp(
+          r'^[0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?$',
+        ).hasMatch(version)) {
+      throw const FormatException('Invalid plugin release');
+    }
+    final bytes = await _get(
+      Uri.https(
+        'github.com',
+        '${repo.path}/releases/download/$tag/$id-$version.zip',
+      ),
+      maxPackageBytes,
+    );
+    if (sha256.convert(bytes).toString() != digest) {
+      throw const FormatException(
+        'The release package no longer matches the installed plugin',
+      );
+    }
+    return bytes;
+  }
+
   Future<Map<String, Object?>> installArguments(
     String token, {
     required bool trusted,

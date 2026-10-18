@@ -30,7 +30,7 @@ setting('sendspin.player_active',True,'boolean',hidden=True)
 setting('sendspin.duck_percent',10,'number',min=0,max=10,step=5,unit='%')
 setting('sendspin.ma_url','https://ma.example:8095',subpage='Music Assistant',section='Music Assistant')
 setting('sendspin.ma_token','__set__','password',subpage='Music Assistant',section='Music Assistant')
-setting('sendspin.enabled',False,'boolean',subpage='Sendspin Player',section='Sendspin Player')
+setting('sendspin.enabled',True,'boolean',subpage='Sendspin Player',section='Sendspin Player')
 setting('sendspin.codec','flac','select',subpage='Sendspin Player',section='Sendspin Player',
         options=['flac','opus','pcm'],optionLabels={'flac':'FLAC (lossless)','opus':'Opus (efficient)','pcm':'PCM (uncompressed)'})
 players = [dict(id='ma:raw-id',name='Offline <img src=x> {player}',group='ma',available=False)]
@@ -94,7 +94,7 @@ try:
             player.click()
         assert requests[-1] == {'sendspin.player':'ma:raw-id',
             'sendspin.player_name':'Offline <img src=x> {player}', 'sendspin.player_active':True}
-        expect(root.locator('.player-warn')).to_contain_text("TEST This device's own Sendspin player stays offline while Offline <img src=x> {player} is controlled.")
+        expect(root.locator('.player-warn')).to_contain_text("TEST The Sendspin player stays offline while Offline <img src=x> {player} is picked.")
         expect(root.locator('[data-key="albumArtCache"] .desc')).to_have_text('TEST 1.0 KB used of 1.0 MB. Queue thumbnails are cached automatically.')
         root.locator('[data-key="albumArtCache"] button').click()
         expect(root.locator('[data-key="albumArtCache"] .desc')).to_have_text('TEST 0 B used of 1.0 MB. Queue thumbnails are cached automatically.')

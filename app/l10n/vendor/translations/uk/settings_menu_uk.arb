@@ -56,5 +56,18 @@
   "settingsMenuLogout": "Вийти",
   "settingsMenuSwitchKiosk": "Змінити кіоск",
   "settingsMenuThemeState": "Тема: {theme}",
-  "settingsMenuThemeAuto": "Авто"
+  "settingsMenuThemeAuto": "Авто",
+  "settingsMenuOverviewHeadlessSummary": "Стан і швидке керування",
+  "settingsMenuHomeAssistantHeadlessSummary": "З'єднання",
+  "settingsMenuAudio": "Аудіо",
+  "settingsMenuAudioSummary": "Гучність, мікрофон",
+  "settingsGroupMedia": "Медіа",
+  "settingsMenuDlnaHeadlessSummary": "Відтворення аудіо віддалено",
+  "settingsMenuGesturesHeadlessSummary": "Жести кнопками й оплесками",
+  "settingsMenuLeds": "Керування LED",
+  "settingsMenuLedsSummary": "Кольори й ефекти індикаторів стану",
+  "settingsLedTimers": "Таймери",
+  "settingsLedNotifications": "Сповіщення",
+  "settingsLedIdle": "У спокої",
+  "settingsLedEffects": "Ефекти"
 }

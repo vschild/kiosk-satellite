@@ -304,6 +304,25 @@ void main() {
       expect(snap['receivedAt'], isNotNull);
     });
 
+    test('a followed player carries the audio quality', () {
+      final queue = _queue();
+      (queue['current_item'] as Map)['streamdetails'] = {
+        'provider': 'tidal--1',
+        'audio_format': {
+          'content_type': 'flac',
+          'sample_rate': 44100,
+          'bit_depth': 16,
+        },
+      };
+      remote.publishQueue(queue);
+      expect(emitted.last!['audioQuality'], {
+        'codec': 'FLAC',
+        'sampleRate': 44100,
+        'bitDepth': 16,
+        'lossless': true,
+      });
+    });
+
     test('a leading player carries its group volume (issue #867)', () {
       remote.publishQueue(_queue());
       expect(emitted.last!.containsKey('groupVolume'), isFalse);

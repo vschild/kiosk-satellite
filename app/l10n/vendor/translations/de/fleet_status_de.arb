@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "Unter dieser Adresse wurde keine gültige Kiosk-Identität gefunden.",
   "fleetErrorAlreadyMember": "Dieser Kiosk gehört bereits zu dieser Flotte.",
   "fleetErrorIsLeader": "Dieser Kiosk führt bereits eine Flotte an.",
-  "fleetErrorOtherLeader": "Dieser Kiosk folgt bereits einem anderen Leiter."
+  "fleetErrorOtherLeader": "Dieser Kiosk folgt bereits einem anderen Leiter.",
+  "fleetPluginsNames": "Plugins: {names}",
+  "fleetCouldNotInstallNameReason": "{name} konnte nicht installiert werden: {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Installiere {name} auf diesem Kiosk neu, um es zu synchronisieren"
 }

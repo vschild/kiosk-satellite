@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Wenn mehrere Kiosks das Aktivierungswort hören, antwortet der nächstgelegene. Erhöht die Erkennungslatenz.",
   "settingVoiceWakeArbitrationWindowTitle": "Arbitrierungsfenster",
   "settingVoiceWakeArbitrationWindowDescription": "Wie lange auf die anderen Kiosks gewartet wird. Erhöhe den Wert, wenn ein langsamerer Kiosk verliert, obwohl er näher ist.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Arbitrierungsausgleich",
+  "settingVoiceWakeArbitrationOffsetDescription": "Wird dazu addiert, wie laut dieser Kiosk das Aktivierungswort gehört hat. Erhöhe den Wert, wenn dieser Kiosk verliert, obwohl er näher ist, und senke ihn, wenn er aus zu großer Entfernung antwortet.",
   "voiceSectionWakeArbitration": "Aktivierungswort-Arbitrierung",
   "voiceOptionSlightly": "Wenig empfindlich",
   "voiceOptionModerately": "Mäßig empfindlich",

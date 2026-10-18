@@ -30,6 +30,12 @@ class BootReceiver : BroadcastReceiver() {
         // next ring back; the Activity still waits for that setting.
         val alarmsOn = (prefs.getString("flutter.ks.alarms.list", "") ?: "")
             .contains("\"on\":true")
+        // Without a screen the service is the whole app, so it always comes
+        // up, and there is no Activity to launch after it.
+        if (Headless.active(context)) {
+            KioskSatelliteService.ensureRunning(context)
+            return
+        }
         if (alarmsOn) KioskSatelliteService.ensureRunning(context)
         if (!prefs.getBoolean("flutter.ks.kiosk.start_on_boot", false)) return
         KioskSatelliteService.ensureRunning(context)

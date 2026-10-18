@@ -25,5 +25,6 @@
   "pluginErrorNativeFileIntegrity": "已安装原生库的完整性校验失败",
   "pluginErrorReadInstalled": "无法读取已安装插件：{error}",
   "pluginErrorPreviousRestart": "上一版本无法重新启动：{error}",
-  "pluginErrorUpdateFailed": "插件更新失败：{error}。{recovery}"
+  "pluginErrorUpdateFailed": "插件更新失败：{error}。{recovery}",
+  "pluginErrorNeedsScreen": "此插件需要屏幕"
 }

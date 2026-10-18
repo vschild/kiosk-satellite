@@ -1105,7 +1105,8 @@ class _SetupScreenState extends State<SetupScreen> {
                 context,
                 'After setup, add this kiosk in Home Assistant under '
                 'Settings, Devices & services, where it shows up as '
-                'discovered.',
+                'discovered. If Home Assistant had it before, it asks there '
+                'for the new Encryption key from the ESPHome page.',
               ),
             ),
           _Card([

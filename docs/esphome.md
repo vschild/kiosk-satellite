@@ -36,7 +36,7 @@ Each connection attempt temporarily pauses scanning to perform its handshake (si
 
 ## Kiosk Entities
 
-Turn on **Expose kiosk entities** to add all the entities listed below to the device in Home Assistant. This is off by default, meaning if you only enable ESPHome for the Bluetooth proxy, no extra entities are created. Rows marked with a requirement only appear if that hardware is present; for example, a kiosk with no camera simply will not have camera entities, rather than displaying dead ones. Because the ESPHome protocol does not use attributes, any hardware details that would normally ride on a sensor as an attribute are split into their own distinct entities.
+**Expose kiosk entities** adds all the entities listed below to the device in Home Assistant. It is on by default. Turn it off if you only enable ESPHome for the Bluetooth proxy, and no extra entities are created. A kiosk set up before this default keeps the choice it had. Rows marked with a requirement only appear if that hardware is present; for example, a kiosk with no camera simply will not have camera entities, rather than displaying dead ones. Because the ESPHome protocol does not use attributes, any hardware details that would normally ride on a sensor as an attribute are split into their own distinct entities.
 
 Native Voice Satellite adds its own VS entities and actions, listed in [Voice Satellite](voice-satellite.md#home-assistant-entities-and-actions).
 
@@ -357,7 +357,7 @@ Two actions follow a player from an automation, the way the Media Player page's 
 
 `esphome.<node name>_media_player_list` takes no arguments and answers with every player the kiosk can follow, read through `response_variable`: each with its `source` (`device`, `home_assistant`, `music_assistant` or `sonos`), its `name`, its `id` and whether it is `available`, plus `current`, the pick in force. A Sonos room's id is the serial the Sonos page shows under its address.
 
-`esphome.<node name>_media_player_set` takes a `source` and a `player`, the player by its name as listed or by its id, and answers with what it picked. The `device` source puts the kiosk back on its own Sendspin player; its `player` is then ignored but must still be given, since no ESPHome action argument is optional.
+`esphome.<node name>_media_player_set` takes a `source` and a `player`, the player by its name as listed or by its id, and answers with what it picked. The `device` source puts the kiosk back on its own Sendspin player, or with `player` set to `media_session` on the Local Media Session and `airplay` on the AirPlay receiver. Any other `player` picks the Sendspin player, but one must still be given, since no ESPHome action argument is optional.
 
 ```yaml
 - action: esphome.kitchen_tablet_media_player_set

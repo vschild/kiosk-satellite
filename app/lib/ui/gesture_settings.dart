@@ -54,6 +54,9 @@ const _actionGroups = <(String, List<(String, String, IconData)>)>[
       ),
       ('alarm_stop', 'Stop the alarm', Icons.alarm_off_outlined),
       ('alarm_snooze', 'Snooze the alarm', Icons.snooze_outlined),
+      ('voice_wake', 'Start a voice command', Icons.mic_none_outlined),
+      ('voice_stop', 'Stop the voice assistant', Icons.stop_circle_outlined),
+      ('voice_mute', 'Mute or unmute Voice Satellite', Icons.mic_off_outlined),
       ('screensaver', 'Start the screensaver', Icons.nightlight_outlined),
       ('screensaver_stop', 'Stop the screensaver', Icons.light_mode_outlined),
       ('hold_mode', 'Toggle hold mode', Icons.pause_circle_outline),
@@ -153,6 +156,7 @@ class _GestureSettingsPanelState extends State<GestureSettingsPanel> {
                   'claps' => Icons.sign_language_outlined,
                   'fingers' => Icons.waving_hand_outlined,
                   'plugin' => Icons.extension_outlined,
+                  'button' => Icons.radio_button_checked,
                   _ => Icons.gesture,
                 }),
                 title: Text(localizedGestureTrigger(context, mapping.trigger)),
@@ -794,6 +798,9 @@ class _GestureSettingsPanelState extends State<GestureSettingsPanel> {
       'intercom_decline' ||
       'alarm_stop' ||
       'alarm_snooze' ||
+      'voice_wake' ||
+      'voice_stop' ||
+      'voice_mute' ||
       'screensaver' ||
       'screensaver_stop' ||
       'hold_mode' ||

@@ -25,6 +25,7 @@ import me.jxl.kiosk.plugins.KioskPlugin
 import me.jxl.kiosk.plugins.OverlayFactory
 import me.jxl.kiosk.plugins.OverlaySpec
 import me.jxl.kiosk.plugins.PluginHost
+import me.jxl.kiosk_satellite.Headless
 import org.json.JSONObject
 
 /** Process-owned runtime for explicitly installed, trusted SDK 1 plugins. */
@@ -80,7 +81,11 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "plugin-manager").apply { isDaemon = true } }
     private val prefs = context.getSharedPreferences("kiosk_plugins", Context.MODE_PRIVATE)
+    private val headless = Headless.active(context)
     private val root = File(context.filesDir, "plugins-v1").apply { mkdirs() }
+    // Each installed package as it arrived, by its hash, so a fleet leader
+    // can hand its followers the exact bytes it runs.
+    private val packages = File(context.filesDir, "plugin-packages").apply { mkdirs() }
     private var records = JSONObject(prefs.getString("installed", "{}") ?: "{}")
     @Volatile private var pluginsEnabled = prefs.getBoolean("pluginsEnabled", records.length() > 0)
     private var startupGeneration = 0
@@ -362,6 +367,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 require(insets.all { it in 0..PluginOverlays.MAX_INSET }) { "Content insets must be 0 to 4096 dp" }
                 emit("contentInsets", mapOf("id" to id, "session" to token, "insets" to insets), alive)
             }
+            override fun isHeadless() = headless
             override fun log(message: String) = emit("log", mapOf("id" to id, "message" to message.take(1000)), alive)
             override fun nativeLibraryPath(name: String): String {
                 check(alive.get() && "native" in manifest.capabilities)
@@ -486,6 +492,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                             try {
                                 val manifest = PluginManifest(JSONObject(args["manifest"] as String))
                                 require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Plugin needs Android API ${manifest.minAndroidSdk}" }
+                                requireScreen(manifest)
                                 mapOf("compatible" to true, "compatibilityError" to "")
                             } catch (error: Exception) {
                                 mapOf("compatible" to false, "compatibilityError" to (error.message ?: "Invalid plugin manifest"))
@@ -497,6 +504,17 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                         "remove" -> { remove(id(args)); snapshot() }
                         "configure" -> { configure(id(args), args); snapshot() }
                         "configureAction" -> { configureAction(id(args), args); snapshot() }
+                        "fleetState" -> fleetState()
+                        "fleetConfigure" -> { fleetConfigure(id(args), args); snapshot() }
+                        "packagePath" -> packageFile(id(args))?.absolutePath
+                        "keepPackage" -> {
+                            val id = id(args)
+                            val bytes = args["bytes"] as? ByteArray ?: throw IllegalArgumentException("Missing plugin ZIP")
+                            val hash = records.getJSONObject(id).getString("hash")
+                            require(PluginPackage.sha256(bytes) == hash) { "Package SHA-256 does not match the installed plugin" }
+                            keepPackage(hash, bytes)
+                            packageFile(id)?.absolutePath
+                        }
                         "execute" -> { execute(id(args), args); snapshot() }
                         "entityCommand" -> {
                             val session = sessions[id(args)] ?: throw IllegalStateException("Enable the plugin first")
@@ -603,6 +621,8 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val installedHashes = records.keys().asSequence().map { records.getJSONObject(it).optString("hash") }.toSet()
         root.listFiles()?.filter { it.name !in installedHashes && it.name !in loadedHashes }
             ?.forEach { it.deleteRecursively() }
+        packages.listFiles()?.filter { it.name.removeSuffix(".zip") !in installedHashes }
+            ?.forEach { it.delete() }
         // Existing installations keep running. New installations start with plugins off.
         if (!prefs.contains("pluginsEnabled")) {
             check(prefs.edit().putBoolean("pluginsEnabled", pluginsEnabled).commit())
@@ -694,6 +714,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 "This plugin ID belongs to another repository. Uninstall it before changing sources."
             }
             require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Plugin needs Android API ${manifest.minAndroidSdk}" }
+            requireScreen(manifest)
             require(manifest.id !in restartRequired) { "This plugin did not stop cleanly. Restart Kiosk Satellite before replacing it." }
             require(records.has(manifest.id) || records.length() < 8) { "At most 8 plugins can be installed" }
             val previous = records.optJSONObject(manifest.id)
@@ -777,6 +798,10 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             }
             previous?.optString("hash")?.takeIf { it != hash && it !in loadedHashes }
                 ?.let { File(root, it).deleteRecursively() }
+            previous?.optString("hash")?.takeIf { it != hash }?.let { File(packages, "$it.zip").delete() }
+            // A package that cannot be kept still installs: a fleet leader
+            // then reports it cannot pass this plugin on.
+            try { keepPackage(hash, bytes) } catch (_: Throwable) { File(packages, "$hash.zip").delete() }
             return snapshot()
         } finally { staging.deleteRecursively() }
     }
@@ -794,6 +819,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 PluginPackage.sha256(PluginPackage.installedManifest(dir).readBytes()) == record.getString("manifestSha256")) { "Installed plugin failed its integrity check. Reinstall it." }
             val manifest = manifest(id)
             require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Android version is too old" }
+            requireScreen(manifest)
             val config = manifest.config(record.optJSONObject("config") ?: JSONObject())
             check(jar.setReadOnly())
             val digests = record.optJSONObject("nativeSha256") ?: JSONObject()
@@ -824,6 +850,14 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             throw error
         }
     }
+
+    /**
+     * On a device without a screen, a plugin that only shows overlays or
+     * screensavers would run for nothing, so it neither installs nor starts.
+     * This also turns away a fleet leader's push.
+     */
+    private fun requireScreen(manifest: PluginManifest) =
+        require(!headless || !manifest.needsScreen) { "This plugin needs a screen" }
 
     private fun stopSession(id: String) {
         val session = sessions.remove(id) ?: return
@@ -858,7 +892,86 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val dir = directory(id)
         records.remove(id)
         save()
+        File(packages, "${dir.name}.zip").delete()
         if (dir.name !in loadedHashes) dir.deleteRecursively()
+    }
+
+    private fun keepPackage(hash: String, bytes: ByteArray) {
+        val partial = File(packages, ".$hash.partial")
+        partial.writeBytes(bytes)
+        check(partial.renameTo(File(packages, "$hash.zip"))) { "Cannot keep the plugin package" }
+    }
+
+    private fun packageFile(id: String): File? =
+        File(packages, "${records.getJSONObject(id).getString("hash")}.zip").takeIf { it.isFile }
+
+    /**
+     * What a fleet leader passes on for each plugin: the package hash and
+     * source, whether it runs, its settings with the secrets in the clear
+     * and where its actions show. Only the fleet sync reads this, never an
+     * admin listing.
+     */
+    private fun fleetState(): List<Any?> = records.keys().asSequence().sorted().mapNotNull { id ->
+        try {
+            val record = records.getJSONObject(id)
+            val manifest = manifest(id)
+            mapOf(
+                "id" to id,
+                "name" to manifest.json.optString("name", id),
+                "version" to manifest.json.optString("version"),
+                "sha256" to record.getString("hash"),
+                "source" to jsonValue(record.optJSONObject("source")),
+                "enabled" to record.optBoolean("enabled"),
+                "config" to jsonValue(record.optJSONObject("config") ?: JSONObject()),
+                "actionOptions" to jsonValue(record.optJSONObject("actionOptions") ?: JSONObject()),
+                "secretKeys" to manifest.secretKeys.sorted(),
+                "kept" to (packageFile(id) != null),
+            )
+        } catch (_: Throwable) {
+            null
+        }
+    }.toList()
+
+    /**
+     * Takes what the fleet leader holds for one plugin: its settings, where
+     * its actions show and whether it runs. A secret the leader did not
+     * send keeps this kiosk's own value. Whether plugins run at all stays
+     * this kiosk's choice: with Enable Plugins off the plugin is marked
+     * enabled and starts once it is switched on.
+     */
+    private fun fleetConfigure(id: String, args: Map<String, Any?>) {
+        val manifest = manifest(id)
+        val record = records.getJSONObject(id)
+        val saved = record.optJSONObject("config") ?: JSONObject()
+        val incoming = JSONObject(args["config"] as? Map<*, *> ?: throw IllegalArgumentException("Missing settings"))
+        for (key in manifest.secretKeys) {
+            if (incoming.has(key)) continue
+            if (saved.has(key)) incoming.put(key, saved.get(key))
+        }
+        val config = manifest.config(incoming)
+        val options = JSONObject()
+        (args["actionOptions"] as? Map<*, *>)?.forEach { (command, value) ->
+            if (command is String && manifest.hasCommand(command) && value is Map<*, *>) {
+                options.put(command, JSONObject()
+                    .put("drawer", value["drawer"] == true).put("homeAssistant", value["homeAssistant"] == true))
+            }
+        }
+        val enabled = args["enabled"] as? Boolean ?: throw IllegalArgumentException("Missing enabled flag")
+        val next = JSONObject(config)
+        if (next.toString() != saved.toString()) {
+            sessions[id]?.let { session ->
+                try { session.call { session.plugin!!.configure(Collections.unmodifiableMap(config)) } }
+                catch (error: Throwable) { fail(id, error); throw error }
+            }
+        }
+        record.put("config", next).put("actionOptions", options)
+        save()
+        val wasEnabled = record.optBoolean("enabled")
+        when {
+            enabled && !wasEnabled && pluginsEnabled -> enable(id)
+            enabled && !wasEnabled -> { record.put("enabled", true).put("error", ""); save() }
+            !enabled && wasEnabled -> disable(id)
+        }
     }
 
     private fun configure(id: String, args: Map<String, Any?>) {

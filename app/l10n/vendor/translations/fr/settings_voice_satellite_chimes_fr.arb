@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Son d'annonce",
   "voiceChimeAnnounceDescription": "Joué avant une annonce de Voice Satellite, sauf si l'annonce fournit son propre son.",
   "settingVoiceWakeSoundTitle": "Jouer les sons",
-  "settingVoiceWakeSoundDescription": "Les sons de réveil, de fin et d'erreur."
+  "settingVoiceWakeSoundDescription": "Les sons de réveil, de fin et d'erreur.",
+  "voiceChimeWakeVolumeTitle": "Volume du son de réveil",
+  "voiceChimeDoneVolumeTitle": "Volume du son de fin",
+  "voiceChimeErrorVolumeTitle": "Volume du son d'erreur",
+  "voiceChimeTimerVolumeTitle": "Volume du son du minuteur",
+  "voiceChimeAnnounceVolumeTitle": "Volume du son d'annonce",
+  "voiceChimeVolumeDescription": "Une proportion du volume de l'assistant."
 }

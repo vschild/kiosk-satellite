@@ -9,6 +9,8 @@
   "overviewThisRelease": "этот выпуск",
   "overviewUpdateAvailable": "Доступно обновление",
   "overviewInstallHelp": "Kiosk Satellite {version} готов к установке. Установка подтверждается на экране планшета.",
+  "overviewInstallSilentHelp": "Kiosk Satellite {version} готов к установке. Он устанавливается без подтверждения на устройстве.",
+  "overviewInstallHeadlessHelp": "Kiosk Satellite {version} готов к установке. У этого устройства нет экрана для подтверждения, поэтому сделайте Kiosk Satellite владельцем устройства, используйте Shizuku или установите через adb.",
   "overviewHaSetup": "Home Assistant не настроен",
   "overviewHaSetupHelp": "Подключите киоск к Home Assistant, чтобы загрузить панель.",
   "overviewSetUp": "Настроить",

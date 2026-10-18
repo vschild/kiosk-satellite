@@ -42,5 +42,16 @@
   "deviceWebViewHint": "Version du moteur, rendu et agent utilisateur",
   "devicePasswordSet": "•••••• (défini)",
   "deviceSaveFailed": "Impossible d'enregistrer ce paramètre. Réessayez.",
-  "deviceOpenSettingsDevice": "Ouvrir les paramètres sur l'appareil"
+  "deviceOpenSettingsDevice": "Ouvrir les paramètres sur l'appareil",
+  "deviceHardwareButtons": "Boutons physiques",
+  "deviceHardwareButtonsHeld": "Les boutons de l'appareil atteignent les gestes et Voice Satellite.",
+  "deviceHardwareButtonsMissing": "Les boutons de l'appareil ne font rien tant que le service des boutons n'est pas activé.",
+  "deviceHeadlessAdbMicrophone": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, puis de même pour BLUETOOTH_CONNECT",
+  "deviceHeadlessAdbBattery": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "Cet appareil n'a pas d'écran. Accordez-la par adb : adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, puis de même pour WRITE_EXTERNAL_STORAGE",
+  "deviceHeadlessAdbButtons": "Cet appareil n'a pas d'écran. Activez-le par adb : adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, puis adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "Le service des boutons est activé mais n'a pas démarré. Redémarrez l'appareil pour le démarrer : adb reboot"
 }

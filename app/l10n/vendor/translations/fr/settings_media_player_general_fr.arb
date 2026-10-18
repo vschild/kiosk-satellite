@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "Tant que Lecture en cours est affichée",
   "mediaKeysPlaying": "Tant que le lecteur joue",
   "mediaAnotherPlayer": "un autre lecteur",
-  "mediaLocalOffline": "Le propre lecteur Sendspin de cet appareil reste hors ligne tant que {player} est contrôlé."
+  "mediaOfflineSendspin": "Le lecteur Sendspin reste hors ligne tant que {player} est sélectionné.",
+  "mediaOfflineAirplay": "Le récepteur AirPlay reste désactivé tant que {player} est sélectionné.",
+  "mediaOfflineBoth": "Le lecteur Sendspin et le récepteur AirPlay restent hors ligne tant que {player} est sélectionné."
 }

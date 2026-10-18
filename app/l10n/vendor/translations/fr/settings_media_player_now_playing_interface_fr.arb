@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Affiche la sélection des enceintes pendant 5 secondes après une interaction avec l'écran. Ajoutez ou retirez des enceintes du groupe actuel.",
   "settingSendspinSpeakerPillPlayersTitle": "Filtrer la pastille de sélection des enceintes",
   "settingSendspinSpeakerPillPlayersDescription": "Seules ces enceintes apparaissent dans la pastille. Les enceintes déjà dans le groupe apparaissent toujours.",
+  "settingSendspinAudioQualityTitle": "Afficher la qualité audio",
+  "settingSendspinAudioQualityDescription": "Affiche le format, la profondeur de bits, la fréquence d'échantillonnage, le débit et la source du titre en cours en bas de Lecture en cours. Nécessite Music Assistant.",
   "mediaAllSpeakers": "Toutes les enceintes",
   "settingSendspinQueueArtTitle": "Afficher la pochette dans la file d'attente",
   "settingSendspinQueueArtDescription": "Une pochette sur chaque ligne du panneau de file d'attente.",

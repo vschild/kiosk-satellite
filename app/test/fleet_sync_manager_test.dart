@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart' show sha256;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +13,7 @@ import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/fleet/fleet_sync_manager.dart';
+import 'package:kiosk_satellite/managers/plugins/fleet_plugin_host.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
 import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,7 +60,10 @@ void main() {
   Map<String, Object?>? uploaded;
   var installing = false;
 
-  Future<void> build({Map<String, Object> prefs = const {}}) async {
+  Future<void> build({
+    Map<String, Object> prefs = const {},
+    FleetPluginHost? pluginHost,
+  }) async {
     SharedPreferences.setMockInitialValues({
       'ks.browser.start_url': 'http://ha.local:8123/lovelace/0',
       'ks.remote.enabled': true,
@@ -110,6 +118,7 @@ void main() {
       ),
     );
     fleet = FleetSyncManager(bus, commands, log, settings)
+      ..plugins = pluginHost
       ..formerDefaultExcluded = formerHistory
       ..clientFactory = () => MockClient((req) async {
         sent.add(req);
@@ -547,6 +556,38 @@ void main() {
     },
   );
 
+  test(
+    'settings this kiosk pins never import and never mark it changed here',
+    () async {
+      await build(
+        prefs: {
+          'ks.fleet.leader_info': jsonEncode({'id': 'lead', 'name': 'Leader'}),
+        },
+      );
+      defs.devicePinnedKeys.add(defs.screensaverEnabled.key);
+      addTearDown(() => defs.devicePinnedKeys.clear());
+      await settings.set(defs.screensaverEnabled, false);
+      final (error, _) = await fleet.apply({
+        'version': '2026.9.19',
+        'revision': 'r1',
+        'settings': {
+          defs.screensaverEnabled.key: true,
+          defs.screensaverMode.key: 'clock',
+        },
+      });
+      expect(error, isNull);
+      expect(settings.get(defs.screensaverEnabled), false);
+      expect(settings.get(defs.screensaverMode), 'clock');
+      expect(
+        settings.get(defs.fleetSyncedKeys),
+        isNot(contains(defs.screensaverEnabled.key)),
+      );
+      await settings.set(defs.screensaverEnabled, true);
+      await Future<void>.delayed(Duration.zero);
+      expect(settings.get(defs.fleetAppliedRevision), 'r1');
+    },
+  );
+
   group('plugins stay local', () {
     test(
       'plugin screensaver choices and schedules never travel or get overwritten',
@@ -855,6 +896,8 @@ void main() {
       }
       // The credentials and the dashboard are choices, not per device.
       for (final key in defs.fleetCredentialKeys) {
+        // Plugin secrets are the plugins' own, not a setting.
+        if (key == defs.fleetPluginSecrets) continue;
         expect(settings.defByKey(key)!.perDevice, isFalse, reason: key);
       }
       expect(settings.defByKey('browser.start_url')!.perDevice, isFalse);
@@ -922,7 +965,7 @@ void main() {
             'categories': [],
             'credentials': ['ha.token', 'bogus'],
           })!.describe(),
-          'Categories: 0 of 18. Credentials: 1 of 8. Excluded: 38.',
+          'Categories: 0 of 18. Credentials: 1 of 9. Excluded: 43.',
         );
         expect(
           withCreds['browser.start_url'],
@@ -2158,13 +2201,16 @@ void main() {
       expect(former.containsAll(previous), isTrue);
       previous = former;
     }
-    // The external motion sensor joined last (issue #973): the newest
-    // former list is the current one without it.
+    // The per-chime volumes joined last (issue #998): the newest former
+    // list is the current one without them.
     expect(
       defs.fleetFormerDefaultExcluded.last,
       defs.fleetDefaultExcluded.difference({
-        'motion.use_entity',
-        'motion.entity',
+        'voice_chimes.wake_volume',
+        'voice_chimes.done_volume',
+        'voice_chimes.error_volume',
+        'voice_chimes.alert_volume',
+        'voice_chimes.announce_volume',
       }),
     );
   });
@@ -2324,4 +2370,343 @@ void main() {
       );
     });
   });
+  group('plugins in the fleet', () {
+    final zip = Uint8List.fromList(List<int>.generate(64, (i) => i));
+    final zipHash = sha256.convert(zip).toString();
+    final localHash = 'b' * 64;
+
+    Map<String, Object?> plugin(
+      String id,
+      String hash, {
+      bool enabled = true,
+      Map<String, Object?> config = const {},
+    }) => {
+      'id': id,
+      'name': id == 'hello' ? 'Hello' : 'Local',
+      'version': '1.0.0',
+      'sha256': hash,
+      'source': {'repository': 'https://github.com/me/$id'},
+      'enabled': enabled,
+      'config': config,
+      'actionOptions': const {},
+      'secretKeys': const ['token'],
+      'kept': true,
+    };
+
+    Map<String, Object> leaderPrefs({List<String> credentials = const []}) => {
+      'ks.fleet.leader': true,
+      'ks.fleet.followers': jsonEncode([
+        {
+          'id': 'bed',
+          'name': 'Bedroom',
+          'address': '192.168.1.71',
+          'port': 2324,
+          'token': 't',
+        },
+      ]),
+      'ks.fleet.profiles': jsonEncode([
+        {
+          ...SyncProfile.initial.toJson(),
+          'credentials': credentials,
+          'plugins': ['hello'],
+        },
+      ]),
+    };
+
+    void followerAnswers({Map<String, String> plugins = const {}}) {
+      answers['GET /api/fleet/status'] = (_) => {
+        'id': 'bed',
+        'version': '2026.9.19',
+        'leaderId': 'me',
+        'plugins': plugins,
+      };
+      answers['POST /api/fleet/apply'] = (_) => {
+        'ok': true,
+        'data': {'applied': 0},
+      };
+      answers['PUT /api/fleet/plugins'] = (_) => {'ok': true};
+    }
+
+    Map<String, Object?> lastPush() =>
+        jsonDecode(sent.lastWhere((q) => q.url.path == '/api/fleet/apply').body)
+            as Map<String, Object?>;
+
+    test('a profile without plugins hashes as it did before', () async {
+      final host = _FakePlugins()..state = [plugin('hello', zipHash)];
+      await build(
+        prefs: {...leaderPrefs(), 'ks.fleet.profiles': ''},
+        pluginHost: host,
+      );
+      final f = fleet.followers.single;
+      expect(
+        fleet.fingerprintFor(f),
+        FleetSyncManager.fingerprintOf(
+          fleet.profileSettings(fleet.profileFor(f)),
+        ),
+      );
+    });
+
+    test('the package goes ahead of the push and the secrets stay home '
+        'unless the profile includes them', () async {
+      final dir = await Directory.systemTemp.createTemp('ks_fleet_plugin');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = await File('${dir.path}/hello.zip').writeAsBytes(zip);
+      final host = _FakePlugins()
+        ..state = [
+          plugin('hello', zipHash, config: {'color': 'red', 'token': 's3'}),
+          plugin('local', localHash),
+        ]
+        ..package = (_) => file.path;
+      await build(prefs: leaderPrefs(), pluginHost: host);
+      // The tick a leader runs on its own at start, before the answers.
+      await settle();
+      sent.clear();
+      followerAnswers();
+      await commands.execute('fleetSyncNow', const {});
+      await settle();
+      final put = sent.singleWhere((q) => q.method == 'PUT');
+      expect(put.url.path, '/api/fleet/plugins');
+      expect(put.url.queryParameters['sha256'], zipHash);
+      expect(put.bodyBytes, zip);
+      final sentPlugins = lastPush()['plugins'] as List;
+      expect(sentPlugins.single['id'], 'hello');
+      expect(sentPlugins.single['config'], {'color': 'red'});
+      expect(sentPlugins.single['secrets'], isFalse);
+
+      // With Plugin secrets the token travels, and a follower that already
+      // runs the package gets no second copy.
+      sent.clear();
+      followerAnswers(plugins: {'hello': zipHash});
+      final profile = fleet.defaultProfile.copyWith(
+        credentials: {defs.fleetPluginSecrets},
+      );
+      await commands.execute('fleetSetProfile', {'profile': profile.toJson()});
+      await commands.execute('fleetSyncNow', const {});
+      await settle();
+      expect(sent.where((q) => q.method == 'PUT'), isEmpty);
+      expect((lastPush()['plugins'] as List).single['config'], {
+        'color': 'red',
+        'token': 's3',
+      });
+    });
+
+    test('a package this kiosk cannot pass on is reported once', () async {
+      final host = _FakePlugins()..state = [plugin('hello', zipHash)];
+      await build(prefs: leaderPrefs(), pluginHost: host);
+      // The tick a leader runs on its own at start, before the answers.
+      await settle();
+      sent.clear();
+      followerAnswers();
+      await commands.execute('fleetSyncNow', const {});
+      await settle();
+      final row = (fleet.status()['followers'] as List).single as Map;
+      expect(row['phase'], 'error');
+      expect(row['status'], 'Reinstall Hello on this kiosk to sync it');
+      final calls = host.packageCalls;
+      // A change elsewhere pushes again without asking for the package.
+      await settings.set(defs.screensaverMode, 'black');
+      await Future<void>.delayed(const Duration(milliseconds: 2600));
+      expect(host.packageCalls, calls);
+    });
+
+    test('without a plugin listing the leader holds the push', () async {
+      final host = _FakePlugins()..failState = true;
+      await build(prefs: leaderPrefs(), pluginHost: host);
+      // The tick a leader runs on its own at start, before the answers.
+      await settle();
+      sent.clear();
+      followerAnswers();
+      await commands.execute('fleetSyncNow', const {});
+      await settle();
+      expect(sent.where((q) => q.url.path == '/api/fleet/apply'), isEmpty);
+    });
+
+    Map<String, Object> followerPrefs() => {
+      'ks.fleet.leader_info': jsonEncode({'id': 'lead', 'name': 'Living Room'}),
+    };
+
+    Future<void> stage(Uint8List bytes, String hash) async {
+      final r = await commands.execute('fleetStagePlugin', {
+        'sha256': hash,
+        'stream': Stream<List<int>>.value(bytes),
+        'length': bytes.length,
+      });
+      expect(r.ok, isTrue, reason: r.error);
+    }
+
+    Future<Map<String, Object?>> push(
+      List<Map<String, Object?>> plugins,
+    ) async {
+      final r = await commands.execute('fleetApply', {
+        'revision': 'r1',
+        'version': '2026.9.19',
+        'settings': const {},
+        'plugins': plugins,
+      });
+      expect(r.ok, isTrue, reason: r.error);
+      return (r.data as Map).cast<String, Object?>();
+    }
+
+    test('a follower installs what was staged, takes the settings and '
+        'removes only what the fleet installed', () async {
+      final host = _FakePlugins()
+        ..state = [plugin('local', localHash, enabled: false)]
+        ..ids = {zipHash: 'hello'};
+      await build(prefs: followerPrefs(), pluginHost: host);
+      await stage(zip, zipHash);
+      final hello = FleetSyncManager.pluginEntry(
+        plugin('hello', zipHash, config: {'color': 'blue'}),
+        secrets: false,
+      );
+      final local = FleetSyncManager.pluginEntry(
+        plugin('local', localHash),
+        secrets: false,
+      );
+      final data = await push([hello, local]);
+      expect(data['pluginErrors'], isEmpty);
+      expect(host.installs, [zipHash]);
+      expect(host.configured.keys, unorderedEquals(['hello', 'local']));
+      expect(host.byId('local')['enabled'], isTrue);
+      expect(fleet.syncedPlugins['hello']?['installed'], isTrue);
+      expect(fleet.syncedPlugins['local']?['installed'], isFalse);
+      final st = await commands.execute('fleetFollowerStatus', const {});
+      expect((st.data as Map)['plugins'], {
+        'local': localHash,
+        'hello': zipHash,
+      });
+
+      // The leader stops sending both: the one it installed goes, the one
+      // that was here first stays.
+      await push(const []);
+      expect(host.removed, ['hello']);
+      expect(fleet.syncedPlugins, isEmpty);
+    });
+
+    test('a package that never arrived is reported to the leader', () async {
+      final host = _FakePlugins();
+      await build(prefs: followerPrefs(), pluginHost: host);
+      final data = await push([
+        FleetSyncManager.pluginEntry(plugin('hello', zipHash), secrets: false),
+      ]);
+      expect((data['pluginErrors'] as Map)['hello'], {
+        'sha256': zipHash,
+        'name': 'Hello',
+        'message': 'The package did not arrive',
+      });
+      final following = fleet.status()['following'] as Map;
+      expect(following['pluginErrors'], [
+        {'name': 'Hello', 'message': 'The package did not arrive'},
+      ]);
+    });
+
+    test('a staged package must match its hash', () async {
+      await build(prefs: followerPrefs(), pluginHost: _FakePlugins());
+      final r = await commands.execute('fleetStagePlugin', {
+        'sha256': 'c' * 64,
+        'stream': Stream<List<int>>.value(zip),
+        'length': zip.length,
+      });
+      expect(r.ok, isFalse);
+      expect(r.error, 'Package SHA-256 does not match');
+    });
+
+    test('a local change to a synced plugin marks the kiosk dirty', () async {
+      final host = _FakePlugins()..state = [plugin('local', localHash)];
+      await build(prefs: followerPrefs(), pluginHost: host);
+      await push([
+        FleetSyncManager.pluginEntry(
+          plugin('local', localHash, config: {'color': 'red'}),
+          secrets: false,
+        ),
+      ]);
+      expect(settings.get(defs.fleetAppliedRevision), 'r1');
+      // A secret changed here is this kiosk's own business.
+      host.byId('local')['config'] = {'color': 'red', 'token': 'mine'};
+      bus.publish(const RemoteStatusChanged('plugin-settings'));
+      await settle();
+      expect(settings.get(defs.fleetAppliedRevision), 'r1');
+      host.byId('local')['config'] = {'color': 'green'};
+      bus.publish(const RemoteStatusChanged('plugin-settings'));
+      await settle();
+      expect(settings.get(defs.fleetAppliedRevision), '');
+      final st = await commands.execute('fleetFollowerStatus', const {});
+      expect((st.data as Map)['dirty'], isTrue);
+    });
+  });
+}
+
+/// The plugin runtime as Fleet Management sees it, in memory.
+class _FakePlugins implements FleetPluginHost {
+  List<Map<String, Object?>> state = [];
+
+  /// Which plugin id each package hash installs.
+  Map<String, String> ids = {};
+  String? Function(String id) package = (_) => null;
+  bool failState = false;
+  int packageCalls = 0;
+  final installs = <String>[];
+  final configured = <String, Map<String, Object?>>{};
+  final removed = <String>[];
+
+  Map<String, Object?> byId(String id) =>
+      state.firstWhere((p) => p['id'] == id);
+
+  @override
+  Future<List<Map<String, Object?>>> fleetState() async {
+    if (failState) throw StateError('no runtime');
+    return [
+      for (final p in jsonDecode(jsonEncode(state)) as List)
+        (p as Map).cast<String, Object?>(),
+    ];
+  }
+
+  @override
+  Future<String?> fleetPackage(String id) async {
+    packageCalls++;
+    return package(id);
+  }
+
+  @override
+  Future<void> fleetInstall(
+    Uint8List bytes, {
+    required String sha256,
+    Map<String, Object?>? source,
+  }) async {
+    installs.add(sha256);
+    final id = ids[sha256]!;
+    state
+      ..removeWhere((p) => p['id'] == id)
+      ..add({
+        'id': id,
+        'name': id == 'hello' ? 'Hello' : id,
+        'version': '1.0.0',
+        'sha256': sha256,
+        'source': source,
+        'enabled': false,
+        'config': <String, Object?>{},
+        'actionOptions': <String, Object?>{},
+        'secretKeys': const ['token'],
+        'kept': true,
+      });
+  }
+
+  @override
+  Future<void> fleetConfigure(String id, Map<String, Object?> entry) async {
+    configured[id] = entry;
+    final p = byId(id);
+    final own = (p['config'] as Map?) ?? const {};
+    p
+      ..['enabled'] = entry['enabled'] == true
+      ..['config'] = {
+        if (own.containsKey('token')) 'token': own['token'],
+        ...(entry['config'] as Map).cast<String, Object?>(),
+      }
+      ..['actionOptions'] = entry['actionOptions'];
+  }
+
+  @override
+  Future<void> fleetRemove(String id) async {
+    removed.add(id);
+    state.removeWhere((p) => p['id'] == id);
+  }
 }

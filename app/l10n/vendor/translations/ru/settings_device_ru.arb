@@ -42,5 +42,16 @@
   "deviceWebViewHint": "Версия движка, рендерер и user agent",
   "devicePasswordSet": "•••••• (задан)",
   "deviceSaveFailed": "Не удалось сохранить эту настройку. Попробуйте снова.",
-  "deviceOpenSettingsDevice": "Открыть настройки на устройстве"
+  "deviceOpenSettingsDevice": "Открыть настройки на устройстве",
+  "deviceHardwareButtons": "Аппаратные кнопки",
+  "deviceHardwareButtonsHeld": "Кнопки устройства доходят до жестов и Voice Satellite.",
+  "deviceHardwareButtonsMissing": "Кнопки устройства ничего не делают, пока не включена служба кнопок.",
+  "deviceHeadlessAdbMicrophone": "У этого устройства нет экрана. Выдайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "У этого устройства нет экрана. Выдайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "У этого устройства нет экрана. Выдайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "У этого устройства нет экрана. Выдайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, затем то же для BLUETOOTH_CONNECT",
+  "deviceHeadlessAdbBattery": "У этого устройства нет экрана. Выдайте через adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "У этого устройства нет экрана. Выдайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, затем то же для WRITE_EXTERNAL_STORAGE",
+  "deviceHeadlessAdbButtons": "У этого устройства нет экрана. Включите через adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, затем adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "Служба кнопок включена, но не запущена. Перезагрузите устройство, чтобы запустить её: adb reboot"
 }

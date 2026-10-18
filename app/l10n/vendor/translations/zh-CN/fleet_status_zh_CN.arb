@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "此地址未返回有效的 Kiosk 设备身份。",
   "fleetErrorAlreadyMember": "此 Kiosk 设备已属于此设备群。",
   "fleetErrorIsLeader": "该 Kiosk 设备正在管理设备群。",
-  "fleetErrorOtherLeader": "该 Kiosk 设备已在从其他主设备同步设置。"
+  "fleetErrorOtherLeader": "该 Kiosk 设备已在从其他主设备同步设置。",
+  "fleetPluginsNames": "插件：{names}",
+  "fleetCouldNotInstallNameReason": "无法安装 {name}：{reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "请在此设备上重新安装 {name} 以进行同步"
 }

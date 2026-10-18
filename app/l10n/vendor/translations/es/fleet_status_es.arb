@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "Esa dirección no devolvió una identidad de kiosko válida.",
   "fleetErrorAlreadyMember": "Este kiosko ya pertenece a esta flota.",
   "fleetErrorIsLeader": "Ese kiosko dirige una flota.",
-  "fleetErrorOtherLeader": "Ese kiosko ya sigue a otro líder."
+  "fleetErrorOtherLeader": "Ese kiosko ya sigue a otro líder.",
+  "fleetPluginsNames": "Plugins: {names}",
+  "fleetCouldNotInstallNameReason": "No se pudo instalar {name}: {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Reinstala {name} en este kiosko para sincronizarlo"
 }

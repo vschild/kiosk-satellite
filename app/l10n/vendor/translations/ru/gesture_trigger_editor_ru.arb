@@ -43,5 +43,10 @@
   "gestureSequenceError": "Добавьте минимум два угла.",
   "gesturePluginTrigger": "Триггер плагина",
   "gesturePluginTriggerField": "Триггер",
-  "gesturePluginTriggerHelp": "Сначала включите плагин с триггерами в менеджере плагинов."
+  "gesturePluginTriggerHelp": "Сначала включите плагин с триггерами в менеджере плагинов.",
+  "gestureButton": "Кнопка",
+  "gesturePress": "Нажатие",
+  "gestureDoublePress": "Двойное нажатие",
+  "gestureHoldPress": "Удержание",
+  "gestureButtonDefaults": "Нажатие, которое не использует ни один жест, сохраняет свою роль: Действие отвечает, останавливает или отклоняет то, что звонит, а иначе начинает голосовую команду, Микрофон выключает Voice Satellite, а кнопки громкости меняют громкость."
 }

@@ -31,13 +31,14 @@ To keep each follower's settings, choose the **Updates only** profile before sen
 
 Profiles determine exactly what a follower receives. Two ship with the app. The **Default** profile can be customized. The **Updates only** profile syncs nothing: a kiosk on it keeps every setting of its own and only gets updates pushed by the leader, which is the profile for a fleet you only want to keep on one version. It cannot be changed or deleted, but it can be duplicated as a starting point. The leader can create and assign new ones under **Profiles**. You can assign a profile when adding a kiosk or later from the device row's overflow menu. If a device uses a custom profile, its name appears as a tag on the row. 
 
-Each profile has its own settings page where you can manage categories, credentials, dashboard inclusion, and excluded settings. Deleting a custom profile simply reverts its assigned kiosks back to the Default profile. Profile names must be unique to the leader.
+Each profile has its own settings page where you can manage categories, plugins, credentials, dashboard inclusion, and excluded settings. Deleting a custom profile simply reverts its assigned kiosks back to the Default profile. Profile names must be unique to the leader.
 
 A profile consists of:
 
 | Component | Description |
 | --- | --- |
 | Categories | Checkboxes for each sidebar category, indicating which internal settings are excluded. |
+| Plugins | The leader's plugins its kiosks install, with their settings. See [Plugins](#plugins). |
 | Credentials | Toggles that allow a kiosk to keep its local Home Assistant user while still sharing the Music Assistant and Immich accounts and the [intercom key](intercom.md). |
 | Dashboard | Toggles whether the start page and default dashboard are synced. |
 | Excluded settings | Specific settings omitted from the sync, with options to re-add them or pick new ones to exclude. |
@@ -50,6 +51,7 @@ A profile consists of:
 | OpenAI API key | Off | Kiosk keeps its own. | Key syncs across fleet, and each follower validates it on its own. |
 | xAI API key | Off | Kiosk keeps its own. | Key syncs across fleet, and each follower validates it on its own. |
 | MCP server token | Off | Kiosk keeps its own. | Token syncs across fleet. |
+| Plugin secrets | Off | Kiosk keeps its own secret plugin settings. | Secret plugin settings sync with their plugins. |
 | Include the dashboard | Off | Kiosk keeps its local start page and dashboard. | Start page and dashboard sync. |
 
 The realtime keys are off by default because each provider bills per use. A profile saved before they became credentials keeps them on where it syncs Voice Satellite, as they were before. When a follower receives a realtime key or endpoint, it runs the same connection test as **Save & Validate**. The provider becomes a choice for its wake words once that passes, and the provider's row shows the error if it fails.
@@ -76,6 +78,7 @@ Settings that scale the UI, control screen brightness, or manage volume often de
 | `audio.media_volume` Media volume, `audio.assistant_volume` Assistant volume | Screen & Audio |
 | `notifications.volume` Notification volume | Notifications |
 | `ha.tap_sound_volume` Tap sound volume | Home Assistant, User Interface |
+| `voice_chimes.wake_volume`, `voice_chimes.done_volume`, `voice_chimes.error_volume`, `voice_chimes.alert_volume`, `voice_chimes.announce_volume` Chime volumes | Voice Satellite, Chimes |
 | `screensaver.gallery_items` Photo Gallery selection | Photo Gallery screensaver |
 | `screensaver.local_folder` Local media folder | Local Media screensaver |
 | `screensaver.clock_background` Clock background photo | Clock screensaver |
@@ -103,6 +106,22 @@ Settings that scale the UI, control screen brightness, or manage volume often de
 
 Every poll tries known followers at their saved addresses even if mDNS has not heard them. Removing a member updates the directory on reachable followers at the next poll. A follower clears its saved directory when it leaves. Older releases keep their discovery behavior until upgraded.
 
+## Plugins
+
+A profile's **Plugins** row picks which of the leader's plugins its kiosks get. Each follower on the profile installs the package the leader runs, then takes its settings, whether it is enabled and where its actions show in the drawer and in Home Assistant. The leader sends the package itself over the local network, so followers get exactly the bytes the leader installed and never download it again. When the leader updates, reinstalls or removes a plugin, its followers do the same at the next sync.
+
+Secret plugin settings, such as a token, travel only when the profile includes **Plugin secrets** under Credentials. Otherwise each follower keeps its own.
+
+| Detail | How it Works |
+| --- | --- |
+| Enable Plugins | Stays per kiosk. A follower with it off installs and configures the plugins but runs them only once it is switched on. |
+| Removal | When a plugin leaves the profile or the leader, a follower removes it only if the fleet installed it. A plugin the kiosk had before stays with its last settings. |
+| Local changes | A change to a synced plugin on a follower is replaced at the next sync, and a banner on its Plugin Manager page says so. Its update check is off there, since the leader keeps it up to date. |
+| Failures | A package a follower cannot install, for example one that needs a newer Android version or a screen the follower does not have, shows on its row on the leader with the reason. The leader tries again when the plugin changes or with **Sync now**. |
+| Earlier installs | The leader keeps a copy of each package it installs. A repository plugin installed on an earlier version is fetched again from its GitHub release and checked against the SHA-256 it was installed with. A plugin installed from a ZIP on an earlier version has to be installed again on the leader before it can sync. |
+
+A plugin that uses Shizuku asks for its permission on each kiosk. Runtime chart data, history and plugin entity declarations and readings are never synchronized. Plugin entity exclusions, a plugin screensaver picked as the screensaver mode and gestures assigned to plugin actions stay local. A fleet token cannot call plugin management commands.
+
 ## Updates
 
 Using **Update the fleet** prioritizes installations on followers first, updating the leader last so it stays online to manage the process. If a kiosk has a pinned screen, it will prompt for the update directly on its display. **Keep followers on this version** automatically handles updates if a follower falls behind the leader's current release.
@@ -113,7 +132,7 @@ Certain settings remain unique to each kiosk regardless of the profile configura
 
 | Group | Keys |
 | --- | --- |
-| Identity | `device.name`, `device.hostname`, `esphome.node_name`, `esphome.mac_override`, `esphome.real_mac`, `btproxy.key`, `sendspin.client_id`, `sendspin.local_player_name`, `ha.satellite_entity` |
+| Identity | `device.name`, `device.hostname`, `esphome.node_name`, `esphome.mac_override`, `esphome.real_mac`, `btproxy.key`, `sendspin.client_id`, `sendspin.local_player_name`, `airplay.name`, `ha.satellite_entity` |
 | Shizuku | `shizuku.install_updates` |
 | Interface language | `ui.language` |
 | Remote admin & fleet | `remote.enabled`, `remote.port`, `remote.tls`, `remote.password`, `remote.fleet_discovery`, `remote.admin_url`, `fleet.*` |
@@ -124,10 +143,11 @@ Certain settings remain unique to each kiosk regardless of the profile configura
 | Weather preview | `screensaver.weather_preview`, `screensaver.weather_preview_condition`, `screensaver.weather_preview_period` |
 | Voice Satellite chimes | `voice_chimes.wake`, `voice_chimes.done`, `voice_chimes.error`, `voice_chimes.alert`, `voice_chimes.announce` |
 | Diagnostics | `wake_word.diagnostics` |
+| Wake word arbitration offset | `voice.wake_arbitration_offset_db` |
 | Wake words this kiosk listens for | `voice.wake_words`, `voice.pending_selects` |
 | Local state | `voice.runtime`, `voice.timer_position`, `voice.dock_position`, `voice.realtime_openai_validated`, `voice.realtime_xai_validated`, `voice.realtime_gemini_validated`, `screensaver.saved_brightness`, `screensaver.immich_validated`, `sendspin.player_active`, `sendspin.player_pos`, `sendspin.sonos_hosts` |
 
-Plugin Manager stays entirely local. Runtime chart data, history and plugin entity declarations and readings are never synchronized. Plugin entity exclusions stay local even when ordinary ESPHome exclusions are synced. Fleet sync does not copy installed plugins, packages, plugin settings, per-plugin enabled states, drawer or Home Assistant action placements or the **Enable Plugins** master switch. A fleet token cannot call plugin management commands.
+Plugins sync only through a profile's **Plugins** row (see [Plugins](#plugins)). Plugin entity exclusions stay local even when ordinary ESPHome exclusions are synced, and the **Enable Plugins** master switch stays on each kiosk.
 
 Gestures assigned to plugin actions also stay local, even when the profile includes Gestures. The leader omits them from its payload and the follower ignores any received plugin actions while preserving its own. A local plugin gesture takes precedence if an incoming ordinary gesture has the same ID. Adding, editing or removing a local plugin gesture does not mark the follower out of sync. Other gesture mappings still follow the profile.
 
@@ -146,8 +166,9 @@ Files referenced by settings (like notification chimes, alarm tones, gallery pho
 | `/api/fleet/identity` | GET | none | `{id, name, version, leader, follows}`: Identifies the kiosk to other devices. |
 | `/api/fleet/invite` | POST | none | `{invite, leader: {id, name, version, port}}`. Verifies the source kiosk, then displays the invite on-screen. Rate limited. |
 | `/api/fleet/invite/<nonce>` | GET | none | `{status}`: Returns `pending`, `accepted` (includes `token` once), `declined`, or `unknown`. |
-| `/api/fleet/status` | GET | fleet | Returns the version, applied revision, local changes to synced settings, and update status. |
-| `/api/fleet/apply` | POST | fleet | `{revision, version, settings}`. Held in queue if versions differ. |
+| `/api/fleet/status` | GET | fleet | Returns the version, applied revision, local changes to synced settings and plugins, the installed plugin packages by SHA-256, the synced plugins that failed, and update status. |
+| `/api/fleet/plugins?sha256=` | PUT | fleet | The raw plugin ZIP. Held until the next `/api/fleet/apply` installs it, and refused when its SHA-256 differs. |
+| `/api/fleet/apply` | POST | fleet | `{revision, version, settings, plugins}`. Held in queue if versions differ. |
 | `/api/fleet/leave` | POST | fleet | Notifies the kiosk that the leader removed it from the fleet. |
 | `/api/fleet/roster` | POST | fleet | `{devices: [{id, name, version, address, port}]}`: Replaces the saved member directory independently of settings sync. Contains no fleet tokens. |
 | `/api/fleet/export` | GET | admin | Backs up the whole fleet in one file: `{kind, version, exportedAt, devices: [{id, name, self, config}]}`. Each `config` is that kiosk's `/api/config/export`, secrets included. A follower that does not answer carries `error` in place of `config`. Restore a kiosk by posting its `config` to that kiosk's `/api/config/import`. |

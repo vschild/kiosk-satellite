@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Sonido de anuncio",
   "voiceChimeAnnounceDescription": "Se reproduce antes de un anuncio de Voice Satellite, salvo que el anuncio incluya su propio sonido.",
   "settingVoiceWakeSoundTitle": "Reproducir sonidos",
-  "settingVoiceWakeSoundDescription": "Los sonidos de activación, fin y error."
+  "settingVoiceWakeSoundDescription": "Los sonidos de activación, fin y error.",
+  "voiceChimeWakeVolumeTitle": "Volumen del sonido de activación",
+  "voiceChimeDoneVolumeTitle": "Volumen del sonido de finalización",
+  "voiceChimeErrorVolumeTitle": "Volumen del sonido de error",
+  "voiceChimeTimerVolumeTitle": "Volumen del sonido del temporizador",
+  "voiceChimeAnnounceVolumeTitle": "Volumen del sonido de anuncio",
+  "voiceChimeVolumeDescription": "Una proporción del volumen del asistente."
 }

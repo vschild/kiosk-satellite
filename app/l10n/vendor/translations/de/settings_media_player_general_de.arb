@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "Während „Jetzt läuft“ angezeigt wird",
   "mediaKeysPlaying": "Während der Player wiedergibt",
   "mediaAnotherPlayer": "anderer Player",
-  "mediaLocalOffline": "Der Sendspin-Player dieses Geräts bleibt getrennt, während {player} gesteuert wird."
+  "mediaOfflineSendspin": "Der Sendspin-Player bleibt getrennt, solange {player} ausgewählt ist.",
+  "mediaOfflineAirplay": "Der AirPlay-Empfänger bleibt aus, solange {player} ausgewählt ist.",
+  "mediaOfflineBoth": "Der Sendspin-Player und der AirPlay-Empfänger bleiben getrennt, solange {player} ausgewählt ist."
 }

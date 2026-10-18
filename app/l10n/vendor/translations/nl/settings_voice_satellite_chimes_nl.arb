@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Aankondigingsgeluid",
   "voiceChimeAnnounceDescription": "Wordt afgespeeld vóór een Voice Satellite-aankondiging, tenzij die een eigen geluid bevat.",
   "settingVoiceWakeSoundTitle": "Meldingsgeluiden afspelen",
-  "settingVoiceWakeSoundDescription": "De wek-, gereed- en foutgeluiden."
+  "settingVoiceWakeSoundDescription": "De wek-, gereed- en foutgeluiden.",
+  "voiceChimeWakeVolumeTitle": "Volume van het wekgeluid",
+  "voiceChimeDoneVolumeTitle": "Volume van het gereedgeluid",
+  "voiceChimeErrorVolumeTitle": "Volume van het foutgeluid",
+  "voiceChimeTimerVolumeTitle": "Volume van het timergeluid",
+  "voiceChimeAnnounceVolumeTitle": "Volume van het aankondigingsgeluid",
+  "voiceChimeVolumeDescription": "Een aandeel van het assistentvolume."
 }

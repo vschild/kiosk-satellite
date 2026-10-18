@@ -10,7 +10,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'color_scheme_script.dart';
 import 'content_insets_script.dart';
 import 'no_cache_script.dart';
-import 'url_blacklist.dart';
+import 'url_filter.dart';
 import 'dashboard_camera_script.dart';
 import 'dashboard_state.dart';
 import 'visibility_mask_script.dart';
@@ -353,8 +353,9 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
       if (e.key == defs.haUrl.key) unawaited(_migrateStartUrlOrigin(e));
     });
     bus.on<SettingChanged>().listen((e) {
-      if (e.key == defs.browserUrlBlacklist.key) {
-        unawaited(_applyUrlBlacklist());
+      // The start page is one of the allow list's exemptions.
+      if (e.key == defs.browserUrlFilter.key || e.key == defs.startUrl.key) {
+        unawaited(_applyUrlFilter());
       }
     });
     bus.on<SettingChanged>().listen((e) {
@@ -403,34 +404,40 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
       )
       ..register(
         Command(
-          name: 'saveUrlBlacklistRule',
+          name: 'saveUrlFilterRule',
           description:
-              'Add a URL Blacklist rule or change one. Backs Save in the URL '
-              'Blacklist editors on both settings surfaces. Fails with name, '
+              'Add a URL Filter rule or change one. Backs Save in the URL '
+              'Filter editors on both settings surfaces. Fails with name, '
               'pattern or regex when that field is not usable.',
           params: const {
             'name': 'the name the list and the blocked notice show',
             'pattern': 'a wildcard pattern or a regular expression',
             'type': 'wildcard (default) or regex',
             'scope': 'all (default), dashboard or external',
+            'action':
+                'block (default), or allow to let only matching addresses '
+                'open where the rule applies',
             'index':
                 'optional: the position of the rule being changed, absent '
                 'for a new one',
           },
           handler: (p) async {
-            final rule = UrlBlacklistRule(
+            final rule = UrlFilterRule(
               name: '${p['name'] ?? ''}'.trim(),
               pattern: '${p['pattern'] ?? ''}'.trim(),
-              type: urlBlacklistTypes.contains(p['type'])
+              type: urlFilterTypes.contains(p['type'])
                   ? p['type'] as String
-                  : urlBlacklistWildcard,
-              scope: urlBlacklistScopes.contains(p['scope'])
+                  : urlFilterWildcard,
+              scope: urlFilterScopes.contains(p['scope'])
                   ? p['scope'] as String
-                  : urlBlacklistAll,
+                  : urlFilterAll,
+              action: urlFilterActions.contains(p['action'])
+                  ? p['action'] as String
+                  : urlFilterBlock,
             );
-            final error = urlBlacklistRuleError(rule);
+            final error = urlFilterRuleError(rule);
             if (error != null) return CommandResult.fail(error);
-            final rules = [...urlBlacklist];
+            final rules = [...urlFilter];
             final index = p['index'] is num ? (p['index'] as num).toInt() : -1;
             if (index >= 0 && index < rules.length) {
               rules[index] = rule;
@@ -438,8 +445,8 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
               rules.add(rule);
             }
             await _settings.setFromJson(
-              defs.browserUrlBlacklist.key,
-              encodeUrlBlacklist(rules),
+              defs.browserUrlFilter.key,
+              encodeUrlFilter(rules),
             );
             return const CommandResult.ok();
           },
@@ -447,19 +454,19 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
       )
       ..register(
         Command(
-          name: 'removeUrlBlacklistRule',
-          description: 'Remove a URL Blacklist rule.',
+          name: 'removeUrlFilterRule',
+          description: 'Remove a URL Filter rule.',
           params: const {'index': 'the position of the rule in the list'},
           handler: (p) async {
-            final rules = [...urlBlacklist];
+            final rules = [...urlFilter];
             final index = p['index'] is num ? (p['index'] as num).toInt() : -1;
             if (index < 0 || index >= rules.length) {
               return const CommandResult.fail('no such rule');
             }
             rules.removeAt(index);
             await _settings.setFromJson(
-              defs.browserUrlBlacklist.key,
-              encodeUrlBlacklist(rules),
+              defs.browserUrlFilter.key,
+              encodeUrlFilter(rules),
             );
             return const CommandResult.ok();
           },
@@ -1341,6 +1348,9 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
     _loadErrorThisLoad = false;
     _httpErrorThisLoad = false;
     if (!loadFailed.value) _clearErrorReload();
+    if (!loadFailed.value && isCustomPage(url)) {
+      unawaited(UsageCounters.bump(_settings, 'custom_page_loads'));
+    }
     _currentUrl = url;
     log.info(name, 'loaded $url');
     // A page reached without passing through prepareLoad (Back, a reload
@@ -1576,58 +1586,72 @@ class BrowserManager extends Manager with WidgetsBindingObserver {
   );
 
   /// The document-start script group that hands every page the URL
-  /// Blacklist rules for the dashboard (see urlBlacklistJs).
-  static const urlBlacklistGroup = 'ks-url-blacklist';
+  /// Filter rules for the dashboard (see urlFilterJs).
+  static const urlFilterGroup = 'ks-url-filter';
 
-  String _urlBlacklistRaw = '';
-  List<UrlBlacklistRule> _urlBlacklist = const [];
+  String _urlFilterRaw = '';
+  List<UrlFilterRule> _urlFilter = const [];
 
-  /// The URL Blacklist rules, parsed once per change of the setting.
-  List<UrlBlacklistRule> get urlBlacklist {
-    final raw = _settings.get(defs.browserUrlBlacklist);
-    if (raw != _urlBlacklistRaw) {
-      _urlBlacklistRaw = raw;
-      _urlBlacklist = parseUrlBlacklist(raw);
+  /// The URL Filter rules, parsed once per change of the setting.
+  List<UrlFilterRule> get urlFilter {
+    final raw = _settings.get(defs.browserUrlFilter);
+    if (raw != _urlFilterRaw) {
+      _urlFilterRaw = raw;
+      _urlFilter = parseUrlFilter(raw);
     }
-    return _urlBlacklist;
+    return _urlFilter;
   }
 
-  /// The rule that blocks [url] on any of [surfaces] (urlBlacklistDashboard,
-  /// urlBlacklistExternal), or null when it may open. Logged when it is
-  /// blocked, so the reason for a dead link is in the log.
-  UrlBlacklistRule? urlBlockedBy(String url, Set<String> surfaces) {
-    final rule = urlBlacklistMatch(urlBlacklist, url, surfaces);
-    if (rule != null) {
-      log.info(name, 'blocked $url (URL Blacklist rule "${rule.name}")');
-    }
+  /// Whether [url] is blocked on any of [surfaces] (urlFilterDashboard,
+  /// urlFilterExternal): null when it may open, the Block rule's name, or ''
+  /// when an allow list leaves it out (see urlFilterBlockedBy). Logged when
+  /// it is blocked, so the reason for a dead link is in the log.
+  String? urlBlockedBy(String url, Set<String> surfaces) {
+    final rule = urlFilterBlockedBy(
+      urlFilter,
+      url,
+      surfaces,
+      exemptions: urlFilterExemptions(startUrl),
+    );
+    if (rule != null) logUrlBlocked(url, rule);
     return rule;
   }
 
+  /// One line in the log for a navigation the URL Filter stopped, by the
+  /// Block rule's [rule] name or '' for the allow list.
+  void logUrlBlocked(String url, String rule) {
+    log.info(
+      name,
+      rule.isEmpty
+          ? 'blocked $url (not on the URL Filter allow list)'
+          : 'blocked $url (URL Filter rule "$rule")',
+    );
+    unawaited(UsageCounters.bump(_settings, 'url_filter_blocked'));
+  }
+
   /// The page script for the rules covering [surface].
-  String urlBlacklistSource(String surface) => urlBlacklistJs([
-    for (final r in urlBlacklist)
+  String urlFilterSource(String surface) => urlFilterJs([
+    for (final r in urlFilter)
       if (r.appliesTo({surface})) r,
-  ]);
+  ], exemptions: urlFilterExemptions(startUrl));
 
   /// The rules changed: the page on screen follows at once, and the
   /// document-start script is swapped so the next page starts with them.
-  Future<void> _applyUrlBlacklist() async {
+  Future<void> _applyUrlFilter() async {
     final controller = _controller;
     if (controller == null) return;
-    final source = urlBlacklistSource(urlBlacklistDashboard);
+    final source = urlFilterSource(urlFilterDashboard);
     try {
-      await controller.removeUserScriptsByGroupName(
-        groupName: urlBlacklistGroup,
-      );
+      await controller.removeUserScriptsByGroupName(groupName: urlFilterGroup);
       await controller.addUserScript(
         userScript: UserScript(
-          groupName: urlBlacklistGroup,
+          groupName: urlFilterGroup,
           source: source,
           injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
         ),
       );
     } catch (e) {
-      log.debug(name, 'URL Blacklist script not swapped: $e');
+      log.debug(name, 'URL Filter script not swapped: $e');
     }
     await runJs(source);
   }

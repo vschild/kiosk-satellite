@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
+import '../../core/permissions.dart';
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/kiosk_http_client.dart';
@@ -320,8 +321,8 @@ class IntercomManager extends Manager {
   };
   IntercomAudio audio = IntercomAudio();
   MicHub micHub = MicHub.instance;
-  Future<bool> Function() micPermission = () async =>
-      await Permission.microphone.request().isGranted;
+  Future<bool> Function() micPermission = () =>
+      ensureOsPermission(Permission.microphone);
   Random random = Random.secure();
 
   /// How long one call to another kiosk may take.

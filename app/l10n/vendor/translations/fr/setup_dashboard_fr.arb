@@ -3,5 +3,6 @@
   "setupChooseDashboard": "Choisir un tableau de bord",
   "setupDashboardHelp": "C'est ce que le kiosque affichera à son démarrage.",
   "setupSelectDashboard": "Sélectionner un tableau de bord",
-  "setupSelectDashboardHelp": "Choisissez le tableau de bord que le kiosque affichera. Vous pourrez le modifier plus tard dans Paramètres."
+  "setupSelectDashboardHelp": "Choisissez le tableau de bord que le kiosque affichera. Vous pourrez le modifier plus tard dans Paramètres.",
+  "setupHeadlessGrants": "Cet appareil n'a pas d'écran, Android ne peut donc pas les demander dessus. Accordez chacune par adb, puis terminez ici."
 }

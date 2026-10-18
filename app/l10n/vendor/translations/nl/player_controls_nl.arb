@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "Speelt nu tonen",
   "mediaShowFloatingPlayer": "De zwevende speler tonen",
   "mediaOpenMusicAssistant": "Music Assistant openen",
-  "mediaCannotControl": "opdracht niet ondersteund of niet verzonden"
+  "mediaCannotControl": "opdracht niet ondersteund of niet verzonden",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "Cd-kwaliteit",
+  "mediaAudioLossy": "Met verlies",
+  "mediaAudioBitDepth": "{bits}-bit",
+  "mediaAudioSampleRate": "{rate} kHz",
+  "mediaAudioBitRate": "{rate} kbps"
 }

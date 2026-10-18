@@ -22,7 +22,6 @@ double? wakeEnergy(Uint8List pcm) {
   const frame = 320; // 20 ms at 16 kHz
   final samples = ByteData.sublistView(pcm);
   final count = pcm.length ~/ 2 ~/ frame;
-  if (count < 10) return null;
   final levels = List<double>.filled(count, 0);
   for (var f = 0; f < count; f++) {
     var sum = 0.0;
@@ -33,6 +32,16 @@ double? wakeEnergy(Uint8List pcm) {
     final rms = math.sqrt(sum / frame);
     levels[f] = rms > 0 ? 20 * math.log(rms) / math.ln10 : -120;
   }
+  return wakeEnergyOfLevels(levels);
+}
+
+/// [wakeEnergy] over levels already measured: dBFS per 20 ms, oldest
+/// first. The microphone's own levels come from before the noise
+/// suppressor (MicLevels on Android), so the setting cannot tilt the
+/// result.
+double? wakeEnergyOfLevels(List<double> levels) {
+  final count = levels.length;
+  if (count < 10) return null;
   final recent = levels.sublist(math.max(0, count - 75))
     ..sort((a, b) => b.compareTo(a));
   final loud = recent.take(10).toList();
@@ -50,6 +59,9 @@ class ArbitrationResult {
     this.winner,
     this.winnerEnergy,
     this.heard = const [],
+    this.phrase = '',
+    this.energy = 0,
+    this.claimedAt = 0,
   });
 
   final bool won;
@@ -64,19 +76,38 @@ class ArbitrationResult {
   /// Each rival claim for the log, with when it arrived against this
   /// kiosk's own: how far apart the kiosks detect is what sets the window.
   final List<String> heard;
+
+  /// This kiosk's own claim, for [WakeArbiter.overtaken].
+  final String phrase;
+  final double energy;
+  final int claimedAt;
 }
 
-/// Carries claims between kiosks. UDP broadcast on the real network;
-/// tests hand in a loopback.
+/// A louder claim that arrived after this kiosk had decided.
+class LateClaim {
+  const LateClaim(this.from, this.energy);
+  final String from;
+  final double energy;
+}
+
+/// Carries claims between kiosks. UDP on the real network; tests hand in
+/// a loopback.
 abstract class ArbitrationTransport {
   /// Start receiving. False when the port cannot be opened.
   Future<bool> open(void Function(Uint8List data, String from) onPacket);
+
+  /// To every kiosk on the subnet.
   void send(Uint8List data);
+
+  /// To one kiosk, by address.
+  void sendTo(Uint8List data, String address);
   Future<void> close();
 }
 
 /// One datagram to the whole subnet per claim, on a port of its own: no
 /// roster, no pairing and nothing else on the kiosk has to be turned on.
+/// Kiosks it has heard from also get the claim addressed to them, which
+/// Wi-Fi acknowledges and retries where a broadcast gets neither.
 class UdpArbitrationTransport implements ArbitrationTransport {
   UdpArbitrationTransport({this.port = WakeArbiter.port});
 
@@ -102,7 +133,23 @@ class UdpArbitrationTransport implements ArbitrationTransport {
   }
 
   @override
-  void send(Uint8List data) => _socket?.send(data, _broadcast, port);
+  void send(Uint8List data) => _send(data, _broadcast);
+
+  @override
+  void sendTo(Uint8List data, String address) {
+    final to = InternetAddress.tryParse(address);
+    if (to != null) _send(data, to);
+  }
+
+  /// With no network, such as Wi-Fi still joining at boot, the send throws.
+  /// That is a lost datagram like any other, which arbitration expects.
+  void _send(Uint8List data, InternetAddress to) {
+    try {
+      _socket?.send(data, to, port);
+    } on SocketException {
+      // Dropped.
+    }
+  }
 
   @override
   Future<void> close() async {
@@ -140,6 +187,13 @@ class WakeArbiter {
   /// Claims are older than any window after this.
   static const _keepMs = 2000;
 
+  /// How often a kiosk says it is here, so the others can address their
+  /// claims to it before it has claimed anything itself.
+  static const _helloEvery = Duration(minutes: 5);
+
+  /// A kiosk not heard from in this long is no longer addressed.
+  static const _peerForMs = 30 * 60 * 1000;
+
   final Logger _log;
   final ArbitrationTransport _transport;
 
@@ -150,6 +204,13 @@ class WakeArbiter {
   final _heard = <String, _Claim>{};
   final _random = math.Random();
   bool _running = false;
+  Timer? _hello;
+
+  /// The kiosks heard from, by address, with when.
+  final _peers = <String, int>{};
+
+  /// The addresses claims are sent to directly, for the log and tests.
+  Iterable<String> get peers => _peers.keys;
 
   bool get running => _running;
 
@@ -169,12 +230,33 @@ class WakeArbiter {
     } catch (e) {
       _log.warn(_tag, 'cannot listen on UDP $port: $e');
     }
+    if (!_running) return;
+    _hello = Timer.periodic(_helloEvery, (_) => _sayHello());
+    _sayHello();
+  }
+
+  Uint8List _helloPacket() => Uint8List.fromList(
+    utf8.encode(jsonEncode({'ks': 'wake', 'v': 1, 'hello': true, 'id': id})),
+  );
+
+  void _sayHello() {
+    if (_running) _transport.send(_helloPacket());
+  }
+
+  void _learn(String address) {
+    final now = _clock.elapsedMilliseconds;
+    if (!_peers.containsKey(address)) _log.info(_tag, 'heard from $address');
+    _peers[address] = now;
+    _peers.removeWhere((_, seen) => now - seen > _peerForMs);
   }
 
   Future<void> stop() async {
     if (!_running) return;
     _running = false;
+    _hello?.cancel();
+    _hello = null;
     _heard.clear();
+    _peers.clear();
     await _transport.close();
     _log.info(_tag, 'stopped');
   }
@@ -202,15 +284,25 @@ class WakeArbiter {
         msg['ks'] != 'wake' ||
         msg['v'] != 1 ||
         msg['id'] is! String ||
-        msg['p'] is! String ||
-        msg['e'] is! num ||
-        msg['n'] is! int) {
+        msg['id'] == id) {
+      return;
+    }
+    if (msg['hello'] == true) {
+      // A kiosk heard for the first time gets a hello back, addressed, so
+      // both sides know each other from the start.
+      final known = _peers.containsKey(from);
+      _learn(from);
+      if (!known) _transport.sendTo(_helloPacket(), from);
+      return;
+    }
+    if (msg['p'] is! String || msg['e'] is! num || msg['n'] is! int) {
       return;
     }
     final claimId = msg['id'] as String;
     final phrase = msg['p'] as String;
     final energy = (msg['e'] as num).toDouble();
-    if (claimId == id || claimId.length > 64 || !energy.isFinite) return;
+    if (claimId.length > 64 || !energy.isFinite) return;
+    _learn(from);
     _prune();
     // Each claim goes out more than once; the first copy sets the time.
     _heard.putIfAbsent(
@@ -249,11 +341,20 @@ class WakeArbiter {
     );
     final at = _clock.elapsedMilliseconds;
     // Broadcast is never acknowledged, so the claim goes out three times.
-    _transport.send(packet);
+    // Wi-Fi acknowledges and retries an addressed one, and an access point
+    // hands it to a sleeping kiosk sooner than a broadcast, so every kiosk
+    // heard from gets one too.
+    void sendAll() {
+      if (!_running) return;
+      _transport.send(packet);
+      for (final peer in _peers.keys) {
+        _transport.sendTo(packet, peer);
+      }
+    }
+
+    sendAll();
     for (final delay in const [15, 30]) {
-      Timer(Duration(milliseconds: delay), () {
-        if (_running) _transport.send(packet);
-      });
+      Timer(Duration(milliseconds: delay), sendAll);
     }
     await Future<void>.delayed(window);
     final span = window.inMilliseconds;
@@ -279,11 +380,41 @@ class WakeArbiter {
       rivals: rivals.length,
       winner: won ? null : best.from,
       winnerEnergy: won ? null : best.energy,
+      phrase: mine,
+      energy: level,
+      claimedAt: at,
       heard: [
         for (final c in rivals)
           '${c.from} ${c.energy} dB at '
               '${c.at >= at ? '+' : ''}${c.at - at} ms',
       ],
     );
+  }
+
+  /// After a win: waits out one more window and returns a louder claim for
+  /// the same wake that arrived after this kiosk's window closed, or null.
+  /// A kiosk that detected the wake word later sends its claim later, and
+  /// the trip over Wi-Fi comes on top. That kiosk heard this one's claim
+  /// inside its own window and answers, so this one has to stand down.
+  Future<LateClaim?> overtaken(
+    ArbitrationResult result,
+    Duration window,
+  ) async {
+    if (!_running || !result.won) return null;
+    final span = window.inMilliseconds;
+    final wait = result.claimedAt + 2 * span - _clock.elapsedMilliseconds;
+    if (wait > 0) await Future<void>.delayed(Duration(milliseconds: wait));
+    _Claim? louder;
+    for (final c in _heard.values) {
+      final after = c.at - result.claimedAt;
+      if (c.phrase != result.phrase || after <= span || after > 2 * span) {
+        continue;
+      }
+      final beats =
+          c.energy > result.energy ||
+          (c.energy == result.energy && c.id.compareTo(id) < 0);
+      if (beats && (louder == null || c.energy > louder.energy)) louder = c;
+    }
+    return louder == null ? null : LateClaim(louder.from, louder.energy);
   }
 }

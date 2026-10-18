@@ -173,6 +173,57 @@ void main() {
     }
   }
 
+  for (final split in [false, true]) {
+    for (final layout in ['vertical', 'horizontal', 'art_only']) {
+      testWidgets(
+        'audio quality pills sit along the bottom edge: split $split, layout $layout',
+        (tester) async {
+          await boot(
+            tester,
+            split: split,
+            prefs: {
+              'ks.sendspin.fullscreen_layout': layout,
+              'ks.sendspin.audio_quality': true,
+            },
+          );
+          final pills = find.byKey(const ValueKey('audio-quality-pills'));
+          expect(pills, findsNothing);
+          c.sendspin.nowPlaying.value = {
+            ...?c.sendspin.nowPlaying.value,
+            'audioQuality': const {
+              'codec': 'FLAC',
+              'sampleRate': 96000,
+              'bitDepth': 24,
+              'lossless': true,
+              'source': 'Qobuz',
+            },
+          };
+          await tester.pump();
+          expect(pills, findsOneWidget);
+          expect(find.text('Hi-Res'), findsOneWidget);
+          expect(find.text('Qobuz'), findsOneWidget);
+          final pane = tester.getRect(player);
+          final rect = tester.getRect(pills);
+          expect(rect.bottom, pane.bottom);
+          expect(rect.left, greaterThanOrEqualTo(pane.left));
+          expect(rect.right, lessThanOrEqualTo(pane.right));
+          // Below the transport, never over it.
+          if (play.evaluate().isNotEmpty) {
+            expect(tester.getRect(play).bottom, lessThan(rect.top));
+          }
+          expect(tester.takeException(), isNull);
+
+          await c.settings.set(defs.sendspinAudioQuality, false);
+          await tester.pump();
+          await tester.pump();
+          expect(pills, findsNothing);
+          await tester.pumpWidget(const SizedBox());
+          await c.screensaver.dispose();
+        },
+      );
+    }
+  }
+
   testWidgets('speaker pill restarts its timer on touch and key activity', (
     tester,
   ) async {

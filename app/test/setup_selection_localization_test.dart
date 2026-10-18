@@ -394,8 +394,15 @@ void main() {
     expect(tester.widget<SwitchListTile>(pull).value, isTrue);
     expect(tester.widget<SwitchListTile>(master).value, isFalse);
     expect(calls.length, reads);
-    // Off, background listening goes with it.
-    await tester.ensureVisible(voice);
+    // Off, background listening goes with it. The list builds lazily, so
+    // the switch, scrolled far above, is brought back by scrolling up.
+    await tester.scrollUntilVisible(
+      voice,
+      -300,
+      scrollable: find
+          .ancestor(of: master, matching: find.byType(Scrollable))
+          .first,
+    );
     await settle();
     await tester.tap(voice);
     await settle();

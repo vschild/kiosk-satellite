@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "Mientras se muestra Reproduciendo Ahora",
   "mediaKeysPlaying": "Mientras el reproductor está reproduciendo",
   "mediaAnotherPlayer": "otro reproductor",
-  "mediaLocalOffline": "El reproductor Sendspin de este dispositivo permanece desconectado mientras se controla {player}."
+  "mediaOfflineSendspin": "El reproductor Sendspin permanece desconectado mientras {player} está seleccionado.",
+  "mediaOfflineAirplay": "El receptor AirPlay permanece desactivado mientras {player} está seleccionado.",
+  "mediaOfflineBoth": "El reproductor Sendspin y el receptor AirPlay permanecen desconectados mientras {player} está seleccionado."
 }

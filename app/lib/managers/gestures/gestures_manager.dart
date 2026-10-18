@@ -424,6 +424,17 @@ class GesturesManager extends Manager {
       case 'alarm_snooze':
         // The Snooze button's path: only a ringing alarm snoozes.
         return _run('alarmSnooze', const {'source': 'gesture'});
+      case 'voice_wake':
+        // The wake word without the word, for a button or claps.
+        return _run('voiceWake', const {});
+      case 'voice_stop':
+        // The stop word's job: a ringing timer first, then the turn.
+        return _run('voiceCancel', const {});
+      case 'voice_mute':
+        // A toggle, so one gesture covers both; the setting is the state.
+        return _run('setWakeWordMuted', {
+          'muted': !_settings.get(defs.voiceMute),
+        });
       case 'screensaver':
         return _run('startScreensaver', const {});
       case 'screensaver_stop':

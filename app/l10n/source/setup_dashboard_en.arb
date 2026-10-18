@@ -51,5 +51,15 @@
         "First-time setup > Dashboard"
       ]
     }
+  },
+  "setupHeadlessGrants": "This device has no screen, so Android cannot ask for these on it. Give each one over adb, then finish here.",
+  "@setupHeadlessGrants": {
+    "context": "Setup",
+    "description": "Permissions step of the remote setup wizard on a device without a screen.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Setup wizard > Permissions"
+      ]
+    }
   }
 }

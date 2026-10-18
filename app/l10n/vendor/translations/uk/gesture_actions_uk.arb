@@ -38,5 +38,8 @@
   "gestureCameraShow": "Показати {name}",
   "gestureCameraClose": "Закрити перегляд камери",
   "gestureCameraEmpty": "Перегляди камер ще не налаштовані.",
-  "gestureIntercomEmpty": "У мережі ще не знайдено жодного кіоска."
+  "gestureIntercomEmpty": "У мережі ще не знайдено жодного кіоска.",
+  "gestureVoiceWake": "Почати голосову команду",
+  "gestureVoiceStop": "Зупинити голосового асистента",
+  "gestureVoiceMute": "Вимкнути або ввімкнути звук Voice Satellite"
 }

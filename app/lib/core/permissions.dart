@@ -1,5 +1,7 @@
 import 'package:permission_handler/permission_handler.dart';
 
+import 'headless.dart';
+
 /// What came of asking for a permission.
 enum PermissionOutcome {
   granted,
@@ -30,6 +32,9 @@ enum PermissionOutcome {
 Future<PermissionOutcome> requestOsPermission(Permission permission) async {
   final status = await permission.status;
   if (status.isGranted) return PermissionOutcome.granted;
+  // No screen to show the dialog on (and no Activity to show it from):
+  // adb is the only way to grant it there.
+  if (Headless.active) return PermissionOutcome.blocked;
 
   // Deliberately not trusting `status.isPermanentlyDenied` to route us here.
   // Android cannot report "blocked" from a cold check: a never-asked permission

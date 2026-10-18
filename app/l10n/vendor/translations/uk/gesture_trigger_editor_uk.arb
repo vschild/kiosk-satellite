@@ -43,5 +43,10 @@
   "gestureSequenceError": "Додайте щонайменше два кути.",
   "gesturePluginTrigger": "Тригер плагіна",
   "gesturePluginTriggerField": "Тригер",
-  "gesturePluginTriggerHelp": "Спочатку ввімкніть плагін із тригерами у менеджері плагінів."
+  "gesturePluginTriggerHelp": "Спочатку ввімкніть плагін із тригерами у менеджері плагінів.",
+  "gestureButton": "Кнопка",
+  "gesturePress": "Натискання",
+  "gestureDoublePress": "Подвійне натискання",
+  "gestureHoldPress": "Утримання",
+  "gestureButtonDefaults": "Натискання, яке не використовує жоден жест, зберігає свою роль: Дія відповідає, зупиняє або відхиляє те, що дзвонить, а інакше починає голосову команду, Мікрофон вимикає Voice Satellite, а кнопки гучності змінюють гучність."
 }

@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Cuando varios kioskos oyen la palabra de activación, responde el más cercano. Aumenta la latencia de detección.",
   "settingVoiceWakeArbitrationWindowTitle": "Ventana de arbitraje",
   "settingVoiceWakeArbitrationWindowDescription": "Cuánto esperar a los otros kioskos. Súbela si un kiosko más lento pierde cuando está más cerca.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Ajuste de arbitraje",
+  "settingVoiceWakeArbitrationOffsetDescription": "Se suma a lo fuerte que este kiosko oyó la palabra de activación. Súbelo si este kiosko pierde cuando está más cerca y bájalo si responde desde demasiado lejos.",
   "voiceSectionWakeArbitration": "Arbitraje de la palabra de activación",
   "voiceOptionSlightly": "Poco sensible",
   "voiceOptionModerately": "Moderadamente sensible",

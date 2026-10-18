@@ -12,6 +12,8 @@ import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/manager.dart';
 import '../alarms/alarm_model.dart';
+import '../browser/url_filter.dart';
+import '../home_assistant/custom_pages.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import '../update/update_http_client.dart';
@@ -539,8 +541,15 @@ class AnalyticsManager extends Manager {
     // arbitration settled a wake other kiosks heard too.
     final arbitration = nativeOn && s.get(defs.voiceWakeArbitration);
     final counts = UsageCounters.read(s);
+    final pages = parseCustomPages(s.get(defs.haCustomPages));
+    final rules = parseUrlFilter(s.get(defs.browserUrlFilter));
     _reportedCounts = {
       'duraspeed_blocked': counts['duraspeed_blocked'] ?? 0,
+      if (pages.isNotEmpty)
+        for (final k in ['custom_page_loads', 'custom_page_ha_sockets'])
+          k: counts[k] ?? 0,
+      if (rules.isNotEmpty)
+        'url_filter_blocked': counts['url_filter_blocked'] ?? 0,
       if (nativeOn)
         for (final k in [
           'vs_turns_assist',
@@ -718,6 +727,11 @@ class AnalyticsManager extends Manager {
           : s.get(defs.sendspinPlayerSource),
       'lyrics': s.get(defs.sendspinLyricsEnabled),
       'dlna': s.get(defs.dlnaEnabled),
+      // The receiver serves only while it is the Media Player pick.
+      'airplay':
+          s.get(defs.airplayEnabled) &&
+          s.get(defs.sendspinPlayerSource).isEmpty &&
+          s.get(defs.sendspinPlayer) == 'airplay',
       'device_camera': s.get(defs.cameraEnabled),
       'rtsp_stream': s.get(defs.cameraEnabled) && s.get(defs.cameraRtspEnabled),
       'camera_streams': cameraViews > 0,
@@ -734,6 +748,32 @@ class AnalyticsManager extends Manager {
       'ha_kiosk_mode': s.get(defs.haKioskMode),
       'dashboard_carousel': s.get(defs.haDashboardCarousel),
       'dashboard_rotation': s.get(defs.haRotationEnabled),
+      // Custom pages: how many, where they live and where the kiosk shows
+      // them. Their names and addresses stay on the kiosk.
+      'custom_pages': pages.length,
+      if (pages.isNotEmpty) ...{
+        'custom_pages_local': pages.where((p) => !p.external).length,
+        'custom_pages_external': pages.where((p) => p.external).length,
+        if (pages.any((p) => p.external))
+          'custom_pages_socket': s.get(defs.haCustomPagesSocket),
+        'custom_page_start': _customPageStart(pages),
+        if (s.get(defs.haRotationEnabled))
+          'custom_page_rotation': _rotationPaths().any(isCustomPagePath),
+        for (final k in ['custom_page_loads', 'custom_page_ha_sockets'])
+          k: UsageCounters.bucket(_reportedCounts[k] ?? 0),
+      },
+      // URL Filter: how many rules of which kind. The patterns and names
+      // stay on the kiosk.
+      'url_filter_rules': rules.length,
+      if (rules.isNotEmpty) ...{
+        'url_filter_allow_rules': rules.where((r) => r.isAllow).length,
+        'url_filter_regex_rules': rules.where((r) => r.isRegex).length,
+        'url_filter_scopes': {for (final r in rules) r.scope}.toList()..sort(),
+        'url_filter_notice': s.get(defs.browserUrlFilterNotice),
+        'url_filter_blocked': UsageCounters.bucket(
+          _reportedCounts['url_filter_blocked'] ?? 0,
+        ),
+      },
       'secure_proxy': s.get(defs.secureProxy),
       'opt_disable_suspend': s.get(defs.disableSuspend),
       'opt_freeze_on_screensaver': s.get(defs.freezeOnScreensaver),
@@ -758,6 +798,23 @@ class AnalyticsManager extends Manager {
       'plugin_ids': pluginIds,
       'theme': s.get(defs.uiTheme),
     };
+  }
+
+  /// Whether the start URL opens one of the custom [pages]: a file under
+  /// Home Assistant's /local/ or a page on another server.
+  bool _customPageStart(List<CustomPage> pages) {
+    final start = _settings.get(defs.startUrl).trim();
+    if (Uri.tryParse(start)?.path.startsWith('/local/') ?? false) return true;
+    return externalPageNavPath(start, pages) != null;
+  }
+
+  /// The navigation paths the dashboard rotation cycles through.
+  List<String> _rotationPaths() {
+    try {
+      final raw = jsonDecode(_settings.get(defs.haRotationDashboards));
+      if (raw is List) return [for (final p in raw) '$p'];
+    } catch (_) {}
+    return const [];
   }
 
   /// How this kiosk does voice: 'native' (the app's own satellite, turned

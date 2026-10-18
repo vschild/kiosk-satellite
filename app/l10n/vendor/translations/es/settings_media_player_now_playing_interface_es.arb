@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Muestra el selector de altavoces durante 5 segundos después de interactuar con la pantalla. Permite añadir o quitar altavoces del grupo actual.",
   "settingSendspinSpeakerPillPlayersTitle": "Filtrar el selector de altavoces",
   "settingSendspinSpeakerPillPlayersDescription": "Solo estos altavoces aparecen en el selector. Los altavoces que ya están en el grupo siempre aparecen.",
+  "settingSendspinAudioQualityTitle": "Mostrar calidad de audio",
+  "settingSendspinAudioQualityDescription": "Muestra el formato, la profundidad de bits, la frecuencia de muestreo, la tasa de bits y el origen de la pista actual en la parte inferior de Reproduciendo Ahora. Requiere Music Assistant.",
   "mediaAllSpeakers": "Todos los altavoces",
   "settingSendspinQueueArtTitle": "Mostrar portadas en la cola",
   "settingSendspinQueueArtDescription": "Una portada en cada fila de la cola.",

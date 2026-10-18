@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Toon de luidsprekerkeuze 5 seconden nadat het scherm is aangeraakt. Voeg luidsprekers toe aan de huidige groep of verwijder ze eruit.",
   "settingSendspinSpeakerPillPlayersTitle": "Luidsprekerkeuze filteren",
   "settingSendspinSpeakerPillPlayersDescription": "Alleen deze luidsprekers verschijnen in de luidsprekerkeuze. Luidsprekers die al in de groep zitten, verschijnen altijd.",
+  "settingSendspinAudioQualityTitle": "Audiokwaliteit tonen",
+  "settingSendspinAudioQualityDescription": "Toont het formaat, de bitdiepte, de samplefrequentie, de bitrate en de bron van het huidige nummer onderaan Speelt nu. Vereist Music Assistant.",
   "mediaAllSpeakers": "Alle luidsprekers",
   "settingSendspinQueueArtTitle": "Albumhoezen in de wachtrij tonen",
   "settingSendspinQueueArtDescription": "Toon een albumhoes bij iedere rij van het wachtrijpaneel.",

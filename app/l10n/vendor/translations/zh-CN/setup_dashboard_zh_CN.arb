@@ -3,5 +3,6 @@
   "setupChooseDashboard": "选择仪表盘",
   "setupDashboardHelp": "Kiosk 启动时会显示此内容。",
   "setupSelectDashboard": "选择仪表盘",
-  "setupSelectDashboardHelp": "选择 Kiosk 显示的仪表盘，之后可在设置中更改。"
+  "setupSelectDashboardHelp": "选择 Kiosk 显示的仪表盘，之后可在设置中更改。",
+  "setupHeadlessGrants": "此设备没有屏幕，因此 Android 无法在设备上请求这些权限。请通过 adb 逐一授予，然后在此完成。"
 }

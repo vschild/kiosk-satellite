@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Als meerdere kiosken het wekwoord horen, antwoordt de dichtstbijzijnde. Verhoogt de detectielatentie.",
   "settingVoiceWakeArbitrationWindowTitle": "Arbitrageperiode",
   "settingVoiceWakeArbitrationWindowDescription": "Hoelang er op de andere kiosken wordt gewacht. Verleng deze periode als een tragere kiosk verliest terwijl die dichterbij staat.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Arbitragecorrectie",
+  "settingVoiceWakeArbitrationOffsetDescription": "Wordt opgeteld bij hoe luid deze kiosk het activeringswoord hoorde. Verhoog deze als deze kiosk verliest terwijl die dichterbij staat en verlaag deze als die van te ver weg antwoordt.",
   "voiceSectionWakeArbitration": "Wekwoordarbitrage",
   "voiceOptionSlightly": "Licht gevoelig",
   "voiceOptionModerately": "Matig gevoelig",

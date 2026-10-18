@@ -25,5 +25,6 @@
   "pluginErrorNativeFileIntegrity": "De integriteitscontrole van de geïnstalleerde systeemeigen bibliotheek is mislukt",
   "pluginErrorReadInstalled": "De geïnstalleerde plug-in kan niet worden gelezen: {error}",
   "pluginErrorPreviousRestart": "De vorige versie kon niet opnieuw worden gestart: {error}",
-  "pluginErrorUpdateFailed": "Update van plug-in mislukt: {error}. {recovery}"
+  "pluginErrorUpdateFailed": "Update van plug-in mislukt: {error}. {recovery}",
+  "pluginErrorNeedsScreen": "Deze plugin heeft een scherm nodig"
 }

@@ -1,3 +1,4 @@
+import { isHeadless } from './headless.js';
 import { renderTlsSettings } from './tls.js';
 import { localizeSetting, voiceText, esphomeError, esphomeDeviceIdentity, esphomeText, launcherText, kioskText, intercomText, intercomError, cameraText, cameraError, cameraResolutionNotice, screensaverText, deviceText, haText, screenAudioText, haConnectionError, settingsPageText, setupImportError, t } from './localization.js';
 import { preserveDraft } from './drafts.js';
@@ -12,7 +13,7 @@ import {
 import { MIC_GROUP_NOTE, cameraAction, exportFileName } from './cameras.js';
 import { $, api, cacheSettings, cmd, depSatisfied, state } from './core.js';
 import { readOnlyRow, renderAnalyticsIntro, renderUpdateHelper, renderUpdateSourceDocs } from './device.js';
-import { permissionSpecs } from './permissions.js';
+import { adbHint, permissionSpecs } from './permissions.js';
 import { renderServicePage } from './service.js';
 import { renderShizukuPage } from './shizuku.js';
 import { CATEGORY_TABS } from './gestures.js';
@@ -44,7 +45,8 @@ import { applyManagedBanners, renderFleetPage } from './fleetsync.js';
 import { decorateAnnouncementsPage, renderIntercomPage } from './intercom.js';
 import { renderAlarmsPage } from './alarms.js';
 import { renderCustomPagesPage } from './custom_pages.js';
-import { renderUrlBlacklistPage } from './url_blacklist.js';
+import { renderUrlFilterPage } from './url_filter.js';
+import { renderPluginScreensaverEntry } from './plugins.js';
 import { askImportOptions } from './pickers.js';
 import { settingRow, syncGatedRows } from './rows.js';
 import { applySubpageView, currentPath, setCurrentPath, subpageEntry, refreshNavigationText } from './tabs.js';
@@ -334,6 +336,16 @@ async function flushSettingsUpdates() {
         continue;
       }
     }
+    // The Player source and pick swap whole pages (the Sendspin Player page
+    // for the AirPlay one, or neither for the Local Media Session): the
+    // rows repaint themselves and the pages come and go in place, so a
+    // change echoed back from the device does not rebuild every tab.
+    if (!shapeChanged && ['sendspin.player_source', 'sendspin.player'].includes(setting.key)
+        && rows.length
+        && rows.every(row => row.updateSetting?.() && syncGatedRows(setting.key, row))) {
+      updatePlayerRow();
+      continue;
+    }
     // Voice Satellite's selects repaint themselves on the ks-settings event
     // below (vs_native.js): Home Assistant's mirrored selects and the
     // realtime choice have no row of their own to update.
@@ -346,8 +358,8 @@ async function flushSettingsUpdates() {
     if (!shapeChanged && rotationCardSettings.has(setting.key)) continue;
     // The Custom Pages list repaints itself (custom_pages.js).
     if (!shapeChanged && setting.key === 'ha.custom_pages') continue;
-    // So does the URL Blacklist (url_blacklist.js).
-    if (!shapeChanged && setting.key === 'browser.url_blacklist') continue;
+    // So does the URL Filter (url_filter.js).
+    if (!shapeChanged && setting.key === 'browser.url_filter') continue;
     // Only the choices of a dropdown moved (a provider's model list came
     // in): its row refreshes them in place rather than the page rebuilding
     // under whatever is being typed elsewhere on it.
@@ -385,6 +397,162 @@ async function flushSettingsUpdates() {
     liveSettingsRendering = false;
     if (liveSettings.size) flushSettingsUpdates();
   }
+}
+
+// The cards of a tab, or with `subpage` of one of its second-level pages,
+// from `list` (the visible settings by category). One UI shape, mirroring
+// the device's settings panes: a small heading floats above each rounded
+// card, and settings sharing a `section` get a card of their own (e.g. the
+// motion controls under "Motion Detection"). A `subpage` goes one further
+// and takes its settings off this page. Module scope so a single page can
+// be drawn in place (syncSubpages) exactly as the full render draws it.
+function renderCardsInto(target, cats, list, tab, { subpage = null } = {}) {
+  for (const cat of cats) {
+    const base = cat === cats[0] ? null : cat;
+    let heading = base;
+    let rows = [];
+    // Whether the last thing emitted was a page entry. Each one is a
+    // destination of its own, so it gets its own card: stacking unrelated
+    // destinations in one card reads as a group of related settings.
+    let entryRun = false;
+    const flush = () => {
+      if (!rows.length) return;
+      // A page whose only group repeats its own title says it twice; the
+      // page title already carries the name, so the heading goes.
+      if (heading && !(heading === subpage && !target.children.length)) {
+        const h = document.createElement('h2');
+        h.className = 'card-title';
+        h.textContent = settingsPageText(cat, heading);
+        target.appendChild(h);
+      }
+      const card = document.createElement('div');
+      card.className = 'card';
+      rows.forEach((r) => card.appendChild(r));
+      target.appendChild(card);
+      rows = [];
+    };
+    const seen = new Set();
+    (list[cat] || []).forEach((s) => {
+      const sub = s.subpage || null;
+      if (sub !== subpage) {
+        // Off to its own page: the first setting of each subpage leaves
+        // the entry row standing where the group used to be.
+        if (sub && tab && !subpage && !seen.has(sub)) {
+          seen.add(sub);
+          flush();
+          heading = null;
+          entryRun = true;
+          rows.push(subpageEntry(tab, sub));
+        }
+        return;
+      }
+      const want = s.section || base;
+      if (entryRun || want !== heading) { flush(); entryRun = false; heading = want; }
+      rows.push(settingRow(s));
+    });
+    flush();
+  }
+}
+
+// How each generic tab was last rendered (its categories and render
+// options), so syncSubpages draws a page the same way.
+const renderedTabs = new Map();
+
+// A flip that adds or takes away whole second-level pages, drawn in place
+// instead of re-rendering every tab: picking another player under Player
+// swaps the Sendspin Player page for the AirPlay one, and the full render
+// that took (a fetch, every tab, every decorator) blanked the picker for
+// seconds. `rows` are the settings whose presence changes, all on pages of
+// one tab. A page left with nothing to show loses its entry row and panel,
+// a page that comes back gets them where the full render puts them, and a
+// page that stays is redrawn. False when the change is not of that shape
+// (a page the tab builds by hand, a row on the tab itself), for the caller
+// to fall back to the full render.
+export function syncSubpages(rows) {
+  const category = rows[0]?.category;
+  const found = [...renderedTabs.entries()].find(([, r]) => r.cats.includes(category));
+  if (!found) return false;
+  const [tabId, { cats, opts }] = found;
+  if (opts?.entryRoot) return false;
+  const tabEl = document.getElementById(tabId);
+  if (!tabEl) return false;
+  const tab = tabId.replace(/^tab-/, '');
+  const fixed = [...(opts?.handBuilt || []), ...(opts?.extra || [])];
+  const subs = [...new Set(rows.map((o) => o.subpage || ''))];
+  if (rows.some((o) => !cats.includes(o.category))) return false;
+  if (subs.some((sub) => !sub || fixed.includes(sub))) return false;
+  const all = state.settings || [];
+  const byKey = Object.fromEntries(all.map((o) => [o.key, o]));
+  const byCat = {};
+  all.filter((o) => !o.hidden && depSatisfied(o, byKey))
+    .forEach((o) => (byCat[o.category] ??= []).push(o));
+  const entryOf = (sub) => [...tabEl.querySelectorAll(':scope > .card [data-subpage-entry]')]
+    .find((e) => e.dataset.subpageEntry === sub);
+  const panelOf = (sub) => [...tabEl.querySelectorAll(':scope > .subpage')]
+    .find((p) => p.dataset.subpage === sub);
+  // The order the full render emits the tab in: a marker per entry row and
+  // per row on the tab itself.
+  const order = [];
+  for (const cat of cats) {
+    for (const o of byCat[cat] || []) {
+      const marker = o.subpage ? `sub:${o.subpage}` : `key:${o.key}`;
+      if (!order.includes(marker)) order.push(marker);
+    }
+  }
+  const onTab = (marker) => marker.startsWith('sub:')
+    ? entryOf(marker.slice(4))?.closest('.card')
+    : tabEl.querySelector(`:scope > .card [data-key="${CSS.escape(marker.slice(4))}"]`)?.closest('.card');
+  // Where a new entry card goes: before the card of the next marker on
+  // screen (and its heading), else after the card of the previous one.
+  const placeFor = (sub) => {
+    const at = order.indexOf(`sub:${sub}`);
+    for (let i = at + 1; i < order.length; i++) {
+      const card = onTab(order[i]);
+      if (!card) continue;
+      const heading = card.previousElementSibling;
+      const target = heading?.matches('h2.card-title') ? heading : card;
+      return (entry) => target.before(entry);
+    }
+    for (let i = at - 1; i >= 0; i--) {
+      const card = onTab(order[i]);
+      if (card) return (entry) => card.after(entry);
+    }
+    return null;
+  };
+  // Decide everything before touching the page, so a page that cannot be
+  // placed leaves it as it was for the full render.
+  const plan = subs.map((sub) => {
+    const shown = cats.some((cat) => (byCat[cat] || []).some((o) => o.subpage === sub));
+    const place = shown && !entryOf(sub) ? placeFor(sub) : null;
+    return { sub, shown, place };
+  });
+  if (plan.some((p) => p.shown && !entryOf(p.sub) && !p.place)) return false;
+  for (const { sub, shown, place } of plan) {
+    const panel = panelOf(sub);
+    const open = !!panel?.classList.contains('open');
+    if (!shown) {
+      entryOf(sub)?.closest('.card')?.remove();
+      panel?.remove();
+      if (open) {
+        applySubpageView(tab, '');
+        setCurrentPath(tab);
+      }
+      continue;
+    }
+    const fresh = document.createElement('div');
+    fresh.className = 'subpage';
+    fresh.dataset.subpage = sub;
+    renderCardsInto(fresh, cats, byCat, tab, { subpage: sub });
+    fresh.classList.toggle('open', open);
+    if (panel) panel.replaceWith(fresh); else tabEl.appendChild(fresh);
+    if (place) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.appendChild(subpageEntry(tab, sub));
+      place(card);
+    }
+  }
+  return true;
 }
 
 export async function loadSettings(options = {}) {
@@ -456,58 +624,7 @@ async function renderSettings({ cached = false } = {}) {
     // settings between two hand-built cards).
     const tabEl = root.closest('.tab');
     const tab = tabEl ? tabEl.id.replace(/^tab-/, '') : null;
-    // One UI shape, mirroring the device's settings panes: a small heading
-    // floats above each rounded card, and settings sharing a `section` get a
-    // card of their own (e.g. the motion controls under "Motion Detection").
-    // A `subpage` goes one further and takes its settings off this page.
-    const renderInto = (target, list, { subpage = null } = {}) => {
-      for (const cat of cats) {
-        const base = cat === cats[0] ? null : cat;
-        let heading = base;
-        let rows = [];
-        // Whether the last thing emitted was a page entry. Each one is a
-        // destination of its own, so it gets its own card: stacking unrelated
-        // destinations in one card reads as a group of related settings.
-        let entryRun = false;
-        const flush = () => {
-          if (!rows.length) return;
-          // A page whose only group repeats its own title says it twice; the
-          // page title already carries the name, so the heading goes.
-          if (heading && !(heading === subpage && !target.children.length)) {
-            const h = document.createElement('h2');
-            h.className = 'card-title';
-            h.textContent = settingsPageText(cat, heading);
-            target.appendChild(h);
-          }
-          const card = document.createElement('div');
-          card.className = 'card';
-          rows.forEach((r) => card.appendChild(r));
-          target.appendChild(card);
-          rows = [];
-        };
-        const seen = new Set();
-        (list[cat] || []).forEach((s) => {
-          const sub = s.subpage || null;
-          if (sub !== subpage) {
-            // Off to its own page: the first setting of each subpage leaves
-            // the entry row standing where the group used to be.
-            if (sub && tab && !subpage && !seen.has(sub)) {
-              seen.add(sub);
-              flush();
-              heading = null;
-              entryRun = true;
-              rows.push(subpageEntry(tab, sub));
-            }
-            return;
-          }
-          const want = s.section || base;
-          if (entryRun || want !== heading) { flush(); entryRun = false; heading = want; }
-          rows.push(settingRow(s));
-        });
-        flush();
-      }
-    };
-    renderInto(root, byCat);
+    renderCardsInto(root, cats, byCat, tab);
     // `entryRoot` gathers this tab's page entry rows somewhere else (the
     // Device page wants all of them together, just above the grants). It is
     // not this render's root, so it is cleared here, and the rows the
@@ -543,7 +660,7 @@ async function renderSettings({ cached = false } = {}) {
       panel.className = 'subpage';
       panel.dataset.subpage = sub;
       if (!handBuilt.includes(sub) && !extra.includes(sub)) {
-        renderInto(panel, byCat, { subpage: sub });
+        renderCardsInto(panel, cats, byCat, tab, { subpage: sub });
       }
       tabEl.appendChild(panel);
       panels.set(sub, panel);
@@ -565,12 +682,19 @@ async function renderSettings({ cached = false } = {}) {
     return panels;
   };
 
+  // LED Control exists only where the device has lights to drive: its
+  // settings come back hidden everywhere else.
+  document.querySelector('#tabs button[data-tab="leds"]')?.classList.toggle('hidden',
+    !settings.some((s) => s.category === 'LED Control' && !s.hidden));
+
   for (const [tabId, cats, opts] of CATEGORY_TABS) {
     if (tabId === 'tab-homeassistant') continue; // custom render below
     if (tabId === 'tab-voicesatellite') continue; // custom render below
     const helperPage = tabId === 'device-settings' && helperStatus?.nativeSilent === false;
-    const panels = render(document.getElementById(tabId), cats.filter((c) => byCat[c]),
-      tabId === 'device-settings' ? { ...opts, handBuilt: ['Shizuku'], extra: ['TLS', ...(helperPage ? ['Optional update helper'] : []), ...(opts?.extra || [])] } : opts);
+    const tabOpts = tabId === 'device-settings' ? { ...opts, handBuilt: ['Shizuku'], extra: ['TLS', ...(helperPage ? ['Optional update helper'] : []), ...(opts?.extra || []).filter((page) => page !== 'WebView' || !isHeadless())] } : opts;
+    const tabCats = cats.filter((c) => byCat[c]);
+    renderedTabs.set(tabId, { cats: tabCats, opts: tabOpts });
+    const panels = render(document.getElementById(tabId), tabCats, tabOpts);
     if (tabId === 'device-settings') {
       renderShizukuPage(panels.get('Shizuku'));
       const adminEntry = document.querySelector('#device-pages [data-subpage-entry="Remote Administration"]');
@@ -591,7 +715,8 @@ async function renderSettings({ cached = false } = {}) {
       renderUpdateSourceDocs(panels.get('Updates'));
     }
     if (helperPage) renderUpdateHelper(panels.get('Optional update helper'), helperStatus);
-    if (tabId === 'tab-browser') renderUrlBlacklistPage(panels.get('URL Blacklist'));
+    if (tabId === 'tab-browser') renderUrlFilterPage(panels.get('URL Filter'));
+    if (tabId === 'tab-screensaver') renderPluginScreensaverEntry(document.getElementById(tabId), byKey['screensaver.mode']?.value);
   }
 
   // ── Required system permissions (Kiosk and Lockdown tabs) ────────────
@@ -1583,6 +1708,13 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
         const g = await cmd('hasUiGuard');
         out.uiGuard = g.data === true;
       } catch (_) {}
+      if (isHeadless()) {
+        try {
+          const b = await cmd('getHardwareButtons');
+          out.hardwareButtons = b.data?.listening === true;
+          out.hardwareButtonsOn = b.data?.switchedOn === true;
+        } catch (_) {}
+      }
       return out;
     };
 
@@ -1628,10 +1760,12 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
         const text = (t) => deviceText(typeof t === 'function' ? t(all) : t);
         // The device has no screen for the grant: the adb command stands
         // in for the button, and the row is not an error nobody can fix.
-        const noScreen = !ok && spec.requestable && all[spec.requestable] === false;
+        const noScreen = !ok && (isHeadless()
+          ? !!spec.adb
+          : spec.requestable && all[spec.requestable] === false);
         info.querySelector('.desc').textContent = unknownState
           ? deviceText('Status unavailable.')
-          : noScreen ? deviceText(spec.adb)
+          : noScreen ? deviceText(adbHint(spec, all))
           : text(ok ? spec.held : (spec.needed ? spec.missing : spec.idle));
         state.textContent = unknownState ? ''
           : ok ? deviceText('Granted') : noScreen ? deviceText('Not offered')
@@ -1820,7 +1954,8 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
     // from the URL scheme (https needs no proxy, so it sits disabled and
     // off; plain http enables it, validation turns it on with a modal).
     const spSetting = settings.find((s) => s.key === 'browser.secure_proxy');
-    {
+    // A device without a screen has no page that needs a secure context.
+    if (!isHeadless()) {
       const urlVal = (ha.find((s) => s.key === 'ha.url')?.value || '').trim();
       const spu = (() => { try { return new URL(urlVal); } catch (_) { return null; } })();
       const spHttp = spu && spu.protocol === 'http:'
@@ -1898,6 +2033,10 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
 
     if (!state.haConnected) {
       vdesc.textContent = haText('Not validated yet. The settings below unlock once the connection checks out.');
+    } else if (isHeadless()) {
+      // Everything past the connection is the dashboard, which a device
+      // without a screen does not have.
+      vdesc.textContent = haText('Connected.');
     } else {
       vdesc.textContent = haText('Connected.');
       // Dashboard picker: what the kiosk shows. Radio rows; picking one sets

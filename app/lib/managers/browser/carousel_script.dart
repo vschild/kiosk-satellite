@@ -353,7 +353,7 @@ const dashboardCarouselScript = '''
   }
 
   function navigate(urlPath, key) {
-    // Around the URL Blacklist's check (urlBlacklistJs).
+    // Around the URL Filter's check (urlFilterJs).
     (history.__ksPushState || history.pushState).call(history, null, '',
       '/' + urlPath + '/' + encodeURIComponent(key));
     window.dispatchEvent(new CustomEvent('location-changed'));

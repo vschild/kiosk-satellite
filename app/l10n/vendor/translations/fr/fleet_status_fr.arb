@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "Cette adresse n'a pas renvoyé d'identité de kiosque valide.",
   "fleetErrorAlreadyMember": "Ce kiosque appartient déjà à cette flotte.",
   "fleetErrorIsLeader": "Ce kiosque dirige une flotte.",
-  "fleetErrorOtherLeader": "Ce kiosque suit déjà un autre leader."
+  "fleetErrorOtherLeader": "Ce kiosque suit déjà un autre leader.",
+  "fleetPluginsNames": "Plugins : {names}",
+  "fleetCouldNotInstallNameReason": "Impossible d'installer {name} : {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Réinstallez {name} sur ce kiosque pour le synchroniser"
 }

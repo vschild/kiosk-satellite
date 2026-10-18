@@ -11,6 +11,7 @@ import '../../core/command_registry.dart';
 import '../../core/manager.dart';
 import '../../core/events.dart';
 import '../../ui/mdi_icon.dart';
+import 'fleet_plugin_host.dart';
 import 'plugin_repository.dart';
 import '../home_assistant/plugin_ha_socket.dart';
 import 'plugin_host_api.dart';
@@ -112,7 +113,7 @@ class PluginNativeOverlay {
 }
 
 /// Owns the Flutter surface of the Android plugin runtime.
-class PluginManager extends Manager {
+class PluginManager extends Manager implements FleetPluginHost {
   PluginManager(
     super.bus,
     super.commands,
@@ -180,6 +181,11 @@ class PluginManager extends Manager {
   final enabled = ValueNotifier<bool>(false);
   bool _disposed = false;
   late final PluginHostApi _hostReads;
+
+  /// Whether a fleet leader keeps this plugin in step here: its own update
+  /// check is the leader's then. Set by the app container.
+  bool Function(String id) fleetManaged = _never;
+  static bool _never(String _) => false;
 
   /// The Home Assistant connection plugins with the `ha` capability share.
   /// Set by the app container before [init].
@@ -664,6 +670,9 @@ class PluginManager extends Manager {
     await refresh();
     final plugin = installed.value.where((p) => p['id'] == id).firstOrNull;
     if (plugin == null) throw StateError('Plugin is not installed');
+    if (fleetManaged(id)) {
+      throw StateError('The fleet leader keeps this plugin up to date');
+    }
     final source = plugin['source'];
     if (source is! Map || source['repository'] is! String) {
       throw StateError(
@@ -714,7 +723,10 @@ class PluginManager extends Manager {
 
   Map<String, Object?> get _state => {
     'enabled': enabled.value,
-    'plugins': installed.value,
+    'plugins': [
+      for (final p in installed.value)
+        if (fleetManaged('${p['id']}')) {...p, 'fleetManaged': true} else p,
+    ],
   };
 
   Future<Map<String, Object?>> refreshShizuku({String? requestFor}) async {
@@ -740,6 +752,78 @@ class PluginManager extends Manager {
   }
 
   Future<List<Map<String, Object?>>> refresh() => update('list', const {});
+
+  // ── Fleet Management ────────────────────────────────────────────────
+
+  @override
+  Future<List<Map<String, Object?>>> fleetState() async {
+    final value = await channel
+        .invokeMethod<Object?>('fleetState')
+        .timeout(const Duration(seconds: 10));
+    // Through JSON: the channel hands nested maps typed Object? keys.
+    final list = jsonDecode(jsonEncode(value ?? const []));
+    return [
+      for (final item in list as List)
+        if (item is Map) item.cast<String, Object?>(),
+    ];
+  }
+
+  @override
+  Future<String?> fleetPackage(String id) async {
+    final path = await channel
+        .invokeMethod<String>('packagePath', {'id': id})
+        .timeout(const Duration(seconds: 10));
+    if (path != null) return path;
+    // Installed before packages were kept: a repository release can be
+    // fetched again by its tag, pinned to the hash it was installed with.
+    final plugin = (await fleetState()).where((p) => p['id'] == id).firstOrNull;
+    final source = plugin?['source'];
+    if (plugin == null ||
+        source is! Map ||
+        source['repository'] is! String ||
+        source['releaseTag'] is! String) {
+      return null;
+    }
+    final bytes = await repository.downloadRelease(
+      repository: source['repository'] as String,
+      tag: source['releaseTag'] as String,
+      id: id,
+      version: '${plugin['version']}',
+      digest: '${plugin['sha256']}',
+    );
+    return channel
+        .invokeMethod<String>('keepPackage', {'id': id, 'bytes': bytes})
+        .timeout(const Duration(seconds: 30));
+  }
+
+  @override
+  Future<void> fleetInstall(
+    Uint8List bytes, {
+    required String sha256,
+    Map<String, Object?>? source,
+  }) async {
+    if (bytes.isEmpty || bytes.length > maxZipBytes) {
+      throw const FormatException('Plugin ZIP must be at most 4 MB');
+    }
+    await update('install', {
+      'bytes': bytes,
+      'trusted': true,
+      'sha256': sha256,
+      if (source != null) 'source': jsonEncode(source),
+    });
+  }
+
+  @override
+  Future<void> fleetConfigure(String id, Map<String, Object?> entry) =>
+      update('fleetConfigure', {
+        'id': id,
+        'enabled': entry['enabled'] == true,
+        'config': entry['config'] ?? const {},
+        'actionOptions': entry['actionOptions'] ?? const {},
+      });
+
+  @override
+  Future<void> fleetRemove(String id) => update('remove', {'id': id});
 
   Future<List<Map<String, Object?>>> update(
     String method,

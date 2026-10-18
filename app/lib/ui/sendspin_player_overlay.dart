@@ -5,6 +5,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
+import 'package:intl/intl.dart' show NumberFormat;
 import 'glance_row.dart';
 import 'lyrics_view.dart';
 import 'theme.dart';
@@ -186,6 +187,7 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
       if (e.key == defs.sendspinLyrics.key ||
           e.key == defs.sendspinFullscreenQueue.key ||
           e.key == defs.sendspinSpeakerPill.key ||
+          e.key == defs.sendspinAudioQuality.key ||
           e.key == defs.sendspinFullscreenTextScale.key ||
           e.key == defs.sendspinFullscreenButtonScale.key ||
           e.key == defs.sendspinFullscreenLayout.key ||
@@ -223,6 +225,7 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
       url,
       c.sendspin.playerChipName,
       c.sendspin.queueOpen,
+      '${now?['audioQuality'] ?? ''}',
     );
     if (presentation == _presentation) return;
     _presentation = presentation;
@@ -315,6 +318,9 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
         c.settings.get(defs.screensaverGlanceNowPlaying) &&
         c.glance.entities.value.isNotEmpty;
     final edge = (screen.width * 0.06).clamp(16.0, 64.0);
+    final quality = c.settings.get(defs.sendspinAudioQuality)
+        ? audioQualityLabels(context, now?['audioQuality'])
+        : const <String>[];
     _panelShown =
         sideBySide || stacked || panelOnly || (horizontal && havePanel);
 
@@ -748,6 +754,53 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
       }
     }
 
+    // The content above, the row and the transport pinned below it:
+    // the transport keeps its place whatever the content does.
+    Widget verticalContent() => Column(
+      children: [
+        Expanded(child: content()),
+        if (glance)
+          Padding(
+            padding: EdgeInsets.only(
+              top: 8,
+              bottom: controls ? 4 : (screen.height * 0.06).clamp(12.0, 48.0),
+            ),
+            // The default cards carry their own backdrop, and the
+            // text-only style's grey-on-black palette reads over the
+            // black backdrop and the scrimmed art alike, so no tint.
+            child: GlanceRow(
+              container: c,
+              scale: min(1.0, screen.height / 480).clamp(0.75, 1.0),
+            ),
+          ),
+        if (controls)
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              gap * 0.4,
+              16,
+              (screen.height * 0.03).clamp(8.0, 24.0),
+            ),
+            child: Center(
+              child: _ControlTouch(
+                container: c,
+                child: _NowPlayingControls(
+                  container: c,
+                  // A wide bar: most of the screen, so the thumb has
+                  // room to land and the times can read at a distance.
+                  width: min(
+                    max(artSize * 1.4, screen.width * 0.62),
+                    screen.width - 32,
+                  ),
+                  scale: controlsScale,
+                  maxHeight: screen.height * 0.5,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+
     // The close button joins the controls in coming and going.
     Widget transientInArtOnly(Widget child) =>
         artOnly ? _TransientOnActivity(container: c, child: child) : child;
@@ -788,59 +841,23 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
         ),
         // Blur + scrim so the backdrop reads as atmosphere, not content.
         if (art != null) const ColoredBox(color: Color(0x99000000)),
-        // The content above, the row and the transport pinned below it:
-        // the transport keeps its place whatever the content does.
-        if (horizontal)
-          horizontalContent()
-        else if (artOnly)
-          artOnlyContent()
-        else
-          Column(
-            children: [
-              Expanded(child: content()),
-              if (glance)
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: 8,
-                    bottom: controls
-                        ? 4
-                        : (screen.height * 0.06).clamp(12.0, 48.0),
-                  ),
-                  // The default cards carry their own backdrop, and the
-                  // text-only style's grey-on-black palette reads over the
-                  // black backdrop and the scrimmed art alike, so no tint.
-                  child: GlanceRow(
-                    container: c,
-                    scale: min(1.0, screen.height / 480).clamp(0.75, 1.0),
-                  ),
-                ),
-              if (controls)
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    gap * 0.4,
-                    16,
-                    (screen.height * 0.03).clamp(8.0, 24.0),
-                  ),
-                  child: Center(
-                    child: _ControlTouch(
-                      container: c,
-                      child: _NowPlayingControls(
-                        container: c,
-                        // A wide bar: most of the screen, so the thumb has
-                        // room to land and the times can read at a distance.
-                        width: min(
-                          max(artSize * 1.4, screen.width * 0.62),
-                          screen.width - 32,
-                        ),
-                        scale: controlsScale,
-                        maxHeight: screen.height * 0.5,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        // The layout above, the audio quality pills along the bottom edge.
+        Column(
+          children: [
+            Expanded(
+              child: horizontal
+                  ? horizontalContent()
+                  : artOnly
+                  ? artOnlyContent()
+                  : verticalContent(),
+            ),
+            if (quality.isNotEmpty)
+              _AudioQualityPills(
+                labels: quality,
+                fontSize: (short * 0.024).clamp(11.0, 15.0) * textScale,
+              ),
+          ],
+        ),
         // Whose music this is: the shown player's name in a chip opposite
         // the close button, and the way into its group where the source
         // can put other players in it.
@@ -1026,6 +1043,99 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
           ),
         );
       },
+    );
+  }
+}
+
+/// The pills [_AudioQualityPills] shows for a track's audio quality (see
+/// audioQualityOf), in order: Hi-Res or CD quality for lossless audio and
+/// Lossy for a compressed codec, the codec, the bit depth (for a lossy
+/// codec, the depth it decodes to), the sample rate, the bitrate and the
+/// source. Empty when the server reported none of it.
+List<String> audioQualityLabels(BuildContext context, Object? quality) {
+  if (quality is! Map) return const [];
+  final strings = l10n(context);
+  final number = NumberFormat(
+    '0.#',
+    Localizations.localeOf(context).toString(),
+  );
+  final lossless = quality['lossless'] == true;
+  final codec = quality['codec'] as String?;
+  final sampleRate = quality['sampleRate'] as num?;
+  final bitDepth = quality['bitDepth'] as num?;
+  final bitRate = quality['bitRate'] as num?;
+  final hiRes = (bitDepth ?? 0) > 16 || (sampleRate ?? 0) > 48000;
+  final cd =
+      (sampleRate == 44100 || sampleRate == 48000) &&
+      (bitDepth == null || bitDepth == 16);
+  return [
+    if (lossless && hiRes)
+      strings.mediaAudioHiRes
+    else if (lossless && cd)
+      strings.mediaAudioCdQuality
+    else if (!lossless && codec != null)
+      strings.mediaAudioLossy,
+    ?codec,
+    if (bitDepth != null) strings.mediaAudioBitDepth('$bitDepth'),
+    if (sampleRate != null)
+      strings.mediaAudioSampleRate(number.format(sampleRate / 1000)),
+    if (bitRate != null) strings.mediaAudioBitRate('$bitRate'),
+    if (quality['source'] case final String source) source,
+  ];
+}
+
+/// The audio quality pills along the bottom edge of the Now Playing view
+/// (sendspin.audio_quality), centered and wrapping onto a second line on a
+/// narrow panel rather than shrinking.
+class _AudioQualityPills extends StatelessWidget {
+  const _AudioQualityPills({required this.labels, required this.fontSize});
+
+  final List<String> labels;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final safe = MediaQuery.paddingOf(context);
+    return Padding(
+      key: const ValueKey('audio-quality-pills'),
+      padding: EdgeInsets.fromLTRB(
+        16 + safe.left,
+        4,
+        16 + safe.right,
+        12 + safe.bottom,
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          for (final label in labels)
+            DecoratedBox(
+              decoration: ShapeDecoration(
+                color: Colors.black38,
+                shape: const StadiumBorder(
+                  side: BorderSide(color: Colors.white24),
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: fontSize * 0.8,
+                  vertical: fontSize * 0.3,
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

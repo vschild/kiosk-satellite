@@ -22,5 +22,8 @@
   "gestureOpenApp": "Abrir aplicación {package}",
   "gestureRun": "Ejecutar {value}",
   "gestureTriggerAction": "Activar {value}",
-  "gestureFireEvent": "Emitir evento {value}"
+  "gestureFireEvent": "Emitir evento {value}",
+  "gestureDescribeButtonPress": "Pulsar el botón {button}",
+  "gestureDescribeButtonDouble": "Pulsar dos veces el botón {button}",
+  "gestureDescribeButtonHold": "Mantener pulsado el botón {button}"
 }

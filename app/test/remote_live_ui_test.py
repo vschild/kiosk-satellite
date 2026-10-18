@@ -165,8 +165,15 @@ with sync_playwright() as playwright:
     expect(player).to_have_text('Unlisted speaker')
     change('sendspin.player_name', 'Second speaker renamed')
     expect(page.locator('.player-warn')).to_contain_text('Second speaker renamed')
+    # A source change swaps pages in place: the rest of the page stays.
+    page.locator('[data-key="sendspin.duck_percent"]').evaluate('el => el.dataset.sourceKept = "yes"')
+    change('sendspin.player_source', '')
+    expect(page.locator('#tab-sendspin [data-subpage-entry="Sendspin Player"]')).to_have_count(1)
+    expect(page.locator('[data-key="sendspin.duck_percent"]')).to_have_attribute('data-source-kept', 'yes')
     change('sendspin.player_source', 'ma')
     expect(page.locator('[data-key="sendspin.player_source"] select')).to_have_value('ma')
+    expect(page.locator('#tab-sendspin [data-subpage-entry="Sendspin Player"]')).to_have_count(0)
+    expect(page.locator('[data-key="sendspin.duck_percent"]')).to_have_attribute('data-source-kept', 'yes')
     change('sendspin.player', 'ma:media_player.second')
     expect(player).to_have_text('Second speaker')
 
@@ -185,6 +192,7 @@ with sync_playwright() as playwright:
         ('sendspin/floating-player', 'sendspin.player_size', 'large', 'select'),
         ('sendspin/now-playing', 'sendspin.fullscreen', True, 'checkbox'),
         ('sendspin/now-playing', 'sendspin.fullscreen_text_scale', 120, 'range'),
+        ('sendspin/now-playing', 'sendspin.audio_quality', True, 'checkbox'),
         ('sendspin/music-assistant', 'sendspin.ma_open_fullscreen', True, 'checkbox'),
         ('sendspin/music-assistant', 'sendspin.ma_inputs', True, 'checkbox'),
         ('sendspin/lyrics', 'sendspin.lyrics_enabled', True, 'checkbox'),

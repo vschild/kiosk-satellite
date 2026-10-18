@@ -536,8 +536,8 @@
     "context": "Settings > Voice Satellite",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
-  "voiceHaAddHint": "Add this kiosk under Settings, Devices & services in Home Assistant, where it shows up as discovered.",
-  "@voiceHaAddHint": {
+  "voiceHaAddAgainHint": "Add this kiosk under Settings, Devices & services in Home Assistant, where it shows up as discovered. If Home Assistant had it before, it asks there for the new Encryption key from the ESPHome page.",
+  "@voiceHaAddAgainHint": {
     "context": "Settings > Voice Satellite",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },

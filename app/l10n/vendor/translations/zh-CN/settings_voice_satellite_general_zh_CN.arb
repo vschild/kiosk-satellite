@@ -56,7 +56,7 @@
   "voiceWordListening": "正在监听",
   "voiceWordNotListening": "未在监听",
   "voiceWordAdded": "已添加",
-  "voiceHaAddHint": "请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。",
+  "voiceHaAddAgainHint": "请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。",
   "voiceHaEsphomeOff": "请开启 ESPHome 服务器，使 Home Assistant 可将此 Kiosk 添加为语音卫星。",
   "voiceWordReloadNeeded": "需要重新加载",
   "voiceHaSelectsReloadHint": "Home Assistant 尚未加载助手和唤醒词选择实体。请在“设置 > 设备与服务”中重新加载此 Kiosk 的 ESPHome 条目。重启 Home Assistant 也可解决。",

@@ -419,4 +419,4 @@ When ESPHome **Expose kiosk entities** is enabled, the screensaver provides comp
 
 All entities surface natively on the kiosk's primary ESPHome device.
 
-Apps on the kiosk itself, like Tasker or MacroDroid, can follow the screensaver through [Android Broadcasts](android-broadcasts.md#screensaver).
+Automations can follow the screensaver through the `esphome.kiosk_satellite_screensaver` [event](events.md#screensaver). Apps on the kiosk itself, like Tasker or MacroDroid, can use [Android Broadcasts](android-broadcasts.md#screensaver).

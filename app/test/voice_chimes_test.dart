@@ -127,6 +127,22 @@ void main() {
     },
   );
 
+  test('each chime plays at its own volume', () async {
+    await settings.setFromJson('voice_chimes.alert_volume', 40);
+    await settings.setFromJson('voice_chimes.wake_volume', 0);
+    await commands.execute('playTimerChime', {});
+    expect(plays.last['volume'], closeTo(0.4, 1e-9));
+    await commands.execute('playSound', {
+      'url': 'https://ha.test/voice_satellite/sounds/alert.mp3',
+      'volume': 0.5,
+    });
+    expect(plays.last['volume'], closeTo(0.2, 1e-9));
+    await commands.execute('playVoiceChime', {'kind': 'wake'});
+    expect(plays.last['volume'], 0);
+    await commands.execute('previewVoiceChime', {'kind': 'done'});
+    expect(plays.last['volume'], 1);
+  });
+
   test('only the five canonical chime URLs select local sounds', () {
     expect(
       SoundManager.voiceChimeKind('/voice_satellite/sounds/wake.mp3?v=2'),

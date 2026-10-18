@@ -1,0 +1,13 @@
+{
+  "@@locale": "uk",
+  "settingAirplayEnabledTitle": "Увімкнути приймач AirPlay",
+  "settingAirplayEnabledDescription": "Пристрій з'явиться як гучномовець AirPlay у меню AirPlay на iPhone, iPad або Mac.",
+  "mediaAirplayHint": "Відтворення аудіо з iPhone, iPad або Mac",
+  "settingAirplayNameTitle": "Назва гучномовця",
+  "settingAirplayNameDescription": "Назва в меню AirPlay. Якщо порожньо, використовується назва пристрою.",
+  "settingAirplaySenderVolumeTitle": "Враховувати гучність відправника",
+  "settingAirplaySenderVolumeDescription": "Регулятор гучності на iPhone, iPad або Mac змінює гучність цього пристрою. Якщо вимкнено, діє лише гучність цього пристрою.",
+  "settingAirplaySyncOffsetDescription": "Від'ємне значення змушує цей пристрій грати раніше, щоб звук збігався з відео на відправнику. Застосовується одразу.",
+  "settingAirplayTakeoverTitle": "Дозволити іншому відправнику перехопити",
+  "settingAirplayTakeoverDescription": "Інший iPhone, iPad або Mac може перехопити відтворення, поки грає перший. Якщо вимкнено, він чекатиме, доки перший не від'єднається."
+}

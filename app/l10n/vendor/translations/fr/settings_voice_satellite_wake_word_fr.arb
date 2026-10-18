@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Quand plusieurs kiosques entendent le mot de réveil, le plus proche répond. Augmente la latence de détection.",
   "settingVoiceWakeArbitrationWindowTitle": "Fenêtre d'arbitrage",
   "settingVoiceWakeArbitrationWindowDescription": "Durée d'attente des autres kiosques. Augmentez-la si un kiosque plus lent perd alors qu'il est plus proche.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Correction d'arbitrage",
+  "settingVoiceWakeArbitrationOffsetDescription": "S'ajoute au niveau auquel ce kiosque a entendu le mot d'activation. Augmentez-la si ce kiosque perd alors qu'il est plus proche, baissez-la s'il répond de trop loin.",
   "voiceSectionWakeArbitration": "Arbitrage du mot de réveil",
   "voiceOptionSlightly": "Peu sensible",
   "voiceOptionModerately": "Moyennement sensible",

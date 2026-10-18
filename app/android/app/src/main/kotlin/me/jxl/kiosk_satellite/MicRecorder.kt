@@ -16,6 +16,7 @@ import android.os.Looper
 import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -88,6 +89,7 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
         )
 
         const val CHANNEL = "kiosk_satellite/mic"
+        const val LEVELS_CHANNEL = "kiosk_satellite/mic_levels"
         private const val TAG = "MicRecorder"
         @Volatile var rtspAudioTap: ((ByteArray, Long) -> Unit)? = null
         @Volatile var inputSelector: String? = null
@@ -160,6 +162,7 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
 
     private val appContext = context.applicationContext
     private val eventChannel = EventChannel(messenger, CHANNEL)
+    private val levelsChannel = MethodChannel(messenger, LEVELS_CHANNEL)
     private val mainHandler = Handler(Looper.getMainLooper())
 
     @Volatile private var recording = false
@@ -178,6 +181,15 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
 
     init {
         eventChannel.setStreamHandler(this)
+        // Wake word arbitration reads the levels before the noise
+        // suppressor here, not the cleaned audio the stream delivers.
+        levelsChannel.setMethodCallHandler { call, result ->
+            if (call.method == "recent") {
+                result.success(MicLevels.recent((call.argument<Number>("ms") ?: 3000).toInt()))
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
@@ -256,6 +268,8 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
         silencePlatformEffects(opened, ladder[step].source)
         SoftwareEcho.setEnabled(wantSoftwareAec)
         SoftwareEcho.setNoiseSuppression(wantNs)
+        MicLevels.clear()
+        MicLevels.gainDb = gainDbOf(gain)
         // Four 80 ms chunks cover ordinary scheduling jitter. A stalled
         // platform thread must not retain an unlimited history of audio.
         val frames = PcmDelivery(
@@ -517,6 +531,8 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
                         chunk,
                         captureClock.heard(capturedFrames, shape.rateHz, System.nanoTime()),
                     )
+                } else {
+                    MicLevels.measure(chunk)
                 }
                 // Boost cleaned speech after cancellation. Boosting the speaker
                 // echo first can clip it and make nearby speech disappear.

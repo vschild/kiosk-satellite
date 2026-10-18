@@ -1,0 +1,13 @@
+{
+  "@@locale": "nl",
+  "settingAirplayEnabledTitle": "AirPlay-ontvanger inschakelen",
+  "settingAirplayEnabledDescription": "Het apparaat verschijnt als AirPlay-luidspreker in het AirPlay-menu van een iPhone, iPad of Mac.",
+  "mediaAirplayHint": "Audio afspelen vanaf een iPhone, iPad of Mac",
+  "settingAirplayNameTitle": "Naam van de luidspreker",
+  "settingAirplayNameDescription": "De naam in het AirPlay-menu. Leeg gebruikt de apparaatnaam.",
+  "settingAirplaySenderVolumeTitle": "Volume van de afzender volgen",
+  "settingAirplaySenderVolumeDescription": "De volumeregeling van de iPhone, iPad of Mac verandert hoe luid dit apparaat speelt. Als dit uitstaat, telt alleen het volume van dit apparaat.",
+  "settingAirplaySyncOffsetDescription": "Een negatieve waarde laat dit apparaat eerder spelen, zodat het geluid gelijkloopt met video op de afzender. Wordt direct toegepast.",
+  "settingAirplayTakeoverTitle": "Een andere afzender laten overnemen",
+  "settingAirplayTakeoverDescription": "Een tweede iPhone, iPad of Mac kan overnemen terwijl er een speelt. Als dit uitstaat, moet die wachten tot de eerste de verbinding verbreekt."
+}

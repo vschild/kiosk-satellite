@@ -191,7 +191,7 @@ export const voiceTextMessageIds = {
   "Added": "voiceWordAdded",
   "Reload needed": "voiceWordReloadNeeded",
   "Home Assistant has not loaded the Assistant and Wake word selects. Reload this kiosk's ESPHome entry under Settings, Devices & services. Restarting Home Assistant also works.": "voiceHaSelectsReloadHint",
-  "Add this kiosk under Settings, Devices & services in Home Assistant, where it shows up as discovered.": "voiceHaAddHint",
+  "Add this kiosk under Settings, Devices & services in Home Assistant, where it shows up as discovered. If Home Assistant had it before, it asks there for the new Encryption key from the ESPHome page.": "voiceHaAddAgainHint",
   "Turn on the ESPHome server so Home Assistant can add this kiosk as a satellite.": "voiceHaEsphomeOff",
   "Turn on": "voiceTurnOn",
   "Run from the dashboard again": "voiceRollbackTitle",

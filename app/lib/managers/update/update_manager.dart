@@ -341,6 +341,8 @@ class UpdateManager extends Manager {
             'canRelaunch': await canRelaunch(),
             'uploaded': _uploaded?.toJson(),
             'installing': _installing,
+            // Only worth asking Android while there is something to install.
+            if (available.value != null) 'silent': await _installsSilently(),
           }),
         ),
       )
@@ -1076,6 +1078,20 @@ class UpdateManager extends Manager {
           true;
     } catch (_) {
       if (shizuku) rethrow;
+      return false;
+    }
+  }
+
+  /// Whether the next install goes through without a confirmation on the
+  /// device: Shizuku installs it, or Android lets this app install on its
+  /// own (device owner, the update helper).
+  Future<bool> _installsSilently() async {
+    try {
+      if (useShizuku()) {
+        return (await installerStatus())['shizukuReady'] == true;
+      }
+      return !await _needsConfirmation();
+    } catch (_) {
       return false;
     }
   }

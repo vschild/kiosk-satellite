@@ -164,11 +164,17 @@ object SoftwareEcho {
         }
     }
 
+    /** Each frame's level after the canceller and before the gate, for [MicLevels]. */
+    private var levels = DoubleArray(0)
+
     /** One capture chunk of 16 kHz mono PCM16 whose last frame was heard at [heardNs], cleaned in place. */
     fun process(chunk: ByteArray, heardNs: Long) {
         if (!enabled && !noiseSuppression) return
         synchronized(lock) {
-            cancel(chunk, heardNs)
+            // Arbitration's levels come before the gate and the suppressor,
+            // which only make the floor quieter.
+            if (cancel(chunk, heardNs)) MicLevels.add(levels, chunk.size / FRAME_BYTES)
+            else MicLevels.measure(chunk)
             val ns = nsHandle
             if (ns != 0L) {
                 var at = 0
@@ -180,12 +186,15 @@ object SoftwareEcho {
         }
     }
 
-    /** The canceller's share of [process], under [lock]. */
-    private fun cancel(chunk: ByteArray, heardNs: Long) {
-        if (!enabled) return
+    /**
+     * The canceller's share of [process], under [lock]. True when it ran,
+     * with each frame's level before the gate in [levels].
+     */
+    private fun cancel(chunk: ByteArray, heardNs: Long): Boolean {
+        if (!enabled) return false
         run {
             val h = handle
-            if (h == 0L) return
+            if (h == 0L) return false
             val sources = EchoReference.sources()
             var fresh = false
             for (source in sources) {
@@ -200,7 +209,7 @@ object SoftwareEcho {
             streams.keys.retainAll(sources.toSet())
             if (!EchoReference.playedWithin(TAIL_MS) && !fresh) {
                 stopWorking()
-                return
+                return false
             }
             if (!working) {
                 working = true
@@ -208,6 +217,7 @@ object SoftwareEcho {
             }
             val frames = chunk.size / FRAME_BYTES
             val need = frames * FRAME
+            if (levels.size < frames) levels = DoubleArray(frames)
             for (stream in streams.values) {
                 // The sample the speaker was presenting as the chunk's last
                 // frame was heard, and the chunk's worth before it.
@@ -229,6 +239,7 @@ object SoftwareEcho {
                 val played = meanAbs(mixBytes, 0)
                 nativeRender(h, mixBytes, 0)
                 nativeCapture(h, chunk, at)
+                levels[f] = MicLevels.meanSquare(chunk, at)
                 if (residualGate.suppress(heard, played, meanAbs(chunk, at), subtractionOnly = usesPrototype)) {
                     java.util.Arrays.fill(chunk, at, at + FRAME_BYTES, 0)
                 }
@@ -236,6 +247,7 @@ object SoftwareEcho {
             }
             for (stream in streams.values) stream.cursor += need
         }
+        return true
     }
 
     /** Mean |sample| of the frame at [at]. */

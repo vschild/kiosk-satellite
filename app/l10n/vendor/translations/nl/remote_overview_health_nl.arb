@@ -45,5 +45,6 @@
   "overviewMemoryFree": "{amount} GB vrij",
   "overviewMetricPercent": "{value}%",
   "overviewMetricDegrees": "{value}°C",
-  "overviewShowingCustomPages": "Toont eigen pagina's"
+  "overviewShowingCustomPages": "Toont eigen pagina's",
+  "overviewHeadlessMode": "Modus zonder scherm"
 }

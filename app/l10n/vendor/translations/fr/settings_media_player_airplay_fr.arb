@@ -1,0 +1,13 @@
+{
+  "@@locale": "fr",
+  "settingAirplayEnabledTitle": "Activer le récepteur AirPlay",
+  "settingAirplayEnabledDescription": "L'appareil apparaît comme une enceinte AirPlay dans le menu AirPlay d'un iPhone, d'un iPad ou d'un Mac.",
+  "mediaAirplayHint": "Lire l'audio d'un iPhone, d'un iPad ou d'un Mac",
+  "settingAirplayNameTitle": "Nom de l'enceinte",
+  "settingAirplayNameDescription": "Le nom dans le menu AirPlay. Vide, le nom de l'appareil est utilisé.",
+  "settingAirplaySenderVolumeTitle": "Suivre le volume de l'émetteur",
+  "settingAirplaySenderVolumeDescription": "Le réglage du volume de l'iPhone, de l'iPad ou du Mac change le volume de cet appareil. Si l'option est désactivée, seul le volume de cet appareil compte.",
+  "settingAirplaySyncOffsetDescription": "Une valeur négative fait jouer cet appareil plus tôt, pour caler le son sur la vidéo de l'émetteur. S'applique en direct.",
+  "settingAirplayTakeoverTitle": "Laisser un autre émetteur prendre la main",
+  "settingAirplayTakeoverDescription": "Un deuxième iPhone, iPad ou Mac peut prendre la main pendant qu'un autre joue. Si l'option est désactivée, il doit attendre que le premier se déconnecte."
+}

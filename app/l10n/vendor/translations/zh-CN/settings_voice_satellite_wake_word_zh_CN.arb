@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "多台 Kiosk 设备听到唤醒词时，由最近的设备回答。会增加检测延迟。",
   "settingVoiceWakeArbitrationWindowTitle": "仲裁等待时间",
   "settingVoiceWakeArbitrationWindowDescription": "检测到唤醒词后，等待其他 Kiosk 设备报告的时间。如果较慢但更近的设备经常未获选，可以延长此时间。",
+  "settingVoiceWakeArbitrationOffsetTitle": "仲裁补偿",
+  "settingVoiceWakeArbitrationOffsetDescription": "加到此 Kiosk 听到唤醒词的响度上。如果此设备离得更近却未获选，请调高；如果它在太远的地方也会响应，请调低。",
   "voiceSectionWakeArbitration": "唤醒词仲裁",
   "voiceOptionSlightly": "低灵敏度",
   "voiceOptionModerately": "中等灵敏度",

@@ -51,5 +51,18 @@
   "System": "settingsGroupSystem",
   "Overlays": "cameraOverlaysHeading",
   "Alarms": "settingsMenuAlarms",
-  "Set alarms, tone, snooze, sunrise": "settingsMenuAlarmsSummary"
+  "Set alarms, tone, snooze, sunrise": "settingsMenuAlarmsSummary",
+  "Status and quick controls": "settingsMenuOverviewHeadlessSummary",
+  "Connection": "settingsMenuHomeAssistantHeadlessSummary",
+  "Audio": "settingsMenuAudio",
+  "Volume, microphone": "settingsMenuAudioSummary",
+  "Media": "settingsGroupMedia",
+  "Play audio remotely": "settingsMenuDlnaHeadlessSummary",
+  "Button and clap gestures": "settingsMenuGesturesHeadlessSummary",
+  "LED Control": "settingsMenuLeds",
+  "Status light colors and effects": "settingsMenuLedsSummary",
+  "Timers": "settingsLedTimers",
+  "Notifications": "settingsLedNotifications",
+  "Idle": "settingsLedIdle",
+  "Effects": "settingsLedEffects"
 }

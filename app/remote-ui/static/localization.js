@@ -1,3 +1,4 @@
+import { isHeadless } from './headless.js';
 import { setupTextMessageIds } from './setup_text_ids.js';
 import { overviewTextMessageIds } from './overview_text_ids.js';
 import { voiceTextMessageIds } from './voice_text_ids.js';
@@ -108,6 +109,7 @@ export function settingsPageText(category, english) {
     : ['Cameras', 'cameras'].includes(category) ? cameraStreamsText(english)
     : ['Launcher', 'launcher'].includes(category) ? launcherText(english)
     : ['Gestures', 'gestures'].includes(category) ? gestureText(english)
+    : ['LED Control', 'leds'].includes(category) ? navigationText(english)
     : ['Fleet', 'fleet'].includes(category) ? fleetText(english)
     : ['Plugins', 'plugins'].includes(category) ? pluginText(english)
     : ['Kiosk', 'kiosk', 'Home', 'home', 'Lockdown', 'lockdown'].includes(category) ? kioskText(english)
@@ -117,13 +119,15 @@ export function settingsPageText(category, english) {
     : category === 'Sendspin' || category === 'sendspin' ? mediaText(english) : english;
 }
 
-// The URL Blacklist page's name, hint and hand-built rows, Settings > Web
+// The URL Filter page's name, hint and hand-built rows, Settings > Web
 // Browsing on the device (settingsPageText in messages.dart).
 const BROWSER_PAGE_TEXT = {
-  'URL Blacklist': 'urlBlacklistTitle',
-  'Block pages by address pattern or regular expression': 'urlBlacklistHint',
-  'Add rule': 'urlBlacklistAdd',
-  "Links or pages that match the rules below are blocked from loading.": 'urlBlacklistIntroSub',
+  'URL Filter': 'urlFilterTitle',
+  'Block or allow pages by address pattern or regular expression': 'urlFilterHint',
+  'Add rule': 'urlFilterAdd',
+  'Show blocked page notice': 'settingBrowserUrlFilterNoticeTitle',
+  "Show a short notice with the rule's name when a page is blocked.": 'settingBrowserUrlFilterNoticeDescription',
+  "Links or pages that match a Block rule don't load. Add an Allow only rule to load only the pages it matches.": 'urlFilterIntroSub',
 };
 
 function browserPageText(english) {
@@ -227,7 +231,9 @@ export function navigationText(english) {
 export function localizeNavigation() {
   document.querySelectorAll('#tabs .nav-title, #tabs .nav-sub, #tabs .nav-head').forEach(element => {
     element.dataset.englishText ??= element.textContent;
-    element.textContent = navigationText(element.dataset.englishText);
+    // A device without a screen names some pages for what is left on them.
+    const english = (isHeadless() && element.dataset.headlessText) || element.dataset.englishText;
+    element.textContent = navigationText(english);
   });
   const search = document.getElementById('settingsSearch');
   if (search) {
@@ -478,7 +484,7 @@ export function pluginError(error) {
     if (match) return t('pluginErrorAssetUrl', {name: match[1]});
     match = /^Plugin needs Android API ([0-9]+)$/.exec(text);
     if (match) return t('pluginErrorAndroidApi', {version: match[1]});
-    match = /^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle)$/.exec(text);
+    match = /^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle|headless)$/.exec(text);
     if (match) return t('pluginErrorInvalidField', {field: match[1]});
     match = /^Unexpected or duplicate ZIP entry: ([\s\S]*)$/.exec(text);
     if (match) return t('pluginErrorZipEntry', {name: match[1]});

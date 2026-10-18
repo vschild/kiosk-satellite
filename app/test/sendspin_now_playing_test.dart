@@ -1006,6 +1006,51 @@ void main() {
       },
     );
 
+    test(
+      'local audio quality follows the audible track and clears on a song',
+      () async {
+        await build(
+          extra: {
+            'ks.sendspin.player': '',
+            'ks.sendspin.player_source': '',
+            'ks.sendspin.enabled': true,
+            'ks.sendspin.client_id': 'abc123',
+          },
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        Future<void> native(String method, Map<String, Object?> args) =>
+            messenger.handlePlatformMessage(
+              channel.name,
+              const StandardMethodCodec().encodeMethodCall(
+                MethodCall(method, args),
+              ),
+              (_) {},
+            );
+        const quality = {
+          'codec': 'FLAC',
+          'sampleRate': 96000,
+          'bitDepth': 24,
+          'lossless': true,
+        };
+        fake!.onSnapshot({'title': 'Song A', 'audioQuality': quality});
+        await native('metadataChanged', {
+          'title': 'Song A',
+          'durationMs': 200000,
+        });
+        await native('playingChanged', {'playing': true});
+        expect(sendspin.nowPlaying.value?['audioQuality'], quality);
+        await native('metadataChanged', {'positionMs': 5000});
+        expect(sendspin.nowPlaying.value?['audioQuality'], quality);
+        await native('metadataChanged', {
+          'title': 'Song B',
+          'durationMs': 180000,
+        });
+        expect(sendspin.nowPlaying.value?['audioQuality'], isNull);
+      },
+    );
+
     test('a radio station on the local player shows no duration', () async {
       // The engine's progress for a station counts from tuning in and
       // the duration Music Assistant sends is the recognized song's.

@@ -22,5 +22,8 @@
   "gestureOpenApp": "Открыть приложение {package}",
   "gestureRun": "Запустить {value}",
   "gestureTriggerAction": "Запустить {value}",
-  "gestureFireEvent": "Вызвать событие {value}"
+  "gestureFireEvent": "Вызвать событие {value}",
+  "gestureDescribeButtonPress": "Нажать кнопку {button}",
+  "gestureDescribeButtonDouble": "Дважды нажать кнопку {button}",
+  "gestureDescribeButtonHold": "Удерживать кнопку {button}"
 }

@@ -43,5 +43,10 @@
   "gestureSequenceError": "Añade al menos dos esquinas.",
   "gesturePluginTrigger": "Disparador de plugin",
   "gesturePluginTriggerField": "Disparador",
-  "gesturePluginTriggerHelp": "Primero activa un plugin con disparadores en el administrador de plugins."
+  "gesturePluginTriggerHelp": "Primero activa un plugin con disparadores en el administrador de plugins.",
+  "gestureButton": "Botón",
+  "gesturePress": "Pulsar",
+  "gestureDoublePress": "Doble pulsación",
+  "gestureHoldPress": "Mantener pulsado",
+  "gestureButtonDefaults": "Una pulsación que ningún gesto usa conserva su función: Acción contesta, detiene o descarta lo que suena y, si no, inicia un comando de voz, Micrófono silencia Voice Satellite y los botones de volumen cambian el volumen."
 }

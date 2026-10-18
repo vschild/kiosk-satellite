@@ -13,16 +13,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Weather condition labels come from Home Assistant over the entity
 /// subscription's own socket. A failed lookup used to be cached as an
 /// English server, and the widget then read "Rainy" instead of "Pluvieux"
-/// until the app restarted (issue #900).
+/// until the app restarted. The user's profile language wins over the
+/// server's, as it does on the dashboard (issue #900).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  /// A Home Assistant stand-in speaking [language]. While [failing] says
-  /// so, it rejects the config lookup. [asked] records the commands.
+  /// A Home Assistant stand-in speaking [language], to a user whose profile
+  /// picks [userLanguage]. While [failing] says so, it rejects the config
+  /// lookup. While [userDataFails] says so, it rejects the user data
+  /// lookup. [asked] records the commands and [languages] the language each
+  /// translation lookup asked for.
   Future<(HttpServer, HomeAssistantManager)> start(
     String language,
     List<String> asked, {
     bool Function()? failing,
+    String? userLanguage,
+    bool userDataFails = false,
+    List<String>? languages,
   }) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {
@@ -42,23 +49,35 @@ void main() {
           'success': true,
           'result': value,
         };
+        Map<String, Object?> failure() => {
+          'id': msg['id'],
+          'type': 'result',
+          'success': false,
+          'error': {'code': 'unknown_error'},
+        };
         switch (type) {
           case 'subscribe_entities':
             socket.add(jsonEncode(result(null)));
+          case 'frontend/get_user_data':
+            socket.add(
+              jsonEncode(
+                userDataFails
+                    ? failure()
+                    : result({
+                        'value': userLanguage == null
+                            ? null
+                            : {'language': userLanguage},
+                      }),
+              ),
+            );
           case 'get_config':
             if (failing?.call() ?? false) {
-              socket.add(
-                jsonEncode({
-                  'id': msg['id'],
-                  'type': 'result',
-                  'success': false,
-                  'error': {'code': 'unknown_error'},
-                }),
-              );
+              socket.add(jsonEncode(failure()));
             } else {
               socket.add(jsonEncode(result({'language': language})));
             }
           case 'frontend/get_translations':
+            languages?.add('${msg['language']}');
             socket.add(
               jsonEncode(
                 result({
@@ -125,5 +144,42 @@ void main() {
     // The next connection, such as the owner's reopen, asks again.
     failing = false;
     expect(await translations(ha), {'rainy': 'Pluvieux'});
+  });
+
+  test('a Dutch user on an English server gets Dutch wording', () async {
+    final asked = <String>[];
+    final languages = <String>[];
+    final (server, ha) = await start(
+      'en',
+      asked,
+      userLanguage: 'nl',
+      languages: languages,
+    );
+    addTearDown(() => server.close(force: true));
+    expect(await translations(ha), {'rainy': 'Pluvieux'});
+    expect(languages, ['nl']);
+    expect(asked, isNot(contains('get_config')));
+  });
+
+  test('an English user on a French server gets no lookup', () async {
+    final asked = <String>[];
+    final (server, ha) = await start('fr', asked, userLanguage: 'en');
+    addTearDown(() => server.close(force: true));
+    expect(await translations(ha), isEmpty);
+    expect(asked, isNot(contains('frontend/get_translations')));
+  });
+
+  test('a failed user data lookup falls back to the server', () async {
+    final asked = <String>[];
+    final languages = <String>[];
+    final (server, ha) = await start(
+      'fr',
+      asked,
+      userDataFails: true,
+      languages: languages,
+    );
+    addTearDown(() => server.close(force: true));
+    expect(await translations(ha), {'rainy': 'Pluvieux'});
+    expect(languages, ['fr']);
   });
 }

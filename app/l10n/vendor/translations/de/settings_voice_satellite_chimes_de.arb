@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Ansageton",
   "voiceChimeAnnounceDescription": "Wird vor einer Voice-Satellite-Ansage abgespielt, außer die Ansage enthält bereits einen eigenen Ton.",
   "settingVoiceWakeSoundTitle": "Töne abspielen",
-  "settingVoiceWakeSoundDescription": "Die Aktivierungs-, Fertig- und Fehlertöne."
+  "settingVoiceWakeSoundDescription": "Die Aktivierungs-, Fertig- und Fehlertöne.",
+  "voiceChimeWakeVolumeTitle": "Lautstärke des Aktivierungstons",
+  "voiceChimeDoneVolumeTitle": "Lautstärke des Abschlusstons",
+  "voiceChimeErrorVolumeTitle": "Lautstärke des Fehlertons",
+  "voiceChimeTimerVolumeTitle": "Lautstärke des Timer-Tons",
+  "voiceChimeAnnounceVolumeTitle": "Lautstärke des Ansagetons",
+  "voiceChimeVolumeDescription": "Ein Anteil der Assistentenlautstärke."
 }

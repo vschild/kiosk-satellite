@@ -4,6 +4,9 @@ The Voice Satellite defaults are bundled from
 - `timer-alert.mp3` is `alert.mp3`.
 - `voice-wake.mp3`, `voice-done.mp3`, `voice-error.mp3` and `voice-announce.mp3`
   keep their corresponding sounds with a `voice-` prefix.
+- All five play about 15% louder than the integration's files, since each
+  chime's volume slider can only turn it down. The wake, done and timer sounds
+  already peak near full scale, so a limiter keeps them from clipping.
 
 Custom sounds are selected under Settings > Voice Satellite > Chimes and stored
 in the app's `sounds` folder. They survive app updates. Home Assistant sound

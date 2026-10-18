@@ -200,7 +200,9 @@ class _VoiceStatusCardState extends State<VoiceStatusCard> {
                 ? voiceText(
                     context,
                     'Add this kiosk under Settings, Devices & services in '
-                    'Home Assistant, where it shows up as discovered.',
+                    'Home Assistant, where it shows up as discovered. If Home '
+                    'Assistant had it before, it asks there for the new '
+                    'Encryption key from the ESPHome page.',
                   )
                 : voiceText(
                     context,

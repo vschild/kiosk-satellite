@@ -2363,7 +2363,8 @@ class VoiceManager extends Manager {
   }
 
   // What each provider offers when it cannot be asked: xAI documents these
-  // voices by name, and neither OpenAI nor Gemini lists voices over its API
+  // voices and its voice models by name (its model list leaves the voice
+  // models out), and neither OpenAI nor Gemini lists voices over its API
   // at all.
   static const _openAiModels = ['gpt-realtime', 'gpt-realtime-mini'];
   static const _openAiVoices = [
@@ -2378,7 +2379,7 @@ class VoiceManager extends Manager {
     'shimmer',
     'verse',
   ];
-  static const _xaiModels = ['grok-voice-latest', 'grok-voice-think-fast-2.0'];
+  static const _xaiModels = ['grok-voice-latest', 'grok-voice-3.0'];
   static const _xaiVoices = ['ara', 'eve', 'rex'];
   static const _geminiModels = [
     'gemini-3.8-live',

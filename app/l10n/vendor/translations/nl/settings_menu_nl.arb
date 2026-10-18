@@ -56,5 +56,18 @@
   "settingsMenuLogout": "Afmelden",
   "settingsMenuSwitchKiosk": "Kiosk wisselen",
   "settingsMenuThemeState": "Thema: {theme}",
-  "settingsMenuThemeAuto": "Automatisch"
+  "settingsMenuThemeAuto": "Automatisch",
+  "settingsMenuOverviewHeadlessSummary": "Status en snelle bediening",
+  "settingsMenuHomeAssistantHeadlessSummary": "Verbinding",
+  "settingsMenuAudio": "Audio",
+  "settingsMenuAudioSummary": "Volume, microfoon",
+  "settingsGroupMedia": "Media",
+  "settingsMenuDlnaHeadlessSummary": "Audio op afstand afspelen",
+  "settingsMenuGesturesHeadlessSummary": "Knop- en klapgebaren",
+  "settingsMenuLeds": "LED-bediening",
+  "settingsMenuLedsSummary": "Kleuren en effecten van de statuslampjes",
+  "settingsLedTimers": "Timers",
+  "settingsLedNotifications": "Meldingen",
+  "settingsLedIdle": "Inactief",
+  "settingsLedEffects": "Effecten"
 }

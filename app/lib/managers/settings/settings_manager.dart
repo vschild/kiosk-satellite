@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
+import '../../core/headless.dart';
 import '../../core/tls_identity.dart';
 import '../../core/manager.dart';
 import '../device_camera/camera_resolutions.dart';
@@ -253,7 +254,11 @@ class SettingsManager extends Manager {
             // permission request at a time, so a page racing the prompts
             // below gets some of them silently rejected ("A request for
             // permissions is already running").
-            final heldStartUrl = firstSetup ? map.remove(startUrl.key) : null;
+            // A device without a screen has no page to race and no prompts
+            // to show: its grants come over adb, so the import finishes at
+            // once.
+            final prompts = firstSetup && !Headless.active;
+            final heldStartUrl = prompts ? map.remove(startUrl.key) : null;
             var applied = await import(map);
             // A stale backup can carry Immich credentials with the
             // validated flag off (exported after something reset it).
@@ -286,7 +291,7 @@ class SettingsManager extends Manager {
             // on a system dialog. The start URL stays sequenced after the
             // prompts (see above); callers see pendingSetup and wait for
             // the device to become configured instead.
-            if (firstSetup) {
+            if (prompts) {
               importFinishing = true;
               unawaited(
                 Future(() async {
@@ -384,6 +389,19 @@ class SettingsManager extends Manager {
       }
       await setInternal(softwareEchoMigration, '1');
     }
+    // Expose kiosk entities used to be off by default. A configured kiosk
+    // that never chose keeps it off, so ESPHome running only for the
+    // Bluetooth proxy does not suddenly serve every entity. New installs
+    // take the new default.
+    const entitiesDefaultMigration = 'esphome.entities_default_on.migrated';
+    if (internal(entitiesDefaultMigration).isEmpty) {
+      if (_prefs.get(_prefix + esphomeEntities.key) == null &&
+          get(startUrl).isNotEmpty) {
+        await _prefs.setBool(_prefix + esphomeEntities.key, false);
+        log.info(name, 'kept Expose kiosk entities off on upgrade');
+      }
+      await setInternal(entitiesDefaultMigration, '1');
+    }
     // The music duck used to go up to 25%, more than the software echo
     // canceller keeps out of the microphone. Bring existing installs down
     // to the new ceiling once.
@@ -472,11 +490,13 @@ class SettingsManager extends Manager {
       await _prefs.remove('${_prefix}sendspin.ma_player_name');
     }
     // The pick is filtered by a source now: a pick stored before the
-    // source existed names its own. The Local Media Session is this
-    // device's own pick and belongs under the empty source.
+    // source existed names its own. The Local Media Session and the
+    // AirPlay receiver are this device's own picks and belong under the
+    // empty source.
     final picked = _prefs.getString('${_prefix}sendspin.player') ?? '';
     if (picked.trim().isNotEmpty &&
         !picked.startsWith('session:') &&
+        picked != 'airplay' &&
         (_prefs.getString('${_prefix}sendspin.player_source') ?? '').isEmpty) {
       final source = picked.startsWith('ha:')
           ? 'ha'

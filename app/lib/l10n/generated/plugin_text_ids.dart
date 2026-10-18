@@ -175,6 +175,7 @@ const pluginTextMessageIds = <String, String>{
   "This plugin did not stop cleanly. Restart Kiosk Satellite before enabling it.": "pluginErrorRestartEnable",
   "Installed plugin failed its integrity check. Reinstall it.": "pluginErrorInstalledIntegrity",
   "Android version is too old": "pluginErrorAndroidOld",
+  "This plugin needs a screen": "pluginErrorNeedsScreen",
   "Installed native libraries failed their integrity check": "pluginErrorNativeIntegrity",
   "Installed native library failed its integrity check": "pluginErrorNativeFileIntegrity",
   "Show password": "pluginShowPassword",

@@ -9,6 +9,8 @@
   "overviewThisRelease": "此版本",
   "overviewUpdateAvailable": "有可用更新",
   "overviewInstallHelp": "Kiosk Satellite {version} 已可安装。安装需在平板屏幕上确认。",
+  "overviewInstallSilentHelp": "Kiosk Satellite {version} 已可安装。它会在设备上无需确认直接安装。",
+  "overviewInstallHeadlessHelp": "Kiosk Satellite {version} 已可安装。此设备没有可用于确认的屏幕，请将 Kiosk Satellite 设为设备所有者、使用 Shizuku，或通过 adb 安装。",
   "overviewHaSetup": "尚未设置 Home Assistant",
   "overviewHaSetupHelp": "将 Kiosk 设备连接到 Home Assistant 以加载仪表盘。",
   "overviewSetUp": "设置",

@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "播报提示音",
   "voiceChimeAnnounceDescription": "在 Voice Satellite 播报前播放提示音。播报自带提示音时，不再播放此提示音。",
   "settingVoiceWakeSoundTitle": "播放提示音",
-  "settingVoiceWakeSoundDescription": "唤醒、完成和错误提示音。"
+  "settingVoiceWakeSoundDescription": "唤醒、完成和错误提示音。",
+  "voiceChimeWakeVolumeTitle": "唤醒提示音音量",
+  "voiceChimeDoneVolumeTitle": "完成提示音音量",
+  "voiceChimeErrorVolumeTitle": "错误提示音音量",
+  "voiceChimeTimerVolumeTitle": "计时器提示音音量",
+  "voiceChimeAnnounceVolumeTitle": "播报提示音音量",
+  "voiceChimeVolumeDescription": "占助手音量的百分比。"
 }

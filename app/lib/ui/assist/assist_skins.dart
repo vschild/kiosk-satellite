@@ -13,11 +13,13 @@ enum SkinArt {
   lensFlares,
   inkBlobs,
   jarvis,
-  kitt;
+  kitt,
+  hal;
 
   /// The art stands at the top of the screen with the conversation under
-  /// it (Jarvis's reactor, KITT's voice box) rather than behind the text.
-  bool get hasTopSlot => this == jarvis || this == kitt;
+  /// it (Jarvis's reactor, KITT's voice box, HAL's eye) rather than behind
+  /// the text.
+  bool get hasTopSlot => this == jarvis || this == kitt || this == hal;
 }
 
 /// The thinking indicator: three bouncing bullets, the terminal's blinking
@@ -360,6 +362,15 @@ const _kittAnswerShadow = [
   CssShadow(Color(0xF2000000), 4),
   CssShadow(Color(0xCC000000), 14),
   CssShadow(Color(0x66FF2B1C), 16),
+];
+const _halShadow = [
+  CssShadow(Color(0xE6000000), 4),
+  CssShadow(Color(0x66FF1E0A), 12),
+];
+const _halAnswerShadow = [
+  CssShadow(Color(0xF2000000), 4),
+  CssShadow(Color(0xCC000000), 14),
+  CssShadow(Color(0x4DFF1E0A), 16),
 ];
 const _flareAnswerShadow = [
   CssShadow(Color(0xF2000000), 4),
@@ -712,6 +723,35 @@ final assistSkins = <AssistSkin>[
     ),
     bar: NoBar(),
     art: SkinArt.kitt,
+    font: 'Inter',
+    blur: 0,
+    // No bar under the chat.
+    chatBottom: 40,
+    chatBottomReactive: 40,
+    centered: true,
+    userWeight: FontWeight.w300,
+    toolWeight: FontWeight.w300,
+    announcementTop: 0.8,
+    idleDotSize: 22,
+    toolSize: 22,
+  ),
+  const AssistSkin(
+    id: 'hal-9000',
+    name: 'HAL 9000',
+    light: SkinPalette(
+      backdrop: Color(0xFF000000),
+      opacity: 1,
+      user: Color(0xD9FF8A7E),
+      answer: Color(0xFFFFEDE8),
+      tool: Color(0xFFD9645A),
+      pill: Color(0xFF220A08),
+      dots: [Color(0xFFFF1E0A), Color(0xFFFFB347), Color(0xFFB01000)],
+      userShadows: _halShadow,
+      answerShadows: _halAnswerShadow,
+      toolShadows: _halShadow,
+    ),
+    bar: NoBar(),
+    art: SkinArt.hal,
     font: 'Inter',
     blur: 0,
     // No bar under the chat.

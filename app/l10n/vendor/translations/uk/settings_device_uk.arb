@@ -42,5 +42,16 @@
   "deviceWebViewHint": "Версія рушія, рендерер та рядок агента користувача",
   "devicePasswordSet": "•••••• (встановлено)",
   "deviceSaveFailed": "Не вдалося зберегти це налаштування. Спробуйте ще раз.",
-  "deviceOpenSettingsDevice": "Відкрити налаштування на пристрої"
+  "deviceOpenSettingsDevice": "Відкрити налаштування на пристрої",
+  "deviceHardwareButtons": "Апаратні кнопки",
+  "deviceHardwareButtonsHeld": "Кнопки пристрою доходять до жестів і Voice Satellite.",
+  "deviceHardwareButtonsMissing": "Кнопки пристрою нічого не роблять, доки не ввімкнено службу кнопок.",
+  "deviceHeadlessAdbMicrophone": "Цей пристрій не має екрана. Надайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "Цей пристрій не має екрана. Надайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "Цей пристрій не має екрана. Надайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "Цей пристрій не має екрана. Надайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, потім те саме для BLUETOOTH_CONNECT",
+  "deviceHeadlessAdbBattery": "Цей пристрій не має екрана. Надайте через adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "Цей пристрій не має екрана. Надайте через adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, потім те саме для WRITE_EXTERNAL_STORAGE",
+  "deviceHeadlessAdbButtons": "Цей пристрій не має екрана. Увімкніть через adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, потім adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "Службу кнопок увімкнено, але вона не запустилася. Перезавантажте пристрій, щоб запустити її: adb reboot"
 }

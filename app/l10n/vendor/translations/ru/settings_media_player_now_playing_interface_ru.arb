@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Показывает выбор динамиков на 5 секунд после касания экрана. Добавляйте или убирайте динамики из текущей группы.",
   "settingSendspinSpeakerPillPlayersTitle": "Фильтр бейджа выбора динамиков",
   "settingSendspinSpeakerPillPlayersDescription": "В бейдже показываются только эти динамики. Динамики, которые уже в группе, показываются всегда.",
+  "settingSendspinAudioQualityTitle": "Показывать качество звука",
+  "settingSendspinAudioQualityDescription": "Показывает формат, разрядность, частоту дискретизации, битрейт и источник текущего трека внизу вида «Сейчас играет». Требуется Music Assistant.",
   "mediaAllSpeakers": "Все динамики",
   "settingSendspinQueueArtTitle": "Показывать обложки в очереди",
   "settingSendspinQueueArtDescription": "Обложка в каждой строке панели очереди.",

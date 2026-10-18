@@ -23,7 +23,7 @@ const Map<String, Object> subpageIcons = {
   'Theme': Icons.palette_outlined,
   'Custom Pages': customPagesIcon,
   // Web Browsing.
-  'URL Blacklist': Icons.public_off_outlined,
+  'URL Filter': Icons.public_off_outlined,
   'Dashboard View Rotation': Icons.autorenew,
   'Return to home dashboard view': Icons.home_outlined,
   'Hold mode': Icons.push_pin_outlined,
@@ -65,6 +65,8 @@ const Map<String, Object> subpageIcons = {
   'Sendspin Player': 'assets/svg/sendspin.svg',
   'Music Assistant': 'assets/svg/music-assistant.svg',
   'Sonos': Icons.speaker_outlined,
+  // The audio mark, which Material does not draw.
+  'AirPlay': 'assets/svg/airplay.svg',
   'Floating Player': Icons.picture_in_picture_alt_outlined,
   'Now Playing': Icons.fullscreen,
   'Lyrics': Icons.lyrics_outlined,

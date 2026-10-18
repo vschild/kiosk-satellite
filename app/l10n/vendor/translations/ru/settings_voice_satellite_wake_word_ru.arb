@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Когда несколько киосков слышат слово пробуждения, отвечает ближайший. Увеличивает задержку определения.",
   "settingVoiceWakeArbitrationWindowTitle": "Окно арбитража",
   "settingVoiceWakeArbitrationWindowDescription": "Сколько ждать другие киоски. Поднимите, если более медленный киоск проигрывает, находясь ближе.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Поправка арбитража",
+  "settingVoiceWakeArbitrationOffsetDescription": "Прибавляется к тому, насколько громко этот киоск услышал слово активации. Поднимите, если этот киоск проигрывает, находясь ближе, и опустите, если он отвечает издалека.",
   "voiceSectionWakeArbitration": "Арбитраж слова пробуждения",
   "voiceOptionSlightly": "Слегка чувствительно",
   "voiceOptionModerately": "Умеренно чувствительно",

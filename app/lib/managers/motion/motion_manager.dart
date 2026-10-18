@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../core/headless.dart';
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/manager.dart';
@@ -471,14 +472,18 @@ class MotionManager extends Manager {
     // flags below; the native detectors survive the runtime failing to
     // load in that window (FaceDetector.kt), so the race is a log line,
     // not a crash.
-    unawaited(
-      VisionSupport.probe().then((v) {
-        final changed = v.faces != _vision.faces || v.hands != _vision.hands;
-        _vision = v;
-        _warnUnsupported();
-        if (changed) _sync();
-      }),
-    );
+    // Headless there is no camera to run detectors on, and the probe loads
+    // the native inference libraries on older Android.
+    if (!Headless.active) {
+      unawaited(
+        VisionSupport.probe().then((v) {
+          final changed = v.faces != _vision.faces || v.hands != _vision.hands;
+          _vision = v;
+          _warnUnsupported();
+          if (changed) _sync();
+        }),
+      );
+    }
     // Every branch below is the app relighting the room with its own
     // display: the change the camera is about to see is self-inflicted
     // (see _selfLightQuiet), the loop being a screensaver whose own dark

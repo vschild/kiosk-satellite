@@ -3,5 +3,6 @@
   "setupChooseDashboard": "Dashboard auswählen",
   "setupDashboardHelp": "Dies ist das Dashboard, das der Kiosk beim Start anzeigt.",
   "setupSelectDashboard": "Dashboard auswählen",
-  "setupSelectDashboardHelp": "Wähle das Dashboard aus, das der Kiosk anzeigen soll. Du kannst es später in den Einstellungen ändern."
+  "setupSelectDashboardHelp": "Wähle das Dashboard aus, das der Kiosk anzeigen soll. Du kannst es später in den Einstellungen ändern.",
+  "setupHeadlessGrants": "Dieses Gerät hat keinen Bildschirm, deshalb kann Android dort nicht danach fragen. Erteile jede Berechtigung über adb und schließe dann hier ab."
 }

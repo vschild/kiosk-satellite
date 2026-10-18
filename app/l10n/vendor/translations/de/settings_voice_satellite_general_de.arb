@@ -56,7 +56,7 @@
   "voiceWordListening": "Hört zu",
   "voiceWordNotListening": "Hört nicht zu",
   "voiceWordAdded": "Hinzugefügt",
-  "voiceHaAddHint": "Füge diesen Kiosk in Home Assistant unter Einstellungen, Geräte & Dienste hinzu, wo er als erkannt erscheint.",
+  "voiceHaAddAgainHint": "Füge diesen Kiosk in Home Assistant unter Einstellungen, Geräte & Dienste hinzu, wo er als erkannt erscheint. Kannte Home Assistant ihn schon, fragt es dort nach dem neuen Verschlüsselungsschlüssel von der ESPHome-Seite.",
   "voiceHaEsphomeOff": "Schalte den ESPHome-Server ein, damit Home Assistant diesen Kiosk als Satellit hinzufügen kann.",
   "voiceWordReloadNeeded": "Neu laden nötig",
   "voiceHaSelectsReloadHint": "Home Assistant hat die Auswahlen für Assistent und Aktivierungswort nicht geladen. Lade den ESPHome-Eintrag dieses Kiosks unter Einstellungen, Geräte & Dienste neu. Ein Neustart von Home Assistant hilft ebenfalls.",

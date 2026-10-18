@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/ui/assist/art_hal.dart';
 import 'package:kiosk_satellite/ui/assist/art_jarvis.dart';
 import 'package:kiosk_satellite/ui/assist/art_kitt.dart';
 import 'package:kiosk_satellite/ui/assist/art_lens_flares.dart';
@@ -140,6 +141,27 @@ void main() {
                           ])
                             Positioned.fill(
                               child: KittArt(
+                                mode: mode,
+                                reactive: reactive,
+                                level: level,
+                                clock: clock,
+                                compact: compact,
+                                countdown: compact ? level : null,
+                                box: box,
+                              ),
+                            ),
+                        if (skin.art == SkinArt.hal)
+                          for (final (compact, reactive, box) in [
+                            (false, true, null),
+                            (
+                              false,
+                              false,
+                              const Rect.fromLTWH(240, 24, 800, 600),
+                            ),
+                            (true, true, null),
+                          ])
+                            Positioned.fill(
+                              child: HalArt(
                                 mode: mode,
                                 reactive: reactive,
                                 level: level,

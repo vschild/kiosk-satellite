@@ -56,7 +56,7 @@
   "voiceWordListening": "Слухає",
   "voiceWordNotListening": "Не слухає",
   "voiceWordAdded": "Додано",
-  "voiceHaAddHint": "Додайте цей кіоск у Home Assistant у розділі Налаштування, Пристрої та служби, де він відображається як виявлений.",
+  "voiceHaAddAgainHint": "Додайте цей кіоск у Home Assistant у розділі Налаштування, Пристрої та служби, де він відображається як виявлений. Якщо Home Assistant уже мав його, там він попросить новий Ключ шифрування зі сторінки ESPHome.",
   "voiceHaEsphomeOff": "Увімкніть сервер ESPHome, щоб Home Assistant міг додати цей кіоск як сателіт.",
   "voiceWordReloadNeeded": "Потрібне перезавантаження",
   "voiceHaSelectsReloadHint": "Home Assistant не завантажив вибори Асистент і Слово активації. Перезавантажте запис ESPHome цього кіоску в розділі Налаштування, Пристрої та служби. Перезапуск Home Assistant теж допоможе.",

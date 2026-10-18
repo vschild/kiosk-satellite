@@ -1053,6 +1053,15 @@ class SendspinNowPlayingChanged extends AppEvent {
   final bool playing;
 }
 
+/// An AirPlay session started, changed or ended: the snapshot the
+/// receiver pushes (the sender's name, whether it plays, the track, its
+/// progress and cover), or null once no sender is connected. The Now
+/// Playing surfaces follow it while a session lasts.
+class AirPlaySessionChanged extends AppEvent {
+  const AirPlaySessionChanged(this.session);
+  final Map<String, Object?>? session;
+}
+
 /// The followed player's state, title, artist or source moved (issue
 /// #741): what the ESPHome media sensors show. Published only on a real
 /// change, never for a position tick.

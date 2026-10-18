@@ -38,5 +38,8 @@
   "gestureCameraShow": "{name} anzeigen",
   "gestureCameraClose": "Kameraansicht schließen",
   "gestureCameraEmpty": "Es sind noch keine Kameraansichten konfiguriert.",
-  "gestureIntercomEmpty": "Es wurde noch kein Kiosk im Netzwerk gefunden."
+  "gestureIntercomEmpty": "Es wurde noch kein Kiosk im Netzwerk gefunden.",
+  "gestureVoiceWake": "Sprachbefehl starten",
+  "gestureVoiceStop": "Sprachassistenten stoppen",
+  "gestureVoiceMute": "Voice Satellite stummschalten oder Stummschaltung aufheben"
 }

@@ -17,6 +17,7 @@ import '../../managers/voice/voice_manager.dart';
 import '../../managers/voice/voice_notice.dart';
 import '../theme.dart';
 import '../toast.dart';
+import 'art_hal.dart';
 import 'art_ink_blobs.dart';
 import 'art_jarvis.dart';
 import 'art_kitt.dart';
@@ -420,8 +421,8 @@ class _AssistOverlayState extends State<AssistOverlay>
           ),
         if (skin.art == SkinArt.lensFlares)
           LensFlaresArt(mode: mode, reactive: reactive, level: c.voice.level),
-        // Jarvis's reactor and KITT's voice box give way to a result panel
-        // standing over them in portrait.
+        // Jarvis's reactor, KITT's voice box and HAL's eye give way to a
+        // result panel standing over them in portrait.
         if (skin.art.hasTopSlot)
           IgnorePointer(
             child: AnimatedOpacity(
@@ -445,8 +446,8 @@ class _AssistOverlayState extends State<AssistOverlay>
         if (view.phase == AssistPhase.announcement)
           _announcement(context, skin, palette, scale, view)
         else ...[
-          // With the whole conversation hidden, Jarvis and KITT show only
-          // their art: no thinking dots either.
+          // With the whole conversation hidden, Jarvis, KITT and HAL show
+          // only their art: no thinking dots either.
           if (!skin.art.hasTopSlot || !_conversationHidden)
             _chat(context, skin, palette, scale, view, reactive),
           if (primaryResult(view.results) case final result?)
@@ -464,8 +465,9 @@ class _AssistOverlayState extends State<AssistOverlay>
       !c.settings.get(defs.voiceShowAnswer) &&
       !c.settings.get(defs.voiceShowTools);
 
-  /// The art at the top of the screen, Jarvis's reactor or KITT's voice
-  /// box: full screen in [box], or docked ([compact]) over the bubble.
+  /// The art at the top of the screen, Jarvis's reactor, KITT's voice box
+  /// or HAL's eye: full screen in [box], or docked ([compact]) over the
+  /// bubble.
   Widget _topArt(
     AssistSkin skin,
     ArtMode mode,
@@ -474,25 +476,35 @@ class _AssistOverlayState extends State<AssistOverlay>
     bool compact = false,
   }) {
     final countdown = compact ? c.voice.dockCountdown : null;
-    return skin.art == SkinArt.kitt
-        ? KittArt(
-            mode: mode,
-            reactive: reactive,
-            level: _glide,
-            clock: _clock,
-            compact: compact,
-            countdown: countdown,
-            box: box,
-          )
-        : JarvisArt(
-            mode: mode,
-            reactive: reactive,
-            level: _glide,
-            clock: _clock,
-            compact: compact,
-            countdown: countdown,
-            box: box,
-          );
+    return switch (skin.art) {
+      SkinArt.kitt => KittArt(
+        mode: mode,
+        reactive: reactive,
+        level: _glide,
+        clock: _clock,
+        compact: compact,
+        countdown: countdown,
+        box: box,
+      ),
+      SkinArt.hal => HalArt(
+        mode: mode,
+        reactive: reactive,
+        level: _glide,
+        clock: _clock,
+        compact: compact,
+        countdown: countdown,
+        box: box,
+      ),
+      _ => JarvisArt(
+        mode: mode,
+        reactive: reactive,
+        level: _glide,
+        clock: _clock,
+        compact: compact,
+        countdown: countdown,
+        box: box,
+      ),
+    };
   }
 
   /// Where the top art goes full screen: room kept under it for the
@@ -654,8 +666,9 @@ class _AssistOverlayState extends State<AssistOverlay>
     // while nothing has been said. Voice Only shows the mark alone, no
     // bubble around it, fading as the conversation ends. Jarvis puts its
     // reactor above the exchange instead of a bar, its outer ring
-    // unwinding as the conversation ends, and KITT its voice box, the bar
-    // under its columns shrinking.
+    // unwinding as the conversation ends, KITT its voice box, the bar
+    // under its columns shrinking, and HAL its eye, a red ring around the
+    // chrome unwinding.
     final logoSide = (math.min(size.width, size.height) * 0.24).clamp(
       72.0,
       140.0,
@@ -1129,8 +1142,8 @@ class _AssistOverlayState extends State<AssistOverlay>
     // In portrait a result panel stands at the top, down to half the
     // screen at most: the chat stays under it rather than running across.
     final underPanel = portrait && result != null;
-    // Jarvis's and KITT's chat starts under their art, so no line crosses
-    // it.
+    // Jarvis's, KITT's and HAL's chat starts under their art, so no line
+    // crosses it.
     final underArt = skin.art.hasTopSlot && !underPanel;
     final top = underPanel
         ? math.max(

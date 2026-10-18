@@ -28,6 +28,7 @@ class PageHaSockets {
     required this.token,
     required this.allowed,
     required this.log,
+    this.onOpen,
     WebSocketChannel Function(Uri uri)? channelFactory,
     this.flushEvery = const Duration(milliseconds: 16),
   }) : _channelFactory =
@@ -49,6 +50,9 @@ class PageHaSockets {
 
   final Logger log;
   final Duration flushEvery;
+
+  /// Told each time a page's socket signs in, for the usage counts.
+  final void Function()? onOpen;
   final WebSocketChannel Function(Uri uri) _channelFactory;
 
   /// Runs script in the page: set by the bridge while a WebView is
@@ -105,6 +109,7 @@ class PageHaSockets {
         return _error('unreachable');
       }
       log.info('js_api', 'page socket $sid open (Home Assistant $version)');
+      onOpen?.call();
       return {'ok': true, 'haVersion': version};
     } catch (e) {
       if (identical(_sockets[sid], socket)) _sockets.remove(sid);

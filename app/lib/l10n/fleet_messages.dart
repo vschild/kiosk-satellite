@@ -47,6 +47,14 @@ String fleetStatusText(BuildContext context, String value) {
   if (match != null) return l10n(context).fleetCountDaysAgo(match[1]!);
   match = RegExp(r'^A profile named (.+) exists$').firstMatch(value);
   if (match != null) return l10n(context).fleetProfileNameExists(match[1]!);
+  match = RegExp(r'^Could not install (.+?): (.+)$').firstMatch(value);
+  if (match != null) {
+    return l10n(context).fleetCouldNotInstallNameReason(match[1]!, match[2]!);
+  }
+  match = RegExp(r'^Reinstall (.+) on this kiosk to sync it$').firstMatch(value);
+  if (match != null) {
+    return l10n(context).fleetReinstallNameOnThisKioskToSyncIt(match[1]!);
+  }
   match = RegExp(r'^already on (.+)$').firstMatch(value);
   if (match != null) return l10n(context).fleetAlreadyOnVersion(match[1]!);
   return fleetText(context, value);

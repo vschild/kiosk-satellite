@@ -19,6 +19,11 @@ for kind in ['wake', 'done', 'error', 'alert', 'announce']:
     settings.append(dict(key=key, value='', type='string', category='Voice Satellite', subpage='Chimes',
                          title=english[ids['title']], description=english[ids['description']],
                          titleMessageId=ids['title'], descriptionMessageId=ids['description']))
+    ids = mapping[key + '_volume']
+    settings.append(dict(key=key + '_volume', value=100, type='number', category='Voice Satellite', subpage='Chimes',
+                         min=0, max=100, step=5, unit='%', default=100,
+                         title=english[ids['title']], description=english[ids['description']],
+                         titleMessageId=ids['title'], descriptionMessageId=ids['description']))
 commands, writes, uploads = [], [], []
 sounds = ['siren.mp3']
 
@@ -79,7 +84,10 @@ try:
             expect(page.locator('#pageTitle')).to_contain_text(catalog['voiceChimesPage'])
             expect(panel).not_to_contain_text(catalog['voiceChimesHelp'])
             expect(panel.locator(':scope > .hint-row')).to_have_count(0)
-            expect(panel.locator('.row')).to_have_count(5)
+            expect(panel.locator('.row')).to_have_count(10)
+            keys = panel.locator('.row[data-key]').evaluate_all('(rows) => rows.map((row) => row.dataset.key)')
+            assert keys == [k for kind in ['wake', 'done', 'error', 'alert', 'announce']
+                            for k in ('voice_chimes.' + kind, f'voice_chimes.{kind}_volume')], keys
             entries = page.locator('#tab-voicesatellite [data-subpage-entry]').evaluate_all(
                 '(rows) => rows.map((row) => row.dataset.subpageEntry)')
             assert entries.index('Appearance') < entries.index('Chimes'), entries
@@ -87,6 +95,10 @@ try:
                 row = panel.locator(f'[data-key="voice_chimes.{kind}"]')
                 expect(row).to_contain_text(catalog[mapping['voice_chimes.' + kind]['title']])
                 expect(row).to_contain_text(catalog[mapping['voice_chimes.' + kind]['description']])
+                volume = panel.locator(f'[data-key="voice_chimes.{kind}_volume"]')
+                expect(volume).to_contain_text(catalog[mapping[f'voice_chimes.{kind}_volume']['title']])
+                expect(volume).to_contain_text(catalog['voiceChimeVolumeDescription'])
+                expect(volume.locator('input[type=range]')).to_have_count(1)
             expect(panel.get_by_role('button', name=catalog['voiceChimesPreview'], exact=True)).to_have_count(5)
             panel.get_by_role('button', name=catalog['voiceChimesPreview'], exact=True).first.click()
             page.wait_for_timeout(50)

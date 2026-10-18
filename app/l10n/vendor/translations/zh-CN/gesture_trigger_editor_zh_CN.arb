@@ -43,5 +43,10 @@
   "gestureSequenceError": "请添加至少两个角落。",
   "gesturePluginTrigger": "插件触发器",
   "gesturePluginTriggerField": "触发器",
-  "gesturePluginTriggerHelp": "请先在“插件管理器”中启用提供触发器的插件。"
+  "gesturePluginTriggerHelp": "请先在“插件管理器”中启用提供触发器的插件。",
+  "gestureButton": "按钮",
+  "gesturePress": "按下",
+  "gestureDoublePress": "双击",
+  "gestureHoldPress": "长按",
+  "gestureButtonDefaults": "没有手势使用的按键会保留原本的作用：操作键接听、停止或关闭正在响铃的内容，否则开始语音指令；麦克风键将 Voice Satellite 静音；音量键调整音量。"
 }

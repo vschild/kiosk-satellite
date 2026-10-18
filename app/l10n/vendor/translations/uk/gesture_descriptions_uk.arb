@@ -22,5 +22,8 @@
   "gestureOpenApp": "Відкрити програму {package}",
   "gestureRun": "Запустити {value}",
   "gestureTriggerAction": "Запустити {value}",
-  "gestureFireEvent": "Надіслати подію {value}"
+  "gestureFireEvent": "Надіслати подію {value}",
+  "gestureDescribeButtonPress": "Натиснути кнопку {button}",
+  "gestureDescribeButtonDouble": "Двічі натиснути кнопку {button}",
+  "gestureDescribeButtonHold": "Утримувати кнопку {button}"
 }

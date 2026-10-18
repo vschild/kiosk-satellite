@@ -25,5 +25,6 @@
   "pluginErrorNativeFileIntegrity": "La biblioteca nativa instalada no pasó la verificación de integridad",
   "pluginErrorReadInstalled": "No se puede leer el plugin instalado: {error}",
   "pluginErrorPreviousRestart": "No se pudo reiniciar la versión anterior: {error}",
-  "pluginErrorUpdateFailed": "La actualización del plugin falló: {error}. {recovery}"
+  "pluginErrorUpdateFailed": "La actualización del plugin falló: {error}. {recovery}",
+  "pluginErrorNeedsScreen": "Este plugin necesita una pantalla"
 }

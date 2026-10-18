@@ -382,5 +382,16 @@
   "Notification access": "deviceNotificationAccess",
   "Now Playing can follow the apps playing on this device.": "deviceNotificationAccessHeld",
   "Without this Android lists no media sessions, so Now Playing cannot follow the apps playing on this device.": "deviceNotificationAccessMissing",
-  "Lets Now Playing follow the apps playing on this device.": "deviceNotificationAccessIdle"
+  "Lets Now Playing follow the apps playing on this device.": "deviceNotificationAccessIdle",
+  "Hardware buttons": "deviceHardwareButtons",
+  "The device buttons reach gestures and Voice Satellite.": "deviceHardwareButtonsHeld",
+  "The device buttons do nothing until the button service is switched on.": "deviceHardwareButtonsMissing",
+  "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO": "deviceHeadlessAdbMicrophone",
+  "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS": "deviceHeadlessAdbNotifications",
+  "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION": "deviceHeadlessAdbLocation",
+  "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, then the same for BLUETOOTH_CONNECT": "deviceHeadlessAdbBluetooth",
+  "This device has no screen. Grant it over adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite": "deviceHeadlessAdbBattery",
+  "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, then the same for WRITE_EXTERNAL_STORAGE": "deviceHeadlessAdbStorage",
+  "This device has no screen. Switch it on over adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, then adb shell settings put secure accessibility_enabled 1": "deviceHeadlessAdbButtons",
+  "The button service is switched on but has not started. Restart the device to start it: adb reboot": "deviceHeadlessAdbButtonsRestart"
 }

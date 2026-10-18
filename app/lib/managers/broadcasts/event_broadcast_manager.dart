@@ -17,6 +17,11 @@ typedef EventBroadcastSender =
 /// Assistant or dumpsys. The native side only sends what this decides
 /// (EventBroadcastBridge.kt).
 ///
+/// Each one but the timer and alarm mirrors also goes to Home Assistant's
+/// bus as `esphome.kiosk_satellite_<group>` with the lowercase rest of
+/// its name as `event_type`, so VS_ENDED is `ended` on
+/// `kiosk_satellite_voice` (issue #1007).
+///
 /// Everything here comes off the bus, so no other manager knows these
 /// broadcasts exist:
 ///
@@ -31,6 +36,7 @@ typedef EventBroadcastSender =
 /// * INTERCOM_* follow the call state. INTERCOM_ENDED fires once when a
 ///   call, broadcast or ring stops holding the kiosk.
 /// * SCREENSAVER_STARTED and SCREENSAVER_STOPPED follow the screensaver.
+/// * SCREEN_ON and SCREEN_OFF follow the panel, with who moved it.
 class EventBroadcastManager extends Manager {
   EventBroadcastManager(super.bus, super.commands, super.log, {this.send});
 
@@ -81,7 +87,14 @@ class EventBroadcastManager extends Manager {
       case ScreensaverStateChanged(:final active):
         if (active == _screensaverActive) return;
         _screensaverActive = active;
-        _broadcast(active ? 'SCREENSAVER_STARTED' : 'SCREENSAVER_STOPPED');
+        _emit('screensaver', active ? 'started' : 'stopped');
+      case ScreenStateChanged(:final on, :final source):
+        // A probe takes back a wake this app asked for, so it is the app's
+        // doing too. 'system' is the power button, the OS timeout and
+        // everything else Android reports without saying why.
+        _emit('screen', on ? 'on' : 'off', {
+          'source': source == 'system' ? 'system' : 'app',
+        });
       default:
         break;
     }
@@ -98,7 +111,7 @@ class EventBroadcastManager extends Manager {
     final held = _voiceHolds.update(event);
     if (held && !_voiceActive) {
       _voiceActive = true;
-      _broadcast('VS_STARTED', {'reason': event.reason});
+      _emit('voice', 'started', {'reason': event.reason});
     }
     _endVoiceIfIdle(held: held);
   }
@@ -107,21 +120,21 @@ class EventBroadcastManager extends Manager {
     if (!_voiceActive || _overlayShown) return;
     if (held ?? _voiceHolds.held.isNotEmpty) return;
     _voiceActive = false;
-    _broadcast('VS_ENDED');
+    _emit('voice', 'ended');
   }
 
   void _onSatelliteState(VoiceSatelliteStateChanged event) {
     final state = event.state;
     if (state == _satelliteState) return;
     _satelliteState = state;
-    final name = switch (state) {
-      'listening' => 'VS_LISTENING',
-      'processing' => 'VS_THINKING',
-      'responding' when event.announcement => 'VS_ANNOUNCEMENT',
-      'responding' => 'VS_SPEAKING',
+    final type = switch (state) {
+      'listening' => 'listening',
+      'processing' => 'thinking',
+      'responding' when event.announcement => 'announcement',
+      'responding' => 'speaking',
       _ => null,
     };
-    if (name != null) _broadcast(name);
+    if (type != null) _emit('voice', type);
   }
 
   // ── Timers and alarms ─────────────────────────────────────────────────
@@ -138,12 +151,12 @@ class EventBroadcastManager extends Manager {
   // ── Intercom ──────────────────────────────────────────────────────────
 
   static const _intercomStates = {
-    'calling': 'INTERCOM_CALLING',
-    'ringing': 'INTERCOM_RINGING',
-    'in_call': 'INTERCOM_IN_CALL',
-    'broadcasting': 'INTERCOM_BROADCASTING',
-    'listening': 'INTERCOM_LISTENING',
-    'missed': 'INTERCOM_MISSED',
+    'calling',
+    'ringing',
+    'in_call',
+    'broadcasting',
+    'listening',
+    'missed',
   };
 
   /// The states that hold the kiosk, as the intercom's own audio focus and
@@ -162,15 +175,35 @@ class EventBroadcastManager extends Manager {
     // The peer is gone from the status by the time it reads idle, and
     // INTERCOM_ENDED still wants to say who it was.
     if (kiosk.isNotEmpty) _intercomKiosk = kiosk;
-    final name = _intercomStates[state];
-    if (name != null) _broadcast(name, {'kiosk': _intercomKiosk});
+    if (_intercomStates.contains(state)) {
+      _emit('intercom', state, {'kiosk': _intercomKiosk});
+    }
     if (_holds(was) && !_holds(state)) {
-      _broadcast('INTERCOM_ENDED', {'kiosk': _intercomKiosk});
+      _emit('intercom', 'ended', {'kiosk': _intercomKiosk});
     }
     if (state == 'idle') _intercomKiosk = '';
   }
 
   // ── Sending ───────────────────────────────────────────────────────────
+
+  static const _prefixes = {
+    'voice': 'VS_',
+    'intercom': 'INTERCOM_',
+    'screensaver': 'SCREENSAVER_',
+    'screen': 'SCREEN_',
+  };
+
+  /// One change, as an Android broadcast and as a Home Assistant event.
+  void _emit(
+    String group,
+    String type, [
+    Map<String, Object?> data = const {},
+  ]) {
+    _broadcast('${_prefixes[group]}${type.toUpperCase()}', data);
+    bus.publish(
+      HaEventRequested('kiosk_satellite_$group', {'event_type': type, ...data}),
+    );
+  }
 
   void _broadcast(String name, [Map<String, Object?> extras = const {}]) {
     log.info(this.name, name);

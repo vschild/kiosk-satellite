@@ -1,3 +1,4 @@
+import { isHeadless } from './headless.js';
 import { cameraStreamsError } from './localization.js';
 import { overviewLabel, overviewMessageBox, overviewModalShell } from './overview_labels.js';
 import { mediaText, mediaError, deviceText, t, screenAudioText, screensaverText, immichError, overviewText } from './localization.js';
@@ -119,6 +120,9 @@ export function updateMaValidateRow() {
    (issue #722), the device source's second player beside Sendspin. */
 const LOCAL_SESSION = 'session:*';
 const LOCAL_SESSION_NAME = 'Local Media Session';
+/* And its AirPlay receiver, the third: a name no language translates. */
+const AIRPLAY = 'airplay';
+const AIRPLAY_NAME = 'AirPlay';
 
 /* Which player of the picked source the Now Playing surfaces follow
    (issue #265). The definition renders as a text field; this swaps in a
@@ -129,7 +133,8 @@ export async function updatePlayerRow() {
   const tab = document.getElementById('tab-sendspin');
   if (!tab) return;
   // What every source has in common, said once at the top of the page.
-  if (!tab.querySelector('.media-player-intro')) {
+  // Both surfaces it names need a screen.
+  if (!isHeadless() && !tab.querySelector('.media-player-intro')) {
     const intro = document.createElement('div');
     intro.className = 'card media-player-intro';
     intro.appendChild(introRow(INTRO_INFO_ICON, '', mediaText('The floating player and Now Playing show only while '
@@ -151,9 +156,11 @@ export async function updatePlayerRow() {
   row.playerSource = source;
   row.querySelectorAll('input, select, .ep-field').forEach(el => el.remove());
   row.classList.add('dp-field-row');
-  // The entity picker over the source's players, or this device's own two.
+  // The entity picker over the source's players, or this device's own three.
   const spec = source ? playerSpec(source) : fixedPlayerSpec('players:local', [
     { id: '', name: mediaText('Sendspin Player'), iconPath: PLAYER_ICONS.speaker,
+      group: '', available: true, raw: {} },
+    { id: AIRPLAY, name: AIRPLAY_NAME, iconPath: PLAYER_ICONS.airplay,
       group: '', available: true, raw: {} },
     { id: LOCAL_SESSION, name: mediaText(LOCAL_SESSION_NAME), iconPath: PLAYER_ICONS.session,
       group: '', available: true, raw: {} },
@@ -174,6 +181,7 @@ export async function updatePlayerRow() {
     const next = out.id ?? '';
     // Stored in English like every other name the pick keeps.
     const name = next === LOCAL_SESSION ? LOCAL_SESSION_NAME
+      : next === AIRPLAY ? AIRPLAY_NAME
       : next ? (cachedList(spec.key)?.items.find(p => p.id === next)?.name || next) : '';
     const values = {
       'sendspin.player': next,
@@ -197,6 +205,7 @@ export async function updatePlayerRow() {
     if (!row.isConnected && field) return;
     const { id, name } = picked();
     const localSession = !source && id === LOCAL_SESSION;
+    const airplay = !source && id === AIRPLAY;
     const fresh = pickField({
       spec, value: id,
       placeholder: mediaText(source ? 'Pick a player' : 'Sendspin Player'),
@@ -204,15 +213,17 @@ export async function updatePlayerRow() {
       // player's own name stays exactly as the source sent it.
       fallbackLabel: name === LOCAL_SESSION_NAME ? mediaText(name) : (name || null),
       flagMissing: false,
+      // This device's Sendspin player is the empty pick.
+      emptyIsPick: !source,
       onClick: choose,
     });
     if (field) field.el.replaceWith(fresh.el); else row.appendChild(fresh.el);
     field = fresh;
     updateSessionPermissions(tab, localSession);
     tab.querySelector('.player-warn')?.remove();
-    if (source || localSession) {
-      const shown = localSession ? mediaText(LOCAL_SESSION_NAME) : name;
-      const warning = hintRow(t('mediaLocalOffline', {player: shown || mediaText('another player')}), { warn: true });
+    const message = offlineNotice(source, id, name);
+    if (message) {
+      const warning = hintRow(message, { warn: true });
       warning.classList.add('player-warn', 'divided');
       row.insertAdjacentElement('afterend', warning);
     }
@@ -221,6 +232,26 @@ export async function updatePlayerRow() {
   row.updateSetting = () => { paint(); return true; };
   row.stopPlayerWatch = null;
   paint();
+}
+
+/* What the pick turns off on this device, under the Player row: the
+   Sendspin player and the AirPlay receiver, each only while switched on and
+   not the pick itself. Nothing for a pick that leaves both as they were. The
+   device draws the same (settings_screen.dart, _offlineNotice). */
+function offlineNotice(source, id, name) {
+  const value = (key) => (state.settings || []).find((s) => s.key === key)?.value;
+  const sourceSetting = () => (state.settings || []).find((s) => s.key === 'sendspin.player_source');
+  const sendspinOff = value('sendspin.enabled') === true && !(!source && !id);
+  const airplayOff = value('airplay.enabled') === true && !(!source && id === AIRPLAY);
+  if (!sendspinOff && !airplayOff) return '';
+  const player = !source && !id ? mediaText('Sendspin Player')
+    : !source && id === LOCAL_SESSION ? mediaText(LOCAL_SESSION_NAME)
+    : !source && id === AIRPLAY ? AIRPLAY_NAME
+    // A source with no player picked yet: the source by name.
+    : (name || sourceSetting()?.optionLabels?.[source] || mediaText('another player'));
+  const key = sendspinOff && airplayOff ? 'mediaOfflineBoth'
+    : sendspinOff ? 'mediaOfflineSendspin' : 'mediaOfflineAirplay';
+  return t(key, { player });
 }
 
 /* The Local Media Session's Required system permissions group, at the end
@@ -453,6 +484,8 @@ export async function updateBrightnessGrantNotices() {
     granted = !!(res.data || {}).writeSettings;
   } catch (_) { return; }
   $('#brightnessGrantRow').style.display = granted ? 'none' : '';
+  // No panel to light on a device without a screen.
+  if (isHeadless()) return;
   const root = document.getElementById('tab-screenaudio');
   const existing = root.querySelector('.brightness-grant-card');
   if (granted) { root.querySelectorAll('.brightness-grant-card').forEach((el) => el.remove()); return; }
@@ -659,6 +692,8 @@ document.getElementById('tileCameraView')?.addEventListener('click', () => {
 });
 
 export async function loadScreenshot() {
+  // Nothing to capture on a device without a screen.
+  if (isHeadless()) return;
   try {
     const res = await api('/api/screenshot');
     if (!res.ok) return false;

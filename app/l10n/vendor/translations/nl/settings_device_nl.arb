@@ -42,5 +42,16 @@
   "deviceWebViewHint": "Engineversie, renderer en useragent",
   "devicePasswordSet": "•••••• (ingesteld)",
   "deviceSaveFailed": "Kon deze instelling niet opslaan. Probeer het nog eens.",
-  "deviceOpenSettingsDevice": "Instellingen openen op apparaat"
+  "deviceOpenSettingsDevice": "Instellingen openen op apparaat",
+  "deviceHardwareButtons": "Hardwareknoppen",
+  "deviceHardwareButtonsHeld": "De knoppen van het apparaat bereiken gebaren en Voice Satellite.",
+  "deviceHardwareButtonsMissing": "De knoppen van het apparaat doen niets tot de knoppendienst is ingeschakeld.",
+  "deviceHeadlessAdbMicrophone": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, en daarna hetzelfde voor BLUETOOTH_CONNECT",
+  "deviceHeadlessAdbBattery": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "Dit apparaat heeft geen scherm. Verleen het via adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, en daarna hetzelfde voor WRITE_EXTERNAL_STORAGE",
+  "deviceHeadlessAdbButtons": "Dit apparaat heeft geen scherm. Schakel het in via adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, en daarna adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "De knoppendienst staat aan maar is niet gestart. Start het apparaat opnieuw op om de dienst te starten: adb reboot"
 }

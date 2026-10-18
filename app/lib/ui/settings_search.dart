@@ -97,22 +97,31 @@ const List<SettingsSearchEntry> handBuiltSearchEntries = [
     subpage: 'Custom Pages',
     anchorId: 'x:custom_pages_docs',
   ),
-  // No setting draws the URL Blacklist either (remote: DEFLESS_SUBPAGES and
+  // No setting draws the URL Filter either (remote: DEFLESS_SUBPAGES and
   // SEARCH_EXTRAS).
   SettingsSearchEntry(
     category: 'Browser',
-    title: 'URL Blacklist',
-    description: 'Block pages by address pattern or regular expression',
-    anchorId: 'sub:URL Blacklist',
+    title: 'URL Filter',
+    description:
+        'Block or allow pages by address pattern or regular expression',
+    anchorId: 'sub:URL Filter',
     isPage: true,
   ),
   SettingsSearchEntry(
     category: 'Browser',
     title: 'Add rule',
     description:
-        'Links or pages that match the rules below are blocked from loading.',
-    subpage: 'URL Blacklist',
-    anchorId: 'x:url_blacklist',
+        "Links or pages that match a Block rule don't load. Add an Allow only rule to load only the pages it matches.",
+    subpage: 'URL Filter',
+    anchorId: 'x:url_filter',
+  ),
+  SettingsSearchEntry(
+    category: 'Browser',
+    title: 'Show blocked page notice',
+    description:
+        "Show a short notice with the rule's name when a page is blocked.",
+    subpage: 'URL Filter',
+    anchorId: 'browser.url_filter_notice',
   ),
   SettingsSearchEntry(
     category: 'Device',

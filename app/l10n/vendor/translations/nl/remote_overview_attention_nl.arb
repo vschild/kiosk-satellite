@@ -9,6 +9,8 @@
   "overviewThisRelease": "deze release",
   "overviewUpdateAvailable": "Update beschikbaar",
   "overviewInstallHelp": "Kiosk Satellite {version} kan worden geïnstalleerd. Bevestig de installatie op het tabletscherm.",
+  "overviewInstallSilentHelp": "Kiosk Satellite {version} is klaar om te installeren. Het wordt zonder bevestiging op het apparaat geïnstalleerd.",
+  "overviewInstallHeadlessHelp": "Kiosk Satellite {version} is klaar om te installeren. Dit apparaat heeft geen scherm om dit te bevestigen. Maak Kiosk Satellite daarom apparaateigenaar, gebruik Shizuku of installeer het via adb.",
   "overviewHaSetup": "Home Assistant is niet ingesteld",
   "overviewHaSetupHelp": "Sluit de kiosk aan op Home Assistant om een dashboard te laden.",
   "overviewSetUp": "Instellen",

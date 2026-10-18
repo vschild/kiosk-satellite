@@ -494,10 +494,14 @@ class MusicAssistantApi {
 /// data IS the queue dict.
 /// [currentMedia] is an optional fallback already matched to this radio
 /// queue item by the caller. Queue stream metadata takes precedence.
+///
+/// [providerNames] maps provider instance ids to the names the server
+/// shows, so the audio quality can say where the stream comes from.
 Map<String, Object?>? queueTrackSnapshot(
   Object? queue, {
   String? webBase,
   Map? currentMedia,
+  Map<String, String> providerNames = const {},
 }) {
   if (queue is! Map) return null;
   final item = queue['current_item'];
@@ -513,9 +517,16 @@ Map<String, Object?>? queueTrackSnapshot(
   final live = stream is Map && stream.isNotEmpty ? stream : currentMedia;
   String liveText(String key) =>
       live?[key] is String ? (live![key] as String).trim() : '';
+  // Music Assistant keeps a remix or live take's version apart from the
+  // name ("Red", "Document One Remix") and streams the two joined, so the
+  // queue's title reads the way the Sendspin metadata does and matches it.
+  final name = '${media['name'] ?? ''}';
+  final version = '${media['version'] ?? ''}'.trim();
   final title = liveText('title').isNotEmpty
       ? liveText('title')
-      : '${media['name'] ?? item['name'] ?? ''}';
+      : name.isEmpty
+      ? '${item['name'] ?? ''}'
+      : (version.isEmpty || name.contains(version) ? name : '$name ($version)');
   if (title.trim().isEmpty) return null;
   // Sendspin credits multiple artists as one slash-joined string; the
   // recovered card reads the same as a live one.
@@ -563,6 +574,7 @@ Map<String, Object?>? queueTrackSnapshot(
     'queueItemId': '${item['queue_item_id'] ?? ''}',
     'currentIndex': (queue['current_index'] as num?)?.toInt() ?? 0,
     'queueLength': (queue['items'] as num?)?.toInt() ?? 0,
+    'audioQuality': audioQualityOf(details, providerNames),
     ...switch (liveText('image_url').isNotEmpty
         ? liveText('image_url')
         : queueImageUrl(item['image'], webBase)) {
@@ -570,6 +582,72 @@ Map<String, Object?>? queueTrackSnapshot(
       null => const <String, Object?>{},
     },
   };
+}
+
+/// Formats that keep every bit of the source, as Music Assistant names
+/// them in an audio format's content type.
+const _losslessTypes = {
+  'flac',
+  'alac',
+  'wav',
+  'aiff',
+  'wavpack',
+  'ape',
+  'dsf',
+  'dff',
+  'pcm',
+  's16le',
+  's24le',
+  's32le',
+  'f32le',
+  'f64le',
+};
+
+/// Containers whose content type says less than the codec inside them.
+const _containerTypes = {'ogg', 'm4a', 'mp4', 'm4b', 'mkv', 'webm'};
+
+/// The audio format of a queue item's stream details, as the Now Playing
+/// view's quality pills read it: 'codec' (upper case), 'sampleRate' (Hz),
+/// 'bitDepth', 'bitRate' (kbps), 'lossless' and 'source' (the provider's
+/// name), each present only when the server knows it. Null without a
+/// format, which is the case until the stream starts.
+Map<String, Object?>? audioQualityOf(
+  Object? details,
+  Map<String, String> providerNames,
+) {
+  if (details is! Map) return null;
+  final format = details['audio_format'];
+  if (format is! Map) return null;
+  String text(String key) {
+    final value = '${format[key] ?? ''}'.trim().toLowerCase();
+    return value == 'unknown' ? '' : value;
+  }
+
+  final type = text('content_type');
+  final codecType = text('codec_type');
+  final lossless =
+      _losslessTypes.contains(type) || _losslessTypes.contains(codecType);
+  final codec = type.startsWith('pcm') || RegExp(r'^[sf]\d+le$').hasMatch(type)
+      ? 'pcm'
+      : (_containerTypes.contains(type) && codecType.isNotEmpty
+            ? codecType
+            : (type.isNotEmpty ? type : codecType));
+  int? positive(String key) {
+    final value = format[key];
+    return value is num && value > 0 ? value.round() : null;
+  }
+
+  final provider = '${details['provider'] ?? ''}';
+  final source = providerNames[provider];
+  final quality = {
+    if (codec.isNotEmpty) 'codec': codec.toUpperCase(),
+    'sampleRate': ?positive('sample_rate'),
+    'bitDepth': ?positive('bit_depth'),
+    'bitRate': ?positive('bit_rate'),
+    'lossless': lossless,
+    if (source != null && source.isNotEmpty) 'source': source,
+  };
+  return quality.length > 1 ? quality : null;
 }
 
 /// A fetchable URL for a queue item's image: the server's image proxy

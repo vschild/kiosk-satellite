@@ -5,6 +5,7 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../core/headless.dart';
 import '../../core/command_registry.dart';
 import '../../core/event_bus.dart';
 import '../../core/events.dart';
@@ -1237,6 +1238,9 @@ class EspEntitySurface {
         ),
       );
     }
+    if (Headless.active) {
+      catalog.removeWhere((e) => _headlessDrops('${e['objectId']}'));
+    }
     if (includeExcluded) return catalog;
     final excluded = defs.decodeEspHomeExcludedEntities(
       _settings.get(defs.esphomeExcludedEntities),
@@ -1244,6 +1248,49 @@ class EspEntitySurface {
     return catalog
         .where((entity) => !excluded.contains(entity['objectId']))
         .toList();
+  }
+
+  /// The entities that show, light or navigate something, which a device
+  /// without a screen leaves out, and the settings entities whose setting
+  /// it hides.
+  static const _headlessDropped = {
+    'screen',
+    'screensaver_active',
+    'now_playing',
+    'postpone_screensaver',
+    'screensaver_next_slide',
+    'screensaver_previous_slide',
+    'notifications_dismiss_all',
+    'reload',
+    'load_start_url',
+    'clear_cache',
+    'bring_to_front',
+    'open_launcher',
+    'show_music_assistant',
+    'close_camera_view',
+    'active_camera_view',
+    'dashboard_view',
+    'default_dashboard',
+    'screenshot',
+    'take_screenshot',
+    'last_screenshot',
+    'last_interaction',
+    'next_screensaver',
+    'clock_background',
+    'panel_brightness',
+    'url',
+  };
+
+  static bool _headlessDrops(String objectId) {
+    if (_headlessDropped.contains(objectId) ||
+        objectId.startsWith('camera_view')) {
+      return true;
+    }
+    final def =
+        _settingSwitches[objectId]?.$3 ??
+        _settingSelects[objectId]?.$3 ??
+        _settingNumbers[objectId]?.def;
+    return def != null && defs.deviceHiddenKeys.contains(def.key);
   }
 
   String? _excludedValue;

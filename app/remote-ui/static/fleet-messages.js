@@ -1,4 +1,4 @@
-import { fleetText, t } from './localization.js';
+import { fleetText, pluginError, t } from './localization.js';
 
 export function profileName(p) {
   return p.id === 'default' ? fleetText('Default') : p.id === 'updates-only' ? fleetText('Updates only') : p.name;
@@ -24,6 +24,10 @@ export function fleetStatusText(value) {
   if (match) return t("fleetCountDaysAgo", {count: match[1]});
   match = /^A profile named (.+) exists$/.exec(value);
   if (match) return t('fleetProfileNameExists', {name:match[1]});
+  match = /^Could not install (.+?): (.+)$/.exec(value);
+  if (match) return t('fleetCouldNotInstallNameReason', {name:match[1], reason:pluginError(match[2])});
+  match = /^Reinstall (.+) on this kiosk to sync it$/.exec(value);
+  if (match) return t('fleetReinstallNameOnThisKioskToSyncIt', {name:match[1]});
   match = /^already on (.+)$/.exec(value);
   if (match) return t('fleetAlreadyOnVersion', {version:match[1]});
   return fleetText(value);

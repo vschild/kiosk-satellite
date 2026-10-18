@@ -565,5 +565,16 @@
         "Overview > Status"
       ]
     }
+  },
+  "overviewHeadlessMode": "Headless mode",
+  "@overviewHeadlessMode": {
+    "context": "Remote admin > Overview > Status",
+    "description": "Home Assistant status tile on a device without a screen, which has no dashboard to report on.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Status"
+      ]
+    }
   }
 }

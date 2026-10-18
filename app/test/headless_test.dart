@@ -1,0 +1,130 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/core/command_registry.dart';
+import 'package:kiosk_satellite/core/event_bus.dart';
+import 'package:kiosk_satellite/core/headless.dart';
+import 'package:kiosk_satellite/core/lifecycle.dart';
+import 'package:kiosk_satellite/core/logging.dart';
+import 'package:kiosk_satellite/managers/gestures/gesture_mappings.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
+import 'package:kiosk_satellite/managers/settings/headless_settings.dart';
+import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// A device without a screen (Echo Dot): the display settings are hidden
+/// from both UIs, the ones that would start real work are pinned, and the
+/// Action button is a gesture trigger.
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late EventBus bus;
+  late SettingsManager settings;
+
+  Future<void> settle() =>
+      Future<void>.delayed(const Duration(milliseconds: 20));
+
+  setUp(() async {
+    defs.deviceHiddenKeys.clear();
+    SharedPreferences.setMockInitialValues({
+      // What a configuration imported from a tablet carries.
+      'ks.screensaver.enabled': true,
+      'ks.camera.enabled': true,
+      'ks.remote.enabled': false,
+      'ks.intercom.talk_mode': 'ptt',
+    });
+    bus = EventBus();
+    final log = Logger();
+    settings = SettingsManager(bus, CommandRegistry(log), log);
+    await settings.init();
+    await HeadlessSettings(settings, bus, log).init();
+  });
+
+  tearDown(() {
+    defs.deviceHiddenKeys.clear();
+    Headless.debugActive = false;
+  });
+
+  test('display pages and settings are hidden, voice and audio stay', () {
+    final hidden = defs.deviceHiddenKeys;
+    for (final def in defs.allSettings) {
+      if (const {
+        'Screensaver',
+        'Browser',
+        'Camera',
+        'Kiosk',
+        'Lockdown',
+      }.contains(def.category)) {
+        expect(hidden, contains(def.key), reason: def.key);
+      }
+    }
+    expect(hidden, contains(defs.keepScreenOn.key));
+    expect(hidden, contains(defs.haKioskMode.key));
+    expect(hidden, contains(defs.voiceSkin.key));
+    expect(hidden, contains(defs.remoteEnabled.key));
+    expect(hidden, isNot(contains(defs.haUrl.key)));
+    expect(hidden, isNot(contains(defs.haToken.key)));
+    expect(hidden, isNot(contains(defs.mediaVolume.key)));
+    expect(hidden, isNot(contains(defs.voiceEnabled.key)));
+    expect(hidden, isNot(contains(defs.intercomEnabled.key)));
+    expect(hidden, isNot(contains(defs.dlnaEnabled.key)));
+    expect(hidden, isNot(contains(defs.alarmsVolume.key)));
+  });
+
+  test('stored values that cannot work without a screen are pinned', () {
+    expect(settings.get(defs.screensaverEnabled), isFalse);
+    expect(settings.get(defs.cameraEnabled), isFalse);
+    expect(settings.get(defs.remoteEnabled), isTrue);
+    expect(settings.get(defs.intercomTalkMode), 'handsfree');
+    expect(settings.get(defs.wakeWordBackground), isTrue);
+  });
+
+  test('a later change to a pinned setting is put back', () async {
+    await settings.set(defs.kioskEnabled, true);
+    await settle();
+    expect(settings.get(defs.kioskEnabled), isFalse);
+    await settings.set(defs.remoteEnabled, false);
+    await settle();
+    expect(settings.get(defs.remoteEnabled), isTrue);
+  });
+
+  test('without a screen the app always counts as on screen', () {
+    Headless.debugActive = true;
+    expect(Lifecycle.onScreen, isTrue);
+  });
+
+  group('button trigger', () {
+    test('names the Action button press', () {
+      const trigger = {'type': 'button', 'button': 'action', 'press': 'long'};
+      expect(buttonKeyCode(trigger), buttonAction);
+      expect(buttonPress(trigger), 'long');
+      expect(describeGestureTrigger(trigger), 'Hold the Action button');
+      expect(
+        describeGestureTrigger(const {'type': 'button', 'button': 'action'}),
+        'Press the Action button',
+      );
+    });
+
+    test('never reaches the touch engine', () {
+      final mappings = decodeGestureMappings(
+        '[{"id":"g1","trigger":{"type":"button","button":"action",'
+        '"press":"double"},"action":{"type":"voice_wake"}}]',
+      );
+      expect(mappings.single.triggerType, 'button');
+      expect(nativeGestureTriggers(mappings), isEmpty);
+    });
+
+    test('voice actions describe themselves', () {
+      expect(
+        describeGestureAction(const {'type': 'voice_wake'}),
+        'Start a voice command',
+      );
+      expect(
+        describeGestureAction(const {'type': 'voice_stop'}),
+        'Stop the voice assistant',
+      );
+      expect(
+        describeGestureAction(const {'type': 'voice_mute'}),
+        'Mute or unmute Voice Satellite',
+      );
+    });
+  });
+}

@@ -36,6 +36,8 @@ void main() {
         'ks.remote.port': port,
         'ks.screensaver.enabled': true,
         'ks.camera.enabled': true,
+        // On, so the Player row says it stays offline under the pick.
+        'ks.sendspin.enabled': true,
         'ks.sendspin.player_source': 'ha',
         'ks.sendspin.player_active': true,
         'ks.sendspin.player': 'ha:media_player.first',

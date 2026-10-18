@@ -1,5 +1,5 @@
 import { fleetStatusText, profileName } from './fleet-messages.js';
-import { fleetText, t, navigationText, localizeSetting } from './localization.js';
+import { fleetText, t, navigationText, localizeSetting, pluginError } from './localization.js';
 import { watchUpdates } from './live.js';
 import { cmd, state } from './core.js';
 import { settingRow } from './rows.js';
@@ -298,6 +298,24 @@ function openCredentialsModal(picked) {
   });
 }
 
+// Which of this kiosk's plugins a profile installs on its kiosks, one
+// checkbox each. Resolves to the ids, null when cancelled.
+function openPluginsModal(picked) {
+  const chosen = new Set(picked);
+  return new Promise((resolve) => {
+    const shell = modalShell({ title: fleetText('Plugins'), width: 520, onDismiss: () => { shell.close(); resolve(null); } });
+    shell.body.appendChild(hintRow(fleetText('Kiosks on this profile install these and take their settings from this kiosk.')));
+    for (const pl of status?.plugins || []) {
+      shell.body.appendChild(checkRow(pl.name, pl.version, chosen.has(pl.id),
+        (v) => { if (v) chosen.add(pl.id); else chosen.delete(pl.id); }));
+    }
+    shell.foot.append(
+      button(fleetText('Cancel'), 'btn-text', () => { shell.close(); resolve(null); }),
+      button(fleetText('Save'), 'btn-primary', () => { shell.close(); resolve([...chosen]); }),
+    );
+  });
+}
+
 // The settings a profile leaves out whatever their category says, each
 // with a way back in and a picker to add any other. Resolves to the keys,
 // null when cancelled.
@@ -463,6 +481,16 @@ function profilePanel(p) {
         const picked = await openCategoriesModal(p.categories || []);
         if (picked) await saveProfile({ ...p, categories: picked });
       }));
+    const installed = status?.plugins || [];
+    const pluginNames = installed.filter((pl) => (p.plugins || []).includes(pl.id)).map((pl) => pl.name);
+    const pluginDesc = !installed.length ? fleetText('No plugins installed on this kiosk')
+      : pluginNames.length ? pluginNames.join(', ') : fleetText('None');
+    card1.appendChild(installed.length
+      ? openerRow(fleetText('Plugins'), pluginDesc, async () => {
+        const picked = await openPluginsModal(p.plugins || []);
+        if (picked) await saveProfile({ ...p, plugins: picked });
+      })
+      : infoRow(fleetText('Plugins'), pluginDesc));
     card1.appendChild(openerRow(fleetText('Credentials'), credNames.length ? credNames.join(', ') : fleetText('None travel'),
       async () => {
         const picked = await openCredentialsModal(p.credentials || []);
@@ -778,7 +806,11 @@ export async function renderFleetPage({ fetch = true } = {}) {
     const cats = following.syncedCategories || [];
     const creds = following.credentials || [];
     card.appendChild(infoRow(fleetText('Synced from the leader'),
-      [cats.length ? cats.map(navigationText).join(', ') : fleetText('Nothing yet'), creds.length ? t("fleetWithTheNames", {names: creds.map(fleetText).join(', ')}) : fleetText('No credentials'), fleetText(following.dashboard ? fleetText('The dashboard') : fleetText('No dashboard'))].join('. ') + '.'));
+      [cats.length ? cats.map(navigationText).join(', ') : fleetText('Nothing yet'), creds.length ? t("fleetWithTheNames", {names: creds.map(fleetText).join(', ')}) : fleetText('No credentials'), fleetText(following.dashboard ? fleetText('The dashboard') : fleetText('No dashboard')),
+        ...((following.syncedPlugins || []).length ? [t('fleetPluginsNames', {names: following.syncedPlugins.join(', ')})] : [])].join('. ') + '.'));
+    for (const e of following.pluginErrors || []) {
+      card.appendChild(hintRow(t('fleetCouldNotInstallNameReason', {name: e.name, reason: pluginError(e.message)}), { warn: true }));
+    }
     const leave = infoRow(fleetText('Leave the fleet'), fleetText('Stops the sync. Settings stay as they are.'));
     leave.appendChild(button(fleetText('Leave'), 'btn-ghost', async () => {
       const pick = await localizedMessageBox({titleId:'fleetLeaveTheFleetDetail',
@@ -852,8 +884,8 @@ export function applyManagedBanners() {
   const following = status?.following;
   if (!following) return;
   const synced = new Set(following.syncedKeys || []);
-  if (!synced.size) return;
   const tabs = new Set();
+  if ((following.syncedPlugins || []).length) tabs.add('plugins');
   for (const s of state.settings || []) {
     if (!synced.has(s.key)) continue;
     const cat = s.category === 'Web Content' ? 'Browser' : s.category;
@@ -887,6 +919,8 @@ document.addEventListener('ks-event', (e) => {
 watchUpdates(['fleetsync'], (results) => {
   if (!document.querySelector('.modal-back')) return renderFleetPage({ fetch: !results });
 }, { visible: () => currentPath.split('/')[0] === 'fleet' });
+
+document.addEventListener('ks-plugins-rendered', () => applyManagedBanners());
 
 document.addEventListener('ks-settings-cached', () => {
   applyManagedBanners();

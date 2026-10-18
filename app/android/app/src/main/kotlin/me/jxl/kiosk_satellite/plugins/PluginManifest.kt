@@ -23,6 +23,13 @@ class PluginManifest(val json: JSONObject) {
     val capabilities = json.getJSONArray("capabilities").let { array ->
         (0 until array.length()).map { array.getString(it) }.toSet()
     }
+    /** The plugin runs on a device without a screen: it checks isHeadless() and skips its overlays and screensavers there. */
+    val headless = json.opt("headless").let { value ->
+        require(value == null || value is Boolean) { "Invalid headless" }
+        value == true
+    }
+    /** Overlays and screensavers are all a device without a screen would load such a plugin for, unless it says otherwise. */
+    val needsScreen get() = !headless && ("overlay" in capabilities || "screensaver" in capabilities)
 
     init {
         require(json.getInt("schemaVersion") == 1) { "Unsupported manifest schema" }

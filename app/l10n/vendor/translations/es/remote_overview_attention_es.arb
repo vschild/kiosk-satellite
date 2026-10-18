@@ -9,6 +9,8 @@
   "overviewThisRelease": "actual",
   "overviewUpdateAvailable": "Actualización disponible",
   "overviewInstallHelp": "Kiosk Satellite {version} está listo para instalar. La instalación se confirma en la pantalla de la tablet.",
+  "overviewInstallSilentHelp": "Kiosk Satellite {version} está listo para instalarse. Se instala sin confirmación en el dispositivo.",
+  "overviewInstallHeadlessHelp": "Kiosk Satellite {version} está listo para instalarse. Este dispositivo no tiene pantalla para confirmarlo, así que haz que Kiosk Satellite sea el propietario del dispositivo, usa Shizuku o instálalo por adb.",
   "overviewHaSetup": "Home Assistant sin configurar",
   "overviewHaSetupHelp": "Conecta el kiosko a Home Assistant para cargar un panel de control.",
   "overviewSetUp": "Configurar",

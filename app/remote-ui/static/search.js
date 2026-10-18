@@ -1,3 +1,4 @@
+import { tabHidden } from './headless.js';
 import { navigationText, t, settingsPageText, pluginText } from './localization.js';
 import { readRoute } from './routes.js';
 import { $, depSatisfied, state } from './core.js';
@@ -19,14 +20,14 @@ export const SEARCH_CATEGORY_TABS = {
   'Sendspin': 'sendspin', 'DLNA': 'dlna', 'Intercom': 'intercom', 'Alarms': 'alarms',
   'ESPHome': 'esphome',
   'Device': 'device', 'Cameras': 'cameras', 'Gestures': 'gestures',
-  'Fleet': 'fleet', 'Plugins': 'plugins',
+  'Fleet': 'fleet', 'Plugins': 'plugins', 'LED Control': 'leds',
 };
 // Second-level pages no setting declares: their rows come from the Voice
 // Satellite integration, not from the definitions, so the page that draws
 // them names them. Mirrors the two pages VsControlsSection places on the
 // device.
 export const DEFLESS_SUBPAGES = [['homeassistant', 'Custom Pages'],
-  ['browser', 'URL Blacklist'],
+  ['browser', 'URL Filter'],
   ['voicesatellite', 'Appearance'],
   ['device', 'Hardware'], ['device', 'Home Assistant'], ['device', 'WebView']];
 export const SEARCH_EXTRAS = [
@@ -37,8 +38,11 @@ export const SEARCH_EXTRAS = [
     desc: 'Add HTML pages from the Home Assistant www folder or another server to pick them like a dashboard.' },
   { tab: 'homeassistant', title: 'Custom page guide', sub: 'Custom Pages', anchor: 'x:custom_pages_docs',
     desc: 'How to build a page that talks to Home Assistant.' },
-  { tab: 'browser', title: 'Add rule', sub: 'URL Blacklist', anchor: 'x:url_blacklist',
-    desc: "Links or pages that match the rules below are blocked from loading." },
+  { tab: 'browser', title: 'Add rule', sub: 'URL Filter', anchor: 'x:url_filter',
+    desc: "Links or pages that match a Block rule don't load. Add an Allow only rule to load only the pages it matches." },
+  { tab: 'browser', title: 'Show blocked page notice', sub: 'URL Filter',
+    anchor: 'browser.url_filter_notice',
+    desc: "Show a short notice with the rule's name when a page is blocked." },
   { tab: 'plugins', title: 'Enable Plugins',
     desc: 'Plugins add additional community developed features to Kiosk Satellite.', anchor: 'x:plugins:master' },
   { tab: 'plugins', title: 'Add plugin',
@@ -253,6 +257,8 @@ export function searchSettingsIndex(query) {
     ? 'native' : 'dashboard';
   [...SEARCH_PAGES.map(page => ({...page, title: navigationText(page.title), desc: navigationText(page.desc), englishAlias: `${page.title} ${page.desc}`})), ...subs, ...defs, ...SEARCH_EXTRAS, ...pluginSearchEntries()].forEach((raw, order) => {
     if (typeof raw.title !== 'string' || !raw.title.trim()) return;
+    if (tabHidden(raw.tab)
+      || document.querySelector(`#tabs button[data-tab="${raw.tab}"]`)?.classList.contains('hidden')) return;
     const e = {...raw, desc: typeof raw.desc === 'string' ? raw.desc : ''};
     if (SEARCH_EXTRAS.includes(raw) || subs.includes(raw)) {
       e.englishAlias = `${e.englishAlias || ''} ${e.title} ${e.desc}`;

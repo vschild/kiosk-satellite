@@ -3,9 +3,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' show File, InternetAddress;
 import 'dart:math' show Random;
+import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart' show md5;
+import 'package:crypto/crypto.dart' show md5, sha256;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:http/http.dart' as http;
 
 import '../../core/command_registry.dart';
@@ -13,6 +15,7 @@ import '../../core/events.dart';
 import '../../core/kiosk_http_client.dart';
 import '../../core/manager.dart';
 import '../gestures/gesture_mappings.dart';
+import '../plugins/fleet_plugin_host.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import 'fleet_manager.dart';
@@ -30,6 +33,7 @@ class SyncProfile {
     this.credentials = const {},
     this.dashboard = false,
     this.excluded = defs.fleetDefaultExcluded,
+    this.plugins = const {},
   });
 
   static const defaultId = 'default';
@@ -66,6 +70,10 @@ class SyncProfile {
   /// ones by default and anything the leader added.
   final Set<String> excluded;
 
+  /// The leader's plugins that travel, by id: the package, its settings
+  /// and whether it runs.
+  final Set<String> plugins;
+
   /// A profile from its JSON (a map or the string it was stored as); null
   /// for nothing. A map without an id is a new profile for the caller to
   /// name.
@@ -84,6 +92,7 @@ class SyncProfile {
     if (cats is! List) return null;
     final creds = value['credentials'];
     final excluded = value['excluded'];
+    final plugins = value['plugins'];
     return SyncProfile(
       id: '${value['id'] ?? ''}',
       name: '${value['name'] ?? ''}',
@@ -98,6 +107,7 @@ class SyncProfile {
       excluded: excluded is List
           ? {for (final k in excluded) '$k'}
           : defs.fleetDefaultExcluded,
+      plugins: plugins is List ? {for (final id in plugins) '$id'} : const {},
     );
   }
 
@@ -111,6 +121,7 @@ class SyncProfile {
     'credentialsOffered': defs.fleetCredentialKeys.toList(),
     'dashboard': dashboard,
     'excluded': excluded.toList(),
+    'plugins': plugins.toList(),
   };
 
   SyncProfile copyWith({
@@ -120,6 +131,7 @@ class SyncProfile {
     Set<String>? credentials,
     bool? dashboard,
     Set<String>? excluded,
+    Set<String>? plugins,
   }) => SyncProfile(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -127,6 +139,7 @@ class SyncProfile {
     credentials: credentials ?? this.credentials,
     dashboard: dashboard ?? this.dashboard,
     excluded: excluded ?? this.excluded,
+    plugins: plugins ?? this.plugins,
   );
 
   bool get isDefault => id == defaultId;
@@ -152,7 +165,8 @@ class SyncProfile {
       setEquals(other.categories, categories) &&
       setEquals(other.credentials, credentials) &&
       other.dashboard == dashboard &&
-      setEquals(other.excluded, excluded);
+      setEquals(other.excluded, excluded) &&
+      setEquals(other.plugins, plugins);
 
   @override
   int get hashCode => Object.hash(
@@ -162,6 +176,7 @@ class SyncProfile {
     Object.hashAllUnordered(credentials),
     dashboard,
     Object.hashAllUnordered(excluded),
+    Object.hashAllUnordered(plugins),
   );
 }
 
@@ -229,6 +244,19 @@ class Follower {
 
   /// Null on older kiosks that do not support the member directory.
   String? rosterRevision;
+
+  /// The plugin packages installed there, by id: their hashes, as the last
+  /// poll reported. Not persisted.
+  Map<String, String> pluginHashes = const {};
+
+  /// The synced plugins that failed there, by id, with the package hash,
+  /// the plugin's name and why, as the kiosk reports them.
+  Map<String, Map<String, Object?>> pluginErrors = const {};
+
+  /// The packages this kiosk could not send, by plugin id: the hash and
+  /// the plugin's name. Not sent again until the hash changes or a sync
+  /// is asked for.
+  final packageErrors = <String, (String, String)>{};
 
   /// How much of the uploaded APK the leader has streamed to this kiosk,
   /// 0 to 1 while a fleet install sends it, null otherwise. The leader's
@@ -343,6 +371,20 @@ class FleetSyncManager extends Manager {
   /// who is installing, who was skipped and why. Both UIs ride it.
   Map<String, Object?>? _install;
 
+  /// The plugin runtime, set by the app container before [init]. Null
+  /// leaves plugins out of the fleet.
+  FleetPluginHost? plugins;
+
+  /// The leader's plugins as the runtime last listed them, and whether a
+  /// listing ever arrived: without one a push could not tell a profile's
+  /// plugins from none and would remove them on the followers.
+  List<Map<String, Object?>> _pluginState = const [];
+  bool _pluginsKnown = false;
+
+  /// Plugin packages a leader sent ahead of its push, by hash.
+  final _staged = <String, Uint8List>{};
+  bool _applyingPlugins = false;
+
   /// Followers, for the device UI (the remote reads `fleetStatus`).
   List<Follower> get followers => List.unmodifiable(_followers);
 
@@ -399,6 +441,34 @@ class FleetSyncManager extends Manager {
     }
   }
 
+  /// The plugins the leader syncs here, by id: `name`, `fp` (what was
+  /// applied), `secrets` and `installed` (the fleet installed it).
+  Map<String, Map<String, Object?>> get syncedPlugins =>
+      _jsonMap(_settings.get(defs.fleetSyncedPlugins));
+
+  /// The synced plugins that failed here, by id: `sha256`, `name` and
+  /// `message`.
+  Map<String, Map<String, Object?>> get pluginErrors =>
+      _jsonMap(_settings.get(defs.fleetPluginErrors));
+
+  static Map<String, Map<String, Object?>> _jsonMap(String raw) {
+    if (raw.isEmpty) return const {};
+    try {
+      final map = jsonDecode(raw);
+      if (map is! Map) return const {};
+      return {
+        for (final e in map.entries)
+          if (e.value is Map)
+            '${e.key}': (e.value as Map).cast<String, Object?>(),
+      };
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// The leader's installed plugins, for the profile pages.
+  List<Map<String, Object?>> get pluginState => _pluginState;
+
   /// The profiles, the Default first.
   List<SyncProfile> get profiles => List.unmodifiable(_profiles);
 
@@ -433,6 +503,10 @@ class FleetSyncManager extends Manager {
     // a setting change is.
     _subs.add(
       bus.on<RemoteStatusChanged>().listen((e) {
+        if (e.topic == 'plugin-settings') {
+          unawaited(_onPluginsChanged());
+          return;
+        }
         if (e.topic != 'wake-models' || !leading) return;
         _bump?.cancel();
         _bump = Timer(const Duration(seconds: 2), _scheduleTick);
@@ -457,6 +531,7 @@ class FleetSyncManager extends Manager {
       }
     }
     await _readSelf();
+    if (leading) await _readPlugins();
     _timer = Timer.periodic(tickInterval, (_) => _onTimer());
     if (leading) _scheduleTick();
   }
@@ -643,8 +718,17 @@ class FleetSyncManager extends Manager {
   /// of every value its profile allows. A follower is pushed while the
   /// revision it applied differs, so a change reaches only the followers
   /// whose payload it touched, not the whole fleet.
-  String fingerprintFor(Follower f) =>
-      fingerprintOf(profileSettings(profileFor(f)));
+  String fingerprintFor(Follower f) {
+    final profile = profileFor(f);
+    final settings = profileSettings(profile);
+    // A profile without plugins hashes as it always did, so adding the
+    // feature pushes nothing new to those followers.
+    if (profile.plugins.isEmpty) return fingerprintOf(settings);
+    return fingerprintOf({
+      ...settings,
+      '\u0000plugins': _canonical(profilePlugins(profile)),
+    });
+  }
 
   static String fingerprintOf(Map<String, Object?> settings) {
     final sorted = SplayTreeMap<String, Object?>.from(settings);
@@ -688,6 +772,7 @@ class FleetSyncManager extends Manager {
     _ticking = true;
     try {
       await _readSelf();
+      await _readPlugins();
       final peers = await _peers();
       final before = jsonEncode([for (final f in _followers) f.toJson()]);
       var changed = false;
@@ -742,7 +827,7 @@ class FleetSyncManager extends Manager {
           continue;
         }
         if (force || f.dirty || f.appliedRevision != fingerprintFor(f)) {
-          changed = await _push(f) || changed;
+          changed = await _push(f, force: force) || changed;
         }
         if (f.error == null && f.token != null) {
           if (!modelsRead) {
@@ -843,7 +928,12 @@ class FleetSyncManager extends Manager {
       ..version = '${body['version'] ?? f.version}'
       ..appliedRevision = body['appliedRevision'] as String?
       ..dirty = body['dirty'] == true
-      ..update = (body['update'] as Map?)?.cast<String, Object?>();
+      ..update = (body['update'] as Map?)?.cast<String, Object?>()
+      ..pluginHashes = {
+        for (final e in ((body['plugins'] as Map?) ?? const {}).entries)
+          '${e.key}': '${e.value}',
+      }
+      ..pluginErrors = _jsonMap(jsonEncode(body['pluginErrors'] ?? const {}));
     final peerName = body['name'];
     if (peerName is String && peerName.isNotEmpty) f.name = peerName;
   }
@@ -925,13 +1015,22 @@ class FleetSyncManager extends Manager {
   /// Push a follower everything its list allows. The full set every time,
   /// not a delta: a few hundred values, idempotent and the follower skips
   /// what it already holds.
-  Future<bool> _push(Follower f) async {
-    final settings = profileSettings(profileFor(f));
-    final revision = fingerprintOf(settings);
+  Future<bool> _push(Follower f, {bool force = false}) async {
+    final profile = profileFor(f);
+    // Without the plugin listing a push would read as "no plugins" and
+    // remove them on the follower: wait for the next tick.
+    if (profile.plugins.isNotEmpty && plugins != null && !_pluginsKnown) {
+      return false;
+    }
+    final settings = profileSettings(profile);
+    final revision = fingerprintFor(f);
+    final wanted = profilePlugins(profile);
+    await _sendPackages(f, wanted, force: force);
     final res = await _post('${f.url}/api/fleet/apply', {
       'revision': revision,
       'version': _selfVersion,
       'settings': settings,
+      'plugins': wanted,
     }, token: f.token);
     final body = _jsonOf(res);
     if (res == null || body == null) {
@@ -957,6 +1056,9 @@ class FleetSyncManager extends Manager {
       ..dirty = false
       ..error = null
       ..lastSyncAt = DateTime.now().millisecondsSinceEpoch;
+    if (data['pluginErrors'] is Map) {
+      f.pluginErrors = _jsonMap(jsonEncode(data['pluginErrors']));
+    }
     final applied = (data['applied'] as num?)?.toInt() ?? 0;
     log.info(
       name,
@@ -965,6 +1067,185 @@ class FleetSyncManager extends Manager {
     );
     return true;
   }
+
+  /// Sends a follower the plugin packages its profile carries that it does
+  /// not run yet, ahead of the push that installs them. A package the
+  /// follower failed to install, or this kiosk failed to send, is not sent
+  /// again until its hash changes or someone asks for a sync.
+  Future<void> _sendPackages(
+    Follower f,
+    List<Map<String, Object?>> wanted, {
+    bool force = false,
+  }) async {
+    final host = plugins;
+    if (host == null) return;
+    if (force) f.packageErrors.clear();
+    for (final p in wanted) {
+      final id = '${p['id']}';
+      final hash = '${p['sha256']}';
+      final title = '${p['name']}';
+      if (f.pluginHashes[id] == hash) continue;
+      if (!force &&
+          (f.packageErrors[id]?.$1 == hash ||
+              (f.pluginErrors[id]?['sha256'] == hash &&
+                  f.pluginErrors[id]?['message'] != _notArrived))) {
+        continue;
+      }
+      String? path;
+      try {
+        path = await host.fleetPackage(id);
+      } catch (e) {
+        log.warn(name, 'cannot read the package of $id: $e');
+      }
+      if (path == null) {
+        f.packageErrors[id] = (hash, title);
+        log.warn(name, '$title cannot be passed on: no package here');
+        continue;
+      }
+      final sent = await _upload(
+        '${f.url}/api/fleet/plugins?sha256=$hash',
+        File(path),
+        token: f.token,
+        method: 'PUT',
+        contentType: 'application/zip',
+      );
+      if (sent?.statusCode == 200) {
+        f.packageErrors.remove(id);
+      } else {
+        log.warn(
+          name,
+          'could not send $title to ${f.name} (${sent?.statusCode})',
+        );
+      }
+    }
+    f.packageErrors.removeWhere(
+      (id, e) => !wanted.any((p) => p['id'] == id && p['sha256'] == e.$1),
+    );
+  }
+
+  /// Why a follower lists a plugin it could not install: its package never
+  /// came. The leader sends it again.
+  static const _notArrived = 'The package did not arrive';
+
+  /// Lists the leader's plugins again. A failed listing keeps the last one.
+  Future<void> _readPlugins() async {
+    final host = plugins;
+    if (host == null) return;
+    try {
+      _pluginState = await host.fleetState();
+      _pluginsKnown = true;
+    } catch (e) {
+      log.debug(name, 'could not list the plugins: $e');
+    }
+  }
+
+  /// A plugin was installed, changed or removed here. A leader passes it
+  /// on, a follower checks it still holds what the leader sent.
+  Future<void> _onPluginsChanged() async {
+    if (plugins == null) return;
+    if (leading) {
+      await _readPlugins();
+      _bump?.cancel();
+      _bump = Timer(const Duration(seconds: 2), _scheduleTick);
+    }
+    if (following && !_applyingPlugins) await _checkPluginDrift();
+  }
+
+  /// A follower whose synced plugins changed here (not by the leader) has
+  /// drifted until the leader pushes again, as with a synced setting.
+  Future<void> _checkPluginDrift() async {
+    final synced = syncedPlugins;
+    if (synced.isEmpty ||
+        _settings.get(defs.fleetAppliedRevision).isEmpty ||
+        plugins == null) {
+      return;
+    }
+    final List<Map<String, Object?>> state;
+    try {
+      state = await plugins!.fleetState();
+    } catch (_) {
+      return;
+    }
+    if (_applyingPlugins) return;
+    final errors = pluginErrors;
+    for (final e in synced.entries) {
+      // A plugin that failed here differs on purpose: the error says so.
+      if (errors.containsKey(e.key)) continue;
+      final mine = state.where((p) => p['id'] == e.key).firstOrNull;
+      if (mine == null ||
+          pluginFingerprint(mine, secrets: e.value['secrets'] == true) !=
+              e.value['fp']) {
+        await _settings.set(defs.fleetAppliedRevision, '');
+        _publish();
+        return;
+      }
+    }
+  }
+
+  /// What the leader sends for each of a profile's plugins, by id order:
+  /// the package by hash and where it came from, whether it runs, its
+  /// settings (the secret ones only when the profile includes plugin
+  /// secrets) and where its actions show.
+  List<Map<String, Object?>> profilePlugins(SyncProfile profile) {
+    if (profile.plugins.isEmpty) return const [];
+    final secrets = profile.credentials.contains(defs.fleetPluginSecrets);
+    return [
+      for (final p in _pluginState)
+        if (profile.plugins.contains(p['id'])) pluginEntry(p, secrets: secrets),
+    ]..sort((a, b) => '${a['id']}'.compareTo('${b['id']}'));
+  }
+
+  /// One plugin as the fleet carries it, from the runtime's listing.
+  static Map<String, Object?> pluginEntry(
+    Map<String, Object?> p, {
+    required bool secrets,
+  }) {
+    final secretKeys = {for (final k in (p['secretKeys'] as List?) ?? []) '$k'};
+    final config = (p['config'] as Map?) ?? const {};
+    return {
+      'id': p['id'],
+      'name': p['name'],
+      'version': p['version'],
+      'sha256': p['sha256'],
+      'source': p['source'],
+      'enabled': p['enabled'] == true,
+      'secrets': secrets,
+      'config': {
+        for (final e in config.entries)
+          if (secrets || !secretKeys.contains('${e.key}')) '${e.key}': e.value,
+      },
+      'actionOptions': p['actionOptions'] ?? const {},
+    };
+  }
+
+  /// What a follower compares to tell its own change from the leader's:
+  /// the package, whether it runs, the settings the leader sent and the
+  /// action placements.
+  static String pluginFingerprint(
+    Map<String, Object?> p, {
+    required bool secrets,
+  }) {
+    final entry = pluginEntry(p, secrets: secrets);
+    return fingerprintOf(
+      _canonical({
+            'sha256': entry['sha256'],
+            'enabled': entry['enabled'],
+            'config': entry['config'],
+            'actionOptions': entry['actionOptions'],
+          })
+          as Map<String, Object?>,
+    );
+  }
+
+  /// Maps sorted by key all the way down, so two kiosks hash the same
+  /// values the same whatever order they were listed in.
+  static Object? _canonical(Object? value) => switch (value) {
+    final Map m => SplayTreeMap<String, Object?>.from({
+      for (final e in m.entries) '${e.key}': _canonical(e.value),
+    }),
+    final List l => [for (final v in l) _canonical(v)],
+    _ => value,
+  };
 
   /// The leader's custom wake word files with their SHA-256, by
   /// `folder/name`.
@@ -1495,13 +1776,34 @@ class FleetSyncManager extends Manager {
             'revision': "The leader's revision",
             'version': "The leader's version",
             'settings': '{key: value}',
+            'plugins': 'The plugins it syncs here, each with its settings',
           },
-          secretParams: const {'settings'},
+          secretParams: const {'settings', 'plugins'},
           handler: (p) async {
             final r = await apply(p);
             return r.$1 == null
                 ? CommandResult.ok(r.$2)
                 : CommandResult.fail(r.$1!);
+          },
+        ),
+      )
+      ..register(
+        Command(
+          name: 'fleetStagePlugin',
+          description:
+              'A plugin package from the leader, the raw body, held until '
+              'the push that installs it.',
+          params: const {'sha256': 'The package SHA-256', 'stream': 'the body'},
+          quiet: true,
+          handler: (p) async {
+            final error = await stagePlugin(
+              '${p['sha256'] ?? ''}',
+              p['stream'],
+              (p['length'] as num?)?.toInt(),
+            );
+            return error == null
+                ? const CommandResult.ok(true)
+                : CommandResult.fail(error);
           },
         ),
       )
@@ -2272,6 +2574,10 @@ class FleetSyncManager extends Manager {
     await _settings.set(defs.fleetLeaderInfo, '');
     await _settings.set(defs.fleetRoster, '');
     await _settings.set(defs.fleetSyncedKeys, '');
+    // The plugins stay installed and configured, as the settings do.
+    await _settings.set(defs.fleetSyncedPlugins, '');
+    await _settings.set(defs.fleetPluginErrors, '');
+    _staged.clear();
     await _settings.set(defs.fleetAppliedRevision, '');
     await _settings.set(defs.fleetLastSyncAt, 0);
     _publish();
@@ -2282,6 +2588,10 @@ class FleetSyncManager extends Manager {
     final update = await commands.execute('getUpdateStatus', const {});
     final u = update.data;
     final applied = _settings.get(defs.fleetAppliedRevision);
+    var installed = const <Map<String, Object?>>[];
+    try {
+      installed = await plugins?.fleetState() ?? const [];
+    } catch (_) {}
     return {
       'id': _selfId,
       'name': _selfName,
@@ -2289,7 +2599,13 @@ class FleetSyncManager extends Manager {
       'leaderId': leader?['id'],
       'rosterRevision': _rosterRevision(_settings.get(defs.fleetRoster)),
       'appliedRevision': applied.isEmpty ? null : applied,
-      'dirty': applied.isEmpty && syncedKeys.isNotEmpty,
+      'dirty':
+          applied.isEmpty &&
+          (syncedKeys.isNotEmpty || syncedPlugins.isNotEmpty),
+      // The installed packages by hash, so the leader sends only what is
+      // missing, and the synced plugins that failed here.
+      'plugins': {for (final p in installed) '${p['id']}': p['sha256']},
+      'pluginErrors': pluginErrors,
       'update': u is Map
           ? {
               'currentVersion': u['currentVersion'],
@@ -2311,7 +2627,15 @@ class FleetSyncManager extends Manager {
     }
     final raw = p['settings'];
     if (raw is! Map) return ('settings must be an object', null);
-    final wanted = acceptable(raw.cast<String, Object?>());
+    // The plugins first: a setting may name one of them.
+    final sentPlugins = p['plugins'];
+    if (sentPlugins is List && plugins != null) {
+      await _applyPlugins(sentPlugins);
+    }
+    // Settings this kiosk pins, such as the screensaver on one without a
+    // screen, stay out of both the import and the synced keys.
+    final wanted = acceptable(raw.cast<String, Object?>())
+      ..removeWhere((key, _) => defs.devicePinnedKeys.contains(key));
     // Only what differs: setting a value already held would still wake
     // every listener (a server restart, a page reload) for nothing.
     final changes = <String, Object?>{};
@@ -2351,9 +2675,155 @@ class FleetSyncManager extends Manager {
         'received': wanted.length,
         'skipped': raw.length - wanted.length,
         'appliedRevision': revision,
+        'pluginErrors': pluginErrors,
       },
     );
   }
+
+  /// Holds a package the leader sent until the push that installs it.
+  Future<String?> stagePlugin(
+    String sha256Hex,
+    Object? stream,
+    int? length,
+  ) async {
+    if (!following) return 'This kiosk follows nobody';
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(sha256Hex)) {
+      return 'sha256 must be a SHA-256 in hex';
+    }
+    if (stream is! Stream<List<int>>) return 'no body';
+    const limit = 4 * 1024 * 1024;
+    if ((length ?? 0) > limit) return 'Plugin ZIP must be at most 4 MB';
+    final data = BytesBuilder(copy: false);
+    await for (final chunk in stream) {
+      if (data.length + chunk.length > limit) {
+        return 'Plugin ZIP must be at most 4 MB';
+      }
+      data.add(chunk);
+    }
+    final bytes = data.takeBytes();
+    if (sha256.convert(bytes).toString() != sha256Hex) {
+      return 'Package SHA-256 does not match';
+    }
+    // A fleet carries at most eight plugins: more held means stale ones.
+    while (_staged.length >= 8) {
+      _staged.remove(_staged.keys.first);
+    }
+    _staged[sha256Hex] = bytes;
+    return null;
+  }
+
+  /// What the leader holds for its plugins, applied here: a package whose
+  /// hash differs installs from what was staged, then each takes the
+  /// leader's settings, action placements and enabled state. A plugin the
+  /// fleet installed and the leader no longer sends is removed. One that
+  /// was here before the fleet stays when the leader stops sending it.
+  Future<void> _applyPlugins(List<Object?> raw) async {
+    final host = plugins!;
+    _applyingPlugins = true;
+    try {
+      final wanted = {
+        for (final e in raw.whereType<Map>())
+          if (e['id'] is String && e['sha256'] is String)
+            e['id'] as String: e.cast<String, Object?>(),
+      };
+      final before = syncedPlugins;
+      final errors = <String, Map<String, Object?>>{
+        for (final e in pluginErrors.entries)
+          if (wanted.containsKey(e.key)) e.key: e.value,
+      };
+      var state = await host.fleetState();
+      final installedByFleet = <String>{};
+      for (final entry in wanted.values) {
+        final id = entry['id'] as String;
+        final hash = entry['sha256'] as String;
+        void failed(String message) => errors[id] = {
+          'sha256': hash,
+          'name': '${entry['name'] ?? id}',
+          'message': message,
+        };
+        try {
+          final mine = state.where((p) => p['id'] == id).firstOrNull;
+          if (mine?['sha256'] != hash) {
+            final bytes = _staged.remove(hash);
+            if (bytes == null) {
+              // A failure already recorded for this package says more.
+              if (errors[id]?['sha256'] != hash) failed(_notArrived);
+              continue;
+            }
+            final source = entry['source'];
+            await host.fleetInstall(
+              bytes,
+              sha256: hash,
+              source: source is Map ? source.cast<String, Object?>() : null,
+            );
+            if (mine == null) installedByFleet.add(id);
+            state = await host.fleetState();
+          }
+          await host.fleetConfigure(id, entry);
+          errors.remove(id);
+        } catch (e) {
+          failed(_errorText(e));
+        }
+      }
+      for (final id in before.keys) {
+        if (wanted.containsKey(id) || before[id]?['installed'] != true) {
+          continue;
+        }
+        try {
+          await host.fleetRemove(id);
+        } catch (e) {
+          log.warn(name, 'could not remove the plugin $id: $e');
+        }
+      }
+      state = await host.fleetState();
+      final synced = <String, Map<String, Object?>>{};
+      for (final entry in wanted.values) {
+        final id = entry['id'] as String;
+        final mine = state.where((p) => p['id'] == id).firstOrNull;
+        final ours =
+            before[id]?['installed'] == true || installedByFleet.contains(id);
+        if (mine == null) {
+          // Kept so a later push still knows the fleet put it here.
+          if (ours) {
+            synced[id] = {'name': entry['name'], 'fp': '', 'installed': true};
+          }
+          continue;
+        }
+        final secrets = entry['secrets'] == true;
+        synced[id] = {
+          'name': mine['name'],
+          'fp': pluginFingerprint(mine, secrets: secrets),
+          'secrets': secrets,
+          'installed': ours,
+        };
+      }
+      await _settings.set(
+        defs.fleetSyncedPlugins,
+        synced.isEmpty ? '' : jsonEncode(synced),
+      );
+      await _settings.set(
+        defs.fleetPluginErrors,
+        errors.isEmpty ? '' : jsonEncode(errors),
+      );
+      if (wanted.isNotEmpty || before.isNotEmpty) {
+        log.info(
+          name,
+          'synced ${wanted.length} plugins from ${leader?['name']}'
+          '${errors.isEmpty ? '' : ' (${errors.length} failed)'}',
+        );
+      }
+    } finally {
+      _staged.clear();
+      _applyingPlugins = false;
+    }
+  }
+
+  static String _errorText(Object error) => switch (error) {
+    PlatformException(:final message?) => message,
+    StateError(:final message) => message,
+    FormatException(:final message) => message,
+    _ => '$error',
+  };
 
   // ── The status both UIs draw ────────────────────────────────────────
 
@@ -2373,12 +2843,19 @@ class FleetSyncManager extends Manager {
           'profileName': profileFor(f).name,
           'lastSyncAt': f.lastSyncAt,
           'update': f.update,
-          ...phaseOf(f, mine, fingerprintFor(f), now),
+          ...phaseOf(
+            f,
+            mine,
+            fingerprintFor(f),
+            now,
+            profilePlugins(profileFor(f)),
+          ),
         },
     ];
     final inv = pendingInvite;
     final led = leader;
     final synced = syncedKeys;
+    final plugged = syncedPlugins;
     final syncedCategories = <String>{};
     final credentials = <String>{};
     var dashboard = false;
@@ -2412,6 +2889,16 @@ class FleetSyncManager extends Manager {
       'followers': rows(),
       'outdated': outdated,
       'install': _install,
+      // The leader's installed plugins, for a profile's Plugins dialog.
+      'plugins': [
+        for (final p in _pluginState)
+          {
+            'id': p['id'],
+            'name': p['name'],
+            'version': p['version'],
+            'kept': p['kept'] == true,
+          },
+      ],
       'following': led == null
           ? null
           : {
@@ -2419,8 +2906,17 @@ class FleetSyncManager extends Manager {
               'appliedRevision': _settings.get(defs.fleetAppliedRevision),
               'dirty':
                   _settings.get(defs.fleetAppliedRevision).isEmpty &&
-                  synced.isNotEmpty,
+                  (synced.isNotEmpty || plugged.isNotEmpty),
               'syncedKeys': synced.toList(),
+              // The plugins the leader syncs here by name and the ones
+              // that failed, with why.
+              'syncedPlugins': [
+                for (final e in plugged.entries) '${e.value['name'] ?? e.key}',
+              ],
+              'pluginErrors': [
+                for (final e in pluginErrors.values)
+                  {'name': e['name'], 'message': e['message']},
+              ],
               'syncedCategories': [
                 for (final c in defs.fleetSyncCategories)
                   if (syncedCategories.contains(c.$1)) titles[c.$1],
@@ -2451,8 +2947,9 @@ class FleetSyncManager extends Manager {
     Follower f,
     String mine,
     String revision,
-    int now,
-  ) {
+    int now, [
+    List<Map<String, Object?>> plugins = const [],
+  ]) {
     String ago(int at) {
       final s = ((now - at) / 1000).round();
       if (s < 60) return 'just now';
@@ -2518,6 +3015,28 @@ class FleetSyncManager extends Manager {
         'status': 'Downloading $pct%',
         'tone': 'muted',
       };
+    }
+    // A plugin the kiosk could not take, for the package the leader runs
+    // now: one that changed since is on its way again.
+    for (final p in plugins) {
+      final id = '${p['id']}';
+      final hash = p['sha256'];
+      final unsent = f.packageErrors[id];
+      if (unsent != null && unsent.$1 == hash) {
+        return {
+          'phase': 'error',
+          'status': 'Reinstall ${unsent.$2} on this kiosk to sync it',
+          'tone': 'warn',
+        };
+      }
+      final failed = f.pluginErrors[id];
+      if (failed != null && failed['sha256'] == hash) {
+        return {
+          'phase': 'error',
+          'status': 'Could not install ${failed['name']}: ${failed['message']}',
+          'tone': 'warn',
+        };
+      }
     }
     if (!f.dirty && f.appliedRevision == revision && f.lastSyncAt > 0) {
       return {

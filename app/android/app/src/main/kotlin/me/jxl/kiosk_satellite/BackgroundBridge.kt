@@ -445,6 +445,7 @@ class BackgroundBridge(
                 "canRequestBringToFront" -> result.success(resolves(overlayIntent()))
                 "canRequestBatteryUnrestricted" ->
                     result.success(resolves(batteryIntent()))
+                "isHeadless" -> result.success(Headless.active(context))
                 "bringToFront" -> result.success(bringToFront())
                 "isBehindAnotherApp" -> result.success(!ActivityState.frontmost)
                 // "Screen on" from the admin or the screensaver: light a

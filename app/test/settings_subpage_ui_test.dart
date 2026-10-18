@@ -224,14 +224,14 @@ void main() {
       await drain(tester);
     });
 
-    testWidgets('URL Blacklist lists the rules and saves a new one', (
+    testWidgets('URL Filter lists the rules and saves a new one', (
       tester,
     ) async {
       await boot();
       // Registers the rule commands the editor saves through.
       await container.browser.init();
       await container.settings.setFromJson(
-        browserUrlBlacklist.key,
+        browserUrlFilter.key,
         '[{"name":"History","pattern":"/history*","scope":"dashboard"}]',
       );
       tester.view.physicalSize = const Size(500, 1400);
@@ -244,19 +244,20 @@ void main() {
       await tester.tap(find.text('Web Browsing'));
       await settle(tester);
 
-      final entry = find.widgetWithText(ListTile, 'URL Blacklist');
+      final entry = find.widgetWithText(ListTile, 'URL Filter');
       await tester.ensureVisible(entry);
       await settle(tester);
       await tester.tap(entry);
       await settle(tester);
-      expect(find.text('Block pages by address'), findsOneWidget);
+      expect(find.text('Control which pages open'), findsOneWidget);
+      expect(find.text('Show blocked page notice'), findsOneWidget);
       expect(find.text('History'), findsOneWidget);
       expect(find.text('/history*'), findsOneWidget);
       expect(find.text('Dashboard'), findsOneWidget);
 
       await tester.tap(find.text('Add rule'));
       await settle(tester);
-      expect(find.text('Add blacklist rule'), findsOneWidget);
+      expect(find.text('Add filter rule'), findsOneWidget);
       await tester.tap(find.text('Save'));
       await settle(tester);
       expect(find.text('Enter a name.'), findsOneWidget);
@@ -265,10 +266,10 @@ void main() {
       await tester.enterText(fields.at(1), '/logbook');
       await tester.tap(find.text('Save'));
       await settle(tester);
-      expect(find.text('Add blacklist rule'), findsNothing);
+      expect(find.text('Add filter rule'), findsNothing);
       expect(find.text('Logbook'), findsOneWidget);
       expect(
-        container.settings.get(browserUrlBlacklist),
+        container.settings.get(browserUrlFilter),
         contains('"pattern":"/logbook"'),
       );
       await container.browser.dispose();

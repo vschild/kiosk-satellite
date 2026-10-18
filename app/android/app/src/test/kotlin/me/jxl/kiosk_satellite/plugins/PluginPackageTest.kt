@@ -175,6 +175,15 @@ class PluginPackageTest {
         rejects { PluginManifest(manifest().put("capabilities", org.json.JSONArray(listOf("host.control", "noise")))) }
         assertTrue(PluginHostPolicy.validEvent("audio.noise"))
     }
+    @Test fun overlaysAndScreensaversNeedAScreenUnlessThePluginGoesWithout() {
+        fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
+        assertTrue(PluginManifest(caps("overlay")).needsScreen)
+        assertTrue(PluginManifest(caps("screensaver", "entities")).needsScreen)
+        assertFalse(PluginManifest(caps("entities", "ha")).needsScreen)
+        assertFalse(PluginManifest(caps("overlay").put("headless", true)).needsScreen)
+        assertTrue(PluginManifest(caps("overlay").put("headless", false)).needsScreen)
+        rejects { PluginManifest(caps("overlay").put("headless", "yes")) }
+    }
     @Test fun homeAssistantAccessIsItsOwnCapability() {
         val ha = PluginManifest(manifest().put("capabilities", org.json.JSONArray(listOf("ha"))))
         assertTrue("ha" in ha.capabilities)

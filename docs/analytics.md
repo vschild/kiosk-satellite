@@ -9,14 +9,14 @@ Everything on this page is optional. Open **Settings > Device > Kiosk Satellite 
 | Switch | What is sent | Why |
 |---|---|---|
 | **Basic analytics** | Device model and manufacturer, Android version, app version, CPU architecture, memory size, screen size and density, system language, time zone and the system WebView package and version. | Tells us which devices and Android releases to test on. |
-| **Usage** | Which features are turned on, as switches, picks, counts and kinds only. For Voice Satellite, also roughly how many voice turns each assistant answered since the last report, as a range such as 1-5, never what was said.| Shows which features people use so work goes where it matters. |
+| **Usage** | Which features are turned on, as switches, picks, counts and kinds only. For Voice Satellite, also roughly how many voice turns each assistant answered since the last report, as a range such as 1-5, never what was said. The same kind of range covers how often custom pages loaded and how often the URL Filter blocked a page, never which pages or addresses. | Shows which features people use so work goes where it matters. |
 | **Diagnostics** | A crash report when the app stops unexpectedly: the stack trace, app and Android versions, process memory figures, thread count and a capped sample of known thread families. Unknown thread names are grouped as other. Restarts the app's own frame watchdog forced after the screen stopped drawing are reported the same way. Restarts you asked for are not. Each report goes out once, on the next start. | Lets us fix crashes nobody reported. |
 
 Basic analytics and Usage are sent together, at most once a day, and only while the app is running. Diagnostics are sent on the next start after a crash.
  
 ## What is never sent
 
-- Your Home Assistant address, tokens, passwords, dashboards or entity names.
+- Your Home Assistant address, tokens, passwords, dashboards, entity names, custom page names or addresses and URL Filter rules.
 - Anything from the dashboard itself: screenshots, page content or what you tap.
 - Voice audio, camera frames, photos or media.
 - Your device name, hostname, Wi-Fi network, IP address, MAC address, location or account details.

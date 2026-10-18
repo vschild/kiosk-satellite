@@ -25,6 +25,7 @@ import 'oww/oww_engine.dart';
 import 'oww/oww_probe.dart';
 import 'vsww/benchmark.dart';
 import 'vsww/model_store.dart';
+import 'vsww/native_mic.dart';
 import 'vsww/vsww_engine.dart';
 import 'package:kiosk_satellite/core/lifecycle.dart';
 
@@ -346,15 +347,23 @@ class WakeWordManager extends Manager
     final a = arbiter;
     // A muted kiosk answers nothing, so it must not win for the others.
     if (a == null || !a.running || _settings.get(defs.voiceMute)) return true;
-    final pcm = _engine.recentAudio(wakeEnergyWindow);
-    final energy = pcm == null ? null : wakeEnergy(pcm);
+    // The microphone's own levels, from before the noise suppressor, or
+    // the audio the engine heard where the platform keeps none.
+    final levels = await NativeMic.recentLevels(wakeEnergyWindow);
+    var energy = levels == null ? null : wakeEnergyOfLevels(levels);
+    if (energy == null) {
+      final pcm = _engine.recentAudio(wakeEnergyWindow);
+      energy = pcm == null ? null : wakeEnergy(pcm);
+    }
     if (energy == null) return true;
+    energy += _settings.get(defs.voiceWakeArbitrationOffsetDb).toDouble();
     final phrase = model.wakeWord.isEmpty ? model.id : model.wakeWord;
     final r = await a.contend(
       phrase: phrase,
       energy: energy,
       window: _arbitrationWindow,
     );
+    if (r.won) _lateClaim = a.overtaken(r, _arbitrationWindow);
     final mine = energy.toStringAsFixed(1);
     final heard = r.heard.isEmpty ? '' : '; heard ${r.heard.join(', ')}';
     log.info(
@@ -372,6 +381,29 @@ class WakeWordManager extends Manager
       unawaited(UsageCounters.bump(_settings, 'vs_arbitration_won'));
     }
     return r.won;
+  }
+
+  /// After a win, a louder claim that may still come in late (see
+  /// [WakeArbiter.overtaken]). Hooked up once the turn has started, so
+  /// standing down always has a turn to end.
+  Future<LateClaim?>? _lateClaim;
+
+  /// A kiosk that detected the wake word later can claim it louder after
+  /// this one's window closed. It heard this kiosk's claim inside its own
+  /// window and answers, so this one ends the turn it just started instead
+  /// of both answering.
+  void _standDownIfOvertaken() {
+    final late = _lateClaim;
+    _lateClaim = null;
+    late?.then((louder) async {
+      if (louder == null) return;
+      log.info(
+        name,
+        'arbitration: ${louder.from} claimed it louder (${louder.energy} dB) '
+        'after the window, standing down',
+      );
+      await commands.execute('voiceCancel', const {});
+    });
   }
 
   /// At most one near miss per this, so one noisy conversation cannot fill
@@ -1724,6 +1756,7 @@ class WakeWordManager extends Manager
     // Before any await: the clip must end at the detection, not wherever
     // the mic has got to once the screen is on.
     _recordActivation(model, simulated: simulated);
+    _lateClaim = null;
     // Another kiosk heard it louder: back to listening before anything
     // about the turn shows, chimes or reaches Home Assistant.
     if (!simulated && !await _arbitrate(model)) {
@@ -1749,6 +1782,7 @@ class WakeWordManager extends Manager
     // deferred audio is in the pre-roll, so the short wait loses no speech.
     await commands.execute('ensureHaConnected', const {});
     bus.publish(WakeWordDetected(model: model.id, phrase: model.wakeWord));
+    _standDownIfOvertaken();
 
     // Self-heal: if the page never resumes us (crash, navigation), re-arm.
     _armResumeTimer();

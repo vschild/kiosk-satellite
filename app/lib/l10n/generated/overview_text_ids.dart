@@ -105,5 +105,6 @@ const overviewTextMessageIds = <String, String>{
   "CPU": "overviewCpu",
   "RAM": "overviewMemory",
   "Temp": "overviewTemperature",
-  "Showing custom pages": "overviewShowingCustomPages"
+  "Showing custom pages": "overviewShowingCustomPages",
+  "Headless mode": "overviewHeadlessMode"
 };

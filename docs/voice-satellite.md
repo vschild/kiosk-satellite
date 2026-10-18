@@ -75,13 +75,13 @@ When Home Assistant runs the integration, onboarding offers the same migration i
 | | Stop word interruption | Say "stop" to cut off an answer, a timer alert or an announcement. It also closes a result panel. |
 | | Wake Word Arbitration | When several kiosks hear the wake word, only the closest one answers. See [Wake word arbitration](#wake-word-arbitration). |
 | | Custom Models | Your own wake word models. See [Custom wake word models](custom-wake-words.md). |
-| Appearance | Skin | Kiosk Satellite, Default, Google Home, Home Assistant, Alexa, Siri, Retro Terminal, Waveform, Lens Flares, Ink Blobs, Jarvis, KITT or Voice Only. Jarvis draws a holographic HUD reactor that turns and pulses with your voice and the answer, and docked it floats above the conversation's text. KITT shows the voice box from Knight Rider's dash, three columns of red blocks that light outward from their middle with your voice and the answer, placed the same way. Voice Only shows no text, only the Kiosk Satellite logo with its bars moving to your voice and the answer, for screens too small to read. **Preview** shows it for five seconds. |
+| Appearance | Skin | Kiosk Satellite, Default, Google Home, Home Assistant, Alexa, Siri, Retro Terminal, Waveform, Lens Flares, Ink Blobs, Jarvis, KITT, HAL 9000 or Voice Only. Jarvis draws a holographic HUD reactor that turns and pulses with your voice and the answer, and docked it floats above the conversation's text. KITT shows the voice box from Knight Rider's dash, three columns of red blocks that light outward from their middle with your voice and the answer, placed the same way. HAL 9000 shows HAL's eye from 2001: A Space Odyssey, a fisheye lens in a chrome ring whose red light flares with your voice and the answer, also placed the same way. Voice Only shows no text, only the Kiosk Satellite logo with its bars moving to your voice and the answer, for screens too small to read. **Preview** shows it for five seconds. |
 | | Theme, Background, Text size, Reactive activity bar | Light or dark, how much of the dashboard shows through, the text size and the bar that follows your voice and the answer. |
 | Conversation | Show what you said, Show the answer, Show tool use, Hide sentiment tags | What the overlay shows. |
 | | Keep the answer on screen, Keep results on screen, Announcement time | How long each stays. Results at 0 stay until dismissed. |
 | Timers | Show timer pills, Show the timer name, Timer pill scale | Running timers float over the screen. Drag them anywhere. |
 | | Show finished timer pills, Mute timer alerts, Show the name on the alert, Speak when a timer ends | What a finished timer does. Without its pill, the stop word still ends the alert. |
-| Chimes | Play chimes, per-event sounds | The wake, done, error, timer and announcement sounds, built in or from the sounds folder. |
+| Chimes | Play chimes, per-event sounds and volumes | The wake, done, error, timer and announcement sounds, built in or from the sounds folder, each with its own volume under the assistant volume. |
 
 The **Wake Word Tester** and **Wake word diagnostics** are covered in [Microphone settings](microphone.md).
 
@@ -91,14 +91,15 @@ Kiosks in the same room or in open spaces often hear the same wake word. Without
 
 Home Assistant only settles duplicates for Assist pipelines. A wake word that starts a [realtime conversation](#realtime-conversations) goes straight to the provider, so without arbitration every kiosk that heard it opens its own conversation.
 
-When a kiosk hears the wake word, it broadcasts how loud the wake word reached it over its own background noise and waits for the **Arbitration window**. If another kiosk heard the same wake word louder, it goes back to listening without a chime or anything on screen. The loudest one answers. Each kiosk compares against its own noise floor, so a hot microphone does not win just for being loud, but very different microphones can still favor one model over another.
+When a kiosk hears the wake word, it broadcasts how loud the wake word reached it over its own background noise and waits for the **Arbitration window**. If another kiosk heard the same wake word louder, it goes back to listening without a chime or anything on screen. The loudest one answers. Each kiosk compares against its own noise floor, so a hot microphone does not win just for being loud. The level is measured before **Noise suppression**, so turning it on does not make a kiosk win either. Hardware that processes its microphone itself, such as a Portal Go's microphone array, can still hear a wake word much louder than a plain microphone at the same distance. **Arbitration offset** evens that out.
 
 | Setting | What it does |
 | --- | --- |
 | Enable wake word arbitration | Takes part in arbitration with the other kiosks on the network. |
 | Arbitration window | How long a kiosk waits to hear from the others, 100 to 500 ms (400 by default). It has to cover how much later a slow device detects the wake word plus the trip over Wi-Fi, where access points can hold broadcast traffic for a few hundred milliseconds. Raise it if a closer kiosk sometimes loses or both answer. Every wake waits this long, and nothing you say during the wait is lost. |
+| Arbitration offset | Added to how loud this kiosk heard the wake word, -30 to 30 dB (0 by default). Raise it on a kiosk that loses when you speak right next to it, or lower it on one that answers from across the room. The log shows each kiosk's level on every wake, under the `wake_word` tag, which tells you how far apart two kiosks are. It is not synced through Fleet Management, since it describes the kiosk's own hardware. |
 
-The kiosks talk over UDP broadcast on port 2330 and need nothing else turned on: no fleet, intercom or remote admin. They have to be on the same network segment, and an access point that blocks broadcast traffic between wireless clients stops arbitration. When a claim does not arrive, each kiosk answers as it would without arbitration. A muted kiosk does not take part.
+The kiosks talk over UDP on port 2330 and need nothing else turned on: no fleet, intercom or remote admin. Each claim is broadcast, and also sent directly to every kiosk heard from before, since Wi-Fi delivers a direct packet more reliably and to a sleeping device sooner. Kiosks say hello when arbitration starts and every five minutes, so they know each other before the first wake word. They have to be on the same network segment, and an access point that blocks broadcast traffic between wireless clients stops arbitration. When a claim does not arrive, each kiosk answers as it would without arbitration. A louder claim that arrives just after a kiosk's window closed, from a kiosk that detected the wake word later, still ends the first kiosk's turn, so only one of them answers. A muted kiosk does not take part.
 
 ## Realtime conversations
 
@@ -301,6 +302,8 @@ Home Assistant's timer intents do the change, and they cannot find a timer by it
 The entities and actions appear only while Voice Satellite runs natively and is on.
 
 ## Timer events
+
+Voice turns fire their own `esphome.kiosk_satellite_voice` event as they start, change and end. See [Home Assistant Events](events.md#voice-satellite).
 
 Every timer on the kiosk fires an `esphome.kiosk_satellite_timer` event on the Home Assistant bus when it starts, changes, is cancelled, finishes or its alert is dismissed. That covers spoken timers, timers from a realtime conversation and timers from `vs_start_timer`. Use it to flash a light or announce a kitchen timer in another room. Home Assistant only fires device events under `esphome.`, hence the prefix.
 

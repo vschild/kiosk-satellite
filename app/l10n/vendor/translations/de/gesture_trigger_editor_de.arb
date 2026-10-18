@@ -43,5 +43,10 @@
   "gestureSequenceError": "Füge mindestens zwei Ecken hinzu.",
   "gesturePluginTrigger": "Plugin-Auslöser",
   "gesturePluginTriggerField": "Auslöser",
-  "gesturePluginTriggerHelp": "Aktiviere zuerst ein Plugin mit Auslösern im Plugin-Manager."
+  "gesturePluginTriggerHelp": "Aktiviere zuerst ein Plugin mit Auslösern im Plugin-Manager.",
+  "gestureButton": "Taste",
+  "gesturePress": "Drücken",
+  "gestureDoublePress": "Doppelt drücken",
+  "gestureHoldPress": "Gedrückt halten",
+  "gestureButtonDefaults": "Ein Tastendruck, den keine Geste belegt, behält seine eigene Aufgabe: Aktion nimmt an, stoppt oder beendet, was klingelt, und startet sonst einen Sprachbefehl, Mikrofon schaltet Voice Satellite stumm und die Lautstärketasten ändern die Lautstärke."
 }

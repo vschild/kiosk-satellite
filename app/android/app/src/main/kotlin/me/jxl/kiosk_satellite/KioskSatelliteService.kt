@@ -245,6 +245,8 @@ class KioskSatelliteService : Service() {
         // The Wi-Fi hold for the service's lifetime: the service exists
         // precisely while the app must stay reachable without a screen.
         WifiLockHolder.acquire(this)
+        // Without a screen, the buttons only work while Android is awake.
+        Headless.stayAwake(this)
         registerScreenReceiver()
         refresh()
     }
@@ -420,6 +422,9 @@ class KioskSatelliteService : Service() {
         if (screenReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                    Headless.stayAwake(context)
+                }
                 syncCpuLock(
                     getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                         .getBoolean(KEY_CPU_AWAKE, true),
@@ -500,6 +505,7 @@ class KioskSatelliteService : Service() {
         screenReceiver = null
         cpuLock?.let { if (it.isHeld) it.release() }
         cpuLock = null
+        Headless.releaseAwake()
         WifiLockHolder.release()
         instance = null
         isRunning = false

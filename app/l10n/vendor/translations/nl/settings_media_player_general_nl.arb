@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "Terwijl Speelt nu wordt getoond",
   "mediaKeysPlaying": "Terwijl de speler speelt",
   "mediaAnotherPlayer": "een andere speler",
-  "mediaLocalOffline": "De eigen Sendspin-speler van dit apparaat blijft offline terwijl {player} wordt bediend."
+  "mediaOfflineSendspin": "De Sendspin-speler blijft offline zolang {player} is gekozen.",
+  "mediaOfflineAirplay": "De AirPlay-ontvanger blijft uit zolang {player} is gekozen.",
+  "mediaOfflineBoth": "De Sendspin-speler en de AirPlay-ontvanger blijven offline zolang {player} is gekozen."
 }

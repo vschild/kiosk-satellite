@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "Поки показано «Зараз грає»",
   "mediaKeysPlaying": "Поки плеєр відтворює",
   "mediaAnotherPlayer": "інший плеєр",
-  "mediaLocalOffline": "Власний плеєр Sendspin цього пристрою залишається офлайн, доки керується {player}."
+  "mediaOfflineSendspin": "Плеєр Sendspin залишається офлайн, доки вибрано {player}.",
+  "mediaOfflineAirplay": "Приймач AirPlay залишається вимкненим, доки вибрано {player}.",
+  "mediaOfflineBoth": "Плеєр Sendspin і приймач AirPlay залишаються офлайн, доки вибрано {player}."
 }

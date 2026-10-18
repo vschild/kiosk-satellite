@@ -43,5 +43,10 @@
   "gestureSequenceError": "Voeg minstens twee hoeken toe.",
   "gesturePluginTrigger": "Plug-intrigger",
   "gesturePluginTriggerField": "Trigger",
-  "gesturePluginTriggerHelp": "Schakel eerst een plug-in met triggers in via Plug-inbeheer."
+  "gesturePluginTriggerHelp": "Schakel eerst een plug-in met triggers in via Plug-inbeheer.",
+  "gestureButton": "Knop",
+  "gesturePress": "Drukken",
+  "gestureDoublePress": "Dubbel drukken",
+  "gestureHoldPress": "Ingedrukt houden",
+  "gestureButtonDefaults": "Een druk die geen gebaar gebruikt, houdt zijn eigen taak: Actie neemt op, stopt of negeert wat er overgaat en start anders een spraakopdracht, Microfoon dempt Voice Satellite en de volumeknoppen wijzigen het volume."
 }

@@ -67,6 +67,8 @@
   "settingVoiceWakeArbitrationDescription": "Коли кілька кіосків чують слово активації, відповідає найближчий. Збільшує затримку виявлення.",
   "settingVoiceWakeArbitrationWindowTitle": "Вікно арбітражу",
   "settingVoiceWakeArbitrationWindowDescription": "Як довго чекати на інші кіоски. Збільште, якщо повільніший кіоск програє, хоча він ближче.",
+  "settingVoiceWakeArbitrationOffsetTitle": "Поправка арбітражу",
+  "settingVoiceWakeArbitrationOffsetDescription": "Додається до того, наскільки гучно цей кіоск почув слово активації. Збільште, якщо цей кіоск програє, хоча він ближче, і зменште, якщо він відповідає здалеку.",
   "voiceSectionWakeArbitration": "Арбітраж слова активації",
   "voiceOptionSlightly": "Низька чутливість",
   "voiceOptionModerately": "Середня чутливість",

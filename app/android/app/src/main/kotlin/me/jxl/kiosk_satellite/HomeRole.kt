@@ -71,9 +71,12 @@ object HomeRole {
 
     /** Reuse the HOME task when we own it. A LAUNCHER start creates a
      *  separate standard task even with singleTask. Both activities then
-     *  compete for the process's one Flutter engine. */
+     *  compete for the process's one Flutter engine. Null on a device
+     *  without a screen, which every recovery and bring-forward path
+     *  funnels through: there is no Activity to bring back. */
     fun launchIntent(context: Context): Intent? =
-        if (aliasEnabled(context) && isHeld(context)) homeLaunchIntent(context)
+        if (Headless.active(context)) null
+        else if (aliasEnabled(context) && isHeld(context)) homeLaunchIntent(context)
         else context.packageManager.getLaunchIntentForPackage(context.packageName)
 
     // Keep the component implicit and HOME as the only category.

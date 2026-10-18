@@ -1,3 +1,4 @@
+import { isHeadless, tabHidden } from './headless.js';
 import { navigationText, t, localizeNavigation, settingsPageText } from './localization.js';
 import { readRoute, routeHash, routeSlug } from './routes.js';
 import { loadCameras } from './cameras.js';
@@ -24,7 +25,11 @@ import { clearSearchReturnTab, searchReturnTab } from './search.js';
 // and #settings can be bookmarked or handed to someone. Everything is served
 // from one root, so without this a reload always dumped you on the dashboard.
 export const TABS = ['dashboard', 'homeassistant', 'esphome', 'voicesatellite', 'browser', 'kiosk', 'lockdown', 'home', 'launcher', 'screenaudio', 'screensaver',
-  'camera', 'sendspin', 'cameras', 'dlna', 'intercom', 'alarms', 'files', 'gestures', 'device', 'fleet', 'plugins', 'about', 'logs'];
+  'camera', 'sendspin', 'cameras', 'dlna', 'intercom', 'alarms', 'files', 'gestures', 'leds', 'device', 'fleet', 'plugins', 'about', 'logs'];
+// A page's title, by what is left on it on a device without a screen.
+export function tabTitle(tab) {
+  return isHeadless() && tab === 'screenaudio' ? 'Audio' : TAB_TITLES[tab];
+}
 // Old bookmarks from before the tabs were consolidated keep landing
 // somewhere sensible.
 export const LEGACY_TABS = { screen: 'screenaudio', audio: 'screenaudio', remote: 'device', console: 'logs', btproxy: 'esphome', mqtt: 'esphome' };
@@ -37,7 +42,7 @@ export const TAB_TITLES = {
   cameras: 'Camera Streams',
   sendspin: 'Media Player',
   dlna: 'DLNA Renderer', intercom: 'Intercom', alarms: 'Alarms', esphome: 'ESPHome',
-  files: 'File Manager', gestures: 'Gestures',
+  files: 'File Manager', gestures: 'Gestures', leds: 'LED Control',
   device: 'Device', fleet: 'Fleet Management', plugins: 'Plugin Manager', about: 'About', logs: 'Logs',
 };
 
@@ -122,7 +127,11 @@ export function showTab(name, { push = true, refresh = true } = {}) {
   let sub = slash < 0 ? '' : name.slice(slash + 1);
   name = slash < 0 ? name : name.slice(0, slash);
   name = LEGACY_TABS[name] || name;
-  const tab = TABS.includes(name) ? name : 'dashboard';
+  // A page this device does not have: hidden for a device without a
+  // screen, or by its own nav entry (LED Control without lights).
+  const navHidden = document.querySelector(`#tabs button[data-tab="${name}"]`)
+    ?.classList.contains('hidden');
+  const tab = TABS.includes(name) && !tabHidden(name) && !navHidden ? name : 'dashboard';
   if (tab !== name) sub = '';
   document.querySelectorAll('#tabs button').forEach((b) =>
     b.classList.toggle('active', b.dataset.tab === tab));
@@ -167,7 +176,7 @@ export function showTab(name, { push = true, refresh = true } = {}) {
     titleEl.prepend(back, subpageIcon(tab === 'plugins' ? 'Plugins' : sub));
   } else {
     // The nav rail's glyph, bare, same drawing, no disc.
-    titleEl.textContent = navigationText(TAB_TITLES[tab]);
+    titleEl.textContent = navigationText(tabTitle(tab));
     const glyph = document.querySelector(`#tabs button[data-tab="${tab}"] svg`);
     if (glyph) titleEl.prepend(glyph.cloneNode(true));
   }
@@ -228,8 +237,36 @@ export function refreshNavigationText() {
   } else if (!currentPath.includes('/')) {
     // Preserve the icon already attached by showTab.
     for (const node of title.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) node.textContent = navigationText(TAB_TITLES[currentPath]);
+      if (node.nodeType === Node.TEXT_NODE) node.textContent = navigationText(tabTitle(currentPath));
     }
   }
   title.querySelector('.title-back')?.setAttribute('aria-label', t('commonBack'));
+}
+
+/* The nav's icon discs cycle the four brand accents down the list, so
+   neighbors never share a color. Painted from the entries actually shown
+   rather than fixed in the markup: a device without a screen hides whole
+   pages and LED Control only shows where there are lights, and fixed
+   colors left two neighbors alike. Overview starts the cycle on d4. */
+function paintNavDiscs() {
+  const shown = [...document.querySelectorAll('#tabs > button, #tabs .nav-group > button')]
+    .filter((b) => getComputedStyle(b).display !== 'none');
+  shown.forEach((button, i) => {
+    const disc = button.querySelector('.disc');
+    if (!disc) return;
+    const want = `d${((i + 3) % 4) + 1}`;
+    if (disc.classList.contains(want)) return;
+    disc.classList.remove('d1', 'd2', 'd3', 'd4');
+    disc.classList.add(want);
+  });
+}
+{
+  const nav = document.getElementById('tabs');
+  if (nav) {
+    paintNavDiscs();
+    new MutationObserver(paintNavDiscs).observe(nav,
+      { attributes: true, attributeFilter: ['class'], subtree: true });
+    new MutationObserver(paintNavDiscs).observe(document.documentElement,
+      { attributes: true, attributeFilter: ['data-headless'] });
+  }
 }

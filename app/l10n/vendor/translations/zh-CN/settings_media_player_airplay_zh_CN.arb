@@ -1,0 +1,13 @@
+{
+  "@@locale": "zh_CN",
+  "settingAirplayEnabledTitle": "启用 AirPlay 接收器",
+  "settingAirplayEnabledDescription": "此设备会作为 AirPlay 扬声器出现在 iPhone、iPad 或 Mac 的 AirPlay 菜单中。",
+  "mediaAirplayHint": "播放来自 iPhone、iPad 或 Mac 的音频",
+  "settingAirplayNameTitle": "扬声器名称",
+  "settingAirplayNameDescription": "AirPlay 菜单中显示的名称。留空则使用设备名称。",
+  "settingAirplaySenderVolumeTitle": "跟随发送端音量",
+  "settingAirplaySenderVolumeDescription": "iPhone、iPad 或 Mac 上的音量控制会改变此设备的播放音量。关闭后，只有此设备的音量生效。",
+  "settingAirplaySyncOffsetDescription": "负值让此设备提前播放，使声音与发送端的视频对齐。立即生效。",
+  "settingAirplayTakeoverTitle": "允许其他发送端接管",
+  "settingAirplayTakeoverDescription": "一台设备播放时，另一台 iPhone、iPad 或 Mac 可以接管。关闭后，它必须等第一台断开连接。"
+}

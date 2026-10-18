@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../core/headless.dart';
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/manager.dart';
@@ -161,12 +162,20 @@ class DeviceCameraManager extends Manager {
   Future<void> init() async {
     await _migrateLegacyMotionCamera();
 
-    // Probe early so the settings surfaces and the ESPHome catalog have the
-    // answer by the time they ask. Unawaited: with no Activity yet the
-    // probe simply resolves later, on the first ask that finds one.
-    unawaited(cameraPresent());
-    unawaited(cameraFacings());
-    unawaited(visionSupport());
+    // A device without a screen has no camera features, so it is treated
+    // as having no camera, and the probes stay off: the vision probe alone
+    // loads two native inference libraries on older Android.
+    if (Headless.active) {
+      _present = false;
+      _facings = const [];
+    } else {
+      // Probe early so the settings surfaces and the ESPHome catalog have
+      // the answer by the time they ask. Unawaited: with no Activity yet
+      // the probe simply resolves later, on the first ask that finds one.
+      unawaited(cameraPresent());
+      unawaited(cameraFacings());
+      unawaited(visionSupport());
+    }
 
     bus.on<ActivityAttached>().listen((_) {
       if (!_disposed) unawaited(refreshStreamResolutions());
@@ -279,7 +288,7 @@ class DeviceCameraManager extends Manager {
       ),
     );
 
-    await refreshStreamResolutions();
+    if (!Headless.active) await refreshStreamResolutions();
     _syncTimer();
   }
 

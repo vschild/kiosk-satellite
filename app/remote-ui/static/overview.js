@@ -1,3 +1,4 @@
+import { isHeadless } from './headless.js';
 import { overviewLabel, overviewMessageBox as messageBox, overviewModalShell as modalShell } from './overview_labels.js';
 import { fleetStatusText } from './fleet-messages.js';
 import { overviewText, overviewStatus, cameraError, deviceText, deviceOperationError, fleetText, intercomText, mediaText, mediaError, navigationText, t, voiceText } from './localization.js';
@@ -7,7 +8,7 @@ import { attachUpdateInstall, refreshUpdateBadge } from './device.js';
 import { readFilterStatus } from './filter_status.js';
 import { agoLabel } from './notices.js';
 import { loadScreenshot, quick, renderQuickControls } from './panels.js';
-import { permissionSpecs } from './permissions.js';
+import { adbHint, permissionSpecs } from './permissions.js';
 import { loadPlugins } from './plugins.js';
 import { showTab } from './tabs.js';
 import { attachSlider, showToast } from './widgets.js';
@@ -373,7 +374,7 @@ function openButton(btn, label, tab) {
    painted whole from the cache. A settings change repaints from the
    cache without a single command. */
 const health = { ha: null, wake: null, voice: null, esp: null, media: null, svc: null,
-  upd: null, perms: null, guard: null, fleet: null, tiles: null };
+  upd: null, perms: null, guard: null, buttons: null, fleet: null, tiles: null };
 const SOURCES = {
   ha: { topics: ['ha'], read: async () => { health.ha = await ask('haStatus'); } },
   // Wake word pushes arrive as their own message (ks-wakeword below).
@@ -390,6 +391,8 @@ const SOURCES = {
   } },
   media: { topics: ['media'], intervalMs: 1000, read: async () => { health.media = await ask('sendspinStatus'); } },
   service: { topics: ['service'], read: async (results) => {
+    // The button service of a device without a screen, which adb enables.
+    health.buttons = isHeadless() ? await ask('getHardwareButtons') : null;
     if (results?.getServiceStatus) {
       health.svc = dataOf(results.getServiceStatus);
       health.perms = dataOf(results.getSystemPermissions);
@@ -445,6 +448,12 @@ async function paintHaStatus(ha, { filter = true } = {}) {
   // "connected" is this run's validation verdict, not a live probe: it never
   // drops when the server goes away, so the tile says Validated, not Connected.
   else if (!ha.connected) paintTile('ha', 'off', overviewText('Not validated'));
+  // The update filter is the dashboard's, which a device without a screen
+  // does not have.
+  else if (isHeadless()) {
+    paintTile('ha', 'on', overviewText('Headless mode'));
+    return;
+  }
   else paintTile('ha', filtering && cachedFilterStatus?.unfiltered ? 'warn' : 'on', filtering
     ? cachedFilterStatus === undefined ? overviewText('Checking filter...') : overviewStatus(cachedFilterStatus?.label || 'Filter status unavailable')
     : overviewText('Validated'));
@@ -571,7 +580,11 @@ function paintHealth({ filter = true } = {}) {
     items.push({
       key: 'update',
       name: overviewText('Update available'),
-      desc: t('overviewInstallHelp', {version: upd.availableVersion}),
+      // Where the install is confirmed, if anywhere: a device owner or
+      // Shizuku installs without asking, and a device without a screen has
+      // nowhere to ask.
+      desc: t(upd.silent ? 'overviewInstallSilentHelp'
+        : isHeadless() ? 'overviewInstallHeadlessHelp' : 'overviewInstallHelp', {version: upd.availableVersion}),
       action: (btn) => { overviewLabel(btn, 'Install'); attachUpdateInstall(btn, () => health.upd); },
     });
   }
@@ -632,9 +645,24 @@ function paintHealth({ filter = true } = {}) {
     // the Permissions Manager on the Device page carries the rest.
     const all = { ...perms };
     if (guard !== null) all.uiGuard = guard === true;
+    if (health.buttons) {
+      all.hardwareButtons = health.buttons.listening === true;
+      all.hardwareButtonsOn = health.buttons.switchedOn === true;
+    }
     const text = (t) => (typeof t === 'function' ? t(all) : t);
     for (const spec of permissionSpecs(settingOn, settingVal)) {
       if (!spec.needed || all[spec.key] !== false) continue;
+      // No screen at all: the adb line is the answer, in place of a
+      // button that would open a dialog nobody can see.
+      if (isHeadless()) {
+        items.push({
+          key: `perm:${spec.key}`,
+          name: t('overviewPermissionMissing', {permission: deviceText(spec.name)}),
+          desc: deviceText(adbHint(spec, all)),
+          actions: [],
+        });
+        continue;
+      }
       // No settings screen for it on this device: the adb line on the
       // Device page is the answer, not a button that opens nothing.
       if (spec.requestable && all[spec.requestable] === false) continue;

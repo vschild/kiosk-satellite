@@ -24,5 +24,9 @@
   "fleetOpenAiApiKey": "OpenAI API 密钥",
   "fleetXaiApiKey": "xAI API 密钥",
   "fleetGeminiApiKey": "Gemini API 密钥",
-  "fleetMcpServerToken": "MCP 服务器令牌"
+  "fleetMcpServerToken": "MCP 服务器令牌",
+  "fleetPlugins": "插件",
+  "fleetPluginSecrets": "插件密钥",
+  "fleetNoPluginsInstalledOnThisKiosk": "此 Kiosk 设备未安装插件",
+  "fleetKiosksOnThisProfileInstallTheseAndTakeTheir": "使用此方案的 Kiosk 设备会安装这些插件，并沿用此设备上的插件设置。"
 }

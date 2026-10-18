@@ -3,5 +3,6 @@
   "setupChooseDashboard": "Kies een dashboard",
   "setupDashboardHelp": "Dit dashboard wordt weergegeven wanneer de kiosk wordt gestart.",
   "setupSelectDashboard": "Een dashboard selecteren",
-  "setupSelectDashboardHelp": "Kies het dashboard dat de kiosk moet weergeven. Je kunt dit later wijzigen via Instellingen."
+  "setupSelectDashboardHelp": "Kies het dashboard dat de kiosk moet weergeven. Je kunt dit later wijzigen via Instellingen.",
+  "setupHeadlessGrants": "Dit apparaat heeft geen scherm, dus Android kan er niet om vragen. Verleen ze elk via adb en rond dan hier af."
 }

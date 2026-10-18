@@ -1,0 +1,13 @@
+{
+  "@@locale": "de",
+  "settingAirplayEnabledTitle": "AirPlay-Empfänger aktivieren",
+  "settingAirplayEnabledDescription": "Das Gerät erscheint als AirPlay-Lautsprecher im AirPlay-Menü eines iPhone, iPad oder Mac.",
+  "mediaAirplayHint": "Audio von einem iPhone, iPad oder Mac abspielen",
+  "settingAirplayNameTitle": "Lautsprechername",
+  "settingAirplayNameDescription": "Der Name im AirPlay-Menü. Leer verwendet den Gerätenamen.",
+  "settingAirplaySenderVolumeTitle": "Lautstärke des Senders übernehmen",
+  "settingAirplaySenderVolumeDescription": "Die Lautstärkeregelung des iPhone, iPad oder Mac ändert, wie laut dieses Gerät spielt. Ist diese Option deaktiviert, zählt nur die Lautstärke dieses Geräts.",
+  "settingAirplaySyncOffsetDescription": "Negative Werte lassen dieses Gerät früher spielen, damit der Ton zum Video auf dem Sender passt. Wird sofort angewendet.",
+  "settingAirplayTakeoverTitle": "Anderen Sender übernehmen lassen",
+  "settingAirplayTakeoverDescription": "Ein zweites iPhone, iPad oder Mac kann übernehmen, während eines spielt. Ist diese Option deaktiviert, muss es warten, bis das erste die Verbindung trennt."
+}

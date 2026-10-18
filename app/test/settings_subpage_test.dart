@@ -160,6 +160,7 @@ void main() {
       defs.voiceStopWord.key,
       defs.voiceWakeArbitration.key,
       defs.voiceWakeArbitrationWindowMs.key,
+      defs.voiceWakeArbitrationOffsetDb.key,
     ]);
     // Diagnostics is a page of its own, opened from the tester's group.
     expect(defs.wakeWordDiagnostics.subpage, 'Wake word diagnostics');

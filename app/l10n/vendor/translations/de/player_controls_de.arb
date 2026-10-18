@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "„Jetzt läuft“ anzeigen",
   "mediaShowFloatingPlayer": "Schwebenden Player anzeigen",
   "mediaOpenMusicAssistant": "Music Assistant öffnen",
-  "mediaCannotControl": "Der Befehl wird nicht unterstützt oder konnte nicht gesendet werden."
+  "mediaCannotControl": "Der Befehl wird nicht unterstützt oder konnte nicht gesendet werden.",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "CD-Qualität",
+  "mediaAudioLossy": "Verlustbehaftet",
+  "mediaAudioBitDepth": "{bits} Bit",
+  "mediaAudioSampleRate": "{rate} kHz",
+  "mediaAudioBitRate": "{rate} kbit/s"
 }

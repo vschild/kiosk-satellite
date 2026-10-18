@@ -189,6 +189,9 @@ enum PlayerSourceKind {
   /// Another app's media session on this device, `session:<package>`, or
   /// `session:*` for whichever app plays.
   mediaSession,
+
+  /// This device's AirPlay receiver, `airplay`.
+  airplay,
 }
 
 /// A parsed `sendspin.player` value: which system the player belongs to
@@ -202,6 +205,7 @@ class PlayerSource {
   factory PlayerSource.parse(String value) {
     final v = value.trim();
     if (v.isEmpty) return const PlayerSource(PlayerSourceKind.local, '');
+    if (v == 'airplay') return const PlayerSource(PlayerSourceKind.airplay, '');
     if (v.startsWith('ha:')) {
       return PlayerSource(PlayerSourceKind.homeAssistant, v.substring(3));
     }
@@ -229,5 +233,6 @@ class PlayerSource {
     PlayerSourceKind.homeAssistant => 'ha:$id',
     PlayerSourceKind.sonos => 'sonos:$id',
     PlayerSourceKind.mediaSession => 'session:$id',
+    PlayerSourceKind.airplay => 'airplay',
   };
 }

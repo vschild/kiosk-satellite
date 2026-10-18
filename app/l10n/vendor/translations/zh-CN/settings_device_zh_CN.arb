@@ -42,5 +42,16 @@
   "deviceWebViewHint": "引擎版本、渲染器和用户代理",
   "devicePasswordSet": "••••••（已设置）",
   "deviceSaveFailed": "无法保存此设置。请重试。",
-  "deviceOpenSettingsDevice": "在设备上打开设置"
+  "deviceOpenSettingsDevice": "在设备上打开设置",
+  "deviceHardwareButtons": "硬件按钮",
+  "deviceHardwareButtonsHeld": "设备按钮可以触发手势和 Voice Satellite。",
+  "deviceHardwareButtonsMissing": "在开启按钮服务之前，设备按钮不起作用。",
+  "deviceHeadlessAdbMicrophone": "此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN，然后对 BLUETOOTH_CONNECT 执行相同操作",
+  "deviceHeadlessAdbBattery": "此设备没有屏幕。请通过 adb 授予：adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE，然后对 WRITE_EXTERNAL_STORAGE 执行相同操作",
+  "deviceHeadlessAdbButtons": "此设备没有屏幕。请通过 adb 开启：adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService，然后 adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "按键服务已开启但尚未启动。请重启设备以启动它：adb reboot"
 }

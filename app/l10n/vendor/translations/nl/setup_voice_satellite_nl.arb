@@ -14,7 +14,7 @@
   "setupAutoplay": "Automatisch afspelen van audio en video",
   "setupVoiceSkipped": "Niet geïnstalleerd, overgeslagen",
   "setupVoiceLead": "Maak van deze kiosk een spraakassistent voor Home Assistant. Alles kan later worden gewijzigd.",
-  "setupVoiceAddHint": "Voeg deze kiosk na de installatie toe in Home Assistant via Instellingen → Apparaten en diensten. De kiosk verschijnt daar als ontdekt apparaat.",
+  "setupVoiceAddAgainHint": "Voeg deze kiosk na de installatie toe in Home Assistant via Instellingen → Apparaten en diensten. De kiosk verschijnt daar als ontdekt apparaat. Kende Home Assistant de kiosk al, dan vraagt het daar om de nieuwe Versleutelingssleutel van de ESPHome-pagina.",
   "setupRecommendedWall": "Aanbevolen instellingen voor een kiosk aan de muur.",
   "setupVoiceFound": "Voice Satellite-integratie gevonden",
   "setupVoiceFoundHelp": "Voice Satellite is nu ingebouwd in Kiosk Satellite. Migreer een satelliet uit de integratie om de wekwoorden, assistent en vormgeving daarvan te behouden in plaats van opnieuw te beginnen.",

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart'
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/headless.dart';
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/manager.dart';
@@ -109,6 +110,13 @@ class ScreenManager extends Manager with WidgetsBindingObserver {
 
   @override
   Future<void> init() async {
+    // No panel: nothing to keep awake, light or dim. The commands stay so
+    // their callers get answers instead of missing handlers.
+    if (Headless.active) {
+      _screenOn = false;
+      _registerCommands();
+      return;
+    }
     await _applyWakelock();
 
     // Reapplied every time the app reaches the foreground. The apply above
@@ -261,6 +269,10 @@ class ScreenManager extends Manager with WidgetsBindingObserver {
       }
     });
 
+    _registerCommands();
+  }
+
+  void _registerCommands() {
     commands
       ..register(
         Command(
@@ -1030,6 +1042,7 @@ class ScreenManager extends Manager with WidgetsBindingObserver {
   /// [activityOnly] skips the wake lock: the command's diagnostic, to tell
   /// on a device which of the two routes works.
   Future<void> screenOn({bool activityOnly = false}) async {
+    if (Headless.active) return;
     if (!activityOnly) {
       try {
         await _background.invokeMethod('wakeScreen');

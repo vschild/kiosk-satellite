@@ -151,6 +151,8 @@
   input[type=range]:focus-visible::-webkit-slider-thumb {
     outline: 2px solid var(--primary); outline-offset: 3px; }
   .hidden { display: none !important; }
+  /* A device without a screen (headless.js). */
+  html[data-headless] .no-headless { display: none !important; }
 
   /* Boot splash: the banner wordmark centered and still with a spinner
      right below it, until the boot decides which section owns the page.
@@ -1681,7 +1683,7 @@
 .intro-row.no-title .intro-text { padding-top: 0; }
 .intro-row.no-title .intro-sub { margin-top: 0; }
 
-/* URL Blacklist (url_blacklist.js): each rule wears the device's block
+/* URL Filter (url_filter.js): each rule wears the device's block
    glyph and shows its pattern in mono, in the list and in the editor. */
 .url-rule-icon { color: var(--primary); }
 .modal-form input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

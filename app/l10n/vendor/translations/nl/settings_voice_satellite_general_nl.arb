@@ -56,7 +56,7 @@
   "voiceWordListening": "Luisteren",
   "voiceWordNotListening": "Niet aan het luisteren",
   "voiceWordAdded": "Toegevoegd",
-  "voiceHaAddHint": "Voeg deze kiosk toe in Home Assistant via Instellingen → Apparaten en diensten. De kiosk verschijnt daar als ontdekt apparaat.",
+  "voiceHaAddAgainHint": "Voeg deze kiosk toe in Home Assistant via Instellingen → Apparaten en diensten. De kiosk verschijnt daar als ontdekt apparaat. Kende Home Assistant de kiosk al, dan vraagt het daar om de nieuwe Versleutelingssleutel van de ESPHome-pagina.",
   "voiceHaEsphomeOff": "Schakel de ESPHome-server in zodat Home Assistant deze kiosk als satelliet kan toevoegen.",
   "voiceWordReloadNeeded": "Herladen nodig",
   "voiceHaSelectsReloadHint": "Home Assistant heeft de keuzelijsten Assistent en Wekwoord niet geladen. Laad de ESPHome-vermelding van deze kiosk opnieuw via Instellingen → Apparaten en diensten. Je kunt Home Assistant ook opnieuw starten.",

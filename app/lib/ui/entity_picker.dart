@@ -1891,12 +1891,17 @@ class PickField extends StatelessWidget {
     this.enabled = true,
     this.fallbackLabel,
     this.flagMissing = true,
+    this.emptyIsPick = false,
   });
 
   final String value;
   final PickList? list;
   final String placeholder;
   final VoidCallback onTap;
+
+  /// The empty value is a pick of its own (this device's Sendspin player),
+  /// drawn with its item's icon and name once the list has it.
+  final bool emptyIsPick;
 
   /// Shown for a pick the list does not have (or has not loaded) in
   /// place of its id: the name the setting kept.
@@ -1916,12 +1921,12 @@ class PickField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final item = value.isEmpty ? null : list?.find(value);
+    final item = value.isEmpty && !emptyIsPick ? null : list?.find(value);
     final gone = flagMissing && missing(value, list);
     Widget lead;
     Widget text;
     String? trailing;
-    if (value.isEmpty) {
+    if (value.isEmpty && item == null) {
       lead = Icon(
         Icons.category_outlined,
         size: 20,
@@ -2109,6 +2114,7 @@ class _PickRowState extends State<PickRow> {
           list: list,
           fallbackLabel: widget.fallbackLabel,
           flagMissing: widget.flagMissing,
+          emptyIsPick: widget.emptyIsPick,
           placeholder:
               widget.placeholder ?? haText(context, 'Choose an entity'),
           detail: widget.detail,

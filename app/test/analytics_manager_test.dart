@@ -591,6 +591,125 @@ void main() {
     expect(text, isNot(contains('gentle')));
   });
 
+  test('custom pages read as counts and places, never as names or '
+      'addresses', () async {
+    await build({
+      'ks.ha.custom_pages': jsonEncode([
+        {'name': 'Kitchen wall', 'path': '/local/kitchen.html'},
+        {'name': 'Den', 'path': '/local/den.html#lights'},
+        {'name': 'Garage', 'path': 'https://pages.lan/garage.html'},
+      ]),
+      'ks.ha.custom_pages_socket': true,
+      'ks.browser.start_url': 'http://ha.lan:8123/local/kitchen.html',
+      'ks.ha.rotation_enabled': true,
+      'ks.ha.rotation_dashboards': jsonEncode([
+        'lovelace/home',
+        'local/https://pages.lan/garage.html',
+      ]),
+    }, firstDelay: const Duration(days: 1));
+    for (var i = 0; i < 7; i++) {
+      await UsageCounters.bump(settings, 'custom_page_loads');
+    }
+    await UsageCounters.bump(settings, 'custom_page_ha_sockets');
+    Future<Map> usage() async {
+      sent.clear();
+      expect(await analytics.sendSnapshot(force: true), isTrue);
+      return bodyOf(sent.single)['usage'] as Map;
+    }
+
+    var u = await usage();
+    expect(u['custom_pages'], 3);
+    expect(u['custom_pages_local'], 2);
+    expect(u['custom_pages_external'], 1);
+    expect(u['custom_pages_socket'], isTrue);
+    expect(u['custom_page_start'], isTrue);
+    expect(u['custom_page_rotation'], isTrue);
+    expect(u['custom_page_loads'], '6-20');
+    expect(u['custom_page_ha_sockets'], '1-5');
+    final text = jsonEncode(u);
+    for (final secret in ['Kitchen', 'Den', 'Garage', 'pages.lan', '.html']) {
+      expect(text, isNot(contains(secret)));
+    }
+    // The counts went out with the last snapshot.
+    u = await usage();
+    expect(u['custom_page_loads'], '0');
+    expect(u['custom_page_ha_sockets'], '0');
+
+    // Only pages in Home Assistant: the shared connection says nothing.
+    await settings.set(
+      defs.haCustomPages,
+      jsonEncode([
+        {'name': 'Kitchen wall', 'path': '/local/kitchen.html'},
+      ]),
+    );
+    await settings.set(defs.startUrl, 'http://ha.lan:8123/lovelace/home');
+    await settings.set(defs.haRotationEnabled, false);
+    u = await usage();
+    expect(u.containsKey('custom_pages_socket'), isFalse);
+    expect(u.containsKey('custom_page_rotation'), isFalse);
+    expect(u['custom_page_start'], isFalse);
+
+    // No pages, no detail.
+    await settings.set(defs.haCustomPages, '[]');
+    u = await usage();
+    expect(u['custom_pages'], 0);
+    expect(u.containsKey('custom_pages_local'), isFalse);
+    expect(u.containsKey('custom_page_loads'), isFalse);
+  });
+
+  test('URL Filter rules read as counts and kinds, never as names or '
+      'patterns', () async {
+    await build({
+      'ks.browser.url_filter': jsonEncode([
+        {
+          'name': 'No history',
+          'pattern': '/history*',
+          'type': 'wildcard',
+          'scope': 'dashboard',
+          'action': 'block',
+        },
+        {
+          'name': 'Lovelace only',
+          'pattern': '/lovelace/*',
+          'type': 'wildcard',
+          'scope': 'dashboard',
+          'action': 'allow',
+        },
+        {
+          'name': 'Tube',
+          'pattern': r'youtube\.com',
+          'type': 'regex',
+          'scope': 'external',
+          'action': 'block',
+        },
+      ]),
+      'ks.browser.url_filter_notice': false,
+    }, firstDelay: const Duration(days: 1));
+    for (var i = 0; i < 3; i++) {
+      await UsageCounters.bump(settings, 'url_filter_blocked');
+    }
+    expect(await analytics.sendSnapshot(force: true), isTrue);
+    var u = bodyOf(sent.single)['usage'] as Map;
+    expect(u['url_filter_rules'], 3);
+    expect(u['url_filter_allow_rules'], 1);
+    expect(u['url_filter_regex_rules'], 1);
+    expect(u['url_filter_scopes'], ['dashboard', 'external']);
+    expect(u['url_filter_notice'], isFalse);
+    expect(u['url_filter_blocked'], '1-5');
+    final text = jsonEncode(u);
+    for (final secret in ['history', 'Lovelace', 'Tube', 'youtube']) {
+      expect(text, isNot(contains(secret)));
+    }
+
+    await settings.set(defs.browserUrlFilter, '[]');
+    sent.clear();
+    expect(await analytics.sendSnapshot(force: true), isTrue);
+    u = bodyOf(sent.single)['usage'] as Map;
+    expect(u['url_filter_rules'], 0);
+    expect(u.containsKey('url_filter_scopes'), isFalse);
+    expect(u.containsKey('url_filter_blocked'), isFalse);
+  });
+
   test('widgets, gestures, cameras and the installer read as kinds and '
       'counts, never as what they point at', () async {
     await build({

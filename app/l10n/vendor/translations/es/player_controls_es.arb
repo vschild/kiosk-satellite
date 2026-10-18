@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "Mostrar Reproduciendo Ahora",
   "mediaShowFloatingPlayer": "Mostrar el reproductor flotante",
   "mediaOpenMusicAssistant": "Abrir Music Assistant",
-  "mediaCannotControl": "El comando no es compatible o no se pudo enviar."
+  "mediaCannotControl": "El comando no es compatible o no se pudo enviar.",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "Calidad CD",
+  "mediaAudioLossy": "Con pérdida",
+  "mediaAudioBitDepth": "{bits} bits",
+  "mediaAudioSampleRate": "{rate} kHz",
+  "mediaAudioBitRate": "{rate} kbps"
 }

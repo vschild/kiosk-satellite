@@ -91,6 +91,24 @@ void main() {
         },
       ),
     );
+    // The fleet plugin package arrives as a stream with its hash.
+    commands.register(
+      Command(
+        name: 'fleetStagePlugin',
+        description: 'stub',
+        handler: (p) async {
+          final stream = p['stream'];
+          if (stream is! Stream<List<int>>) {
+            return CommandResult.fail('no stream');
+          }
+          var size = 0;
+          await for (final chunk in stream) {
+            size += chunk.length;
+          }
+          return CommandResult.ok({'sha256': p['sha256'], 'size': size});
+        },
+      ),
+    );
     settings = SettingsManager(bus, commands, log);
     await settings.init();
     remote = RemoteManager(bus, commands, log, settings);
@@ -359,6 +377,31 @@ void main() {
       expect(b2['from'], 'fleetExport');
     },
   );
+
+  test('the leader stages a plugin package with its fleet token', () async {
+    final token = await fleetToken('lead');
+    expect(
+      (await call(
+        'PUT',
+        '/api/fleet/plugins?sha256=abc',
+        raw: [1, 2, 3],
+        token: token,
+      )).$1,
+      403,
+    );
+    await settings.set(
+      defs.fleetLeaderInfo,
+      jsonEncode({'id': 'lead', 'name': 'Living Room'}),
+    );
+    final (s, b) = await call(
+      'PUT',
+      '/api/fleet/plugins?sha256=abc',
+      raw: [1, 2, 3],
+      token: token,
+    );
+    expect(s, 200);
+    expect(b['data'], {'sha256': 'abc', 'size': 3});
+  });
 
   test('an admin token still opens everything', () async {
     final token = await login();

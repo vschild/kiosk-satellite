@@ -11,6 +11,7 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/headless.dart';
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
 import '../../core/manager.dart';
@@ -867,6 +868,9 @@ class DeviceManager extends Manager {
           ? panelLevel
           : null,
       'screenOn': screenOn.ok && screenOn.data is bool ? screenOn.data : null,
+      // No screen at all (core/headless.dart): the remote admin leaves the
+      // display pages and controls out.
+      'headless': Headless.active,
       'screenWidth': details.screenWidth,
       'screenHeight': details.screenHeight,
       'screenDensity': details.screenDensity,

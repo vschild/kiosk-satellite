@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'headless.dart';
+
 /// Where the app stands on screen, read from the lifecycle states the
 /// framework reports.
 ///
@@ -21,9 +23,10 @@ abstract final class Lifecycle {
       state == AppLifecycleState.detached;
 
   /// Whether the app is on screen by the last state the framework
-  /// reported.
+  /// reported. Always true on a device without a screen: there is nothing
+  /// to come forward to, and the paths that wait for the screen must run.
   static bool get onScreen =>
-      !offScreen(WidgetsBinding.instance.lifecycleState);
+      Headless.active || !offScreen(WidgetsBinding.instance.lifecycleState);
 }
 
 /// The app's return to the screen, told apart from the other lifecycle

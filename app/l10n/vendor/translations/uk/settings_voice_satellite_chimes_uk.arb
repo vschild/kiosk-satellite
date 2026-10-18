@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Звук оголошення",
   "voiceChimeAnnounceDescription": "Відтворюється перед оголошенням Voice Satellite, якщо воно не містить власного звуку.",
   "settingVoiceWakeSoundTitle": "Відтворювати звуки",
-  "settingVoiceWakeSoundDescription": "Звуки активації, завершення та помилки."
+  "settingVoiceWakeSoundDescription": "Звуки активації, завершення та помилки.",
+  "voiceChimeWakeVolumeTitle": "Гучність звуку активації",
+  "voiceChimeDoneVolumeTitle": "Гучність звуку завершення",
+  "voiceChimeErrorVolumeTitle": "Гучність звуку помилки",
+  "voiceChimeTimerVolumeTitle": "Гучність звуку таймера",
+  "voiceChimeAnnounceVolumeTitle": "Гучність звуку оголошення",
+  "voiceChimeVolumeDescription": "Частка гучності асистента."
 }

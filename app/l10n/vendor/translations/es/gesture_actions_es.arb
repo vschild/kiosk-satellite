@@ -38,5 +38,8 @@
   "gestureCameraShow": "Mostrar {name}",
   "gestureCameraClose": "Cerrar la vista de cámaras",
   "gestureCameraEmpty": "Aún no hay vistas de cámaras configuradas.",
-  "gestureIntercomEmpty": "Aún no se ha encontrado ningún kiosko en la red."
+  "gestureIntercomEmpty": "Aún no se ha encontrado ningún kiosko en la red.",
+  "gestureVoiceWake": "Iniciar un comando de voz",
+  "gestureVoiceStop": "Detener el asistente de voz",
+  "gestureVoiceMute": "Silenciar o reactivar Voice Satellite"
 }

@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "Показати \"Зараз грає\"",
   "mediaShowFloatingPlayer": "Показати плаваючий плеєр",
   "mediaOpenMusicAssistant": "Відкрити Music Assistant",
-  "mediaCannotControl": "команда не підтримується або не надіслана"
+  "mediaCannotControl": "команда не підтримується або не надіслана",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "CD-якість",
+  "mediaAudioLossy": "Із втратами",
+  "mediaAudioBitDepth": "{bits} біт",
+  "mediaAudioSampleRate": "{rate} кГц",
+  "mediaAudioBitRate": "{rate} кбіт/с"
 }

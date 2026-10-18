@@ -1,10 +1,12 @@
 # Android Broadcasts
 
-Kiosk Satellite sends an Android broadcast whenever a voice turn, a timer, an intercom call, an alarm or the screensaver changes. Apps on the same device, such as Tasker, MacroDroid, Automate or tvQuickActions, can react right away without a round trip through Home Assistant. A common use is bringing your own app back to the front the moment a voice turn ends.
+Kiosk Satellite sends an Android broadcast whenever a voice turn, a timer, an intercom call, an alarm, the screensaver or the screen changes. Apps on the same device, such as Tasker, MacroDroid, Automate or tvQuickActions, can react right away without a round trip through Home Assistant. A common use is bringing your own app back to the front the moment a voice turn ends.
 
 Every action starts with `me.jxl.kiosk_satellite.event.`, so the full name of `VS_ENDED` is `me.jxl.kiosk_satellite.event.VS_ENDED`. Details ride along as intent extras. Strings stay strings, numbers stay numbers and lists arrive as string lists.
 
 Kiosk Satellite also listens for two broadcasts that start and end a voice turn. See [Voice Satellite](voice-satellite.md#android-broadcasts).
+
+Home Assistant gets the same changes as [Home Assistant Events](events.md).
 
 ## Voice Satellite
 
@@ -68,6 +70,15 @@ The extras are the fields of the [`esphome.kiosk_satellite_alarm`](alarms.md#ala
 | --- | --- |
 | `SCREENSAVER_STARTED` | The screensaver started. |
 | `SCREENSAVER_STOPPED` | The screensaver ended. |
+
+## Screen
+
+| Action | When |
+| --- | --- |
+| `SCREEN_ON` | The screen turned on. |
+| `SCREEN_OFF` | The screen turned off. |
+
+Both carry `source`. It reads `app` when Kiosk Satellite moved the screen, such as the screensaver turning it off. It reads `system` when Android did, such as the power button. See [Screen](events.md#screen) for the details.
 
 ## Receiving them
 

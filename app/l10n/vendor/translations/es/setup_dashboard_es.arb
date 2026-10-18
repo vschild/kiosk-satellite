@@ -3,5 +3,6 @@
   "setupChooseDashboard": "Elige un panel de control",
   "setupDashboardHelp": "Esto es lo que mostrará el kiosko al iniciar.",
   "setupSelectDashboard": "Selecciona un panel de control",
-  "setupSelectDashboardHelp": "Elige el panel de control que mostrará el kiosko. Puedes cambiarlo después en Configuración."
+  "setupSelectDashboardHelp": "Elige el panel de control que mostrará el kiosko. Puedes cambiarlo después en Configuración.",
+  "setupHeadlessGrants": "Este dispositivo no tiene pantalla, así que Android no puede pedirlos en él. Concede cada uno por adb y luego termina aquí."
 }

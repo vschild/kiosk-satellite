@@ -42,5 +42,16 @@
   "deviceWebViewHint": "Versión del motor, renderizador y agente de usuario",
   "devicePasswordSet": "•••••• (definida)",
   "deviceSaveFailed": "No se pudo guardar esta opción. Inténtalo de nuevo.",
-  "deviceOpenSettingsDevice": "Abrir configuración en el dispositivo"
+  "deviceOpenSettingsDevice": "Abrir configuración en el dispositivo",
+  "deviceHardwareButtons": "Botones físicos",
+  "deviceHardwareButtonsHeld": "Los botones del dispositivo llegan a los gestos y a Voice Satellite.",
+  "deviceHardwareButtonsMissing": "Los botones del dispositivo no hacen nada hasta que se activa el servicio de botones.",
+  "deviceHeadlessAdbMicrophone": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO",
+  "deviceHeadlessAdbNotifications": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS",
+  "deviceHeadlessAdbLocation": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION",
+  "deviceHeadlessAdbBluetooth": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN, y lo mismo para BLUETOOTH_CONNECT",
+  "deviceHeadlessAdbBattery": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite",
+  "deviceHeadlessAdbStorage": "Este dispositivo no tiene pantalla. Concédelo por adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, y lo mismo para WRITE_EXTERNAL_STORAGE",
+  "deviceHeadlessAdbButtons": "Este dispositivo no tiene pantalla. Actívalo por adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, y luego adb shell settings put secure accessibility_enabled 1",
+  "deviceHeadlessAdbButtonsRestart": "El servicio de botones está activado pero no se ha iniciado. Reinicia el dispositivo para iniciarlo: adb reboot"
 }

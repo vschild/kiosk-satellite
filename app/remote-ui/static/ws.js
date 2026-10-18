@@ -1,3 +1,4 @@
+import { applyHeadless } from './headless.js';
 import { t } from './localization.js';
 import { attachSocket, detachSocket, receiveResult } from './transport.js';
 import { receiveUpdate, syncSubscriptions } from './live.js';
@@ -278,6 +279,7 @@ export function applyInfo(device, currentUrl, keepQuick = {}) {
   // side by side, "Kiosk Satellite Remote" three times is a guessing game.
   // Login keeps the static default; renames land on the next info refresh.
   if (name) document.title = name + ' - Kiosk Satellite Remote';
+  applyHeadless(device.headless);
   renderStats(device);
   if (device.brightness != null) showBrightness(device.brightness);
   applyQuickState(device, keepQuick);

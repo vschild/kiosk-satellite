@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "操作屏幕后，显示扬声器选择按钮 5 秒。可将扬声器加入当前播放组，或从组中移除。",
   "settingSendspinSpeakerPillPlayersTitle": "筛选扬声器选择按钮",
   "settingSendspinSpeakerPillPlayersDescription": "按钮中仅显示这些扬声器。已在播放组中的扬声器始终显示。",
+  "settingSendspinAudioQualityTitle": "显示音质",
+  "settingSendspinAudioQualityDescription": "在“正在播放”底部显示当前曲目的格式、位深、采样率、码率和来源。需要 Music Assistant。",
   "mediaAllSpeakers": "所有扬声器",
   "settingSendspinQueueArtTitle": "在队列中显示专辑封面",
   "settingSendspinQueueArtDescription": "在播放队列中为每首曲目显示封面。",

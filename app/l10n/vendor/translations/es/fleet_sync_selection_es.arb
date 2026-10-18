@@ -24,5 +24,9 @@
   "fleetOpenAiApiKey": "Clave de API de OpenAI",
   "fleetXaiApiKey": "Clave de API de xAI",
   "fleetGeminiApiKey": "Clave de API de Gemini",
-  "fleetMcpServerToken": "Token del servidor MCP"
+  "fleetMcpServerToken": "Token del servidor MCP",
+  "fleetPlugins": "Plugins",
+  "fleetPluginSecrets": "Secretos de plugins",
+  "fleetNoPluginsInstalledOnThisKiosk": "No hay plugins instalados en este kiosko",
+  "fleetKiosksOnThisProfileInstallTheseAndTakeTheir": "Los kioskos con este perfil los instalan y toman su configuración de este kiosko."
 }

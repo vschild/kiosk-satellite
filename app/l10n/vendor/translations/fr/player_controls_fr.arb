@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "Afficher Lecture en cours",
   "mediaShowFloatingPlayer": "Afficher le lecteur flottant",
   "mediaOpenMusicAssistant": "Ouvrir Music Assistant",
-  "mediaCannotControl": "commande non prise en charge ou non envoyée"
+  "mediaCannotControl": "commande non prise en charge ou non envoyée",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "Qualité CD",
+  "mediaAudioLossy": "Avec perte",
+  "mediaAudioBitDepth": "{bits} bits",
+  "mediaAudioSampleRate": "{rate} kHz",
+  "mediaAudioBitRate": "{rate} kb/s"
 }

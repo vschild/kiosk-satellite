@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Показує вибір гучномовців протягом 5 секунд після взаємодії з екраном. Дозволяє додати або вилучити гучномовці з поточної групи.",
   "settingSendspinSpeakerPillPlayersTitle": "Фільтр панелі вибору гучномовців",
   "settingSendspinSpeakerPillPlayersDescription": "На панелі показуються лише ці гучномовці. Гучномовці, які вже в групі, показуються завжди.",
+  "settingSendspinAudioQualityTitle": "Показувати якість звуку",
+  "settingSendspinAudioQualityDescription": "Показує формат, бітову глибину, частоту дискретизації, бітрейт і джерело поточного треку внизу режиму «Зараз грає». Потрібен Music Assistant.",
   "mediaAllSpeakers": "Усі гучномовці",
   "settingSendspinQueueArtTitle": "Показувати обкладинки у черзі",
   "settingSendspinQueueArtDescription": "Обкладинка у кожному рядку панелі черги.",

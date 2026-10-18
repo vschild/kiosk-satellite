@@ -5,17 +5,21 @@ import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/broadcasts/event_broadcast_manager.dart';
 
-/// What the Android broadcasts of issue #964 say, from the bus events the
-/// voice, intercom, alarm and screensaver managers already publish.
+/// What the Android broadcasts of issue #964 and their Home Assistant
+/// events (issue #1007) say, from the bus events the voice, intercom,
+/// alarm, screensaver and screen managers already publish.
 void main() {
   late EventBus bus;
   late EventBroadcastManager manager;
   late List<(String, Map<String, Object?>)> sent;
+  late List<HaEventRequested> fired;
 
   setUp(() async {
     bus = EventBus();
     final log = Logger();
     sent = [];
+    fired = [];
+    bus.on<HaEventRequested>().listen(fired.add);
     manager = EventBroadcastManager(
       bus,
       CommandRegistry(log),
@@ -207,4 +211,64 @@ void main() {
     ]);
     expect(names, ['SCREENSAVER_STARTED', 'SCREENSAVER_STOPPED']);
   });
+
+  test('every broadcast but the mirrors goes to Home Assistant too', () async {
+    await publish([
+      hold(true, 'voice'),
+      const VoiceSatelliteStateChanged('processing'),
+      hold(false, 'voice'),
+      IntercomStateChanged(intercom('in_call', 'Kitchen')),
+      IntercomStateChanged(intercom('idle')),
+      const ScreensaverStateChanged(active: true),
+      const ScreenStateChanged(on: false),
+      const HaEventRequested('kiosk_satellite_timer', {
+        'event_type': 'finished',
+      }),
+    ]);
+    final own = fired.where((e) => e.name != 'kiosk_satellite_timer');
+    expect(
+      [for (final e in own) e.name],
+      [
+        'kiosk_satellite_voice',
+        'kiosk_satellite_voice',
+        'kiosk_satellite_voice',
+        'kiosk_satellite_intercom',
+        'kiosk_satellite_intercom',
+        'kiosk_satellite_screensaver',
+        'kiosk_satellite_screen',
+      ],
+    );
+    expect(
+      [for (final e in own) e.data],
+      [
+        {'event_type': 'started', 'reason': 'voice'},
+        {'event_type': 'thinking'},
+        {'event_type': 'ended'},
+        {'event_type': 'in_call', 'kiosk': 'Kitchen'},
+        {'event_type': 'ended', 'kiosk': 'Kitchen'},
+        {'event_type': 'started'},
+        {'event_type': 'off', 'source': 'system'},
+      ],
+    );
+    // The timer's own event is the only one of its kind: it is mirrored
+    // as a broadcast, not fired again.
+    expect(fired.where((e) => e.name == 'kiosk_satellite_timer'), hasLength(1));
+  });
+
+  test(
+    'the screen reports who moved it, a probe counting as the app',
+    () async {
+      final names = await publish([
+        const ScreenStateChanged(on: false, source: 'app'),
+        const ScreenStateChanged(on: true, source: 'app'),
+        const ScreenStateChanged(on: false, source: 'probe'),
+        const ScreenStateChanged(on: true),
+      ]);
+      expect(names, ['SCREEN_OFF', 'SCREEN_ON', 'SCREEN_OFF', 'SCREEN_ON']);
+      expect(
+        [for (final (_, extras) in sent) extras['source']],
+        ['app', 'app', 'app', 'system'],
+      );
+    },
+  );
 }

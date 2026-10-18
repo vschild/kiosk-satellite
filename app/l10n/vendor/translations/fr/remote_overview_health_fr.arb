@@ -45,5 +45,6 @@
   "overviewMemoryFree": "{amount} Go libres",
   "overviewMetricPercent": "{value} %",
   "overviewMetricDegrees": "{value} °C",
-  "overviewShowingCustomPages": "Affiche des pages personnalisées"
+  "overviewShowingCustomPages": "Affiche des pages personnalisées",
+  "overviewHeadlessMode": "Mode sans écran"
 }

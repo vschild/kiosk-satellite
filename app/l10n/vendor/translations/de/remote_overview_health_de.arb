@@ -45,5 +45,6 @@
   "overviewMemoryFree": "{amount} GB frei",
   "overviewMetricPercent": "{value} %",
   "overviewMetricDegrees": "{value} °C",
-  "overviewShowingCustomPages": "Zeigt eigene Seiten"
+  "overviewShowingCustomPages": "Zeigt eigene Seiten",
+  "overviewHeadlessMode": "Modus ohne Bildschirm"
 }

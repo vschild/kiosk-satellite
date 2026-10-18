@@ -43,6 +43,25 @@ class NativeMic {
   /// AudioRoutingManager with the other capture settings.
   static void Function(String warning)? onWarning;
 
+  static const _levels = MethodChannel('kiosk_satellite/mic_levels');
+
+  /// How loud the last [length] of the microphone was, in dBFS per 20 ms,
+  /// oldest first, measured before the noise suppressor. Null where the
+  /// platform does not keep them or the microphone has not delivered.
+  static Future<List<double>?> recentLevels(Duration length) async {
+    try {
+      final r = await _levels.invokeMethod<List<Object?>>('recent', {
+        'ms': length.inMilliseconds,
+      });
+      if (r == null || r.isEmpty) return null;
+      return [for (final v in r) (v as num).toDouble()];
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
   Stream<Uint8List> stream() => _channel
       .receiveBroadcastStream({
         if (deviceSelector.isNotEmpty) 'device': deviceSelector,

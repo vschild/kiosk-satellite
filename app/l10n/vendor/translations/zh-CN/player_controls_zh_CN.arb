@@ -30,5 +30,11 @@
   "mediaShowNowPlaying": "显示“正在播放”",
   "mediaShowFloatingPlayer": "显示悬浮播放器",
   "mediaOpenMusicAssistant": "打开 Music Assistant",
-  "mediaCannotControl": "命令不受支持或未发送"
+  "mediaCannotControl": "命令不受支持或未发送",
+  "mediaAudioHiRes": "Hi-Res",
+  "mediaAudioCdQuality": "CD 音质",
+  "mediaAudioLossy": "有损",
+  "mediaAudioBitDepth": "{bits} 位",
+  "mediaAudioSampleRate": "{rate} kHz",
+  "mediaAudioBitRate": "{rate} kbps"
 }

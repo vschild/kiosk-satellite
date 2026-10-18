@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "За цією адресою не отримано дійсного ідентифікатора кіоска.",
   "fleetErrorAlreadyMember": "Цей кіоск уже належить до цієї групи.",
   "fleetErrorIsLeader": "Цей кіоск уже керує групою.",
-  "fleetErrorOtherLeader": "Цей кіоск уже підпорядкований іншому головному пристрою."
+  "fleetErrorOtherLeader": "Цей кіоск уже підпорядкований іншому головному пристрою.",
+  "fleetPluginsNames": "Плагіни: {names}",
+  "fleetCouldNotInstallNameReason": "Не вдалося встановити {name}: {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Перевстановіть {name} на цьому кіоску, щоб синхронізувати його"
 }

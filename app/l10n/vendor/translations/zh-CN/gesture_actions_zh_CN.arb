@@ -38,5 +38,8 @@
   "gestureCameraClose": "关闭摄像头画面",
   "gestureCameraEmpty": "尚未配置摄像头画面。",
   "gestureIntercomEmpty": "尚未在网络中发现 Kiosk 设备。",
-  "gestureMediaPlayPause": "播放或暂停媒体"
+  "gestureMediaPlayPause": "播放或暂停媒体",
+  "gestureVoiceWake": "开始语音指令",
+  "gestureVoiceStop": "停止语音助手",
+  "gestureVoiceMute": "将 Voice Satellite 静音或取消静音"
 }

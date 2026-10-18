@@ -56,7 +56,7 @@
   "voiceWordListening": "Escuchando",
   "voiceWordNotListening": "No escucha",
   "voiceWordAdded": "Añadido",
-  "voiceHaAddHint": "Añade este kiosko en Ajustes, Dispositivos y servicios de Home Assistant, donde aparece como descubierto.",
+  "voiceHaAddAgainHint": "Añade este kiosko en Ajustes, Dispositivos y servicios de Home Assistant, donde aparece como descubierto. Si Home Assistant ya lo tenía, ahí te pide la nueva Clave de cifrado de la página ESPHome.",
   "voiceHaEsphomeOff": "Activa el servidor ESPHome para que Home Assistant pueda añadir este kiosko como satélite.",
   "voiceWordReloadNeeded": "Recarga necesaria",
   "voiceHaSelectsReloadHint": "Home Assistant no ha cargado los selectores de Asistente y Palabra de activación. Recarga la entrada ESPHome de este kiosko en Ajustes, Dispositivos y servicios. Reiniciar Home Assistant también funciona.",

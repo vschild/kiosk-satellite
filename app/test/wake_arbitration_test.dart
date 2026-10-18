@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -19,6 +20,10 @@ class _End implements ArbitrationTransport {
   /// Drop everything this end sends, as a lossy access point would.
   bool mute = false;
 
+  /// Drop only what this end broadcasts, as an access point holding
+  /// broadcasts for sleeping clients can.
+  bool dropBroadcast = false;
+
   @override
   Future<bool> open(void Function(Uint8List data, String from) onPacket) async {
     _onPacket = onPacket;
@@ -28,9 +33,17 @@ class _End implements ArbitrationTransport {
 
   @override
   void send(Uint8List data) {
-    if (mute) return;
-    for (final e in wire._ends) {
+    if (mute || dropBroadcast) return;
+    for (final e in [...wire._ends]) {
       e._onPacket?.call(data, address);
+    }
+  }
+
+  @override
+  void sendTo(Uint8List data, String to) {
+    if (mute) return;
+    for (final e in [...wire._ends]) {
+      if (e.address == to) e._onPacket?.call(data, address);
     }
   }
 
@@ -73,6 +86,22 @@ void main() {
     test('a silenced floor cannot claim an endless margin', () {
       final clean = wakeEnergy(_clip(noise: 0, speech: 0.1))!;
       expect(clean, lessThan(80));
+    });
+
+    test('measured levels score the same as the audio they came from', () {
+      final pcm = _clip(noise: 0.003, speech: 0.08);
+      final samples = ByteData.sublistView(pcm);
+      final levels = <double>[];
+      for (var f = 0; f < pcm.length ~/ 640; f++) {
+        var sum = 0.0;
+        for (var i = 0; i < 320; i++) {
+          final v = samples.getInt16((f * 320 + i) * 2, Endian.little) / 32768;
+          sum += v * v;
+        }
+        levels.add(10 * math.log(sum / 320) / math.ln10);
+      }
+      expect(wakeEnergyOfLevels(levels), closeTo(wakeEnergy(pcm)!, 0.01));
+      expect(wakeEnergyOfLevels(levels.take(5).toList()), isNull);
     });
 
     test('too little audio has no score', () {
@@ -194,6 +223,75 @@ void main() {
       expect([for (final r in results) r.won], [false, true, false]);
       expect(results[0].winner, '10.0.0.2');
       expect(results[2].winner, '10.0.0.2');
+    });
+
+    test(
+      'a louder claim after the window makes the winner stand down',
+      () async {
+        final early = await kiosk('10.0.0.1');
+        final late = await kiosk('10.0.0.2');
+        final first = early.contend(
+          phrase: 'ok nova',
+          energy: 30,
+          window: window,
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 90));
+        final second = late.contend(
+          phrase: 'ok nova',
+          energy: 45,
+          window: window,
+        );
+        final won = await first;
+        expect(won.won, isTrue);
+        expect((await second).won, isTrue);
+        final louder = await early.overtaken(won, window);
+        expect(louder?.from, '10.0.0.2');
+        expect(louder?.energy, 45);
+      },
+    );
+
+    test('a quieter or much later claim leaves the winner answering', () async {
+      final early = await kiosk('10.0.0.1');
+      final late = await kiosk('10.0.0.2');
+      final first = early.contend(
+        phrase: 'ok nova',
+        energy: 30,
+        window: window,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      unawaited(late.contend(phrase: 'ok nova', energy: 20, window: window));
+      expect(await early.overtaken(await first, window), isNull);
+
+      final again = early.contend(
+        phrase: 'ok nova',
+        energy: 30,
+        window: window,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      unawaited(late.contend(phrase: 'ok nova', energy: 50, window: window));
+      expect(await early.overtaken(await again, window), isNull);
+    });
+
+    test('kiosks learn each other from their hellos', () async {
+      final a = await kiosk('10.0.0.1');
+      final b = await kiosk('10.0.0.2');
+      expect(a.peers, ['10.0.0.2']);
+      expect(b.peers, ['10.0.0.1']);
+    });
+
+    test('a claim still arrives when broadcasts are lost', () async {
+      final near = await kiosk('10.0.0.1');
+      final far = await kiosk('10.0.0.2');
+      for (final e in wire._ends) {
+        e.dropBroadcast = true;
+      }
+      final results = await Future.wait([
+        near.contend(phrase: 'ok nova', energy: 40, window: window),
+        far.contend(phrase: 'ok nova', energy: 20, window: window),
+      ]);
+      expect(results[0].won, isTrue);
+      expect(results[1].won, isFalse);
+      expect(results[1].winner, '10.0.0.1');
     });
 
     test('a stopped arbiter answers without waiting', () async {

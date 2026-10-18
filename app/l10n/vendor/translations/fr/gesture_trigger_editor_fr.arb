@@ -43,5 +43,10 @@
   "gestureSequenceError": "Ajoutez au moins deux coins.",
   "gesturePluginTrigger": "Déclencheur de plugin",
   "gesturePluginTriggerField": "Déclencheur",
-  "gesturePluginTriggerHelp": "Activez d'abord un plugin proposant des déclencheurs dans le Gestionnaire de plugins."
+  "gesturePluginTriggerHelp": "Activez d'abord un plugin proposant des déclencheurs dans le Gestionnaire de plugins.",
+  "gestureButton": "Bouton",
+  "gesturePress": "Appui",
+  "gestureDoublePress": "Double appui",
+  "gestureHoldPress": "Maintien",
+  "gestureButtonDefaults": "Un appui qu'aucun geste n'utilise garde sa fonction : Action répond, arrête ou ignore ce qui sonne et sinon lance une commande vocale, Micro coupe Voice Satellite et les boutons de volume changent le volume."
 }

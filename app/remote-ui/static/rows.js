@@ -37,8 +37,9 @@ import {
   openWakeSourcesPicker,
   wakeSourcesText,
 } from './pickers.js';
-import { loadSettings, refreshRealMacNote, updatePersonSensorRows, updateRtspRows } from './settings.js';
+import { loadSettings, refreshRealMacNote, syncSubpages, updatePersonSensorRows, updateRtspRows } from './settings.js';
 import { dashboardField } from './dashboard_picker.js';
+import { updatePlayerRow } from './panels.js';
 import {
   attachSlider,
   dateBox,
@@ -114,11 +115,18 @@ export function syncGatedRows(key, anchorRow) {
   // it reaches live: only a row whose presence must change counts.
   const changes = (o) => visible(o) !== !!document.querySelector(`[data-key="${o.key}"]`);
   if (!reached.some(changes)) return true;
-  if (!reached.every(sameCard)) return false;
+  // Rows on second-level pages of the tab this row is on (the Player pick
+  // swapping the Sendspin Player page for the AirPlay one) come and go with
+  // their pages, drawn in place too.
+  const away = reached.filter((o) => !sameCard(o) && changes(o));
+  if (away.length && (anchor.subpage || !away.every((o) => o.subpage)
+      || !syncSubpages(away))) {
+    return false;
+  }
   // Schema order within the card decides where a returning row goes back:
   // in front of the first row after it that is currently on screen.
   const order = all.filter(sameCard);
-  for (const o of reached) {
+  for (const o of reached.filter(sameCard)) {
     const existing = card.querySelector(`[data-key="${o.key}"]`);
     if (!visible(o)) { existing?.remove(); continue; }
     if (existing) continue;
@@ -302,6 +310,8 @@ export function settingRow(s) {
     if (gatedOn(state.settings || [], s.key).length) {
       if (!syncGatedRows(s.key, row)) await loadSettings();
     }
+    // The Player row lists the new source's players.
+    if (s.key === 'sendspin.player_source') updatePlayerRow();
     if (s.key === 'screensaver.screen_off_black' || s.key === 'screensaver.screen_off_minutes') {
       syncScreenOffAdminNotice();
     }

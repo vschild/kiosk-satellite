@@ -165,5 +165,9 @@
   "This kiosk already belongs to this fleet.": "fleetErrorAlreadyMember",
   "That kiosk leads a fleet.": "fleetErrorIsLeader",
   "That kiosk already follows another leader.": "fleetErrorOtherLeader",
-  "the alarms themselves": "fleetTheAlarmsThemselves"
+  "the alarms themselves": "fleetTheAlarmsThemselves",
+  "Plugins": "fleetPlugins",
+  "Plugin secrets": "fleetPluginSecrets",
+  "No plugins installed on this kiosk": "fleetNoPluginsInstalledOnThisKiosk",
+  "Kiosks on this profile install these and take their settings from this kiosk.": "fleetKiosksOnThisProfileInstallTheseAndTakeTheir"
 }

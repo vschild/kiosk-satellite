@@ -18,5 +18,7 @@
   "mediaKeysNowPlaying": "显示“正在播放”时",
   "mediaKeysPlaying": "播放器正在播放时",
   "mediaAnotherPlayer": "其他播放器",
-  "mediaLocalOffline": "控制 {player} 时，此设备自身的 Sendspin 播放器保持离线。"
+  "mediaOfflineSendspin": "选择 {player} 时，Sendspin 播放器保持离线。",
+  "mediaOfflineAirplay": "选择 {player} 时，AirPlay 接收器保持关闭。",
+  "mediaOfflineBoth": "选择 {player} 时，Sendspin 播放器和 AirPlay 接收器保持离线。"
 }

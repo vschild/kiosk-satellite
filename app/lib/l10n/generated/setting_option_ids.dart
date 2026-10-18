@@ -407,6 +407,14 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "top_right": "screensaverMediaTopRight",
     "bottom_left": "screensaverMediaBottomLeft",
     "bottom_right": "screensaverMediaBottomRight"
+  },
+  "led.media.style": {
+    "solid": "settingLedMediaStyleOptionSolid",
+    "breathe": "settingLedMediaStyleOptionBreathe"
+  },
+  "led.idle.style": {
+    "solid": "settingLedIdleStyleOptionSolid",
+    "breathe": "settingLedIdleStyleOptionBreathe"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

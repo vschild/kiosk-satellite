@@ -26,6 +26,7 @@ Each entry on this page binds one specific gesture to one specific action. When 
 | Claps | 2 to 4 distinct claps, detected through the device microphone. |
 | Show fingers | An open hand, or a hand showing 1 to 4 fingers, presented to the device camera. |
 | Plugin trigger | Fired by a plugin when it notices something, such as a hardware button press. See [Plugin triggers](#plugin-triggers). |
+| Button | A press, a double press or a hold of the Action button on a device without a screen, such as an [Echo Dot](echo-dot.md#the-buttons). Only offered there. |
 
 The corner hitboxes are approximately 1.5 centimeters square. You can map two different gestures to the exact same corner using different tap counts; the system will automatically wait a beat after the shorter sequence to ensure you aren't simply entering the longer one.
 
@@ -53,6 +54,9 @@ The action chooser groups options into three categories: Kiosk Satellite, Androi
 | Decline intercom call | Declines the [intercom](intercom.md) call ringing on this kiosk, the same as its Decline button. Does nothing unless a call is ringing. |
 | Stop the alarm | Stops the ringing [alarm](alarms.md) the way the Stop button does. It also ends a snooze or a sunrise, and a stopped sunrise skips its ring. Pairs well with claps or Show fingers to silence an alarm from bed. Does nothing when no alarm is going. |
 | Snooze the alarm | Snoozes the ringing [alarm](alarms.md) for the snooze length, the same as the Snooze button. Does nothing unless an alarm is ringing. |
+| Start a voice command | Starts listening for a command, as if the wake word had been heard. Requires the native [Voice Satellite](voice-satellite.md). |
+| Stop the voice assistant | Dismisses a ringing timer, or ends the voice turn or the answer, the same as the stop word. |
+| Mute or unmute Voice Satellite | Mutes wake word detection, or unmutes it when muted, the same as the **VS Mute** switch in Home Assistant. |
 | Start the screensaver | Immediately launches whatever screensaver mode is currently configured. |
 | Stop the screensaver | While redundant for touch gestures (since any screen tap dismisses a screensaver), this is highly useful for clap gestures, allowing you to wake the screen from across the room. |
 | Toggle hold mode | Pins the current view, pausing the screensaver, dashboard rotation, and the return to home timer. Performing the same gesture again releases the hold. This pairs exceptionally well with a clap gesture when cooking from a recipe. |

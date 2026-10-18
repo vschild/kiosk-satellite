@@ -56,5 +56,18 @@
   "settingsMenuLogout": "Выйти",
   "settingsMenuSwitchKiosk": "Сменить киоск",
   "settingsMenuThemeState": "Тема: {theme}",
-  "settingsMenuThemeAuto": "Автоматическая"
+  "settingsMenuThemeAuto": "Автоматическая",
+  "settingsMenuOverviewHeadlessSummary": "Состояние и быстрое управление",
+  "settingsMenuHomeAssistantHeadlessSummary": "Подключение",
+  "settingsMenuAudio": "Аудио",
+  "settingsMenuAudioSummary": "Громкость, микрофон",
+  "settingsGroupMedia": "Медиа",
+  "settingsMenuDlnaHeadlessSummary": "Удалённое воспроизведение аудио",
+  "settingsMenuGesturesHeadlessSummary": "Жесты кнопками и хлопками",
+  "settingsMenuLeds": "Управление LED",
+  "settingsMenuLedsSummary": "Цвета и эффекты индикаторов состояния",
+  "settingsLedTimers": "Таймеры",
+  "settingsLedNotifications": "Уведомления",
+  "settingsLedIdle": "В покое",
+  "settingsLedEffects": "Эффекты"
 }

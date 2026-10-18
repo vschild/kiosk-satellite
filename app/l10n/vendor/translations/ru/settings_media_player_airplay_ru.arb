@@ -1,0 +1,13 @@
+{
+  "@@locale": "ru",
+  "settingAirplayEnabledTitle": "Включить приёмник AirPlay",
+  "settingAirplayEnabledDescription": "Устройство появляется как колонка AirPlay в меню AirPlay на iPhone, iPad или Mac.",
+  "mediaAirplayHint": "Воспроизведение звука с iPhone, iPad или Mac",
+  "settingAirplayNameTitle": "Имя колонки",
+  "settingAirplayNameDescription": "Имя в меню AirPlay. Если пусто, используется имя устройства.",
+  "settingAirplaySenderVolumeTitle": "Следовать громкости отправителя",
+  "settingAirplaySenderVolumeDescription": "Регулятор громкости на iPhone, iPad или Mac меняет громкость этого устройства. Если выключено, действует только громкость этого устройства.",
+  "settingAirplaySyncOffsetDescription": "Отрицательное значение заставляет это устройство играть раньше, чтобы звук совпадал с видео на отправителе. Применяется сразу.",
+  "settingAirplayTakeoverTitle": "Разрешить другому отправителю перехват",
+  "settingAirplayTakeoverDescription": "Другой iPhone, iPad или Mac может перехватить воспроизведение, пока играет первый. Если выключено, ему придётся ждать, пока первый не отключится."
+}

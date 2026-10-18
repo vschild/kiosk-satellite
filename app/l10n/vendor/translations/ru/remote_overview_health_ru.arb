@@ -45,5 +45,6 @@
   "overviewMemoryFree": "Свободно {amount} ГБ",
   "overviewMetricPercent": "{value}%",
   "overviewMetricDegrees": "{value}°C",
-  "overviewShowingCustomPages": "Показ своих страниц"
+  "overviewShowingCustomPages": "Показ своих страниц",
+  "overviewHeadlessMode": "Режим без экрана"
 }

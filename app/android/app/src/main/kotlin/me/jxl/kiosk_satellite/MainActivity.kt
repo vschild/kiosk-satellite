@@ -67,7 +67,10 @@ class MainActivity : FlutterActivity() {
         // after super, where it is legal, and a finished Activity skips
         // the rest of its lifecycle so the system re-resolves HOME on its
         // next dispatch.
-        val fuseTripped = HomeFuse.noteBootAttempt(this)
+        // A device without a screen never draws the frame that resets the
+        // fuse, so its launches stay out of the count.
+        val headless = Headless.active(this)
+        val fuseTripped = !headless && HomeFuse.noteBootAttempt(this)
         super.onCreate(savedInstanceState)
         // The master volume stays on the media stream during assistant speech.
         volumeControlStream = android.media.AudioManager.STREAM_MUSIC
@@ -78,6 +81,13 @@ class MainActivity : FlutterActivity() {
         // engine, camera session and all (see BackgroundBridge.restartProcess).
         BackgroundBridge.cancelRestartAlarm(this)
         if (fuseTripped) {
+            finish()
+            return
+        }
+        // Nothing to show on a device without a screen. A launch (adb, a
+        // stray recovery path) still did its job by starting the process,
+        // whose Application brings the service and the engine up.
+        if (headless) {
             finish()
             return
         }

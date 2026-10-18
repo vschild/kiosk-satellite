@@ -139,6 +139,10 @@ class MaRemotePlayer implements RemotePlayer {
   Object? _queue;
   Map? _player;
   bool _usingPlayerMedia = false;
+
+  /// The server's provider names by instance id, read once a connection
+  /// is up, for the audio quality to name its source.
+  Map<String, String> _providerNames = const {};
   Timer? _refreshDebounce;
 
   /// Whether this session has seen the queue actually play. An idle queue
@@ -483,11 +487,27 @@ class MaRemotePlayer implements RemotePlayer {
       await session.send('auth', {'token': _api.token});
       _attempts = 0;
       log.info(_name, '$label: following $playerId');
+      await _readProviderNames(session);
       await refresh();
     } catch (e) {
       log.warn(_name, '$label connect failed: $e');
       await _close();
       _scheduleRetry();
+    }
+  }
+
+  Future<void> _readProviderNames(MaSession session) async {
+    try {
+      final providers = await session.send('providers', const {});
+      if (providers is! List) return;
+      _providerNames = {
+        for (final p in providers.whereType<Map>())
+          if ('${p['instance_id'] ?? ''}'.isNotEmpty &&
+              '${p['name'] ?? ''}'.isNotEmpty)
+            '${p['instance_id']}': '${p['name']}',
+      };
+    } catch (e) {
+      log.warn(_name, '$label provider lookup failed: $e');
     }
   }
 
@@ -610,6 +630,7 @@ class MaRemotePlayer implements RemotePlayer {
           : queue,
       webBase: musicAssistantWebUrl(_api.baseUrl),
       currentMedia: _radioPlayerMedia,
+      providerNames: _providerNames,
     );
     _usingPlayerMedia = snap == null;
     queueEmpty = queue is Map && snap == null;

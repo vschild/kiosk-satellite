@@ -29,6 +29,8 @@
   "settingSendspinSpeakerPillDescription": "Zeigt die Lautsprecherauswahl 5 Sekunden lang nach einer Interaktion mit dem Bildschirm an. Damit können Lautsprecher zur aktuellen Gruppe hinzugefügt oder daraus entfernt werden.",
   "settingSendspinSpeakerPillPlayersTitle": "Lautsprecherauswahl filtern",
   "settingSendspinSpeakerPillPlayersDescription": "Nur diese Lautsprecher werden in der Lautsprecherauswahl angezeigt. Lautsprecher, die bereits in der Gruppe sind, werden immer angezeigt.",
+  "settingSendspinAudioQualityTitle": "Audioqualität anzeigen",
+  "settingSendspinAudioQualityDescription": "Zeigt Format, Bittiefe, Abtastrate, Bitrate und Quelle des aktuellen Titels unten in „Jetzt läuft“ an. Erfordert Music Assistant.",
   "mediaAllSpeakers": "Alle Lautsprecher",
   "settingSendspinQueueArtTitle": "Coverbilder in der Warteschlange anzeigen",
   "settingSendspinQueueArtDescription": "Zeigt ein Coverbild in jeder Zeile der Warteschlange an.",

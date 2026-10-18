@@ -62,7 +62,7 @@ import 'import_options_dialog.dart';
 import 'intercom_settings.dart';
 import '../managers/home_assistant/custom_pages.dart' show viewPathUrl;
 import 'custom_pages_settings.dart';
-import 'url_blacklist_settings.dart';
+import 'url_filter_settings.dart';
 import 'custom_wake_models.dart';
 import 'kit.dart';
 import 'time_picker.dart';
@@ -96,6 +96,10 @@ List<Widget> _sectionedCards(
   // the generic tile (the motion switch shown disabled while the Camera
   // section's master switch is off).
   Map<String, Widget> replace = const {},
+  // Cards keyed by setting key, placed on their own just ahead of that
+  // setting's row or page entry (a plugin screensaver's page entry above
+  // Widgets).
+  Map<String, Widget> before = const {},
   // The second-level page being rendered, if any. Definitions declaring a
   // *different* subpage collapse into one entry card here (the row that
   // opens their page); definitions declaring *this* subpage render normally.
@@ -121,6 +125,12 @@ List<Widget> _sectionedCards(
 
   final subpagesEmitted = <String>{};
   for (final def in visible) {
+    if (before[def.key] case final card?) {
+      flush();
+      current = null;
+      entryRun = true;
+      out.add(card);
+    }
     if (def.subpage != subpage) {
       // Lives on a second-level page: the first def of each subpage puts
       // the entry row where the group used to sit; the rest add nothing.
@@ -163,7 +173,8 @@ List<Widget> _sectionedCards(
                   def.category == 'Home Assistant' ||
                   def.category == 'Screen & Audio' ||
                   def.category == 'Screensaver' ||
-                  def.category == 'Voice Satellite')
+                  def.category == 'Voice Satellite' ||
+                  def.category == 'LED Control')
               ? Builder(
                   builder: (context) => SectionHeading(
                     settingsPageText(context, def.category, heading),
@@ -293,6 +304,12 @@ const _categories = <(String, String, Object, String)>[
   ),
   ('Gestures', 'Gestures', Icons.gesture, 'Touch, palm and clap gestures'),
   (
+    'LED Control',
+    'LED Control',
+    Icons.blur_circular,
+    'Status light colors and effects',
+  ),
+  (
     'Device',
     'Device',
     Icons.tablet_android_outlined,
@@ -325,6 +342,27 @@ const _railGroups = <String, String>{
   'Kiosk': 'Kiosk',
   'Device': 'System',
 };
+
+/// The Chimes page: each sound with its volume under it.
+final List<SettingDef<Object>> _chimeRows = [
+  for (final kind in voiceChimeSettings.keys) ...[
+    voiceChimeSettings[kind]!,
+    voiceChimeVolumes[kind]!,
+  ],
+];
+
+/// Whether a category's page is listed. LED Control only exists on a
+/// device with lights the app can drive (LedManager hides its settings
+/// everywhere else).
+bool _categoryShown(String category) =>
+    category != 'LED Control' || _defsFor(category).isNotEmpty;
+
+/// Where the category at [index] sits among the ones listed: what its icon
+/// color cycles by, so a hidden page never leaves two neighbors alike.
+int _shownPosition(int index) => [
+  for (final c in _categories.take(index))
+    if (_categoryShown(c.$1)) c,
+].length;
 
 List<SettingDef<Object>> _defsFor(String category) => [
   for (final def in allSettings)
@@ -471,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _cachedSearchIndex = buildSettingsSearchIndex(
         [
           for (final (category, title, _, subtitle) in _categories)
-            (category, title, subtitle),
+            if (_categoryShown(category)) (category, title, subtitle),
         ],
         pageText: (text) => navigationText(context, text),
         deviceTextFor: (text) => deviceText(context, text),
@@ -856,11 +894,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   index,
                                   (category, title, icon, subtitle),
                                 )
-                                in _categories.indexed) ...[
-                              if (_railGroups[category] case final heading?)
-                                _RailHeading(heading, first: index == 0),
-                              _railTile(context, index, title, icon, subtitle),
-                            ],
+                                in _categories.indexed)
+                              if (_categoryShown(category)) ...[
+                                if (_railGroups[category] case final heading?)
+                                  _RailHeading(heading, first: index == 0),
+                                _railTile(
+                                  context,
+                                  index,
+                                  title,
+                                  icon,
+                                  subtitle,
+                                ),
+                              ],
                           ],
                         ),
                       ),
@@ -1017,7 +1062,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _openSubpage(String category, String subpage) {
+    // A page of another category (a plugin screensaver's plugin page) moves
+    // the rail there too, as a search result does.
+    final index = _categories.indexWhere((c) => c.$1 == category);
     setState(() {
+      if (index >= 0) _selected = index;
       _subpage = subpage;
       _landing = null;
     });
@@ -1056,7 +1105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                _CategoryIcon(index: index, icon: icon),
+                _CategoryIcon(index: _shownPosition(index), icon: icon),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -1097,6 +1146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   get _hubGroups {
     final groups = <(String, List<(int, (String, String, Object, String))>)>[];
     for (final entry in _categories.indexed) {
+      if (!_categoryShown(entry.$2.$1)) continue;
       final heading = _railGroups[entry.$2.$1];
       if (heading != null) groups.add((heading, []));
       groups.last.$2.add(entry);
@@ -1334,6 +1384,37 @@ Widget _subpageEntryCard(
   ],
 );
 
+/// The entry to the selected plugin screensaver's settings, where the stock
+/// modes put theirs. A plugin's settings live on its Plugin Manager page, so
+/// the row opens that page. Null while the mode is not a plugin's, its
+/// plugin is gone or Enable Plugins is off, which closes that page.
+/// Mirrored on the remote (plugins.js, renderPluginScreensaverEntry).
+Widget? _pluginScreensaverEntry(AppContainer container) {
+  final mode = container.settings.get(screensaverMode);
+  if (!isPluginScreensaver(mode) || !container.plugins.enabled.value) {
+    return null;
+  }
+  final id = mode.split(':')[1];
+  final plugin = container.plugins.installed.value
+      .where((p) => p['id'] == id)
+      .firstOrNull;
+  if (plugin == null) return null;
+  final description = '${plugin['description'] ?? ''}';
+  return SettingsCard(
+    children: [
+      Builder(
+        builder: (context) => ListTile(
+          leading: const Icon(Icons.extension_rounded),
+          title: Text('${plugin['name']}'),
+          subtitle: description.isEmpty ? null : Text(description),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => openSettingsSubpage(context, container, 'Plugins', id),
+        ),
+      ),
+    ],
+  );
+}
+
 /// The One UI second-level entry: one row standing in for every setting that
 /// declares this subpage, with a hint listing what moved inside. Tapping
 /// opens the page; Back (arrow or gesture) returns to this row.
@@ -1569,6 +1650,9 @@ class _CategoryContentState extends State<_CategoryContent> {
     widget.container.plugins.screensavers.addListener(
       _pluginScreensaversChanged,
     );
+    // The plugin screensaver's entry row comes and goes with the plugins.
+    widget.container.plugins.installed.addListener(_pluginScreensaversChanged);
+    widget.container.plugins.enabled.addListener(_pluginScreensaversChanged);
     // The Managed banner comes and goes with the leader's pushes.
     _fleetEcho = widget.container.bus.on<FleetSyncChanged>().listen((_) {
       if (mounted) setState(() {});
@@ -1646,6 +1730,10 @@ class _CategoryContentState extends State<_CategoryContent> {
     widget.container.plugins.screensavers.removeListener(
       _pluginScreensaversChanged,
     );
+    widget.container.plugins.installed.removeListener(
+      _pluginScreensaversChanged,
+    );
+    widget.container.plugins.enabled.removeListener(_pluginScreensaversChanged);
     _btAdapterTimer?.cancel();
     _fleetEcho?.cancel();
     _settingsEcho?.cancel();
@@ -2451,12 +2539,16 @@ class _CategoryContentState extends State<_CategoryContent> {
               () => setState(() {}),
               replace: _rowReplacements(container),
               after: _rowExtras(container),
+              before: {
+                if (widget.category == 'Screensaver')
+                  screensaverWidgets.key: ?_pluginScreensaverEntry(container),
+              },
             ),
           ),
-          // No setting draws the URL Blacklist, so its row is placed here,
+          // No setting draws the URL Filter, so its row is placed here,
           // last on the page.
           if (widget.category == 'Browser')
-            _subpageEntryCard(container, 'Browser', 'URL Blacklist'),
+            _subpageEntryCard(container, 'Browser', 'URL Filter'),
         ],
         // Last and on their own card, like the Voice Satellite permissions:
         // the OS's to give, not ours to set. Always shown - Lockdown Mode
@@ -3215,21 +3307,13 @@ class _CategoryContentState extends State<_CategoryContent> {
     // and Immich cards put theirs.
     if (widget.category == 'Sendspin')
       sendspinMaToken.key: _MaValidateRow(container: container),
-    // Say what the pick just did to this device, under the row that
-    // holds it: its own player is gone from Music Assistant and the rows
-    // about it are gone from this page.
+    // Say what the pick turns off on this device, under the row that holds
+    // it: the Sendspin player and the AirPlay receiver, each while switched
+    // on and not the pick itself. Mirrored on the remote (panels.js,
+    // offlineNotice).
     if (widget.category == 'Sendspin' &&
-        (container.settings.get(sendspinPlayerSource).isNotEmpty ||
-            _localSessionPicked(container)))
-      sendspinPlayer.key: WarnRow(
-        l10n(context).mediaLocalOffline(
-          _localSessionPicked(container)
-              ? mediaText(context, SendspinManager.localSessionName)
-              : container.settings.get(sendspinPlayerName).trim().isEmpty
-              ? l10n(context).mediaAnotherPlayer
-              : container.settings.get(sendspinPlayerName).trim(),
-        ),
-      ),
+        _offlineNotice(context, container) != null)
+      sendspinPlayer.key: WarnRow(_offlineNotice(context, container)!),
     // The live list right under the sort picker that orders it.
     // Rides the section's dependsOn: with the proxy off there is
     // nothing to list and none of these rows render.
@@ -3815,7 +3899,7 @@ class _CategoryContentState extends State<_CategoryContent> {
         case 'Chimes':
           return [
             ...sectioned([voiceWakeSound]),
-            ...sectioned(voiceChimeSettings.values.toList()),
+            ...sectioned(_chimeRows),
           ];
         case 'Wake word diagnostics':
           break;
@@ -3825,7 +3909,7 @@ class _CategoryContentState extends State<_CategoryContent> {
     }
 
     if (widget.category == 'Voice Satellite' && subpage == 'Chimes') {
-      return [...sectioned(voiceChimeSettings.values.toList())];
+      return [...sectioned(_chimeRows)];
     }
 
     // The dashboard runtime's Timers page holds only what the kiosk draws
@@ -3855,8 +3939,8 @@ class _CategoryContentState extends State<_CategoryContent> {
     switch (subpage) {
       case 'Custom Pages':
         return [CustomPagesCard(container: container)];
-      case 'URL Blacklist':
-        return [UrlBlacklistCard(container: container)];
+      case 'URL Filter':
+        return [UrlFilterCard(container: container)];
       case 'Dashboard View Rotation':
         // Hand-built: the view checkboxes need the live dashboards from Home
         // Assistant, which the generic renderer cannot supply.
@@ -6965,11 +7049,54 @@ bool _localSessionPicked(AppContainer container) =>
     container.settings.get(sendspinPlayerSource).isEmpty &&
     container.settings.get(sendspinPlayer) == SendspinManager.localSessionPick;
 
+/// What the Player pick turns off on this device: the Sendspin player and
+/// the AirPlay receiver, each only while switched on and not the pick
+/// itself. Null for a pick that leaves both as they were.
+String? _offlineNotice(BuildContext context, AppContainer container) {
+  final settings = container.settings;
+  final source = settings.get(sendspinPlayerSource);
+  final local = source.isEmpty;
+  final pick = settings.get(sendspinPlayer);
+  final sendspinOff = settings.get(sendspinEnabled) && !(local && pick.isEmpty);
+  final airplayOff =
+      settings.get(airplayEnabled) &&
+      !(local && pick == SendspinManager.airplayPick);
+  if (!sendspinOff && !airplayOff) return null;
+  final name = settings.get(sendspinPlayerName).trim();
+  final player = local && pick.isEmpty
+      ? mediaText(context, 'Sendspin Player')
+      : _localSessionPicked(container)
+      ? mediaText(context, SendspinManager.localSessionName)
+      : _airplayPicked(container)
+      ? SendspinManager.airplayName
+      : name.isNotEmpty
+      ? name
+      // A source with no player picked yet: the source by name.
+      : sendspinPlayerSource.localizedOption(
+          context,
+          source,
+          sendspinPlayerSource.optionLabels?[source] ??
+              l10n(context).mediaAnotherPlayer,
+        );
+  final strings = l10n(context);
+  return sendspinOff && airplayOff
+      ? strings.mediaOfflineBoth(player)
+      : sendspinOff
+      ? strings.mediaOfflineSendspin(player)
+      : strings.mediaOfflineAirplay(player);
+}
+
+/// Whether this device's AirPlay receiver is the pick: the surfaces follow
+/// whichever iPhone, iPad or Mac plays to it.
+bool _airplayPicked(AppContainer container) =>
+    container.settings.get(sendspinPlayerSource).isEmpty &&
+    container.settings.get(sendspinPlayer) == SendspinManager.airplayPick;
+
 /// Which player of the picked source the Now Playing surfaces follow
 /// (issue #265): a wall tablet showing and controlling the kitchen
 /// speakers instead of itself. The list is the source's, fetched when the
-/// row is tapped. This device offers its own two: the Sendspin player and
-/// the Local Media Session (issue #722).
+/// row is tapped. This device offers its own three: the Sendspin player,
+/// the Local Media Session (issue #722) and the AirPlay receiver.
 class _PlayerRow extends StatefulWidget {
   const _PlayerRow({required this.container, required this.onChanged});
 
@@ -6989,7 +7116,7 @@ class _PlayerRowState extends State<_PlayerRow> {
     'sonos': 'Sonos room',
   };
 
-  /// This device's own two players, or the picked source's.
+  /// This device's own three players, or the picked source's.
   PickSpec _spec(BuildContext context, String source) => source.isEmpty
       ? fixedPlayerSpec(
           context,
@@ -6999,6 +7126,12 @@ class _PlayerRowState extends State<_PlayerRow> {
               id: '',
               name: mediaText(context, 'Sendspin Player'),
               icon: 'mdi:speaker',
+            ),
+            const PickItem(
+              id: SendspinManager.airplayPick,
+              name: SendspinManager.airplayName,
+              // The AirPlay audio mark: a triangle under sound waves.
+              icon: 'mdi:cast-audio-variant',
             ),
             PickItem(
               id: SendspinManager.localSessionPick,
@@ -7020,6 +7153,8 @@ class _PlayerRowState extends State<_PlayerRow> {
       sendspinPlayerName,
       id == SendspinManager.localSessionPick
           ? SendspinManager.localSessionName
+          : id == SendspinManager.airplayPick
+          ? SendspinManager.airplayName
           : name,
     );
     // The manager maintains this flag from the same inputs, but over the

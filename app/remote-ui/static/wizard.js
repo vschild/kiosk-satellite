@@ -1,7 +1,9 @@
-import { setupText, setupImportError, themeLabel, messageLanguage, setLanguagePreference, t } from './localization.js';
+import { deviceText, setupText, setupImportError, themeLabel, messageLanguage, setLanguagePreference, t } from './localization.js';
 import { WIZ_OPTIONAL, wizard } from './app.js';
 import { $, THEME_ICONS, api, cmd, saveToken, showView, state } from './core.js';
 import { readOnlyRow } from './device.js';
+import { applyHeadless, isHeadless } from './headless.js';
+import { adbHint, permissionSpecs } from './permissions.js';
 import { askImportOptions } from './pickers.js';
 import { dashboardPicker, loadDashboards } from './dashboard_picker.js';
 import { openVsMigrationWizard } from './vs_native.js';
@@ -377,8 +379,10 @@ const WIZ_ENGINES = [
 ];
 
 async function wizardLoadVoice() {
+  // The integration runs in a dashboard, which a device without a screen
+  // never shows, so there is nothing to migrate from.
   const [detected, pipelines] = await Promise.all([
-    cmd('haDetectVoiceSatellite', {}).catch(() => null),
+    isHeadless() ? null : cmd('haDetectVoiceSatellite', {}).catch(() => null),
     cmd('voicePipelines', {}).catch(() => null),
   ]);
   wizard.vsInstalled = detected?.ok === true && detected.data === true;
@@ -525,6 +529,47 @@ function wizardLanguageRow(body) {
   });
 }
 
+// The Permissions step of a device without a screen: the grants it needs,
+// each with the adb command that gives it, read live from the device.
+function wizardHeadlessGrants(b) {
+  const lead = document.createElement('div');
+  lead.style.cssText = 'color:var(--muted); font-size:13px; line-height:1.5; padding:0 6px 14px;';
+  lead.textContent = setupText('This device has no screen, so Android cannot ask for these on it. Give each one over adb, then finish here.');
+  b.appendChild(lead);
+  const list = wizardCard(b, true);
+  const spans = {};
+  const descs = {};
+  const specs = permissionSpecs((k) => k !== 'btproxy.enabled' && k !== 'location.enabled', () => 'native', true)
+    .filter((spec) => ['microphone', 'batteryUnrestricted', 'hardwareButtons'].includes(spec.key));
+  for (const spec of specs) {
+    const row = readOnlyRow(deviceText(spec.name), deviceText(adbHint(spec)), '\u2026');
+    row.querySelector('.desc').style.userSelect = 'all';
+    spans[spec.key] = row.querySelector('span');
+    descs[spec.key] = [spec, row.querySelector('.desc')];
+    list.appendChild(row);
+  }
+  const refresh = async () => {
+    const p = {};
+    try { Object.assign(p, (await cmd('getSystemPermissions')).data || {}); } catch (_) {}
+    try {
+      const b = (await cmd('getHardwareButtons')).data;
+      p.hardwareButtons = b?.listening === true;
+      p.hardwareButtonsOn = b?.switchedOn === true;
+    } catch (_) {}
+    for (const [spec, desc] of Object.values(descs)) desc.textContent = deviceText(adbHint(spec, p));
+    for (const [key, span] of Object.entries(spans)) {
+      const ok = p[key] === true;
+      span.textContent = ok ? setupText('Granted') : setupText('Not granted');
+      span.style.cssText = 'white-space:nowrap; color:' + (ok ? 'var(--ok)' : 'var(--error)');
+    }
+  };
+  refresh();
+  const timer = setInterval(() => {
+    if (!list.isConnected) { clearInterval(timer); return; }
+    refresh();
+  }, 3000);
+}
+
 export function wizardSteps() {
   const steps = [];
   // The same first page as the device wizard, always: the admin password
@@ -561,8 +606,12 @@ export function wizardSteps() {
         : t('remoteNewPassword'));
       wizardHeading(b, t('setupRestoreHeading'));
       wizardRestoreCard(b);
-      wizardHeading(b, t('setupServicePermissions'));
-      wizardServiceCard(b);
+      // A device without a screen takes its grants over adb, on the
+      // Permissions step.
+      if (!isHeadless()) {
+        wizardHeading(b, t('setupServicePermissions'));
+        wizardServiceCard(b);
+      }
     },
     next: async () => {
       // The service's required grants first: the whole kiosk rides on
@@ -625,6 +674,9 @@ export function wizardSteps() {
       }
       const check = await (await api('/api/commands/haCheckConnection', { method: 'POST', body: '{}' })).json();
       if (!check.ok) throw wizConnectFail(check.error || '');
+      wizard.base = url.replace(/\/$/, '');
+      // No dashboard on a device without a screen.
+      if (isHeadless()) return;
       // Plain-http instance: enable the secure context proxy up front so
       // the dashboard gets the https-only browser surface (microphone for
       // Voice Satellite) from its very first load.
@@ -643,10 +695,9 @@ export function wizardSteps() {
       wizard.dashboardPath ??= first
         ? (first.views.length ? `${first.path}/${first.views[0].route}` : first.path)
         : null;
-      wizard.base = url.replace(/\/$/, '');
     },
   });
-  steps.push({
+  if (!isHeadless()) steps.push({
     railTitle: t('setupDashboard'), railSub: t('setupDashboardSummary'),
     title: setupText('Choose a dashboard'),
     lead: setupText('This is what the kiosk will show when it starts.'),
@@ -690,10 +741,12 @@ export function wizardSteps() {
           + 'aria-hidden="true"><circle cx="12" cy="12" r="9"/>'
           + '<path d="M12 8h.01M12 12v4"/></svg>';
         const hintText = document.createElement('span');
-        hintText.textContent = setupText('After setup, add this kiosk in Home Assistant under Settings, Devices & services, where it shows up as discovered.');
+        hintText.textContent = setupText('After setup, add this kiosk in Home Assistant under Settings, Devices & services, where it shows up as discovered. If Home Assistant had it before, it asks there for the new Encryption key from the ESPHome page.');
         hint.appendChild(hintText);
         b.appendChild(hint);
       }
+      // The recommendations are for a kiosk on the wall.
+      if (isHeadless()) return;
       const master = wizardCard(b, true);
       const all = WIZ_OPTIONAL.every(([k]) => wizard.rec[k]);
       master.appendChild(toggleRow(setupText('Apply all recommended settings'),
@@ -720,6 +773,10 @@ export function wizardSteps() {
     lead: setupText("Android asks for these on the tablet itself. Walk over and accept the prompts, then finish here."),
     nextLabel: t('commonFinish'),
     body: (b) => {
+      if (isHeadless()) {
+        wizardHeadlessGrants(b);
+        return;
+      }
       const background = wizard.voice && wizard.rec['wake_word.background'];
       const bootStart = wizard.rec['kiosk.start_on_boot'];
       const list = wizardCard(b, true);
@@ -799,7 +856,7 @@ export function wizardSteps() {
       b.appendChild(btn);
     },
     next: async () => {
-      const chosen = { ...wizard.rec };
+      const chosen = isHeadless() ? {} : { ...wizard.rec };
       // Background listening means nothing without the voice satellite.
       if (!wizard.voice) delete chosen['wake_word.background'];
       if (wizard.voice) {
@@ -821,7 +878,11 @@ export function wizardSteps() {
       await api('/api/settings', { method: 'PATCH', body: JSON.stringify(chosen) });
       // Setting the start URL is what flips the device to configured; the
       // kiosk on the wall navigates to the chosen dashboard view on its own.
-      const startUrl = `${wizard.base}/${wizard.dashboardPath}`;
+      // Without a screen there is no dashboard, and the Home Assistant
+      // address alone marks the device as set up.
+      const startUrl = isHeadless()
+        ? `${wizard.base}/`
+        : `${wizard.base}/${wizard.dashboardPath}`;
       await api('/api/settings', { method: 'PATCH',
         body: JSON.stringify({ 'browser.start_url': startUrl }) });
       location.reload();
@@ -839,6 +900,7 @@ export async function startWizard({ needPassword }) {
   // exists there is no session to ask with.
   try {
     const setup = await (await fetch('api/setup/status')).json();
+    applyHeadless(setup?.headless);
     wizard.deviceName = setup?.deviceName || '';
     wizard.languages = setup?.languages || [{value:'en', label:'English'}, {value:'es', label:'Español'}];
     setLanguagePreference(setup?.language);

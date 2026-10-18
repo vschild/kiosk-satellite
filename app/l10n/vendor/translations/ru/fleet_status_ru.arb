@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "По этому адресу не вернулись корректные идентификационные данные киоска.",
   "fleetErrorAlreadyMember": "Этот киоск уже входит в группу.",
   "fleetErrorIsLeader": "Этот киоск ведёт группу.",
-  "fleetErrorOtherLeader": "Этот киоск уже следует за другим ведущим."
+  "fleetErrorOtherLeader": "Этот киоск уже следует за другим ведущим.",
+  "fleetPluginsNames": "Плагины: {names}",
+  "fleetCouldNotInstallNameReason": "Не удалось установить {name}: {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Переустановите {name} на этом киоске, чтобы синхронизировать его"
 }

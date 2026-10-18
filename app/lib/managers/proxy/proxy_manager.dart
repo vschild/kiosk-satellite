@@ -142,11 +142,34 @@ class ProxyManager extends Manager {
   /// each see no server and both bind one, leaking the loser.
   Future<void> sync() {
     return _syncChain = _syncChain.then((_) async {
-      _target = _mappableOrigin();
-      final wanted = _settings.get(defs.secureProxy) && _target != null;
+      final target = _mappableOrigin();
+      final wanted = _settings.get(defs.secureProxy) && target != null;
+      if (wanted && _server != null && target != _target) {
+        _retarget(target);
+      }
+      _target = target;
       if (wanted && _server == null) await _start();
       if (!wanted && _server != null) await _stop();
     });
+  }
+
+  /// The start URL moved to another Home Assistant origin while the proxy
+  /// runs (a new base URL, see BrowserManager._migrateStartUrlOrigin). The
+  /// listener stays on its port, so the page's loopback origin and the login
+  /// stored under it survive. Everything that remembered the old upstream
+  /// follows the new one: the reverse mapping a WebView rebuild goes
+  /// through, and the keep-alive pool, whose connections all lead to the
+  /// old host.
+  void _retarget(Uri target) {
+    _target = target;
+    _lastTargetOrigin = targetOrigin;
+    _client?.close(force: true);
+    _client = _newClient();
+    log.info(
+      name,
+      'secure context proxy on 127.0.0.1:${_server!.port} '
+      'now for ${target.host}:${target.port}',
+    );
   }
 
   /// The start URL's origin when it is plain http on a non-loopback host —

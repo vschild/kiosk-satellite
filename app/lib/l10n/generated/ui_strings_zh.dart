@@ -1445,6 +1445,21 @@ class UiStringsZh extends UiStrings {
   String get fleetErrorOtherLeader => '该 Kiosk 设备已在从其他主设备同步设置。';
 
   @override
+  String fleetPluginsNames(String names) {
+    return '插件：$names';
+  }
+
+  @override
+  String fleetCouldNotInstallNameReason(String name, String reason) {
+    return '无法安装 $name：$reason';
+  }
+
+  @override
+  String fleetReinstallNameOnThisKioskToSyncIt(String name) {
+    return '请在此设备上重新安装 $name 以进行同步';
+  }
+
+  @override
   String get fleetSwitchKiosk => '切换 Kiosk 设备';
 
   @override
@@ -1535,6 +1550,19 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get fleetMcpServerToken => 'MCP 服务器令牌';
+
+  @override
+  String get fleetPlugins => '插件';
+
+  @override
+  String get fleetPluginSecrets => '插件密钥';
+
+  @override
+  String get fleetNoPluginsInstalledOnThisKiosk => '此 Kiosk 设备未安装插件';
+
+  @override
+  String get fleetKiosksOnThisProfileInstallTheseAndTakeTheir =>
+      '使用此方案的 Kiosk 设备会安装这些插件，并沿用此设备上的插件设置。';
 
   @override
   String get fleetUpdateTheFleet => '更新设备群';
@@ -1684,6 +1712,15 @@ class UiStringsZh extends UiStrings {
   String get gestureIntercomEmpty => '尚未在网络中发现 Kiosk 设备。';
 
   @override
+  String get gestureVoiceWake => '开始语音指令';
+
+  @override
+  String get gestureVoiceStop => '停止语音助手';
+
+  @override
+  String get gestureVoiceMute => '将 Voice Satellite 静音或取消静音';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '点击$corner角 $count 次';
   }
@@ -1784,6 +1821,21 @@ class UiStringsZh extends UiStrings {
   @override
   String gestureFireEvent(String value) {
     return '触发事件 $value';
+  }
+
+  @override
+  String gestureDescribeButtonPress(String button) {
+    return '按下 $button 按钮';
+  }
+
+  @override
+  String gestureDescribeButtonDouble(String button) {
+    return '双击 $button 按钮';
+  }
+
+  @override
+  String gestureDescribeButtonHold(String button) {
+    return '长按 $button 按钮';
   }
 
   @override
@@ -2105,6 +2157,22 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get gesturePluginTriggerHelp => '请先在“插件管理器”中启用提供触发器的插件。';
+
+  @override
+  String get gestureButton => '按钮';
+
+  @override
+  String get gesturePress => '按下';
+
+  @override
+  String get gestureDoublePress => '双击';
+
+  @override
+  String get gestureHoldPress => '长按';
+
+  @override
+  String get gestureButtonDefaults =>
+      '没有手势使用的按键会保留原本的作用：操作键接听、停止或关闭正在响铃的内容，否则开始语音指令；麦克风键将 Voice Satellite 静音；音量键调整音量。';
 
   @override
   String get intercomCall => '呼叫';
@@ -2631,6 +2699,30 @@ class UiStringsZh extends UiStrings {
   String get mediaCannotControl => '命令不受支持或未发送';
 
   @override
+  String get mediaAudioHiRes => 'Hi-Res';
+
+  @override
+  String get mediaAudioCdQuality => 'CD 音质';
+
+  @override
+  String get mediaAudioLossy => '有损';
+
+  @override
+  String mediaAudioBitDepth(String bits) {
+    return '$bits 位';
+  }
+
+  @override
+  String mediaAudioSampleRate(String rate) {
+    return '$rate kHz';
+  }
+
+  @override
+  String mediaAudioBitRate(String rate) {
+    return '$rate kbps';
+  }
+
+  @override
   String get mediaNothingQueued => '播放队列为空';
 
   @override
@@ -3124,6 +3216,9 @@ class UiStringsZh extends UiStrings {
   String get pluginErrorAndroidOld => 'Android 版本过旧';
 
   @override
+  String get pluginErrorNeedsScreen => '此插件需要屏幕';
+
+  @override
   String get pluginErrorNativeIntegrity => '已安装原生库的完整性校验失败';
 
   @override
@@ -3404,6 +3499,16 @@ class UiStringsZh extends UiStrings {
   @override
   String overviewInstallHelp(String version) {
     return 'Kiosk Satellite $version 已可安装。安装需在平板屏幕上确认。';
+  }
+
+  @override
+  String overviewInstallSilentHelp(String version) {
+    return 'Kiosk Satellite $version 已可安装。它会在设备上无需确认直接安装。';
+  }
+
+  @override
+  String overviewInstallHeadlessHelp(String version) {
+    return 'Kiosk Satellite $version 已可安装。此设备没有可用于确认的屏幕，请将 Kiosk Satellite 设为设备所有者、使用 Shizuku，或通过 adb 安装。';
   }
 
   @override
@@ -3695,6 +3800,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get overviewShowingCustomPages => '正在显示自定义网页';
+
+  @override
+  String get overviewHeadlessMode => '无屏幕模式';
 
   @override
   String get overviewNoScreenshot => '暂无截图';
@@ -5004,6 +5112,47 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get deviceOpenSettingsDevice => '在设备上打开设置';
+
+  @override
+  String get deviceHardwareButtons => '硬件按钮';
+
+  @override
+  String get deviceHardwareButtonsHeld => '设备按钮可以触发手势和 Voice Satellite。';
+
+  @override
+  String get deviceHardwareButtonsMissing => '在开启按钮服务之前，设备按钮不起作用。';
+
+  @override
+  String get deviceHeadlessAdbMicrophone =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO';
+
+  @override
+  String get deviceHeadlessAdbNotifications =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS';
+
+  @override
+  String get deviceHeadlessAdbLocation =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION';
+
+  @override
+  String get deviceHeadlessAdbBluetooth =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN，然后对 BLUETOOTH_CONNECT 执行相同操作';
+
+  @override
+  String get deviceHeadlessAdbBattery =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite';
+
+  @override
+  String get deviceHeadlessAdbStorage =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE，然后对 WRITE_EXTERNAL_STORAGE 执行相同操作';
+
+  @override
+  String get deviceHeadlessAdbButtons =>
+      '此设备没有屏幕。请通过 adb 开启：adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService，然后 adb shell settings put secure accessibility_enabled 1';
+
+  @override
+  String get deviceHeadlessAdbButtonsRestart =>
+      '按键服务已开启但尚未启动。请重启设备以启动它：adb reboot';
 
   @override
   String get deviceHardwarePage => '硬件';
@@ -7631,6 +7780,193 @@ class UiStringsZh extends UiStrings {
   String get kioskOpenSettingsDevice => '在设备上打开设置';
 
   @override
+  String get settingLedEnabledTitle => '启用 LED 控制';
+
+  @override
+  String get settingLedEnabledDescription => '让 Kiosk Satellite 控制灯光。';
+
+  @override
+  String get settingLedAnimationsTitle => '动画效果';
+
+  @override
+  String get settingLedAnimationsDescription => '让光弧转动、脉冲渐变。关闭后所有效果均为静态。';
+
+  @override
+  String get settingLedIdleEnabledTitle => '空闲时亮灯';
+
+  @override
+  String get settingLedIdleEnabledDescription => '没有其他内容显示时保持亮灯。';
+
+  @override
+  String get settingLedIdleBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedIdleBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedIdleLightColorTitle => '颜色';
+
+  @override
+  String get settingLedIdleLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedIdleStyleTitle => '效果';
+
+  @override
+  String get settingLedIdleStyleDescription => '空闲时灯光的显示方式。';
+
+  @override
+  String get settingLedIdleStyleOptionSolid => '常亮';
+
+  @override
+  String get settingLedIdleStyleOptionBreathe => '呼吸';
+
+  @override
+  String get settingLedVoiceEnabledTitle => '显示语音活动';
+
+  @override
+  String get settingLedVoiceEnabledDescription =>
+      'Voice Satellite 聆听、思考和回答时亮灯。';
+
+  @override
+  String get settingLedVoiceBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedVoiceBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedVoiceLightColorTitle => '颜色';
+
+  @override
+  String get settingLedVoiceLightColorDescription => '聆听时有光弧转动，思考时交替闪烁，回答时渐变。';
+
+  @override
+  String get settingLedVoiceAccentColorTitle => '强调色';
+
+  @override
+  String get settingLedVoiceAccentColorDescription => '绕灯光移动的光弧。';
+
+  @override
+  String get settingLedVoiceMutedTitle => '静音时显示';
+
+  @override
+  String get settingLedVoiceMutedDescription => 'Voice Satellite 静音时保持亮灯。';
+
+  @override
+  String get settingLedVoiceMutedColorTitle => '静音颜色';
+
+  @override
+  String get settingLedVoiceMutedColorDescription => '静音时灯光的颜色。';
+
+  @override
+  String get settingLedTimersEnabledTitle => '显示计时器';
+
+  @override
+  String get settingLedTimersEnabledDescription => '计时器响铃时脉冲闪烁。';
+
+  @override
+  String get settingLedTimersBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedTimersBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedTimersLightColorTitle => '颜色';
+
+  @override
+  String get settingLedTimersLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedTimersCountdownTitle => '显示倒计时';
+
+  @override
+  String get settingLedTimersCountdownDescription => '下一个计时器倒数时，灯光逐个熄灭。';
+
+  @override
+  String get settingLedAlarmsEnabledTitle => '显示闹钟';
+
+  @override
+  String get settingLedAlarmsEnabledDescription => '闹钟响铃时脉冲闪烁。';
+
+  @override
+  String get settingLedAlarmsBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedAlarmsBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedAlarmsLightColorTitle => '颜色';
+
+  @override
+  String get settingLedAlarmsLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedIntercomEnabledTitle => '显示对讲通话';
+
+  @override
+  String get settingLedIntercomEnabledDescription => '来电响铃时脉冲闪烁，通话进行时转动。';
+
+  @override
+  String get settingLedIntercomBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedIntercomBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedIntercomLightColorTitle => '颜色';
+
+  @override
+  String get settingLedIntercomLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedNotificationsEnabledTitle => '显示通知';
+
+  @override
+  String get settingLedNotificationsEnabledDescription => '有通知等待时缓慢脉冲闪烁。';
+
+  @override
+  String get settingLedNotificationsBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedNotificationsBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedNotificationsLightColorTitle => '颜色';
+
+  @override
+  String get settingLedNotificationsLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedMediaEnabledTitle => '显示音乐';
+
+  @override
+  String get settingLedMediaEnabledDescription => '此设备播放音乐时亮灯。';
+
+  @override
+  String get settingLedMediaBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedMediaBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedMediaLightColorTitle => '颜色';
+
+  @override
+  String get settingLedMediaLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedMediaStyleTitle => '效果';
+
+  @override
+  String get settingLedMediaStyleDescription => '灯光显示音乐的方式。';
+
+  @override
+  String get settingLedMediaStyleOptionSolid => '常亮';
+
+  @override
+  String get settingLedMediaStyleOptionBreathe => '呼吸';
+
+  @override
   String get settingLockdownEnabledTitle => '启用锁定模式';
 
   @override
@@ -7682,6 +8018,40 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get lockdownPermissionsSearch => '锁定保护功能所依赖的权限。';
+
+  @override
+  String get settingAirplayEnabledTitle => '启用 AirPlay 接收器';
+
+  @override
+  String get settingAirplayEnabledDescription =>
+      '此设备会作为 AirPlay 扬声器出现在 iPhone、iPad 或 Mac 的 AirPlay 菜单中。';
+
+  @override
+  String get settingAirplayNameTitle => '扬声器名称';
+
+  @override
+  String get settingAirplayNameDescription => 'AirPlay 菜单中显示的名称。留空则使用设备名称。';
+
+  @override
+  String get settingAirplaySenderVolumeTitle => '跟随发送端音量';
+
+  @override
+  String get settingAirplaySenderVolumeDescription =>
+      'iPhone、iPad 或 Mac 上的音量控制会改变此设备的播放音量。关闭后，只有此设备的音量生效。';
+
+  @override
+  String get settingAirplaySyncOffsetDescription =>
+      '负值让此设备提前播放，使声音与发送端的视频对齐。立即生效。';
+
+  @override
+  String get settingAirplayTakeoverTitle => '允许其他发送端接管';
+
+  @override
+  String get settingAirplayTakeoverDescription =>
+      '一台设备播放时，另一台 iPhone、iPad 或 Mac 可以接管。关闭后，它必须等第一台断开连接。';
+
+  @override
+  String get mediaAirplayHint => '播放来自 iPhone、iPad 或 Mac 的音频';
 
   @override
   String get mediaCacheTitle => '专辑封面缓存';
@@ -7810,8 +8180,18 @@ class UiStringsZh extends UiStrings {
   String get mediaAnotherPlayer => '其他播放器';
 
   @override
-  String mediaLocalOffline(String player) {
-    return '控制 $player 时，此设备自身的 Sendspin 播放器保持离线。';
+  String mediaOfflineSendspin(String player) {
+    return '选择 $player 时，Sendspin 播放器保持离线。';
+  }
+
+  @override
+  String mediaOfflineAirplay(String player) {
+    return '选择 $player 时，AirPlay 接收器保持关闭。';
+  }
+
+  @override
+  String mediaOfflineBoth(String player) {
+    return '选择 $player 时，Sendspin 播放器和 AirPlay 接收器保持离线。';
   }
 
   @override
@@ -8040,6 +8420,13 @@ class UiStringsZh extends UiStrings {
   @override
   String get settingSendspinSpeakerPillPlayersDescription =>
       '按钮中仅显示这些扬声器。已在播放组中的扬声器始终显示。';
+
+  @override
+  String get settingSendspinAudioQualityTitle => '显示音质';
+
+  @override
+  String get settingSendspinAudioQualityDescription =>
+      '在“正在播放”底部显示当前曲目的格式、位深、采样率、码率和来源。需要 Music Assistant。';
 
   @override
   String get mediaAllSpeakers => '所有扬声器';
@@ -8446,6 +8833,45 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingsMenuThemeAuto => '自动';
+
+  @override
+  String get settingsMenuOverviewHeadlessSummary => '状态和快捷控制';
+
+  @override
+  String get settingsMenuHomeAssistantHeadlessSummary => '连接';
+
+  @override
+  String get settingsMenuAudio => '音频';
+
+  @override
+  String get settingsMenuAudioSummary => '音量、麦克风';
+
+  @override
+  String get settingsGroupMedia => '媒体';
+
+  @override
+  String get settingsMenuDlnaHeadlessSummary => '远程播放音频';
+
+  @override
+  String get settingsMenuGesturesHeadlessSummary => '按钮和拍手手势';
+
+  @override
+  String get settingsMenuLeds => 'LED 控制';
+
+  @override
+  String get settingsMenuLedsSummary => '状态灯颜色和效果';
+
+  @override
+  String get settingsLedTimers => '计时器';
+
+  @override
+  String get settingsLedNotifications => '通知';
+
+  @override
+  String get settingsLedIdle => '空闲';
+
+  @override
+  String get settingsLedEffects => '效果';
 
   @override
   String get settingAdaptiveBrightnessTitle => '自适应亮度';
@@ -11164,6 +11590,24 @@ class UiStringsZh extends UiStrings {
   String get settingVoiceWakeSoundDescription => '唤醒、完成和错误提示音。';
 
   @override
+  String get voiceChimeWakeVolumeTitle => '唤醒提示音音量';
+
+  @override
+  String get voiceChimeDoneVolumeTitle => '完成提示音音量';
+
+  @override
+  String get voiceChimeErrorVolumeTitle => '错误提示音音量';
+
+  @override
+  String get voiceChimeTimerVolumeTitle => '计时器提示音音量';
+
+  @override
+  String get voiceChimeAnnounceVolumeTitle => '播报提示音音量';
+
+  @override
+  String get voiceChimeVolumeDescription => '占助手音量的百分比。';
+
+  @override
   String get settingVoiceShowCommandTitle => '显示你说的内容';
 
   @override
@@ -11380,8 +11824,8 @@ class UiStringsZh extends UiStrings {
   String get voiceWordAdded => '已添加';
 
   @override
-  String get voiceHaAddHint =>
-      '请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。';
+  String get voiceHaAddAgainHint =>
+      '请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。';
 
   @override
   String get voiceHaEsphomeOff =>
@@ -12177,6 +12621,13 @@ class UiStringsZh extends UiStrings {
       '检测到唤醒词后，等待其他 Kiosk 设备报告的时间。如果较慢但更近的设备经常未获选，可以延长此时间。';
 
   @override
+  String get settingVoiceWakeArbitrationOffsetTitle => '仲裁补偿';
+
+  @override
+  String get settingVoiceWakeArbitrationOffsetDescription =>
+      '加到此 Kiosk 听到唤醒词的响度上。如果此设备离得更近却未获选，请调高；如果它在太远的地方也会响应，请调低。';
+
+  @override
   String get voiceSectionWakeArbitration => '唤醒词仲裁';
 
   @override
@@ -12366,74 +12817,96 @@ class UiStringsZh extends UiStrings {
       '// 示例：缩放不遵循仪表盘缩放级别的网站\ndocument.documentElement.style.zoom = \'1.25\';';
 
   @override
-  String get urlBlacklistTitle => 'URL 黑名单';
+  String get urlFilterTitle => 'URL 过滤';
 
   @override
-  String get urlBlacklistHint => '按地址模式或正则表达式屏蔽页面';
+  String get urlFilterHint => '按地址模式或正则表达式屏蔽或允许页面';
 
   @override
-  String get urlBlacklistIntroTitle => '按地址屏蔽页面';
+  String get urlFilterIntroTitle => '控制可以打开哪些页面';
 
   @override
-  String get urlBlacklistIntroSub => '与下方规则匹配的链接或页面将被阻止加载。';
+  String get urlFilterIntroSub => '与“屏蔽”规则匹配的链接或页面不会加载。添加“仅允许”规则后，只加载与其匹配的页面。';
 
   @override
-  String get urlBlacklistAdd => '添加规则';
+  String get urlFilterAdd => '添加规则';
 
   @override
-  String get urlBlacklistAddTitle => '添加黑名单规则';
+  String get urlFilterAddTitle => '添加过滤规则';
 
   @override
-  String get urlBlacklistEditTitle => '编辑黑名单规则';
+  String get urlFilterEditTitle => '编辑过滤规则';
 
   @override
-  String get urlBlacklistName => '名称';
+  String get urlFilterName => '名称';
 
   @override
-  String get urlBlacklistPattern => '模式';
+  String get urlFilterPattern => '模式';
 
   @override
-  String get urlBlacklistPatternWildcardHint =>
+  String get urlFilterPatternWildcardHint =>
       '使用 * 匹配任意内容。以 / 开头的模式匹配任意服务器上的路径，例如 /history*。';
 
   @override
-  String get urlBlacklistPatternRegexHint => '在地址任意位置查找的正则表达式，不区分大小写。';
+  String get urlFilterPatternRegexHint => '在地址任意位置查找的正则表达式，不区分大小写。';
 
   @override
-  String get urlBlacklistType => '模式类型';
+  String get urlFilterType => '模式类型';
 
   @override
-  String get urlBlacklistTypeWildcard => '通配符';
+  String get urlFilterTypeWildcard => '通配符';
 
   @override
-  String get urlBlacklistTypeRegex => '正则表达式';
+  String get urlFilterTypeRegex => '正则表达式';
 
   @override
-  String get urlBlacklistScope => '适用于';
+  String get urlFilterAction => '操作';
 
   @override
-  String get urlBlacklistScopeAll => '仪表盘和外部页面';
+  String get urlFilterActionBlock => '屏蔽';
 
   @override
-  String get urlBlacklistScopeDashboard => '仪表盘';
+  String get urlFilterActionAllow => '仅允许';
 
   @override
-  String get urlBlacklistScopeExternal => '外部页面';
+  String get urlFilterActionAllowHint =>
+      '在此规则适用的位置，只加载与“仅允许”规则匹配的页面。Home Assistant 登录页和起始仪表盘始终会加载。';
 
   @override
-  String get urlBlacklistScopeHint => '外部页面指从仪表盘打开的链接和仪表盘轮播页面。';
+  String get urlFilterScope => '适用于';
 
   @override
-  String get urlBlacklistErrorName => '请输入名称。';
+  String get urlFilterScopeAll => '仪表盘和外部页面';
 
   @override
-  String get urlBlacklistErrorPattern => '请输入模式。';
+  String get urlFilterScopeDashboard => '仪表盘';
 
   @override
-  String get urlBlacklistErrorRegex => '此正则表达式无效。';
+  String get urlFilterScopeExternal => '外部页面';
 
   @override
-  String get urlBlacklistBlocked => '页面已屏蔽';
+  String get urlFilterScopeHint => '外部页面指从仪表盘打开的链接和仪表盘轮播页面。';
+
+  @override
+  String get urlFilterErrorName => '请输入名称。';
+
+  @override
+  String get urlFilterErrorPattern => '请输入模式。';
+
+  @override
+  String get urlFilterErrorRegex => '此正则表达式无效。';
+
+  @override
+  String get urlFilterBlocked => '页面已屏蔽';
+
+  @override
+  String get urlFilterNotAllowed => '不在允许的页面中';
+
+  @override
+  String get settingBrowserUrlFilterNoticeTitle => '显示页面屏蔽提示';
+
+  @override
+  String get settingBrowserUrlFilterNoticeDescription => '页面被屏蔽时显示带有规则名称的简短提示。';
 
   @override
   String get setupConnectHeading => '连接 Home Assistant';
@@ -12529,6 +13002,10 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get setupSelectDashboardHelp => '选择 Kiosk 显示的仪表盘，之后可在设置中更改。';
+
+  @override
+  String get setupHeadlessGrants =>
+      '此设备没有屏幕，因此 Android 无法在设备上请求这些权限。请通过 adb 逐一授予，然后在此完成。';
 
   @override
   String get setupWelcome => '欢迎';
@@ -12726,8 +13203,8 @@ class UiStringsZh extends UiStrings {
   String get setupVoiceLead => '将此 Kiosk 设置为 Home Assistant 语音助手。所有设置之后都可修改。';
 
   @override
-  String get setupVoiceAddHint =>
-      '设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。';
+  String get setupVoiceAddAgainHint =>
+      '设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。';
 
   @override
   String get setupRecommendedWall => '适合壁挂 Kiosk 的设置。';
@@ -14422,6 +14899,21 @@ class UiStringsZhCn extends UiStringsZh {
   String get fleetErrorOtherLeader => '该 Kiosk 设备已在从其他主设备同步设置。';
 
   @override
+  String fleetPluginsNames(String names) {
+    return '插件：$names';
+  }
+
+  @override
+  String fleetCouldNotInstallNameReason(String name, String reason) {
+    return '无法安装 $name：$reason';
+  }
+
+  @override
+  String fleetReinstallNameOnThisKioskToSyncIt(String name) {
+    return '请在此设备上重新安装 $name 以进行同步';
+  }
+
+  @override
   String get fleetSwitchKiosk => '切换 Kiosk 设备';
 
   @override
@@ -14512,6 +15004,19 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get fleetMcpServerToken => 'MCP 服务器令牌';
+
+  @override
+  String get fleetPlugins => '插件';
+
+  @override
+  String get fleetPluginSecrets => '插件密钥';
+
+  @override
+  String get fleetNoPluginsInstalledOnThisKiosk => '此 Kiosk 设备未安装插件';
+
+  @override
+  String get fleetKiosksOnThisProfileInstallTheseAndTakeTheir =>
+      '使用此方案的 Kiosk 设备会安装这些插件，并沿用此设备上的插件设置。';
 
   @override
   String get fleetUpdateTheFleet => '更新设备群';
@@ -14661,6 +15166,15 @@ class UiStringsZhCn extends UiStringsZh {
   String get gestureIntercomEmpty => '尚未在网络中发现 Kiosk 设备。';
 
   @override
+  String get gestureVoiceWake => '开始语音指令';
+
+  @override
+  String get gestureVoiceStop => '停止语音助手';
+
+  @override
+  String get gestureVoiceMute => '将 Voice Satellite 静音或取消静音';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '点击$corner角 $count 次';
   }
@@ -14761,6 +15275,21 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String gestureFireEvent(String value) {
     return '触发事件 $value';
+  }
+
+  @override
+  String gestureDescribeButtonPress(String button) {
+    return '按下 $button 按钮';
+  }
+
+  @override
+  String gestureDescribeButtonDouble(String button) {
+    return '双击 $button 按钮';
+  }
+
+  @override
+  String gestureDescribeButtonHold(String button) {
+    return '长按 $button 按钮';
   }
 
   @override
@@ -15082,6 +15611,22 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get gesturePluginTriggerHelp => '请先在“插件管理器”中启用提供触发器的插件。';
+
+  @override
+  String get gestureButton => '按钮';
+
+  @override
+  String get gesturePress => '按下';
+
+  @override
+  String get gestureDoublePress => '双击';
+
+  @override
+  String get gestureHoldPress => '长按';
+
+  @override
+  String get gestureButtonDefaults =>
+      '没有手势使用的按键会保留原本的作用：操作键接听、停止或关闭正在响铃的内容，否则开始语音指令；麦克风键将 Voice Satellite 静音；音量键调整音量。';
 
   @override
   String get intercomCall => '呼叫';
@@ -15608,6 +16153,30 @@ class UiStringsZhCn extends UiStringsZh {
   String get mediaCannotControl => '命令不受支持或未发送';
 
   @override
+  String get mediaAudioHiRes => 'Hi-Res';
+
+  @override
+  String get mediaAudioCdQuality => 'CD 音质';
+
+  @override
+  String get mediaAudioLossy => '有损';
+
+  @override
+  String mediaAudioBitDepth(String bits) {
+    return '$bits 位';
+  }
+
+  @override
+  String mediaAudioSampleRate(String rate) {
+    return '$rate kHz';
+  }
+
+  @override
+  String mediaAudioBitRate(String rate) {
+    return '$rate kbps';
+  }
+
+  @override
   String get mediaNothingQueued => '播放队列为空';
 
   @override
@@ -16101,6 +16670,9 @@ class UiStringsZhCn extends UiStringsZh {
   String get pluginErrorAndroidOld => 'Android 版本过旧';
 
   @override
+  String get pluginErrorNeedsScreen => '此插件需要屏幕';
+
+  @override
   String get pluginErrorNativeIntegrity => '已安装原生库的完整性校验失败';
 
   @override
@@ -16381,6 +16953,16 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String overviewInstallHelp(String version) {
     return 'Kiosk Satellite $version 已可安装。安装需在平板屏幕上确认。';
+  }
+
+  @override
+  String overviewInstallSilentHelp(String version) {
+    return 'Kiosk Satellite $version 已可安装。它会在设备上无需确认直接安装。';
+  }
+
+  @override
+  String overviewInstallHeadlessHelp(String version) {
+    return 'Kiosk Satellite $version 已可安装。此设备没有可用于确认的屏幕，请将 Kiosk Satellite 设为设备所有者、使用 Shizuku，或通过 adb 安装。';
   }
 
   @override
@@ -16672,6 +17254,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get overviewShowingCustomPages => '正在显示自定义网页';
+
+  @override
+  String get overviewHeadlessMode => '无屏幕模式';
 
   @override
   String get overviewNoScreenshot => '暂无截图';
@@ -17981,6 +18566,47 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get deviceOpenSettingsDevice => '在设备上打开设置';
+
+  @override
+  String get deviceHardwareButtons => '硬件按钮';
+
+  @override
+  String get deviceHardwareButtonsHeld => '设备按钮可以触发手势和 Voice Satellite。';
+
+  @override
+  String get deviceHardwareButtonsMissing => '在开启按钮服务之前，设备按钮不起作用。';
+
+  @override
+  String get deviceHeadlessAdbMicrophone =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.RECORD_AUDIO';
+
+  @override
+  String get deviceHeadlessAdbNotifications =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.POST_NOTIFICATIONS';
+
+  @override
+  String get deviceHeadlessAdbLocation =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.ACCESS_FINE_LOCATION';
+
+  @override
+  String get deviceHeadlessAdbBluetooth =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.BLUETOOTH_SCAN，然后对 BLUETOOTH_CONNECT 执行相同操作';
+
+  @override
+  String get deviceHeadlessAdbBattery =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite';
+
+  @override
+  String get deviceHeadlessAdbStorage =>
+      '此设备没有屏幕。请通过 adb 授予：adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE，然后对 WRITE_EXTERNAL_STORAGE 执行相同操作';
+
+  @override
+  String get deviceHeadlessAdbButtons =>
+      '此设备没有屏幕。请通过 adb 开启：adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService，然后 adb shell settings put secure accessibility_enabled 1';
+
+  @override
+  String get deviceHeadlessAdbButtonsRestart =>
+      '按键服务已开启但尚未启动。请重启设备以启动它：adb reboot';
 
   @override
   String get deviceHardwarePage => '硬件';
@@ -20608,6 +21234,193 @@ class UiStringsZhCn extends UiStringsZh {
   String get kioskOpenSettingsDevice => '在设备上打开设置';
 
   @override
+  String get settingLedEnabledTitle => '启用 LED 控制';
+
+  @override
+  String get settingLedEnabledDescription => '让 Kiosk Satellite 控制灯光。';
+
+  @override
+  String get settingLedAnimationsTitle => '动画效果';
+
+  @override
+  String get settingLedAnimationsDescription => '让光弧转动、脉冲渐变。关闭后所有效果均为静态。';
+
+  @override
+  String get settingLedIdleEnabledTitle => '空闲时亮灯';
+
+  @override
+  String get settingLedIdleEnabledDescription => '没有其他内容显示时保持亮灯。';
+
+  @override
+  String get settingLedIdleBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedIdleBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedIdleLightColorTitle => '颜色';
+
+  @override
+  String get settingLedIdleLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedIdleStyleTitle => '效果';
+
+  @override
+  String get settingLedIdleStyleDescription => '空闲时灯光的显示方式。';
+
+  @override
+  String get settingLedIdleStyleOptionSolid => '常亮';
+
+  @override
+  String get settingLedIdleStyleOptionBreathe => '呼吸';
+
+  @override
+  String get settingLedVoiceEnabledTitle => '显示语音活动';
+
+  @override
+  String get settingLedVoiceEnabledDescription =>
+      'Voice Satellite 聆听、思考和回答时亮灯。';
+
+  @override
+  String get settingLedVoiceBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedVoiceBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedVoiceLightColorTitle => '颜色';
+
+  @override
+  String get settingLedVoiceLightColorDescription => '聆听时有光弧转动，思考时交替闪烁，回答时渐变。';
+
+  @override
+  String get settingLedVoiceAccentColorTitle => '强调色';
+
+  @override
+  String get settingLedVoiceAccentColorDescription => '绕灯光移动的光弧。';
+
+  @override
+  String get settingLedVoiceMutedTitle => '静音时显示';
+
+  @override
+  String get settingLedVoiceMutedDescription => 'Voice Satellite 静音时保持亮灯。';
+
+  @override
+  String get settingLedVoiceMutedColorTitle => '静音颜色';
+
+  @override
+  String get settingLedVoiceMutedColorDescription => '静音时灯光的颜色。';
+
+  @override
+  String get settingLedTimersEnabledTitle => '显示计时器';
+
+  @override
+  String get settingLedTimersEnabledDescription => '计时器响铃时脉冲闪烁。';
+
+  @override
+  String get settingLedTimersBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedTimersBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedTimersLightColorTitle => '颜色';
+
+  @override
+  String get settingLedTimersLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedTimersCountdownTitle => '显示倒计时';
+
+  @override
+  String get settingLedTimersCountdownDescription => '下一个计时器倒数时，灯光逐个熄灭。';
+
+  @override
+  String get settingLedAlarmsEnabledTitle => '显示闹钟';
+
+  @override
+  String get settingLedAlarmsEnabledDescription => '闹钟响铃时脉冲闪烁。';
+
+  @override
+  String get settingLedAlarmsBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedAlarmsBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedAlarmsLightColorTitle => '颜色';
+
+  @override
+  String get settingLedAlarmsLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedIntercomEnabledTitle => '显示对讲通话';
+
+  @override
+  String get settingLedIntercomEnabledDescription => '来电响铃时脉冲闪烁，通话进行时转动。';
+
+  @override
+  String get settingLedIntercomBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedIntercomBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedIntercomLightColorTitle => '颜色';
+
+  @override
+  String get settingLedIntercomLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedNotificationsEnabledTitle => '显示通知';
+
+  @override
+  String get settingLedNotificationsEnabledDescription => '有通知等待时缓慢脉冲闪烁。';
+
+  @override
+  String get settingLedNotificationsBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedNotificationsBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedNotificationsLightColorTitle => '颜色';
+
+  @override
+  String get settingLedNotificationsLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedMediaEnabledTitle => '显示音乐';
+
+  @override
+  String get settingLedMediaEnabledDescription => '此设备播放音乐时亮灯。';
+
+  @override
+  String get settingLedMediaBrightnessTitle => '亮度';
+
+  @override
+  String get settingLedMediaBrightnessDescription => '此项灯光的亮度。';
+
+  @override
+  String get settingLedMediaLightColorTitle => '颜色';
+
+  @override
+  String get settingLedMediaLightColorDescription => '此项灯光的颜色。';
+
+  @override
+  String get settingLedMediaStyleTitle => '效果';
+
+  @override
+  String get settingLedMediaStyleDescription => '灯光显示音乐的方式。';
+
+  @override
+  String get settingLedMediaStyleOptionSolid => '常亮';
+
+  @override
+  String get settingLedMediaStyleOptionBreathe => '呼吸';
+
+  @override
   String get settingLockdownEnabledTitle => '启用锁定模式';
 
   @override
@@ -20659,6 +21472,40 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get lockdownPermissionsSearch => '锁定保护功能所依赖的权限。';
+
+  @override
+  String get settingAirplayEnabledTitle => '启用 AirPlay 接收器';
+
+  @override
+  String get settingAirplayEnabledDescription =>
+      '此设备会作为 AirPlay 扬声器出现在 iPhone、iPad 或 Mac 的 AirPlay 菜单中。';
+
+  @override
+  String get settingAirplayNameTitle => '扬声器名称';
+
+  @override
+  String get settingAirplayNameDescription => 'AirPlay 菜单中显示的名称。留空则使用设备名称。';
+
+  @override
+  String get settingAirplaySenderVolumeTitle => '跟随发送端音量';
+
+  @override
+  String get settingAirplaySenderVolumeDescription =>
+      'iPhone、iPad 或 Mac 上的音量控制会改变此设备的播放音量。关闭后，只有此设备的音量生效。';
+
+  @override
+  String get settingAirplaySyncOffsetDescription =>
+      '负值让此设备提前播放，使声音与发送端的视频对齐。立即生效。';
+
+  @override
+  String get settingAirplayTakeoverTitle => '允许其他发送端接管';
+
+  @override
+  String get settingAirplayTakeoverDescription =>
+      '一台设备播放时，另一台 iPhone、iPad 或 Mac 可以接管。关闭后，它必须等第一台断开连接。';
+
+  @override
+  String get mediaAirplayHint => '播放来自 iPhone、iPad 或 Mac 的音频';
 
   @override
   String get mediaCacheTitle => '专辑封面缓存';
@@ -20787,8 +21634,18 @@ class UiStringsZhCn extends UiStringsZh {
   String get mediaAnotherPlayer => '其他播放器';
 
   @override
-  String mediaLocalOffline(String player) {
-    return '控制 $player 时，此设备自身的 Sendspin 播放器保持离线。';
+  String mediaOfflineSendspin(String player) {
+    return '选择 $player 时，Sendspin 播放器保持离线。';
+  }
+
+  @override
+  String mediaOfflineAirplay(String player) {
+    return '选择 $player 时，AirPlay 接收器保持关闭。';
+  }
+
+  @override
+  String mediaOfflineBoth(String player) {
+    return '选择 $player 时，Sendspin 播放器和 AirPlay 接收器保持离线。';
   }
 
   @override
@@ -21017,6 +21874,13 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get settingSendspinSpeakerPillPlayersDescription =>
       '按钮中仅显示这些扬声器。已在播放组中的扬声器始终显示。';
+
+  @override
+  String get settingSendspinAudioQualityTitle => '显示音质';
+
+  @override
+  String get settingSendspinAudioQualityDescription =>
+      '在“正在播放”底部显示当前曲目的格式、位深、采样率、码率和来源。需要 Music Assistant。';
 
   @override
   String get mediaAllSpeakers => '所有扬声器';
@@ -21423,6 +22287,45 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingsMenuThemeAuto => '自动';
+
+  @override
+  String get settingsMenuOverviewHeadlessSummary => '状态和快捷控制';
+
+  @override
+  String get settingsMenuHomeAssistantHeadlessSummary => '连接';
+
+  @override
+  String get settingsMenuAudio => '音频';
+
+  @override
+  String get settingsMenuAudioSummary => '音量、麦克风';
+
+  @override
+  String get settingsGroupMedia => '媒体';
+
+  @override
+  String get settingsMenuDlnaHeadlessSummary => '远程播放音频';
+
+  @override
+  String get settingsMenuGesturesHeadlessSummary => '按钮和拍手手势';
+
+  @override
+  String get settingsMenuLeds => 'LED 控制';
+
+  @override
+  String get settingsMenuLedsSummary => '状态灯颜色和效果';
+
+  @override
+  String get settingsLedTimers => '计时器';
+
+  @override
+  String get settingsLedNotifications => '通知';
+
+  @override
+  String get settingsLedIdle => '空闲';
+
+  @override
+  String get settingsLedEffects => '效果';
 
   @override
   String get settingAdaptiveBrightnessTitle => '自适应亮度';
@@ -24141,6 +25044,24 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingVoiceWakeSoundDescription => '唤醒、完成和错误提示音。';
 
   @override
+  String get voiceChimeWakeVolumeTitle => '唤醒提示音音量';
+
+  @override
+  String get voiceChimeDoneVolumeTitle => '完成提示音音量';
+
+  @override
+  String get voiceChimeErrorVolumeTitle => '错误提示音音量';
+
+  @override
+  String get voiceChimeTimerVolumeTitle => '计时器提示音音量';
+
+  @override
+  String get voiceChimeAnnounceVolumeTitle => '播报提示音音量';
+
+  @override
+  String get voiceChimeVolumeDescription => '占助手音量的百分比。';
+
+  @override
   String get settingVoiceShowCommandTitle => '显示你说的内容';
 
   @override
@@ -24357,8 +25278,8 @@ class UiStringsZhCn extends UiStringsZh {
   String get voiceWordAdded => '已添加';
 
   @override
-  String get voiceHaAddHint =>
-      '请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。';
+  String get voiceHaAddAgainHint =>
+      '请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。';
 
   @override
   String get voiceHaEsphomeOff =>
@@ -25154,6 +26075,13 @@ class UiStringsZhCn extends UiStringsZh {
       '检测到唤醒词后，等待其他 Kiosk 设备报告的时间。如果较慢但更近的设备经常未获选，可以延长此时间。';
 
   @override
+  String get settingVoiceWakeArbitrationOffsetTitle => '仲裁补偿';
+
+  @override
+  String get settingVoiceWakeArbitrationOffsetDescription =>
+      '加到此 Kiosk 听到唤醒词的响度上。如果此设备离得更近却未获选，请调高；如果它在太远的地方也会响应，请调低。';
+
+  @override
   String get voiceSectionWakeArbitration => '唤醒词仲裁';
 
   @override
@@ -25343,74 +26271,96 @@ class UiStringsZhCn extends UiStringsZh {
       '// 示例：缩放不遵循仪表盘缩放级别的网站\ndocument.documentElement.style.zoom = \'1.25\';';
 
   @override
-  String get urlBlacklistTitle => 'URL 黑名单';
+  String get urlFilterTitle => 'URL 过滤';
 
   @override
-  String get urlBlacklistHint => '按地址模式或正则表达式屏蔽页面';
+  String get urlFilterHint => '按地址模式或正则表达式屏蔽或允许页面';
 
   @override
-  String get urlBlacklistIntroTitle => '按地址屏蔽页面';
+  String get urlFilterIntroTitle => '控制可以打开哪些页面';
 
   @override
-  String get urlBlacklistIntroSub => '与下方规则匹配的链接或页面将被阻止加载。';
+  String get urlFilterIntroSub => '与“屏蔽”规则匹配的链接或页面不会加载。添加“仅允许”规则后，只加载与其匹配的页面。';
 
   @override
-  String get urlBlacklistAdd => '添加规则';
+  String get urlFilterAdd => '添加规则';
 
   @override
-  String get urlBlacklistAddTitle => '添加黑名单规则';
+  String get urlFilterAddTitle => '添加过滤规则';
 
   @override
-  String get urlBlacklistEditTitle => '编辑黑名单规则';
+  String get urlFilterEditTitle => '编辑过滤规则';
 
   @override
-  String get urlBlacklistName => '名称';
+  String get urlFilterName => '名称';
 
   @override
-  String get urlBlacklistPattern => '模式';
+  String get urlFilterPattern => '模式';
 
   @override
-  String get urlBlacklistPatternWildcardHint =>
+  String get urlFilterPatternWildcardHint =>
       '使用 * 匹配任意内容。以 / 开头的模式匹配任意服务器上的路径，例如 /history*。';
 
   @override
-  String get urlBlacklistPatternRegexHint => '在地址任意位置查找的正则表达式，不区分大小写。';
+  String get urlFilterPatternRegexHint => '在地址任意位置查找的正则表达式，不区分大小写。';
 
   @override
-  String get urlBlacklistType => '模式类型';
+  String get urlFilterType => '模式类型';
 
   @override
-  String get urlBlacklistTypeWildcard => '通配符';
+  String get urlFilterTypeWildcard => '通配符';
 
   @override
-  String get urlBlacklistTypeRegex => '正则表达式';
+  String get urlFilterTypeRegex => '正则表达式';
 
   @override
-  String get urlBlacklistScope => '适用于';
+  String get urlFilterAction => '操作';
 
   @override
-  String get urlBlacklistScopeAll => '仪表盘和外部页面';
+  String get urlFilterActionBlock => '屏蔽';
 
   @override
-  String get urlBlacklistScopeDashboard => '仪表盘';
+  String get urlFilterActionAllow => '仅允许';
 
   @override
-  String get urlBlacklistScopeExternal => '外部页面';
+  String get urlFilterActionAllowHint =>
+      '在此规则适用的位置，只加载与“仅允许”规则匹配的页面。Home Assistant 登录页和起始仪表盘始终会加载。';
 
   @override
-  String get urlBlacklistScopeHint => '外部页面指从仪表盘打开的链接和仪表盘轮播页面。';
+  String get urlFilterScope => '适用于';
 
   @override
-  String get urlBlacklistErrorName => '请输入名称。';
+  String get urlFilterScopeAll => '仪表盘和外部页面';
 
   @override
-  String get urlBlacklistErrorPattern => '请输入模式。';
+  String get urlFilterScopeDashboard => '仪表盘';
 
   @override
-  String get urlBlacklistErrorRegex => '此正则表达式无效。';
+  String get urlFilterScopeExternal => '外部页面';
 
   @override
-  String get urlBlacklistBlocked => '页面已屏蔽';
+  String get urlFilterScopeHint => '外部页面指从仪表盘打开的链接和仪表盘轮播页面。';
+
+  @override
+  String get urlFilterErrorName => '请输入名称。';
+
+  @override
+  String get urlFilterErrorPattern => '请输入模式。';
+
+  @override
+  String get urlFilterErrorRegex => '此正则表达式无效。';
+
+  @override
+  String get urlFilterBlocked => '页面已屏蔽';
+
+  @override
+  String get urlFilterNotAllowed => '不在允许的页面中';
+
+  @override
+  String get settingBrowserUrlFilterNoticeTitle => '显示页面屏蔽提示';
+
+  @override
+  String get settingBrowserUrlFilterNoticeDescription => '页面被屏蔽时显示带有规则名称的简短提示。';
 
   @override
   String get setupConnectHeading => '连接 Home Assistant';
@@ -25506,6 +26456,10 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get setupSelectDashboardHelp => '选择 Kiosk 显示的仪表盘，之后可在设置中更改。';
+
+  @override
+  String get setupHeadlessGrants =>
+      '此设备没有屏幕，因此 Android 无法在设备上请求这些权限。请通过 adb 逐一授予，然后在此完成。';
 
   @override
   String get setupWelcome => '欢迎';
@@ -25703,8 +26657,8 @@ class UiStringsZhCn extends UiStringsZh {
   String get setupVoiceLead => '将此 Kiosk 设置为 Home Assistant 语音助手。所有设置之后都可修改。';
 
   @override
-  String get setupVoiceAddHint =>
-      '设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。';
+  String get setupVoiceAddAgainHint =>
+      '设置完成后，请在 Home Assistant 的“设置 > 设备与服务”中添加此 Kiosk，它会显示为已发现设备。如果 Home Assistant 之前已添加过它，会在那里要求输入 ESPHome 页面上的新加密密钥。';
 
   @override
   String get setupRecommendedWall => '适合壁挂 Kiosk 的设置。';

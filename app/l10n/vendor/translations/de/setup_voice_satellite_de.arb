@@ -14,7 +14,7 @@
   "setupAutoplay": "Audio und Video automatisch wiedergeben",
   "setupVoiceSkipped": "Nicht installiert, übersprungen",
   "setupVoiceLead": "Mach diesen Kiosk zu einem Sprachassistenten für Home Assistant. Alles lässt sich später ändern.",
-  "setupVoiceAddHint": "Füge diesen Kiosk nach der Einrichtung in Home Assistant unter Einstellungen, Geräte & Dienste hinzu, wo er als erkannt erscheint.",
+  "setupVoiceAddAgainHint": "Füge diesen Kiosk nach der Einrichtung in Home Assistant unter Einstellungen, Geräte & Dienste hinzu, wo er als erkannt erscheint. Kannte Home Assistant ihn schon, fragt es dort nach dem neuen Verschlüsselungsschlüssel von der ESPHome-Seite.",
   "setupRecommendedWall": "Die Einstellungen, die zu einem Kiosk an der Wand passen.",
   "setupVoiceFound": "Voice Satellite-Integration gefunden",
   "setupVoiceFoundHelp": "Voice Satellite läuft jetzt in Kiosk Satellite. Migriere, um Aktivierungswörter, Assistent und Aussehen eines Satelliten der Integration zu behalten, statt neu anzufangen.",

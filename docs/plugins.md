@@ -7,4 +7,6 @@ Plugin documentation lives in the [Community SDK repository](https://github.com/
 
 Plugins can also use the optional [Shizuku connection](shizuku.md).
 
+A fleet leader can install its plugins on its followers with their settings. See [Fleet Management](fleet.md#plugins).
+
 The application retains its license with an [additional permission for independent plugins](../PLUGIN-EXCEPTION.md).

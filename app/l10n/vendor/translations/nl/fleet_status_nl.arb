@@ -63,5 +63,8 @@
   "fleetErrorInvalidIdentity": "Dat adres gaf geen geldige kiosk-identiteit terug.",
   "fleetErrorAlreadyMember": "Deze kiosk maakt al deel uit van deze vloot.",
   "fleetErrorIsLeader": "Die kiosk leidt een vloot.",
-  "fleetErrorOtherLeader": "Die kiosk volgt al een andere leider."
+  "fleetErrorOtherLeader": "Die kiosk volgt al een andere leider.",
+  "fleetPluginsNames": "Plug-ins: {names}",
+  "fleetCouldNotInstallNameReason": "Kan {name} niet installeren: {reason}",
+  "fleetReinstallNameOnThisKioskToSyncIt": "Installeer {name} opnieuw op deze kiosk om het te synchroniseren"
 }

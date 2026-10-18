@@ -95,7 +95,7 @@ ESPHome actions put a call through from an automation or a dashboard button. `es
 
 Home Assistant cannot talk on a call: the kiosks hold the microphones. To speak on a kiosk from Home Assistant, use the [announce action](esphome.md#announcements) under ESPHome. On the [remote API](remote-api.md) the same two are `intercomCall {kiosk}` and `intercomHangup`.
 
-Apps on the kiosk itself, like Tasker or MacroDroid, can follow calls through [Android Broadcasts](android-broadcasts.md#intercom) instead.
+Automations can follow calls through the `esphome.kiosk_satellite_intercom` [event](events.md#intercom). Apps on the kiosk itself, like Tasker or MacroDroid, can use [Android Broadcasts](android-broadcasts.md#intercom) instead.
 
 ## Calling by voice
 

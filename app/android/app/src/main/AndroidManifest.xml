@@ -263,6 +263,21 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/kiosk_accessibility"/>
         </service>
+        <!-- The hardware buttons of a device without a screen. Disabled
+             here and enabled at runtime only on such a device, so no
+             other device lists it. See HeadlessKeyService. -->
+        <service
+            android:name=".HeadlessKeyService"
+            android:enabled="false"
+            android:exported="false"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/headless_keys"/>
+        </service>
         <!-- The Media Session player source: Android lists other apps'
              media sessions only to an app holding "Notification access",
              which names a listener service. This one reads no

@@ -41,10 +41,10 @@ class SoundManager extends Manager {
   StreamSubscription<SettingChanged>? _settingsSub;
   final _voiceDurations = <String, (int, int, double)>{};
   static const _voiceDefaults = <String, double>{
-    'wake': 0.29,
-    'done': 0.29,
-    'error': 0.19,
-    'alert': 0.63,
+    'wake': 0.31,
+    'done': 0.31,
+    'error': 0.21,
+    'alert': 0.65,
     'announce': 1.0,
   };
 
@@ -120,6 +120,13 @@ class SoundManager extends Manager {
     final source = await _bundled('assets/sounds/$asset.mp3');
     return (source, await _voiceDuration(source) ?? _voiceDefaults[kind]!);
   }
+
+  /// The [kind] chime's own volume, 0..1, applied under the assistant
+  /// volume.
+  double _chimeVolume(String kind) =>
+      ((settings?.get(voiceChimeVolumes[kind]!) ?? 100) / 100)
+          .clamp(0, 1)
+          .toDouble();
 
   Future<Map<String, double>> _refreshVoiceChimes() async {
     final generation = ++_refreshGeneration;
@@ -263,7 +270,7 @@ class SoundManager extends Manager {
             final ok = await _channel.invokeMethod<bool>('play', {
               'id': 'voice-preview',
               'source': source,
-              'volume': 1.0,
+              'volume': _chimeVolume(kind),
             });
             return ok == true
                 ? const CommandResult.ok()
@@ -330,7 +337,9 @@ class SoundManager extends Manager {
             final ok = await _channel.invokeMethod<bool>('play', {
               'id': id,
               'source': source,
-              'volume': (p['volume'] as num?)?.toDouble() ?? 1.0,
+              'volume':
+                  ((p['volume'] as num?)?.toDouble() ?? 1.0) *
+                  (chime == null ? 1.0 : _chimeVolume(chime)),
             });
             if (ok != true) {
               _ephemeral.remove(id);
@@ -363,7 +372,7 @@ class SoundManager extends Manager {
             final ok = await _channel.invokeMethod<bool>('play', {
               'id': id,
               'source': source,
-              'volume': 1.0,
+              'volume': _chimeVolume(kind),
             });
             if (ok != true) {
               return const CommandResult.fail('native playback failed');
@@ -476,7 +485,7 @@ class SoundManager extends Manager {
             final ok = await _channel.invokeMethod<bool>('play', {
               'id': id,
               'source': source,
-              'volume': 1.0,
+              'volume': _chimeVolume('alert'),
             });
             return ok == true
                 ? CommandResult.ok({'id': id})

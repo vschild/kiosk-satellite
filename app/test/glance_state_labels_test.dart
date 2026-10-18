@@ -58,6 +58,9 @@ void main() {
         switch (type) {
           case 'subscribe_entities':
             socket.add(jsonEncode(result(null)));
+          case 'frontend/get_user_data':
+            // A user who never picked a language follows the server.
+            socket.add(jsonEncode(result({'value': null})));
           case 'get_config':
             socket.add(jsonEncode(result({'language': 'de'})));
           case 'config/entity_registry/get_entries':

@@ -188,4 +188,4 @@ actions:
       entity_id: light.bedroom
 ```
 
-Apps on the kiosk itself, like Tasker or MacroDroid, get the same events as [Android Broadcasts](android-broadcasts.md#alarms).
+Apps on the kiosk itself, like Tasker or MacroDroid, get the same events as [Android Broadcasts](android-broadcasts.md#alarms). For the kiosk's other events, see [Home Assistant Events](events.md).

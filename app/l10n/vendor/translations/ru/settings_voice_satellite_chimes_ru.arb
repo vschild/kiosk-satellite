@@ -16,5 +16,11 @@
   "voiceChimeAnnounceTitle": "Звук объявления",
   "voiceChimeAnnounceDescription": "Играет перед объявлением Voice Satellite, если у него нет своего звука.",
   "settingVoiceWakeSoundTitle": "Проигрывать сигналы",
-  "settingVoiceWakeSoundDescription": "Звуки пробуждения, готовности и ошибки."
+  "settingVoiceWakeSoundDescription": "Звуки пробуждения, готовности и ошибки.",
+  "voiceChimeWakeVolumeTitle": "Громкость звука пробуждения",
+  "voiceChimeDoneVolumeTitle": "Громкость звука готовности",
+  "voiceChimeErrorVolumeTitle": "Громкость звука ошибки",
+  "voiceChimeTimerVolumeTitle": "Громкость звука таймера",
+  "voiceChimeAnnounceVolumeTitle": "Громкость звука объявления",
+  "voiceChimeVolumeDescription": "Доля громкости ассистента."
 }

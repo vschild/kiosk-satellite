@@ -56,5 +56,18 @@
   "settingsMenuLogout": "退出登录",
   "settingsMenuSwitchKiosk": "切换 Kiosk 设备",
   "settingsMenuThemeState": "主题：{theme}",
-  "settingsMenuThemeAuto": "自动"
+  "settingsMenuThemeAuto": "自动",
+  "settingsMenuOverviewHeadlessSummary": "状态和快捷控制",
+  "settingsMenuHomeAssistantHeadlessSummary": "连接",
+  "settingsMenuAudio": "音频",
+  "settingsMenuAudioSummary": "音量、麦克风",
+  "settingsGroupMedia": "媒体",
+  "settingsMenuDlnaHeadlessSummary": "远程播放音频",
+  "settingsMenuGesturesHeadlessSummary": "按钮和拍手手势",
+  "settingsMenuLeds": "LED 控制",
+  "settingsMenuLedsSummary": "状态灯颜色和效果",
+  "settingsLedTimers": "计时器",
+  "settingsLedNotifications": "通知",
+  "settingsLedIdle": "空闲",
+  "settingsLedEffects": "效果"
 }

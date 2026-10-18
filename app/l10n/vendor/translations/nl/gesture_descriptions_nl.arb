@@ -22,5 +22,8 @@
   "gestureOpenApp": "App {package} openen",
   "gestureRun": "{value} uitvoeren",
   "gestureTriggerAction": "{value} activeren",
-  "gestureFireEvent": "Gebeurtenis {value} activeren"
+  "gestureFireEvent": "Gebeurtenis {value} activeren",
+  "gestureDescribeButtonPress": "Op de knop {button} drukken",
+  "gestureDescribeButtonDouble": "Twee keer op de knop {button} drukken",
+  "gestureDescribeButtonHold": "De knop {button} ingedrukt houden"
 }

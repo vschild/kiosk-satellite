@@ -45,5 +45,6 @@
   "overviewMemoryFree": "可用 {amount} GB",
   "overviewMetricPercent": "{value}%",
   "overviewMetricDegrees": "{value}°C",
-  "overviewShowingCustomPages": "正在显示自定义网页"
+  "overviewShowingCustomPages": "正在显示自定义网页",
+  "overviewHeadlessMode": "无屏幕模式"
 }

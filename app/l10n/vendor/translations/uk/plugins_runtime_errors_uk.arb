@@ -25,5 +25,6 @@
   "pluginErrorNativeFileIntegrity": "Встановлена нативна бібліотека не пройшла перевірку цілісності",
   "pluginErrorReadInstalled": "Не вдалося прочитати встановлений плагін: {error}",
   "pluginErrorPreviousRestart": "Не вдалося перезапустити попередню версію: {error}",
-  "pluginErrorUpdateFailed": "Помилка оновлення плагіна: {error}. {recovery}"
+  "pluginErrorUpdateFailed": "Помилка оновлення плагіна: {error}. {recovery}",
+  "pluginErrorNeedsScreen": "Цьому плагіну потрібен екран"
 }

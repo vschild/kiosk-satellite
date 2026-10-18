@@ -1,6 +1,7 @@
 import { cameraAction, cameraListRow } from './cameras.js';
 import { api, cmd } from './core.js';
 import { readOnlyRow } from './device.js';
+import { isHeadless } from './headless.js';
 import { filesState } from './notices.js';
 import { localizedMessageBox, showToast } from './widgets.js';
 import { t, messageLanguage } from './localization.js';
@@ -128,7 +129,10 @@ function buildShell(tab) {
   grantCard.style.display = 'none';
   const grantRow = readOnlyRow('', '', '', false);
   textLabel(grantRow.querySelector('.name'), 'filesPermissionMissing');
-  textLabel(grantRow.querySelector('.desc'), 'filesPermissionHelp');
+  // Without a screen the grant comes over adb: the command stands in for
+  // the button, as on the Permissions page.
+  textLabel(grantRow.querySelector('.desc'), isHeadless() ? 'deviceHeadlessAdbStorage' : 'filesPermissionHelp');
+  if (isHeadless()) grantRow.querySelector('.desc').style.userSelect = 'all';
   const grantBtn = document.createElement('button');
   grantBtn.className = 'btn-ghost';
   textLabel(grantBtn, 'filesGrant');
@@ -146,7 +150,7 @@ function buildShell(tab) {
     }
     grantBtn.disabled = false;
   });
-  grantRow.appendChild(grantBtn);
+  if (!isHeadless()) grantRow.appendChild(grantBtn);
   grantCard.appendChild(grantRow);
   tab.appendChild(grantCard);
 

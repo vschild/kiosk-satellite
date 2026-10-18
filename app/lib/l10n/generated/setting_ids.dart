@@ -1016,6 +1016,26 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingSendspinSonosGroupVolumeTitle",
     "description": "settingSendspinGroupVolumeDescription",
   },
+  "airplay.enabled": {
+    "title": "settingAirplayEnabledTitle",
+    "description": "settingAirplayEnabledDescription",
+  },
+  "airplay.name": {
+    "title": "settingAirplayNameTitle",
+    "description": "settingAirplayNameDescription",
+  },
+  "airplay.sender_volume": {
+    "title": "settingAirplaySenderVolumeTitle",
+    "description": "settingAirplaySenderVolumeDescription",
+  },
+  "airplay.sync_offset_ms": {
+    "title": "settingSendspinSyncOffsetTitle",
+    "description": "settingAirplaySyncOffsetDescription",
+  },
+  "airplay.takeover": {
+    "title": "settingAirplayTakeoverTitle",
+    "description": "settingAirplayTakeoverDescription",
+  },
   "sendspin.ma_url": {
     "title": "settingSendspinMaUrlTitle",
     "description": "settingSendspinMaUrlDescription",
@@ -1139,6 +1159,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "sendspin.speaker_pill_players": {
     "title": "settingSendspinSpeakerPillPlayersTitle",
     "description": "settingSendspinSpeakerPillPlayersDescription",
+  },
+  "sendspin.audio_quality": {
+    "title": "settingSendspinAudioQualityTitle",
+    "description": "settingSendspinAudioQualityDescription",
   },
   "sendspin.queue_art": {
     "title": "settingSendspinQueueArtTitle",
@@ -1520,6 +1544,26 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "voiceChimeAnnounceTitle",
     "description": "voiceChimeAnnounceDescription",
   },
+  "voice_chimes.wake_volume": {
+    "title": "voiceChimeWakeVolumeTitle",
+    "description": "voiceChimeVolumeDescription",
+  },
+  "voice_chimes.done_volume": {
+    "title": "voiceChimeDoneVolumeTitle",
+    "description": "voiceChimeVolumeDescription",
+  },
+  "voice_chimes.error_volume": {
+    "title": "voiceChimeErrorVolumeTitle",
+    "description": "voiceChimeVolumeDescription",
+  },
+  "voice_chimes.alert_volume": {
+    "title": "voiceChimeTimerVolumeTitle",
+    "description": "voiceChimeVolumeDescription",
+  },
+  "voice_chimes.announce_volume": {
+    "title": "voiceChimeAnnounceVolumeTitle",
+    "description": "voiceChimeVolumeDescription",
+  },
   "screensaver.weather_entity": {
     "title": "settingScreensaverWeatherEntityTitle",
     "description": "settingScreensaverWeatherEntityDescription",
@@ -1723,6 +1767,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "voice.wake_arbitration_window_ms": {
     "title": "settingVoiceWakeArbitrationWindowTitle",
     "description": "settingVoiceWakeArbitrationWindowDescription",
+  },
+  "voice.wake_arbitration_offset_db": {
+    "title": "settingVoiceWakeArbitrationOffsetTitle",
+    "description": "settingVoiceWakeArbitrationOffsetDescription",
   },
   "voice.skin": {
     "title": "voiceSkin",
@@ -2031,5 +2079,125 @@ const settingMessageIds = <String, Map<String, String>>{
   "ha.custom_pages_socket": {
     "title": "settingHaCustomPagesSocketTitle",
     "description": "settingHaCustomPagesSocketDescription",
+  },
+  "browser.url_filter_notice": {
+    "title": "settingBrowserUrlFilterNoticeTitle",
+    "description": "settingBrowserUrlFilterNoticeDescription",
+  },
+  "led.voice.enabled": {
+    "title": "settingLedVoiceEnabledTitle",
+    "description": "settingLedVoiceEnabledDescription",
+  },
+  "led.voice.brightness": {
+    "title": "settingLedVoiceBrightnessTitle",
+    "description": "settingLedVoiceBrightnessDescription",
+  },
+  "led.voice.light_color": {
+    "title": "settingLedVoiceLightColorTitle",
+    "description": "settingLedVoiceLightColorDescription",
+  },
+  "led.voice.accent_color": {
+    "title": "settingLedVoiceAccentColorTitle",
+    "description": "settingLedVoiceAccentColorDescription",
+  },
+  "led.voice.muted": {
+    "title": "settingLedVoiceMutedTitle",
+    "description": "settingLedVoiceMutedDescription",
+  },
+  "led.voice.muted_color": {
+    "title": "settingLedVoiceMutedColorTitle",
+    "description": "settingLedVoiceMutedColorDescription",
+  },
+  "led.timers.enabled": {
+    "title": "settingLedTimersEnabledTitle",
+    "description": "settingLedTimersEnabledDescription",
+  },
+  "led.timers.brightness": {
+    "title": "settingLedTimersBrightnessTitle",
+    "description": "settingLedTimersBrightnessDescription",
+  },
+  "led.timers.light_color": {
+    "title": "settingLedTimersLightColorTitle",
+    "description": "settingLedTimersLightColorDescription",
+  },
+  "led.timers.countdown": {
+    "title": "settingLedTimersCountdownTitle",
+    "description": "settingLedTimersCountdownDescription",
+  },
+  "led.alarms.enabled": {
+    "title": "settingLedAlarmsEnabledTitle",
+    "description": "settingLedAlarmsEnabledDescription",
+  },
+  "led.alarms.brightness": {
+    "title": "settingLedAlarmsBrightnessTitle",
+    "description": "settingLedAlarmsBrightnessDescription",
+  },
+  "led.alarms.light_color": {
+    "title": "settingLedAlarmsLightColorTitle",
+    "description": "settingLedAlarmsLightColorDescription",
+  },
+  "led.intercom.enabled": {
+    "title": "settingLedIntercomEnabledTitle",
+    "description": "settingLedIntercomEnabledDescription",
+  },
+  "led.intercom.brightness": {
+    "title": "settingLedIntercomBrightnessTitle",
+    "description": "settingLedIntercomBrightnessDescription",
+  },
+  "led.intercom.light_color": {
+    "title": "settingLedIntercomLightColorTitle",
+    "description": "settingLedIntercomLightColorDescription",
+  },
+  "led.notifications.enabled": {
+    "title": "settingLedNotificationsEnabledTitle",
+    "description": "settingLedNotificationsEnabledDescription",
+  },
+  "led.notifications.brightness": {
+    "title": "settingLedNotificationsBrightnessTitle",
+    "description": "settingLedNotificationsBrightnessDescription",
+  },
+  "led.notifications.light_color": {
+    "title": "settingLedNotificationsLightColorTitle",
+    "description": "settingLedNotificationsLightColorDescription",
+  },
+  "led.media.enabled": {
+    "title": "settingLedMediaEnabledTitle",
+    "description": "settingLedMediaEnabledDescription",
+  },
+  "led.media.brightness": {
+    "title": "settingLedMediaBrightnessTitle",
+    "description": "settingLedMediaBrightnessDescription",
+  },
+  "led.media.light_color": {
+    "title": "settingLedMediaLightColorTitle",
+    "description": "settingLedMediaLightColorDescription",
+  },
+  "led.media.style": {
+    "title": "settingLedMediaStyleTitle",
+    "description": "settingLedMediaStyleDescription",
+  },
+  "led.idle.enabled": {
+    "title": "settingLedIdleEnabledTitle",
+    "description": "settingLedIdleEnabledDescription",
+  },
+  "led.idle.brightness": {
+    "title": "settingLedIdleBrightnessTitle",
+    "description": "settingLedIdleBrightnessDescription",
+  },
+  "led.idle.light_color": {
+    "title": "settingLedIdleLightColorTitle",
+    "description": "settingLedIdleLightColorDescription",
+  },
+  "led.idle.style": {
+    "title": "settingLedIdleStyleTitle",
+    "description": "settingLedIdleStyleDescription",
+  },
+  "led.animations": {
+    "title": "settingLedAnimationsTitle",
+    "description": "settingLedAnimationsDescription",
+  },
+  "led.enabled": {
+    "title": "settingLedEnabledTitle",
+    "description": "settingLedEnabledDescription",
   },
 };

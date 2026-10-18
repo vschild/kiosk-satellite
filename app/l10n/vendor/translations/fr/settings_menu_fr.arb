@@ -56,5 +56,18 @@
   "settingsMenuLogout": "Se déconnecter",
   "settingsMenuSwitchKiosk": "Changer de kiosque",
   "settingsMenuThemeState": "Thème : {theme}",
-  "settingsMenuThemeAuto": "Automatique"
+  "settingsMenuThemeAuto": "Automatique",
+  "settingsMenuOverviewHeadlessSummary": "État et commandes rapides",
+  "settingsMenuHomeAssistantHeadlessSummary": "Connexion",
+  "settingsMenuAudio": "Audio",
+  "settingsMenuAudioSummary": "Volume, micro",
+  "settingsGroupMedia": "Médias",
+  "settingsMenuDlnaHeadlessSummary": "Lire de l'audio à distance",
+  "settingsMenuGesturesHeadlessSummary": "Gestes par bouton et claquements",
+  "settingsMenuLeds": "Contrôle des LED",
+  "settingsMenuLedsSummary": "Couleurs et effets des voyants d'état",
+  "settingsLedTimers": "Minuteurs",
+  "settingsLedNotifications": "Notifications",
+  "settingsLedIdle": "Au repos",
+  "settingsLedEffects": "Effets"
 }

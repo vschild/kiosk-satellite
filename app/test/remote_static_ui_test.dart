@@ -288,9 +288,10 @@ void main() {
 
   // The skin pictures have no content hash in their URLs: a cached copy
   // has to be checked back, or an updated thumbnail stays old for a day.
+  // A skin id may carry digits, as HAL 9000's does.
   test('skin pictures revalidate by ETag', () async {
-    assets.overrides['assets/voice_skins/voice-only.webp'] = 'picture';
-    final first = await get('/voice_skins/voice-only.webp');
+    assets.overrides['assets/voice_skins/hal-9000.webp'] = 'picture';
+    final first = await get('/voice_skins/hal-9000.webp');
     expect(first.statusCode, 200);
     expect(first.headers.value('cache-control'), contains('no-cache'));
     final etag = first.headers.value('etag');
@@ -298,15 +299,15 @@ void main() {
     await first.drain<void>();
 
     final request = await client.getUrl(
-      Uri.parse('http://127.0.0.1:$port/voice_skins/voice-only.webp'),
+      Uri.parse('http://127.0.0.1:$port/voice_skins/hal-9000.webp'),
     );
     request.headers.set('if-none-match', etag!);
     final again = await request.close();
     expect(again.statusCode, 304);
     await again.drain<void>();
 
-    assets.overrides['assets/voice_skins/voice-only.webp'] = 'new picture';
-    final changed = await get('/voice_skins/voice-only.webp');
+    assets.overrides['assets/voice_skins/hal-9000.webp'] = 'new picture';
+    final changed = await get('/voice_skins/hal-9000.webp');
     expect(changed.headers.value('etag'), isNot(etag));
     await changed.drain<void>();
   });

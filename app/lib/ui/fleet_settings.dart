@@ -589,7 +589,18 @@ class _FleetSettingsPanelState extends State<FleetSettingsPanel> {
       following['dashboard'] == true
           ? fleetText(context, 'the dashboard')
           : fleetText(context, 'no dashboard'),
+      if ((following['syncedPlugins'] as List? ?? const []).isNotEmpty)
+        l10n(
+          context,
+        ).fleetPluginsNames((following['syncedPlugins'] as List).join(', ')),
     ].join('. ');
+    final failed = [
+      for (final e in (following['pluginErrors'] as List? ?? const []))
+        if (e is Map)
+          l10n(
+            context,
+          ).fleetCouldNotInstallNameReason('${e['name']}', '${e['message']}'),
+    ];
     return SettingsCard(
       children: [
         SettingsRow(
@@ -617,6 +628,11 @@ class _FleetSettingsPanelState extends State<FleetSettingsPanel> {
           title: Text(fleetText(context, 'Synced from the leader')),
           subtitle: Text('$gets.'),
         ),
+        for (final message in failed)
+          SettingsRow(
+            leading: Icon(Icons.error_outline, color: scheme.error),
+            title: Text(message),
+          ),
         SettingsRow(
           title: Text(fleetText(context, 'Leave the fleet')),
           subtitle: Text(
@@ -886,6 +902,11 @@ class _FleetProfilePageState extends State<FleetProfilePage> {
         if (p.credentials.contains(cr['key']))
           fleetText(context, '${cr['title']}'),
     ];
+    final installed = _list('plugins');
+    final pluginNames = [
+      for (final pl in installed)
+        if (p.plugins.contains(pl['id'])) '${pl['name']}',
+    ];
     final names = _kioskNames;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -960,6 +981,30 @@ class _FleetProfilePageState extends State<FleetProfilePage> {
                         );
                         if (picked == null) return;
                         await _save(p.copyWith(categories: picked));
+                      },
+              ),
+              ListTile(
+                title: Text(fleetText(context, 'Plugins')),
+                subtitle: Text(
+                  installed.isEmpty
+                      ? fleetText(context, 'No plugins installed on this kiosk')
+                      : pluginNames.isEmpty
+                      ? fleetText(context, 'None')
+                      : pluginNames.join(', '),
+                ),
+                trailing: installed.isEmpty
+                    ? null
+                    : const Icon(Icons.chevron_right),
+                onTap: _busy || installed.isEmpty
+                    ? null
+                    : () async {
+                        final picked = await showPluginsDialog(
+                          context,
+                          plugins: installed,
+                          picked: p.plugins,
+                        );
+                        if (picked == null) return;
+                        await _save(p.copyWith(plugins: picked));
                       },
               ),
               ListTile(
@@ -1242,6 +1287,68 @@ Future<Set<String>?> showCategoriesDialog(
                         chosen.add('${cat['id']}');
                       } else {
                         chosen.remove('${cat['id']}');
+                      }
+                    }),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(fleetText(ctx, 'Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, chosen),
+            child: Text(fleetText(ctx, 'Save')),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Which of this kiosk's plugins a profile installs on its kiosks, one
+/// checkbox each. Answers the set of ids, null when cancelled.
+Future<Set<String>?> showPluginsDialog(
+  BuildContext context, {
+  required List<Map<String, Object?>> plugins,
+  required Set<String> picked,
+}) {
+  final chosen = {...picked};
+  return showDialog<Set<String>>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: Text(fleetText(ctx, 'Plugins')),
+        contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _dialogHint(
+                  ctx,
+                  fleetText(
+                    ctx,
+                    'Kiosks on this profile install these and take their '
+                    'settings from this kiosk.',
+                  ),
+                ),
+                for (final pl in plugins)
+                  CheckboxListTile(
+                    value: chosen.contains('${pl['id']}'),
+                    title: Text('${pl['name']}'),
+                    subtitle: Text('${pl['version']}'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (v) => setState(() {
+                      if (v == true) {
+                        chosen.add('${pl['id']}');
+                      } else {
+                        chosen.remove('${pl['id']}');
                       }
                     }),
                   ),
@@ -1880,10 +1987,11 @@ List<Widget> fleetManagedBanner(
   final fleet = container.fleetSync;
   if (!fleet.following) return const [];
   final synced = fleet.syncedKeys;
-  if (synced.isEmpty) return const [];
-  final here = defs.allSettings.any(
-    (d) => defs.fleetCategoryOf(d) == category && synced.contains(d.key),
-  );
+  final here = category == 'Plugins'
+      ? fleet.syncedPlugins.isNotEmpty
+      : defs.allSettings.any(
+          (d) => defs.fleetCategoryOf(d) == category && synced.contains(d.key),
+        );
   if (!here) return const [];
   // The banner carries its own gap below.
   return [

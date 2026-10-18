@@ -22,5 +22,8 @@
   "gestureOpenApp": "打开应用 {package}",
   "gestureRun": "运行 {value}",
   "gestureTriggerAction": "触发 {value}",
-  "gestureFireEvent": "触发事件 {value}"
+  "gestureFireEvent": "触发事件 {value}",
+  "gestureDescribeButtonPress": "按下 {button} 按钮",
+  "gestureDescribeButtonDouble": "双击 {button} 按钮",
+  "gestureDescribeButtonHold": "长按 {button} 按钮"
 }
