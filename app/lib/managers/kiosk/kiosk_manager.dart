@@ -1073,8 +1073,15 @@ class KioskManager extends Manager with WidgetsBindingObserver {
     if (!_systemDream && error == null) return;
     final wasUp = _systemDream;
     _systemDream = false;
-    if (wasUp && !Lifecycle.onScreen) {
-      await commands.execute('bringToFront', const {});
+    // A dark panel means the dream ended because the screen went off.
+    // bringToFront starts by waking the display, which would undo Turn
+    // screen off after. Ask the panel itself: the logical flag can still
+    // say on for the moment between lockNow and the broadcast.
+    if (wasUp && !Lifecycle.onScreen && _screenOn) {
+      final on = (await commands.execute('isScreenOn', const {})).data;
+      if (on != false) {
+        await commands.execute('bringToFront', const {});
+      }
     }
     await _apply();
     bus.publish(SystemDreamChanged(active: false, error: error));

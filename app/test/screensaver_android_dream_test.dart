@@ -1,4 +1,5 @@
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
@@ -18,6 +19,8 @@ void main() {
   late List<String> dreams;
   late List<double> brightness;
   late List<String?> dreamErrors;
+  late List<String> screenCalls;
+  late List<bool> saverActive;
   var dreamStart = const CommandResult.ok({
     'ok': true,
     'method': 'somnambulator',
@@ -26,6 +29,7 @@ void main() {
   Future<void> build(
     Map<String, Object> prefs, {
     CommandResult? startResult,
+    Duration? screenOffUnit,
   }) async {
     dreamStart =
         startResult ??
@@ -43,8 +47,13 @@ void main() {
     dreams = [];
     brightness = [];
     dreamErrors = [];
+    screenCalls = [];
+    saverActive = [];
     bus.on<SystemDreamChanged>().listen((event) {
       if (event.error != null) dreamErrors.add(event.error);
+    });
+    bus.on<ScreensaverStateChanged>().listen((event) {
+      saverActive.add(event.active);
     });
     commands.register(
       Command(
@@ -72,10 +81,32 @@ void main() {
         },
       ),
     );
+    commands.register(
+      Command(
+        name: 'screenOff',
+        description: 'Record a panel power-off and the dream ending with it',
+        handler: (_) async {
+          screenCalls.add('screenOff');
+          bus.publish(const ScreenStateChanged(on: false, source: 'app'));
+          bus.publish(const SystemDreamChanged(active: false));
+          return const CommandResult.ok();
+        },
+      ),
+    );
+    commands.register(
+      Command(
+        name: 'screenOn',
+        description: 'Record a panel wake',
+        handler: (_) async {
+          screenCalls.add('screenOn');
+          bus.publish(const ScreenStateChanged(on: true, source: 'app'));
+          return const CommandResult.ok();
+        },
+      ),
+    );
     for (final name in [
       'keepScreenAwake',
       'isScreenOn',
-      'screenOn',
       'unfreezeRendering',
       'leaveScreensaver',
     ]) {
@@ -104,8 +135,21 @@ void main() {
         },
       ),
     );
-    saver = ScreensaverManager(bus, commands, log, settings);
+    saver = ScreensaverManager(
+      bus,
+      commands,
+      log,
+      settings,
+      screenOffUnit: screenOffUnit ?? const Duration(minutes: 1),
+    );
     await saver.init();
+  }
+
+  /// The dream has proved itself, so the screen-off countdown and the
+  /// dismiss switches apply.
+  void confirmDream(FakeAsync async) {
+    bus.publish(const SystemDreamChanged(active: true));
+    async.flushMicrotasks();
   }
 
   test('android mode launches the system dream and leaves the dashboard', () {
@@ -204,6 +248,183 @@ void main() {
       expect(saver.isActive, isFalse);
       expect(saver.activeView.value, isNull);
       expect(dreams, ['start']);
+      saver.dispose();
+    });
+  });
+
+  test('confirmed dream powers the panel off, then motion starts it again', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 5,
+        'ks.screensaver.dismiss_on_motion': true,
+        'ks.screensaver.screen_off_wake_to_screensaver': '["motion"]',
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      expect(saverActive, [true]);
+      expect(saver.isActive, isFalse);
+      dreams.clear();
+      async.elapse(const Duration(milliseconds: 50));
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff']);
+      expect(dreams, isEmpty);
+      expect(saverActive, [true]);
+      bus.publish(const MotionDetected());
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff', 'screenOn']);
+      expect(dreams, ['start']);
+      expect(saverActive, [true]);
+      saver.dispose();
+    });
+  });
+
+  test('motion while the dream is up opens the dashboard', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.dismiss_on_motion': true,
+      });
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      dreams.clear();
+      bus.publish(const MotionDetected());
+      async.flushMicrotasks();
+      expect(dreams, ['stop']);
+      expect(saverActive, [true, false]);
+      saver.dispose();
+    });
+  });
+
+  test(
+    'only when screen is off leaves the dream up until the panel is dark',
+    () {
+      fakeAsync((async) {
+        build({
+          'ks.screensaver.mode': 'android',
+          'ks.screensaver.screen_off_minutes': 5,
+          'ks.screensaver.dismiss_on_motion': true,
+          'ks.screensaver.dismiss_on_motion_screen_off_only': true,
+          'ks.screensaver.screen_off_wake_to_screensaver': '["motion"]',
+        }, screenOffUnit: const Duration(milliseconds: 10));
+        async.flushMicrotasks();
+        saver.start();
+        async.flushMicrotasks();
+        confirmDream(async);
+        dreams.clear();
+        bus.publish(const MotionDetected());
+        async.flushMicrotasks();
+        expect(dreams, isEmpty);
+        expect(screenCalls, isEmpty);
+        async.elapse(const Duration(milliseconds: 50));
+        async.flushMicrotasks();
+        expect(screenCalls, ['screenOff']);
+        bus.publish(const MotionDetected());
+        async.flushMicrotasks();
+        expect(screenCalls, ['screenOff', 'screenOn']);
+        expect(dreams, ['start']);
+        expect(saver.isActive, isFalse);
+        saver.dispose();
+      });
+    },
+  );
+
+  test('a dark-panel wake that is not picked opens the dashboard', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 5,
+        'ks.screensaver.dismiss_on_motion': true,
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      async.elapse(const Duration(milliseconds: 50));
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff']);
+      bus.publish(const MotionDetected());
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff', 'screenOn']);
+      expect(saverActive.last, isFalse);
+      saver.dispose();
+    });
+  });
+
+  test('black screen ends the dream and a picked wake starts it again', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 2,
+        'ks.screensaver.screen_off_black': true,
+        'ks.screensaver.dismiss_on_motion': true,
+        'ks.screensaver.screen_off_wake_to_screensaver': '["motion"]',
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      dreams.clear();
+      brightness.clear();
+      async.elapse(const Duration(milliseconds: 20));
+      async.flushMicrotasks();
+      expect(screenCalls, isEmpty);
+      expect(dreams, ['stop']);
+      expect(saver.activeView.value, 'blank');
+      expect(brightness, [0]);
+      expect(saverActive, [true]);
+      bus.publish(const MotionDetected());
+      async.flushMicrotasks();
+      expect(saver.activeView.value, isNull);
+      expect(brightness, [0, 0.8]);
+      expect(dreams, ['stop', 'start']);
+      saver.dispose();
+    });
+  });
+
+  test('a face after the panel is dark starts the dream again', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 5,
+        'ks.screensaver.dismiss_on_face': true,
+        'ks.screensaver.screen_off_wake_to_screensaver': '["face"]',
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      async.elapse(const Duration(milliseconds: 50));
+      async.flushMicrotasks();
+      dreams.clear();
+      bus.publish(const FaceDetected());
+      async.flushMicrotasks();
+      expect(dreams, ['start']);
+      expect(screenCalls, ['screenOff', 'screenOn']);
+      saver.dispose();
+    });
+  });
+
+  test('coming back while the dream was up returns to the dashboard', () {
+    fakeAsync((async) {
+      build({'ks.screensaver.mode': 'android'});
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      dreams.clear();
+      saver.didChangeAppLifecycleState(AppLifecycleState.paused);
+      async.elapse(const Duration(seconds: 1));
+      async.flushMicrotasks();
+      saver.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      async.elapse(const Duration(milliseconds: 800));
+      async.flushMicrotasks();
+      expect(dreams, ['stop']);
+      expect(saverActive, [true, false]);
       saver.dispose();
     });
   });
