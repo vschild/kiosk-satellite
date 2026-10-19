@@ -1,0 +1,8 @@
+{
+  "@@locale": "zh_CN",
+  "settingScreensaverUrlImageDescription": "设备在每张幻灯片时重新获取的图片地址。",
+  "settingScreensaverUrlIntervalDescription": "每张照片在获取下一张之前显示的时长。",
+  "screensaverMediaUrlPage": "图片地址屏保",
+  "screensaverMediaUrlPageHint": "地址、时长、切换效果和元数据",
+  "screensaverMediaUrlMetadata": "图片地址元数据"
+}

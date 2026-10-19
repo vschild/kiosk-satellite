@@ -46,6 +46,7 @@ const Map<String, Object> subpageIcons = {
   'Home Assistant Media screensaver': Icons.play_circle_outline,
   'Local Media screensaver': Icons.folder_outlined,
   'Photo Gallery screensaver': Icons.photo_library_outlined,
+  'Image URL screensaver': Icons.link_outlined,
   // The one page named after a product: it wears the Immich mark, drawn
   // in the glyph color like the product marks in the rail.
   'Immich Media screensaver': 'assets/svg/immich.svg',

@@ -1,9 +1,10 @@
 {
   "@@locale": "fr",
   "settingClapStrictnessTitle": "Détection des claquements",
-  "settingClapStrictnessDescription": "Le mode Strict exige des claquements plus forts et régulièrement espacés ; essayez-le si le bruit ambiant provoque de faux déclenchements.",
+  "settingClapDetectionDescription": "Le mode Strict exige des claquements plus forts et régulièrement espacés. Grande pièce laisse aux claquements le temps de s'estomper dans une pièce qui résonne.",
   "gestureStrictnessStandard": "Standard",
   "gestureStrictnessStrict": "Strict",
+  "gestureStrictnessLargeRoom": "Grande pièce",
   "gestureOff": "Les gestes sont désactivés",
   "gestureOffHelp": "L'option « Désactiver les gestes » est activée dans les paramètres du Mode kiosque.",
   "gestureEmpty": "Aucun geste configuré",

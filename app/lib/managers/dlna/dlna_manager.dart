@@ -98,7 +98,10 @@ class _Subscription {
 /// [DlnaMediaOverlay], which watches [media]/[transportState] and reports
 /// progress back so GetPositionInfo can answer truthfully.
 class DlnaManager extends Manager {
-  DlnaManager(super.bus, super.commands, super.log, this._settings);
+  DlnaManager(super.bus, super.commands, super.log, this._settings) {
+    transportState.addListener(_syncScreensaverHold);
+    media.addListener(_syncScreensaverHold);
+  }
 
   final SettingsManager _settings;
 
@@ -186,11 +189,18 @@ class DlnaManager extends Manager {
   StreamSubscription<SettingChanged>? _settingsSub;
   Timer? _aliveTimer;
   Timer? _restartDebounce;
-  Timer? _activityTick;
   Timer? _failureStop;
   String _uuid = '';
   String _ip = '';
   String _appVersion = '';
+
+  /// BOOTID.UPNP.ORG for this run. Home Assistant drops an ssdp:alive whose
+  /// headers match the last one it saw from the same UUID, so with a fixed
+  /// value a restarted renderer stayed unavailable until HA's next SSDP scan,
+  /// up to 10 minutes later. A new value on every start tells HA the
+  /// renderer rebooted, and it reconnects on the first alive. Seconds since
+  /// the epoch keep rising and fit the 31 bits the UPnP spec allows.
+  int _bootId = 0;
   final _subs = <String, List<_Subscription>>{
     'AVTransport': [],
     'RenderingControl': [],
@@ -256,6 +266,8 @@ class DlnaManager extends Manager {
     await _settingsSub?.cancel();
     _settingsSub = null;
     await _stop();
+    transportState.removeListener(_syncScreensaverHold);
+    media.removeListener(_syncScreensaverHold);
   }
 
   Future<void> _restart() async {
@@ -269,6 +281,7 @@ class DlnaManager extends Manager {
     final port = int.tryParse(configured) ?? defaultDlnaPort;
     try {
       _ip = await _localIp();
+      _bootId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       _notifyClient = http.Client();
       _server = await serveWithFallback(_route, port);
       _livePort = _server!.port;
@@ -307,8 +320,6 @@ class DlnaManager extends Manager {
   Future<void> _stop() async {
     _aliveTimer?.cancel();
     _aliveTimer = null;
-    _activityTick?.cancel();
-    _activityTick = null;
     _failureStop?.cancel();
     _failureStop = null;
     if (_ssdp != null) {
@@ -420,7 +431,7 @@ class DlnaManager extends Manager {
             'SERVER: $_serverHeader\r\n'
             'ST: ${m.key}\r\n'
             'USN: ${m.value}\r\n'
-            'BOOTID.UPNP.ORG: 1\r\n'
+            'BOOTID.UPNP.ORG: $_bootId\r\n'
             '\r\n';
         sock.send(response.codeUnits, dg.address, dg.port);
       }
@@ -440,7 +451,7 @@ class DlnaManager extends Manager {
           'NTS: $nts\r\n'
           'SERVER: $_serverHeader\r\n'
           'USN: ${t.value}\r\n'
-          'BOOTID.UPNP.ORG: 1\r\n'
+          'BOOTID.UPNP.ORG: $_bootId\r\n'
           '\r\n';
       sock.send(msg.codeUnits, InternetAddress(_ssdpAddress), _ssdpPort);
     }
@@ -919,27 +930,37 @@ class DlnaManager extends Manager {
     transportState.value = 'STOPPED';
     media.value = null;
     _position = Duration.zero;
-    _activityTick?.cancel();
-    _activityTick = null;
     _failureStop?.cancel();
     _failureStop = null;
     return _notifyAvt();
   }
 
-  /// Pushed media owns the screen: dismiss the screensaver now and keep
-  /// the idle timer at bay while playing, the same signal a touch sends.
-  /// Background audio deliberately sends nothing — keeping the current
-  /// screen includes a screensaver that is already up.
+  /// Pushed media owns the screen: dismiss the screensaver now, the same
+  /// signal a touch sends. [_syncScreensaverHold] then keeps it away while
+  /// the media plays. Background audio deliberately sends nothing, since
+  /// keeping the current screen includes a screensaver that is already up.
   void _onPlaybackStarted() {
     if (!audioInBackground) {
       bus.publish(const ActivityDetected(source: 'dlna'));
     }
-    _activityTick?.cancel();
-    _activityTick = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (transportState.value == 'PLAYING' && !audioInBackground) {
-        bus.publish(const ActivityDetected(source: 'dlna'));
-      }
-    });
+  }
+
+  bool _screensaverHeld = false;
+
+  /// Holds the screensaver's idle clock while media plays on screen and
+  /// lets it go on pause or stop, which starts a full countdown. A
+  /// periodic activity signal used to do this, but an idle timeout shorter
+  /// than its period let the screensaver start in between, over the video.
+  void _syncScreensaverHold() {
+    final held =
+        transportState.value == 'PLAYING' &&
+        media.value != null &&
+        !audioInBackground;
+    if (held == _screensaverHeld) return;
+    _screensaverHeld = held;
+    unawaited(
+      commands.execute('holdScreensaver', {'holder': 'dlna', 'held': held}),
+    );
   }
 }
 

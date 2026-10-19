@@ -43,7 +43,7 @@ The Device page offers predefined actions. It does not accept arbitrary command 
 
 ## Plugins
 
-SDK 1 plugins can declare the optional `shizuku` capability and use the same authorized connection. See the [SDK Shizuku reference and example](https://github.com/jxlarrea/kiosk-satellite-plugin-hello-world/blob/main/docs/shizuku.md).
+SDK 1 plugins can declare the optional `shizuku` capability and use the same authorized connection. See the [SDK Shizuku reference and example](https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/shizuku.md).
 
 The Shizuku permission belongs to KS. Installed plugins run inside KS and are not isolated from its privileges. Grant access only if you trust KS and your installed plugins. A plugin's own commands can do more than the predefined Device actions.
 

@@ -112,6 +112,47 @@ void main() {
       expect(fired, [2]);
     });
 
+    for (final gapMs in [350, 500]) {
+      for (final count in [2, 3]) {
+        test('$count claps $gapMs ms apart in a ringing hall count in Large '
+            'room', () {
+          detector.targets = {count};
+          detector.largeRoom = true;
+          // A 2 s hall keeps each tail within 15 dB of its peak past 250 ms.
+          // The tail keeps falling, so the decay check waits it out, and it
+          // does not lift the floor into the next clap's way. 350 ms puts
+          // the second clap right on a check frame.
+          feed(detector, hallClapScene(count, Random(7), gapMs: gapMs));
+          expect(fired, [count]);
+        });
+      }
+    }
+
+    for (final strict in [false, true]) {
+      test('${strict ? 'strict' : 'standard'} keeps the quarter-second decay '
+          'rule', () {
+        final reasons = <String>[];
+        detector = ClapDetector(onClaps: fired.add, onDiscard: reasons.add)
+          ..targets = {2}
+          ..strict = strict;
+        feed(detector, hallClapScene(2, Random(7)));
+        expect(fired, isEmpty);
+        expect(reasons, ['sustained sound after 1 clap(s)']);
+      });
+    }
+
+    test('large room still vetoes a sound that holds its level', () {
+      detector.targets = {2};
+      detector.largeRoom = true;
+      final rng = Random(6);
+      feed(detector, [
+        ...ambience(700, rng),
+        ...sustained(800, rng),
+        ...ambience(1500, rng),
+      ]);
+      expect(fired, isEmpty);
+    });
+
     test('claps quieter than the music under them do not fire', () {
       detector.targets = {2};
       final rng = Random(8);

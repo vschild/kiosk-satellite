@@ -1,10 +1,9 @@
 import { tabHidden } from './headless.js';
 import { navigationText, t, settingsPageText, pluginText } from './localization.js';
-import { readRoute } from './routes.js';
 import { $, depSatisfied, state } from './core.js';
 import { permissionSpecs } from './permissions.js';
 import { loadPlugins, pluginSearchState, refreshPluginSearchState } from './plugins.js';
-import { TABS, TAB_TITLES, currentPath, setNav, showTab } from './tabs.js';
+import { TABS, TAB_TITLES, currentPath, followRoute, setNav, showTab } from './tabs.js';
 import { REALTIME_PROVIDERS, providerKeys } from './vs_native.js';
 
 /* ---- Settings search ---- */
@@ -45,6 +44,8 @@ export const SEARCH_EXTRAS = [
     desc: "Show a short notice with the rule's name when a page is blocked." },
   { tab: 'plugins', title: 'Enable Plugins',
     desc: 'Plugins add additional community developed features to Kiosk Satellite.', anchor: 'x:plugins:master' },
+  { tab: 'plugins', title: 'Browse plugins',
+    desc: 'Find plugins made by the community', anchor: 'x:plugins:browse' },
   { tab: 'plugins', title: 'Add plugin',
     desc: 'Install from a GitHub repository', anchor: 'x:plugins:add' },
   { tab: 'plugins', title: 'Install from ZIP',
@@ -221,6 +222,8 @@ function pluginSearchEntries() {
     ...(plugin.capabilities?.includes('shizuku') ? [{tab:'plugins', sub:plugin.id, title:pluginText('Shizuku access'), desc:'', englishAlias:'Shizuku access', anchor:`plugin:${plugin.id}:shizuku`}] : []),
     ...(plugin.settings || []).map(setting => ({tab:'plugins', sub:plugin.id,
       title:setting.title, desc:setting.description || '', anchor:`plugin:${plugin.id}:setting:${setting.key}`})),
+    ...(plugin.buttons || []).map(button => ({tab:'plugins', sub:plugin.id,
+      title:button.title, desc:button.description || '', anchor:`plugin:${plugin.id}:button:${button.id}`})),
     ...(plugin.commands || []).map(action => ({tab:'plugins', sub:plugin.id,
       title:action.title, desc:[pluginText('Gestures'), plugin.actionOptions?.[action.id]?.drawer && pluginText('Kiosk drawer'),
         plugin.actionOptions?.[action.id]?.homeAssistant && pluginText('Home Assistant')].filter(Boolean).join(' · '),
@@ -469,6 +472,5 @@ $('#tabs').addEventListener('click', (e) => {
 document.querySelectorAll('[data-home]').forEach((el) =>
   el.addEventListener('click', () => { showTab('dashboard'); setNav(false); }));
 
-// Back/forward, and an address typed by hand.
-window.addEventListener('hashchange', () =>
-  showTab(readRoute(), { push: false }));
+window.addEventListener('popstate', followRoute);
+window.addEventListener('hashchange', followRoute);

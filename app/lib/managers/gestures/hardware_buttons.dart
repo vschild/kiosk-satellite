@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import '../../core/command_registry.dart';
 import '../../core/event_bus.dart';
 import '../../core/events.dart';
+import '../../core/headless.dart';
 import '../../core/logging.dart';
 import '../alarms/alarm_manager.dart';
 import '../intercom/intercom_manager.dart';
+import '../sendspin/sendspin_manager.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import '../voice/voice_manager.dart';
@@ -24,7 +26,10 @@ import 'gesture_mappings.dart';
 ///    and otherwise starts a voice command.
 ///  - Microphone: mutes and unmutes Voice Satellite.
 /// Volume buttons keep moving the media volume for any press no gesture
-/// claims; HardwareKeys.kt does that on its own.
+/// claims; HardwareKeys.kt does that on its own. On a ROM that lets the
+/// kiosk claim them (Headless.volumeClaim), they steer the followed player
+/// or the Music Assistant group instead while Volume buttons control the
+/// player wants them (issue #1032).
 ///
 /// Voice Satellite's mute and the system microphone mute are kept as one:
 /// on the Echo Dot's LineageOS build the microphone button never reaches
@@ -42,6 +47,7 @@ class HardwareButtons {
     required this.intercom,
     required this.voice,
     required this.voiceTimers,
+    required this.sendspin,
   });
 
   final EventBus bus;
@@ -52,6 +58,7 @@ class HardwareButtons {
   final IntercomManager intercom;
   final VoiceManager voice;
   final VoiceTimerManager voiceTimers;
+  final SendspinManager sendspin;
 
   static const _channel = MethodChannel('kiosk_satellite/hardware_keys');
   static const _name = 'buttons';
@@ -62,7 +69,12 @@ class HardwareButtons {
     _channel.setMethodCallHandler((call) async {
       final args = call.arguments;
       if (args is! Map) return null;
-      if (call.method == 'micMute') {
+      if (call.method == 'volumeKey') {
+        final direction = '${args['direction']}';
+        if (direction == 'up' || direction == 'down') {
+          bus.publish(VolumeKeyPressed(direction: direction));
+        }
+      } else if (call.method == 'micMute') {
         await _onMicMute(args['muted'] == true);
       } else if (call.method == 'press') {
         final code = (args['keyCode'] as num?)?.toInt();
@@ -84,7 +96,10 @@ class HardwareButtons {
     _sub = bus.on<SettingChanged>().listen((e) {
       if (e.key == defs.gestureMappings.key) unawaited(_configure());
       if (e.key == defs.voiceMute.key) unawaited(_pushMicMute());
+      _syncVolumeButtons();
     });
+    sendspin.nowPlaying.addListener(_syncVolumeButtons);
+    _syncVolumeButtons();
     await _configure();
     // The setting is the state across a reboot, which clears the system
     // mute.
@@ -109,7 +124,35 @@ class HardwareButtons {
     await commands.execute('setWakeWordMuted', {'muted': muted});
   }
 
-  Future<void> dispose() async => _sub?.cancel();
+  Future<void> dispose() async {
+    sendspin.nowPlaying.removeListener(_syncVolumeButtons);
+    await _sub?.cancel();
+  }
+
+  /// Claim the volume buttons from the ROM while they should steer the
+  /// player, the way the kiosk screen routes them on a device with one.
+  /// Nothing is ever on screen here, so only the playing mode counts.
+  /// Diffed: the player reports often.
+  bool? _lastVolumeButtons;
+  void _syncVolumeButtons() {
+    if (!Headless.volumeClaim) return;
+    final wanted = sendspin.volumeKeysWanted(viewShown: false);
+    if (wanted == _lastVolumeButtons) return;
+    _lastVolumeButtons = wanted;
+    log.info(
+      _name,
+      wanted
+          ? 'volume buttons steer the player'
+          : 'volume buttons change the device volume',
+    );
+    unawaited(
+      _channel.invokeMethod('claimVolumeButtons', wanted).catchError((
+        Object e,
+      ) {
+        log.warn(_name, 'could not claim the volume buttons: $e');
+      }),
+    );
+  }
 
   /// Whether the button service is switched on (adb, see HeadlessKeyService).
   /// Whether the button service runs, and whether it is switched on in

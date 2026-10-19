@@ -1,0 +1,8 @@
+{
+  "@@locale": "fr",
+  "settingScreensaverUrlImageDescription": "Adresse d'une image que l'appareil récupère à nouveau pour chaque diapositive.",
+  "settingScreensaverUrlIntervalDescription": "Durée d'affichage de chaque photo avant la récupération suivante.",
+  "screensaverMediaUrlPage": "Économiseur d'écran URL d'image",
+  "screensaverMediaUrlPageHint": "URL, cadence, transition, métadonnées",
+  "screensaverMediaUrlMetadata": "Métadonnées de l'URL d'image"
+}

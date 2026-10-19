@@ -84,6 +84,7 @@ Microphone behavior for claps:
 * Lockdown Mode and Kiosk Mode's Disable Gestures toggle will silence clap detection exactly as they silence touch gestures.
 * The detection thresholds automatically adapt to the room's environment. Constant ambient noise (like background music or a running TV) will raise the acoustic bar a clap must clear to trigger, preventing false positives. While it works reliably over music, extremely percussive tracks played at high volumes can sometimes register as claps. For any critical action that must never misfire, configure it to require 3 or 4 claps.
 * A clap must appear deliberate to the system: it must emerge from a relatively calm moment, land on an even beat, and maintain consistent loudness. While random room clatter might share a clap's acoustic shape, it rarely exhibits all three of these traits. If you still experience false triggers (children playing with toys can occasionally mimic clapping sounds), go to the Gestures page and set **Clap detection** to Strict. This forces the algorithm to tighten those checks and demand significantly louder claps. In these environments, prefer 3 or 4 claps over 2.
+* In a large room with hard surfaces, a clap rings for a while before it dies away, and Standard and Strict throw it out as sustained sound. If claps never register and the app logs show `clap sequence discarded: sustained sound`, set **Clap detection** to Large room. It gives a clap that is still fading up to 0.8 seconds. A slow drum in loud music rings the same way, so prefer 3 or 4 claps there.
 * On Android 12 and later, the standard system microphone indicator will remain visible while clap detection is active, just as it does for wake word detection.
 
 ## Show Fingers
@@ -116,7 +117,7 @@ A [plugin](plugins.md) can declare triggers and fire them when it notices someth
 * A mapping keeps its trigger when the plugin is disabled, but nothing fires until the plugin runs again.
 * Plugins are installed per device, so Fleet Management never syncs a gesture that uses a plugin trigger or a plugin action.
 
-Plugin authors can find the manifest format and `host.fireTrigger` in the [plugin SDK documentation](https://github.com/jxlarrea/kiosk-satellite-plugin-hello-world/blob/main/docs/creating-plugins.md#gesture-triggers).
+Plugin authors can find the manifest format and `host.fireTrigger` in the [plugin SDK documentation](https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/creating-plugins.md#gesture-triggers).
 
 ## Timing
 

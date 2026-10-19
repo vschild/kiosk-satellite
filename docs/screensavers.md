@@ -35,7 +35,7 @@ Use **Scene blur** in the main group to soften the weather scene from 0 to 30 pi
 
 Weather Mood starts with only the animated scene. Its **Clock** and **Weather information** groups add optional information directly to the scene. All widget types and At a Glance pills remain available. Outside preview mode, if no weather entity is selected for Weather Mood, a black screen asks you to select one in its settings. The clock, weather chips, widgets and At a Glance stay hidden until an entity is selected.
 
-Turn on **Enable clock** to reveal **Font Family**, **Font weight**, **24-hour clock**, **Show seconds**, **Show date**, **Clock size**, **Clock color** and **Text drop shadow**. The clock uses the same digital face and defaults as the Clock screensaver, with a drop shadow enabled for readability. These settings belong to Weather Mood and do not change the Clock screensaver.
+Turn on **Enable clock** to reveal **Font Family**, **Font weight**, **24-hour clock**, **Show AM/PM**, **Show seconds**, **Show date**, **Clock size**, **Clock color** and **Text drop shadow**. The clock uses the same digital face and defaults as the Clock screensaver, with a drop shadow enabled for readability. These settings belong to Weather Mood and do not change the Clock screensaver.
 
 Weather information appears as chips over the scene. A chip at the bottom left shows the conditions icon, temperature and conditions. Each reading gets a matching chip at the bottom right with its icon and value. The chips default to white text with a drop shadow on frosted glass with a thin light rim, so they take on the colors of every sky. The glass blurs the scene behind it, except on 32-bit devices, where the blur would cost too many frames. Devices that do not use the Impeller renderer show tinted chips instead.
 
@@ -86,6 +86,7 @@ Renders a full screen clock with three selectable styles via **Style**: **Digita
 | Font Family | Available across all faces. Options include Rubik (default app font), Nunito (rounded style similar to Apple StandBy), Inter (clean grotesque style), Oswald (tall condensed digits, the wall clock look), Roboto Slab (a warm slab serif), system font families (System, Serif, Condensed, Monospace, Casual, Cursive), or LCD (segmented LED alarm clock font covering digits, date, and AM/PM). |
 | Font weight | Available across all faces. Default matches the face's native style. Options include Light, Regular, Medium, Bold, or Black. The LCD font uses a single fixed weight. |
 | 24-hour clock | Applies to all clock faces. |
+| Show AM/PM | Digital face only. Appears when **24-hour clock** is off. Turn it off to show the time as 7:45 instead of 7:45 PM. |
 | Show seconds | Digital face only. |
 | Show date | Digital face only (enabled by default). |
 | Clock size | Scales the display size from 50% to 300%. |
@@ -128,6 +129,14 @@ Displays an image slideshow loaded from a local folder on the device. Configurat
 
 Operates similarly to Local Media, but selects files using the native system gallery picker. This avoids needing broad storage permissions. Selected images are stored locally to survive device reboots. Options include **Photos** selection, **Seconds per photo**, **Shuffle**, **Transition**, **Fill the screen**, and **Tap edges to change slides**.
 
+### Image URL
+
+Shows photos from a single web address that returns an image. The device fetches the address again for every slide, so it suits an endpoint that returns a random photo, a camera snapshot or an image an automation renders. Options include **Image URL**, **Seconds per photo** (60 by default), **Transition**, **Fill the screen** and **Tap edges to change slides**.
+
+The current photo stays on screen until the next one has loaded, so a slow server never fades the screen to black. If a fetch fails, the current photo stays and the device tries again 30 seconds later. If the first fetch fails, the screen says so until a photo loads. The device keeps the last four photos in memory. **Screensaver previous slide** and a tap on the left edge step back through them. A step forward shows those photos again before it fetches a new one. Changing the address fetches from the new one right away.
+
+**Show metadata** works as it does on Local Media, reading the date and camera details from each photo's EXIF. The device fetches the address itself, so it can point at anything the device can reach, such as a file under Home Assistant's `/local/` folder or a photo server on your network.
+
 ### Immich Media
 
 Turns the kiosk into an automated photo frame backed by an [Immich](https://immich.app/) server. Includes local image caching, optional metadata overlays, and intelligent photo pairing: portrait photos side by side on landscape screens, landscape photos stacked on portrait screens. Detailed documentation is available on the [Immich](immich.md) guide page.
@@ -160,7 +169,7 @@ A tap anywhere dismisses the screensaver without pressing the card under the fin
 
 ## Slideshow Behavior
 
-Photo slideshow modes (Home Assistant Media, Local Media, Photo Gallery, Immich Media) share unified image processing logic:
+Photo slideshow modes (Home Assistant Media, Local Media, Photo Gallery, Image URL, Immich Media) share unified image processing logic:
 
 * **Transitions**: Offers None, Crossfade, Slide, Zoom, Ken Burns, or Random. Ken Burns applies exclusively to still images (videos crossfade), while Random selects a different transition effect for each slide change.
 * **Fill the screen** (Smart by default): Dictates image cropping rules to fit the display panel:
@@ -172,7 +181,7 @@ Photo slideshow modes (Home Assistant Media, Local Media, Photo Gallery, Immich 
   | Always | Scales the image to cover the display completely regardless of aspect ratio, cropping overflow. A 4:3 image on a 2:1 display loses approximately one-third of its vertical framing. |
 
 * **Videos** play muted to completion, overriding image interval timers. Unplayable video files are skipped automatically.
-* The slideshow playlist builds upon screensaver activation. Newly added files appear during the next screensaver launch rather than mid-session.
+* The slideshow playlist builds upon screensaver activation. Newly added files appear during the next screensaver launch rather than mid-session. Image URL has no playlist and fetches a new photo for every slide.
 * Images decode at the native panel resolution, and memory for previous slides is released immediately to prevent memory exhaustion on low-RAM devices.
 * **Tap edges to change slides** (on by default): A tap on the left or right fifth of the screen shows the previous or next slide and resets its full display interval. Taps on the middle three fifths dismiss the screensaver as usual. Each slideshow mode has its own switch on its settings page, and turning it off makes every tap dismiss again. Home Assistant Media offers it for image folders only, since a single image, video, or camera stream has nothing to step.
 * **Manual Stepping via Home Assistant**: Triggering **Screensaver next slide** or **Screensaver previous slide** on the [ESPHome](esphome.md) device advances the slideshow by one item and resets the full display interval. These controls also step Camera Streams rotations. Triggering these actions while other screensaver modes are active performs no operation.
@@ -183,7 +192,7 @@ Widgets are small status overlays anchored to display corners, configured within
 
 Every widget has its own **Scale** slider (-50% to +50%) in its editor, which sizes that widget relative to the others. The **Global widget scaling** slider (50% to 200%) then scales all of them together for the display, keeping their relative sizes, and previews live while the screensaver is running. Widgets draw in Rubik unless the **Global font family** and **Global font weight** rows say otherwise, with the same choices as the Clock screensaver's Font Family and Font weight rows. Each widget's editor has its own **Font family** and **Font weight** pickers, Default following the global rows, so one widget can wear the clock's face while the rest stay in Rubik. When running over the Clock screensaver in Night mode, all active widgets inherit the clock's **Night color** to maintain low light levels. **Text drop shadow**, enabled by default, adds a defined shadow beneath widget text. Turn it off for text without a shadow. Changes preview live. Widgets render over a soft dark vignette to ensure text readability against bright background images. The **Vignette strength** slider (0% to 100%, 40% default) adjusts vignette opacity with live previewing. Setting this to 0% removes shading entirely for a clean frame look.
 
-Widgets hold corner priority over the photo metadata overlay of Immich Media, Home Assistant Media and Local Media. If a widget claims a corner, the overlay automatically moves to the next available corner. However, when Immich displays a side-by-side portrait pair, both bottom corners are reserved for photo details, temporarily hiding any widgets assigned to those corners until the next single slide displays. A stacked landscape pair only reserves the bottom corner on the overlay's side, since the top photo's details sit at the bottom of its own half, so the top corners stay free.
+Widgets hold corner priority over the photo metadata overlay of Immich Media, Home Assistant Media, Local Media and Image URL. If a widget claims a corner, the overlay automatically moves to the next available corner. However, when Immich displays a side-by-side portrait pair, both bottom corners are reserved for photo details, temporarily hiding any widgets assigned to those corners until the next single slide displays. A stacked landscape pair only reserves the bottom corner on the overlay's side, since the top photo's details sit at the bottom of its own half, so the top corners stay free.
 
 ### Small Clock
 
@@ -194,6 +203,7 @@ Displays a corner clock over any screensaver mode except Clock and WebRTC Camera
 | Corner | First free corner | Automatically shifts if another widget or overlay claims a corner. |
 | Color | White | Sets the text color. |
 | 24-hour clock | Off | Independent switch from the main Clock screensaver mode setting. |
+| Show AM/PM | On | Appears when **24-hour clock** is off. Turn it off to drop AM or PM from the time. |
 | Show date | Off | Displays a localized short date line directly below the time. |
 
 Renders over a soft vignette for legibility and supports pixel shift adjustments. Legacy small clock configurations automatically migrate into standard clock widgets while retaining their original settings and corner assignments.

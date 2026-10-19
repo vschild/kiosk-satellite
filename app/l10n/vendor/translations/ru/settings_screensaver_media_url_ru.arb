@@ -1,0 +1,8 @@
+{
+  "@@locale": "ru",
+  "settingScreensaverUrlImageDescription": "Адрес изображения, которое устройство заново скачивает для каждого слайда.",
+  "settingScreensaverUrlIntervalDescription": "Как долго показывается каждое фото до загрузки следующего.",
+  "screensaverMediaUrlPage": "Заставка «URL изображения»",
+  "screensaverMediaUrlPageHint": "URL, тайминг, переход, метаданные",
+  "screensaverMediaUrlMetadata": "Метаданные «URL изображения»"
+}

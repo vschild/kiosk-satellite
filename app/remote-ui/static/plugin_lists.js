@@ -2,7 +2,7 @@ import { haText, pluginText, t } from './localization.js';
 import { cmd } from './core.js';
 import { cameraIcon } from './cameras.js';
 import { dashboardField } from './dashboard_picker.js';
-import { entitySpec, pickField, pickItem } from './entity_picker.js';
+import { ENTITY_ICONS, cachedList, entitySpec, loadEntityList, onListLoaded, pickField, pickItem } from './entity_picker.js';
 import { modalShell, swatch } from './widgets.js';
 
 /* Plugin list settings and the picker setting types, the device's
@@ -95,7 +95,29 @@ function rowKey(list, part) {
   return list.fields.find((f) => f.type === 'string')?.key || null;
 }
 
+const fieldOf = (list, key) => (key ? list.fields.find((f) => f.key === key) || null : null);
+const findEntity = (id) => cachedList('entities')?.items.find((i) => i.id === id) || null;
+
+// The entity a row's title names, when its title is an entity field that
+// holds one. Its item comes from the shared entity list once that loads.
+function titleEntity(list, row) {
+  const key = rowKey(list, 'title');
+  if (fieldOf(list, key)?.type !== 'entity') return null;
+  const id = String(row[key] ?? '').trim();
+  return id ? { id, item: findEntity(id) } : null;
+}
+
+// Whether a row's title or second line reads from the entity list.
+function rowShowsEntities(list) {
+  const declared = list.row?.subtitle;
+  const keys = [rowKey(list, 'title'), ...(Array.isArray(declared) ? declared : [declared])];
+  return keys.some((key) => fieldOf(list, key)?.type === 'entity');
+}
+
+// An entity shows its friendly name, or its id until the list has it.
 function rowTitle(list, row) {
+  const entity = titleEntity(list, row);
+  if (entity) return entity.item?.name || entity.id;
   const key = rowKey(list, 'title');
   const value = key ? String(row[key] ?? '').trim() : '';
   return value || pluginText('Untitled');
@@ -279,6 +301,11 @@ function displayValue(field, value) {
   switch (field.type) {
     case 'boolean': case 'list': case 'color': return null;
     case 'number': return `${value} ${field.unit || ''}`.trim();
+    case 'entity': {
+      const item = findEntity(String(value ?? ''));
+      if (item) return [item.name, item.state].filter(Boolean).join(' · ');
+      break;
+    }
     case 'cameraView': {
       const view = (cameraViews || []).find((v) => v.id === value);
       if (view) return view.name;
@@ -297,7 +324,12 @@ function rowSubtitle(list, row) {
     const text = displayValue(field, row[key]);
     if (text) return text;
   }
-  return '';
+  // Without one, an entity title adds its state and id, the way the At a
+  // Glance rows do.
+  // An entity the list lacks already shows its id as the title.
+  const item = titleEntity(list, row)?.item;
+  if (!item) return '';
+  return item.state ? `${item.state} · ${item.id}` : item.id;
 }
 
 function iconButton(label, d) {
@@ -314,21 +346,39 @@ function listRows({ list, rows, onOpen, onReorder }) {
   const box = el('div', 'plugin-list-rows');
   const max = list.maxItems || 32;
   const iconKey = list.row?.icon || null;
+  const titleIsEntity = fieldOf(list, rowKey(list, 'title'))?.type === 'entity';
+  const entities = rowShowsEntities(list);
   let dragFrom = null;
   rows.forEach((row, index) => {
     const item = el('div', 'row camera-list-row plugin-list-row');
     item.tabIndex = 0; item.setAttribute('role', 'button');
     const main = el('div', 'camera-row-main');
-    if (iconKey) {
-      const icon = el('span', 'camera-row-icon');
-      icon.appendChild(svgPath(PLACEHOLDER, 24));
-      if (row[iconKey]) iconPaths([row[iconKey]]).then(([d]) => { if (d) icon.replaceChildren(svgPath(d, 24)); });
-      main.appendChild(icon);
-    }
+    const icon = el('span', 'camera-row-icon');
     const info = el('div', 'info');
-    info.append(el('div', 'name', rowTitle(list, row)));
-    const subtitle = rowSubtitle(list, row);
-    if (subtitle) info.append(el('div', 'desc', subtitle));
+    // A picked icon wins. Without one, an entity title brings its own,
+    // or a warning when Home Assistant no longer has it.
+    const paint = () => {
+      const entity = titleEntity(list, row);
+      if (!(iconKey && row[iconKey]) && titleIsEntity) {
+        const gone = !!entity && !entity.item && !!cachedList('entities');
+        icon.classList.toggle('plugin-row-missing', gone);
+        icon.replaceChildren(svgPath(gone ? ENTITY_ICONS.warn : (entity?.item?.iconPath || ENTITY_ICONS.generic), 24));
+      }
+      info.replaceChildren(el('div', 'name', rowTitle(list, row)));
+      const subtitle = rowSubtitle(list, row);
+      if (subtitle) info.append(el('div', 'desc', subtitle));
+    };
+    if (iconKey && row[iconKey]) {
+      icon.appendChild(svgPath(PLACEHOLDER, 24));
+      iconPaths([row[iconKey]]).then(([d]) => { if (d) icon.replaceChildren(svgPath(d, 24)); });
+    } else if (iconKey && !titleIsEntity) {
+      icon.appendChild(svgPath(PLACEHOLDER, 24));
+    }
+    paint();
+    // Entity names and states come from the shared list, so the row
+    // redraws once it loads.
+    if (entities) onListLoaded('entities', item, paint);
+    if (iconKey || titleIsEntity) main.appendChild(icon);
     main.appendChild(info);
     const actions = el('div', 'camera-row-actions');
     actions.addEventListener('click', (event) => event.stopPropagation());
@@ -377,6 +427,7 @@ function listRows({ list, rows, onOpen, onReorder }) {
     add.append(info, plus);
     box.appendChild(add);
   }
+  if (entities && !cachedList('entities')) loadEntityList();
   return box;
 }
 

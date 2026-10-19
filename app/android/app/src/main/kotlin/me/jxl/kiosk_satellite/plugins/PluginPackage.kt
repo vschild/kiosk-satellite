@@ -130,5 +130,13 @@ object PluginPackage {
         require("classes.dex" in seen) { "plugin.jar has no classes.dex" }
     }
 
+    /** A PNG's width and height from its header, or null for anything else. */
+    fun pngSize(bytes: ByteArray): Pair<Int, Int>? {
+        val signature = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10)
+        if (bytes.size < 24 || !bytes.copyOfRange(0, 8).contentEquals(signature) || String(bytes, 12, 4, Charsets.US_ASCII) != "IHDR") return null
+        fun int(at: Int) = (0 until 4).fold(0) { value, i -> (value shl 8) or (bytes[at + i].toInt() and 255) }
+        return int(16) to int(20)
+    }
+
     fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 }

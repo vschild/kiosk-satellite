@@ -49,7 +49,7 @@
   "Duck volume during voice interactions": "settingSendspinDuckPercentTitle",
   "Music drops to this share of its volume during voice interactions and intercom calls, then comes back.": "settingSendspinDuckPercentDescription",
   "Volume buttons control the player": "settingSendspinVolumeKeysTitle",
-  "This device's volume buttons change the followed player's volume instead of its own. Only while the Now Playing view is on screen, or whenever the player is playing.": "settingSendspinVolumeKeysDescription",
+  "This device's volume buttons change the followed player's volume instead of its own. While this device plays in a group they change the group's volume. Only while the Now Playing view is on screen or whenever the player is playing.": "settingSendspinVolumeKeysGroupDescription",
   "Volume button step": "settingSendspinVolumeKeyStepTitle",
   "How far one press of a volume button moves the player.": "settingSendspinVolumeKeyStepDescription",
   "Enable Sendspin player": "settingSendspinEnabledTitle",

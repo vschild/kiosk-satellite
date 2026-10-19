@@ -12,6 +12,7 @@
   "voiceScaleHelp": "浮层文字的大小。",
   "voiceUpdateIntegration": "请更新 Home Assistant 中的 Voice Satellite 集成，以从 Kiosk 控制这些设置。",
   "voiceDashboardRequired": "Kiosk 显示 Home Assistant 仪表盘时可用。",
+  "voiceSkinUnavailablePlugin": "插件皮肤不可用",
   "voiceSkinDefault": "皮肤默认值",
   "voiceBackground": "背景",
   "voiceBackgroundHelp": "可透视的仪表盘程度。",

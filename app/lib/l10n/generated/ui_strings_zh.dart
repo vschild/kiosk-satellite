@@ -2757,6 +2757,17 @@ class UiStringsZh extends UiStrings {
   }
 
   @override
+  String get pluginScanTitle => '扫码';
+
+  @override
+  String get pluginScanHelp => '请将条码或二维码置于框内。';
+
+  @override
+  String pluginScanSource(String name) {
+    return '由 $name 请求';
+  }
+
+  @override
   String get pluginActions => '操作';
 
   @override
@@ -2784,6 +2795,15 @@ class UiStringsZh extends UiStrings {
   String pluginConfigureName(String name) {
     return '配置 $name';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime => '插件未及时响应。';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem => '暂无选项。请刷新以查找。';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed => '此选项已不在列表中。';
 
   @override
   String get pluginPlugin => '插件';
@@ -2951,6 +2971,102 @@ class UiStringsZh extends UiStrings {
   String get pluginCouldNotReadTheSelectedZip => '无法读取所选 ZIP';
 
   @override
+  String get pluginBrowsePlugins => '浏览插件';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity => '查找社区制作的插件';
+
+  @override
+  String get pluginSearchPlugins => '搜索插件';
+
+  @override
+  String get pluginUpdate => '更新';
+
+  @override
+  String get pluginInstalled => '已安装';
+
+  @override
+  String get pluginStars => '星标';
+
+  @override
+  String get pluginDownloads => '下载量';
+
+  @override
+  String get pluginActiveInstalls => '活跃安装';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch => '没有与搜索匹配的插件。';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet => '社区插件中还没有插件。';
+
+  @override
+  String get pluginSubmitYourPlugin => '提交你的插件';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins => '将你的插件收录到社区插件。';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins => '无法连接社区插件。请检查网络连接。';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins => '无法加载社区插件。请稍后重试。';
+
+  @override
+  String get pluginTurnOn => '开启';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall => '请开启“启用插件”以安装此插件。';
+
+  @override
+  String get pluginPreviousPage => '上一页';
+
+  @override
+  String get pluginNextPage => '下一页';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return '第 $page 页，共 $pages 页';
+  }
+
+  @override
+  String get pluginSortBy => '排序方式';
+
+  @override
+  String get pluginSortMostStars => '星标最多';
+
+  @override
+  String get pluginSortRecentlyUpdated => '最近更新';
+
+  @override
+  String get pluginSortNewest => '最新';
+
+  @override
+  String get pluginSortName => '名称';
+
+  @override
+  String get pluginSortMostDownloads => '下载最多';
+
+  @override
+  String get pluginPluginsPerPage => '每页插件数';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '每页 $count 个';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return '作者：$author';
+  }
+
+  @override
+  String get pluginListedChip => '已收录于社区插件';
+
+  @override
+  String get pluginNotListedChip => '未收录于社区插件';
+
+  @override
   String get pluginCharts => '图表';
 
   @override
@@ -3104,9 +3220,6 @@ class UiStringsZh extends UiStrings {
   String get pluginErrorGithubDigest => '发布校验和必须与 GitHub 附件的 SHA-256 摘要匹配';
 
   @override
-  String get pluginErrorTagRevision => 'GitHub 未返回发布标签的修订版本';
-
-  @override
   String get pluginErrorTrustAuthor => '请确认你信任插件作者';
 
   @override
@@ -3172,9 +3285,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get pluginErrorRestartReplace => '此插件未能正常停止。替换前请重启 Kiosk Satellite。';
-
-  @override
-  String get pluginErrorPluginLimit => '最多可安装 8 个插件';
 
   @override
   String get pluginErrorAlreadyInstalled => '此包已安装';
@@ -3876,6 +3986,12 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get screensaverVideosTooLarge => '此播放列表中的所有视频都过大，此设备无法播放。';
+
+  @override
+  String get screensaverUrlNotSet => '未设置图片地址。请在设置中添加。';
+
+  @override
+  String get screensaverUrlLoadFailed => '无法加载图片。';
 
   @override
   String get settingKioskAllowAlarmsTitle => '闹钟';
@@ -6739,14 +6855,17 @@ class UiStringsZh extends UiStrings {
   String get settingClapStrictnessTitle => '拍手检测';
 
   @override
-  String get settingClapStrictnessDescription =>
-      '严格模式要求拍手声音更大、间隔更均匀。家庭噪声造成误触发时可尝试此模式。';
+  String get settingClapDetectionDescription =>
+      '严格模式要求拍手声音更大、间隔更均匀。大房间模式会给有回声的房间里的拍手声留出消散时间。';
 
   @override
   String get gestureStrictnessStandard => '标准';
 
   @override
   String get gestureStrictnessStrict => '严格';
+
+  @override
+  String get gestureStrictnessLargeRoom => '大房间';
 
   @override
   String get gestureOff => '手势已关闭';
@@ -8151,8 +8270,8 @@ class UiStringsZh extends UiStrings {
   String get settingSendspinVolumeKeysTitle => '用设备音量键控制播放器';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      '此设备的音量键改为调整所选播放器的音量，而非设备自身音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      '此设备的音量键改为调整所选播放器的音量，而非设备自身音量。此设备加入播放组时，音量键会调整整个组的音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。';
 
   @override
   String get settingSendspinVolumeKeyStepTitle => '音量键步长';
@@ -9415,6 +9534,12 @@ class UiStringsZh extends UiStrings {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => '显示 AM/PM';
+
+  @override
+  String get settingScreensaverClockAmPmDescription => '在时间后显示 AM 或 PM。';
+
+  @override
   String get screensaverOverlayEntity => '实体';
 
   @override
@@ -9736,6 +9861,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
+
+  @override
+  String get screensaverModeUrl => '图片地址';
 
   @override
   String get settingScreensaverGlanceScaleTitle => '行缩放';
@@ -10589,6 +10717,21 @@ class UiStringsZh extends UiStrings {
   String get screensaverMediaLocalPageHint => '文件夹、时长、随机播放、切换效果和元数据';
 
   @override
+  String get settingScreensaverUrlImageDescription => '设备在每张幻灯片时重新获取的图片地址。';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription => '每张照片在获取下一张之前显示的时长。';
+
+  @override
+  String get screensaverMediaUrlPage => '图片地址屏保';
+
+  @override
+  String get screensaverMediaUrlPageHint => '地址、时长、切换效果和元数据';
+
+  @override
+  String get screensaverMediaUrlMetadata => '图片地址元数据';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle => '检测到运动时关闭屏保';
 
   @override
@@ -11410,6 +11553,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get voiceDashboardRequired => 'Kiosk 显示 Home Assistant 仪表盘时可用。';
+
+  @override
+  String get voiceSkinUnavailablePlugin => '插件皮肤不可用';
 
   @override
   String get voiceSkinDefault => '皮肤默认值';
@@ -16211,6 +16357,17 @@ class UiStringsZhCn extends UiStringsZh {
   }
 
   @override
+  String get pluginScanTitle => '扫码';
+
+  @override
+  String get pluginScanHelp => '请将条码或二维码置于框内。';
+
+  @override
+  String pluginScanSource(String name) {
+    return '由 $name 请求';
+  }
+
+  @override
   String get pluginActions => '操作';
 
   @override
@@ -16238,6 +16395,15 @@ class UiStringsZhCn extends UiStringsZh {
   String pluginConfigureName(String name) {
     return '配置 $name';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime => '插件未及时响应。';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem => '暂无选项。请刷新以查找。';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed => '此选项已不在列表中。';
 
   @override
   String get pluginPlugin => '插件';
@@ -16405,6 +16571,102 @@ class UiStringsZhCn extends UiStringsZh {
   String get pluginCouldNotReadTheSelectedZip => '无法读取所选 ZIP';
 
   @override
+  String get pluginBrowsePlugins => '浏览插件';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity => '查找社区制作的插件';
+
+  @override
+  String get pluginSearchPlugins => '搜索插件';
+
+  @override
+  String get pluginUpdate => '更新';
+
+  @override
+  String get pluginInstalled => '已安装';
+
+  @override
+  String get pluginStars => '星标';
+
+  @override
+  String get pluginDownloads => '下载量';
+
+  @override
+  String get pluginActiveInstalls => '活跃安装';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch => '没有与搜索匹配的插件。';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet => '社区插件中还没有插件。';
+
+  @override
+  String get pluginSubmitYourPlugin => '提交你的插件';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins => '将你的插件收录到社区插件。';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins => '无法连接社区插件。请检查网络连接。';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins => '无法加载社区插件。请稍后重试。';
+
+  @override
+  String get pluginTurnOn => '开启';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall => '请开启“启用插件”以安装此插件。';
+
+  @override
+  String get pluginPreviousPage => '上一页';
+
+  @override
+  String get pluginNextPage => '下一页';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return '第 $page 页，共 $pages 页';
+  }
+
+  @override
+  String get pluginSortBy => '排序方式';
+
+  @override
+  String get pluginSortMostStars => '星标最多';
+
+  @override
+  String get pluginSortRecentlyUpdated => '最近更新';
+
+  @override
+  String get pluginSortNewest => '最新';
+
+  @override
+  String get pluginSortName => '名称';
+
+  @override
+  String get pluginSortMostDownloads => '下载最多';
+
+  @override
+  String get pluginPluginsPerPage => '每页插件数';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '每页 $count 个';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return '作者：$author';
+  }
+
+  @override
+  String get pluginListedChip => '已收录于社区插件';
+
+  @override
+  String get pluginNotListedChip => '未收录于社区插件';
+
+  @override
   String get pluginCharts => '图表';
 
   @override
@@ -16558,9 +16820,6 @@ class UiStringsZhCn extends UiStringsZh {
   String get pluginErrorGithubDigest => '发布校验和必须与 GitHub 附件的 SHA-256 摘要匹配';
 
   @override
-  String get pluginErrorTagRevision => 'GitHub 未返回发布标签的修订版本';
-
-  @override
   String get pluginErrorTrustAuthor => '请确认你信任插件作者';
 
   @override
@@ -16626,9 +16885,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get pluginErrorRestartReplace => '此插件未能正常停止。替换前请重启 Kiosk Satellite。';
-
-  @override
-  String get pluginErrorPluginLimit => '最多可安装 8 个插件';
 
   @override
   String get pluginErrorAlreadyInstalled => '此包已安装';
@@ -17330,6 +17586,12 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get screensaverVideosTooLarge => '此播放列表中的所有视频都过大，此设备无法播放。';
+
+  @override
+  String get screensaverUrlNotSet => '未设置图片地址。请在设置中添加。';
+
+  @override
+  String get screensaverUrlLoadFailed => '无法加载图片。';
 
   @override
   String get settingKioskAllowAlarmsTitle => '闹钟';
@@ -20193,14 +20455,17 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingClapStrictnessTitle => '拍手检测';
 
   @override
-  String get settingClapStrictnessDescription =>
-      '严格模式要求拍手声音更大、间隔更均匀。家庭噪声造成误触发时可尝试此模式。';
+  String get settingClapDetectionDescription =>
+      '严格模式要求拍手声音更大、间隔更均匀。大房间模式会给有回声的房间里的拍手声留出消散时间。';
 
   @override
   String get gestureStrictnessStandard => '标准';
 
   @override
   String get gestureStrictnessStrict => '严格';
+
+  @override
+  String get gestureStrictnessLargeRoom => '大房间';
 
   @override
   String get gestureOff => '手势已关闭';
@@ -21605,8 +21870,8 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingSendspinVolumeKeysTitle => '用设备音量键控制播放器';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      '此设备的音量键改为调整所选播放器的音量，而非设备自身音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      '此设备的音量键改为调整所选播放器的音量，而非设备自身音量。此设备加入播放组时，音量键会调整整个组的音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。';
 
   @override
   String get settingSendspinVolumeKeyStepTitle => '音量键步长';
@@ -22869,6 +23134,12 @@ class UiStringsZhCn extends UiStringsZh {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => '显示 AM/PM';
+
+  @override
+  String get settingScreensaverClockAmPmDescription => '在时间后显示 AM 或 PM。';
+
+  @override
   String get screensaverOverlayEntity => '实体';
 
   @override
@@ -23190,6 +23461,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
+
+  @override
+  String get screensaverModeUrl => '图片地址';
 
   @override
   String get settingScreensaverGlanceScaleTitle => '行缩放';
@@ -24043,6 +24317,21 @@ class UiStringsZhCn extends UiStringsZh {
   String get screensaverMediaLocalPageHint => '文件夹、时长、随机播放、切换效果和元数据';
 
   @override
+  String get settingScreensaverUrlImageDescription => '设备在每张幻灯片时重新获取的图片地址。';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription => '每张照片在获取下一张之前显示的时长。';
+
+  @override
+  String get screensaverMediaUrlPage => '图片地址屏保';
+
+  @override
+  String get screensaverMediaUrlPageHint => '地址、时长、切换效果和元数据';
+
+  @override
+  String get screensaverMediaUrlMetadata => '图片地址元数据';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle => '检测到运动时关闭屏保';
 
   @override
@@ -24864,6 +25153,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get voiceDashboardRequired => 'Kiosk 显示 Home Assistant 仪表盘时可用。';
+
+  @override
+  String get voiceSkinUnavailablePlugin => '插件皮肤不可用';
 
   @override
   String get voiceSkinDefault => '皮肤默认值';

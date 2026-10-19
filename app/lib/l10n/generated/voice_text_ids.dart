@@ -225,6 +225,7 @@ const voiceTextMessageIds = <String, String>{
   "The model was not deleted.": "voiceCustomNotDeleted",
   "not the engine in use": "voiceCustomOtherEngine",
   "Skin default": "voiceSkinDefault",
+  "Unavailable plugin skin": "voiceSkinUnavailablePlugin",
   "Background": "voiceBackground",
   "How much of the dashboard shows through.": "voiceBackgroundHelp",
   "Preview": "voicePreview",

@@ -1,9 +1,10 @@
 {
   "@@locale": "es",
   "settingClapStrictnessTitle": "Detección de palmadas",
-  "settingClapStrictnessDescription": "El modo estricto necesita palmadas más fuertes y espaciadas de forma regular. Pruébalo si los ruidos de casa activan los gestos por error.",
+  "settingClapDetectionDescription": "El modo estricto necesita palmadas más fuertes y espaciadas de forma regular. Sala grande da tiempo a que las palmadas se apaguen en una sala con eco.",
   "gestureStrictnessStandard": "Estándar",
   "gestureStrictnessStrict": "Estricto",
+  "gestureStrictnessLargeRoom": "Sala grande",
   "gestureOff": "Los gestos están desactivados",
   "gestureOffHelp": "Desactivar gestos está activado en la configuración del modo kiosko.",
   "gestureEmpty": "No hay gestos configurados",

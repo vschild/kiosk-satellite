@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/event_bus.dart';
 import '../../core/events.dart';
+import '../../core/headless.dart';
 import '../../core/logging.dart';
 import 'definitions.dart' as defs;
 import 'settings_manager.dart';
@@ -48,9 +49,6 @@ class HeadlessSettings {
     defs.disableImpeller.key,
     defs.legacyWebView.key,
     defs.remoteEnabled.key,
-    // Media: the keys steer the volume through the Activity.
-    defs.sendspinVolumeKeys.key,
-    defs.sendspinVolumeKeyStep.key,
     // Voice: listening never leaves the foreground, there is none.
     defs.wakeWordBackground.key,
     defs.wakeWordReturnToBackground.key,
@@ -69,6 +67,19 @@ class HeadlessSettings {
     // DLNA: everything is background audio here.
     defs.dlnaAudioBackground.key,
   };
+
+  /// The volume buttons only reach the kiosk on a ROM that lets it claim
+  /// them (BiscuitVolumeButtons.kt). There they work while the player
+  /// plays: nothing is ever on screen.
+  static void _volumeButtons() {
+    if (Headless.volumeClaim) {
+      defs.deviceHiddenOptions[defs.sendspinVolumeKeys.key] = {'now_playing'};
+    } else {
+      defs.deviceHiddenKeys
+        ..add(defs.sendspinVolumeKeys.key)
+        ..add(defs.sendspinVolumeKeyStep.key);
+    }
+  }
 
   /// Subpages and sections of pages that otherwise stay.
   static bool _hiddenPart(defs.SettingDef<Object> def) {
@@ -121,6 +132,7 @@ class HeadlessSettings {
         defs.deviceHiddenKeys.add(def.key);
       }
     }
+    _volumeButtons();
     for (final entry in _pinned.entries) {
       defs.devicePinnedKeys.add(entry.key.key);
       await _pin(entry.key, entry.value);

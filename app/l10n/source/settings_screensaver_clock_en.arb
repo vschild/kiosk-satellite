@@ -841,5 +841,39 @@
         "description": "Maximum number of characters."
       }
     }
+  },
+  "settingScreensaverClockAmPmTitle": "Show AM/PM",
+  "@settingScreensaverClockAmPmTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label. A switch shown while the 24-hour clock is off.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
+  "settingScreensaverClockAmPmDescription": "Add AM or PM after the time.",
+  "@settingScreensaverClockAmPmDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
   }
 }

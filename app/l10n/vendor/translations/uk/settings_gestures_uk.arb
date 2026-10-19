@@ -1,9 +1,10 @@
 {
   "@@locale": "uk",
   "settingClapStrictnessTitle": "Розпізнавання оплесків",
-  "settingClapStrictnessDescription": "Суворий режим вимагає гучніших і рівномірніших оплесків; спробуйте його, якщо побутовий шум викликає хибні спрацьовування.",
+  "settingClapDetectionDescription": "Суворий режим вимагає гучніших і рівномірніших оплесків. «Велике приміщення» дає оплескам час затихнути в приміщенні з луною.",
   "gestureStrictnessStandard": "Стандартне",
   "gestureStrictnessStrict": "Суворе",
+  "gestureStrictnessLargeRoom": "Велике приміщення",
   "gestureOff": "Жести вимкнено",
   "gestureOffHelp": "Параметр «Вимкнути жести» увімкнено в налаштуваннях режиму кіоска.",
   "gestureEmpty": "Жодних жестів не налаштовано",

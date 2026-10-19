@@ -263,20 +263,9 @@ class PluginRepository {
     final packageName = '$id-$version.zip';
     final downloadUrl = assetUrl(packageName, maxPackageBytes);
     final checksumUrl = assetUrl('$packageName.sha256', 1024);
-    final files = await Future.wait([
-      _get(checksumUrl, 1024),
-      _get(
-        Uri.https(
-          'api.github.com',
-          '/repos${repository.path}/commits/refs/tags/$tag',
-        ),
-        128,
-        accept: 'application/vnd.github.sha',
-      ),
-    ]);
     final checksum = RegExp(
       r'^([a-f0-9]{64}) [ *](.+)$',
-    ).firstMatch(utf8.decode(files[0]).trim());
+    ).firstMatch(utf8.decode(await _get(checksumUrl, 1024)).trim());
     if (checksum == null || checksum.group(2) != packageName) {
       throw const FormatException(
         'Invalid release checksum or package filename',
@@ -292,15 +281,13 @@ class PluginRepository {
       );
     }
 
-    final ref = utf8.decode(files[1]).trim();
-    if (!RegExp(r'^[a-f0-9]{40}$').hasMatch(ref)) {
-      throw const FormatException(
-        'GitHub did not return the release tag revision',
-      );
-    }
+    // The README is read by tag, not by the tag's commit: looking up the
+    // commit costs a GitHub API request, and a person without a GitHub login
+    // gets 60 of those an hour per network. The package stays pinned by its
+    // SHA-256, so only the README depends on the tag.
     final base = Uri.https(
       'raw.githubusercontent.com',
-      '${repository.path}/$ref/',
+      '${repository.path}/refs/tags/$tag/',
     );
     final readme = utf8.decode(
       await _get(base.resolve('README.md'), 128 * 1024),
@@ -315,7 +302,6 @@ class PluginRepository {
     final data = <String, Object?>{
       'previewId': token,
       'repository': repository.toString(),
-      'ref': ref,
       'manifest': manifest,
       'releaseTag': tag,
       'readme': readme,
@@ -392,7 +378,6 @@ class PluginRepository {
       'source': jsonEncode({
         for (final key in [
           'repository',
-          'ref',
           'releaseTag',
           'readme',
           'readmeBaseUrl',

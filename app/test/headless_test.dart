@@ -24,6 +24,7 @@ void main() {
 
   setUp(() async {
     defs.deviceHiddenKeys.clear();
+    defs.deviceHiddenOptions.clear();
     SharedPreferences.setMockInitialValues({
       // What a configuration imported from a tablet carries.
       'ks.screensaver.enabled': true,
@@ -40,7 +41,9 @@ void main() {
 
   tearDown(() {
     defs.deviceHiddenKeys.clear();
+    defs.deviceHiddenOptions.clear();
     Headless.debugActive = false;
+    Headless.debugVolumeClaim = false;
   });
 
   test('display pages and settings are hidden, voice and audio stay', () {
@@ -84,6 +87,39 @@ void main() {
     await settings.set(defs.remoteEnabled, false);
     await settle();
     expect(settings.get(defs.remoteEnabled), isTrue);
+  });
+
+  group('volume buttons (issue #1032)', () {
+    test('hidden on a ROM that keeps them', () {
+      expect(defs.deviceHiddenKeys, contains(defs.sendspinVolumeKeys.key));
+      expect(defs.deviceHiddenKeys, contains(defs.sendspinVolumeKeyStep.key));
+    });
+
+    test(
+      'offered while playing on a ROM that lets the kiosk claim them',
+      () async {
+        defs.deviceHiddenKeys.clear();
+        Headless.debugVolumeClaim = true;
+        final log = Logger();
+        await HeadlessSettings(settings, bus, log).init();
+        expect(
+          defs.deviceHiddenKeys,
+          isNot(contains(defs.sendspinVolumeKeys.key)),
+        );
+        expect(
+          defs.deviceHiddenKeys,
+          isNot(contains(defs.sendspinVolumeKeyStep.key)),
+        );
+        expect(settings.optionsFor(defs.sendspinVolumeKeys), [
+          'off',
+          'playing',
+        ]);
+        final schema = settings.describe().firstWhere(
+          (d) => d['key'] == defs.sendspinVolumeKeys.key,
+        );
+        expect(schema['options'], ['off', 'playing']);
+      },
+    );
   });
 
   test('without a screen the app always counts as on screen', () {

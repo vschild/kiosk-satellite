@@ -63,5 +63,7 @@
   "screensaverBackgroundHint": "Pad naar een afbeelding op het apparaat of een afbeeldings-URL",
   "screensaverImageUrlError": "Voer een volledige URL naar een afbeelding in",
   "screensaverRefreshError": "Voer een geheel aantal minuten van 0 tot en met 1440 in",
-  "screensaverMaxCharacters": "Gebruik maximaal {count} tekens"
+  "screensaverMaxCharacters": "Gebruik maximaal {count} tekens",
+  "settingScreensaverClockAmPmTitle": "AM/PM tonen",
+  "settingScreensaverClockAmPmDescription": "Toon AM of PM na de tijd."
 }

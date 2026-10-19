@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "插件 ID 或版本无效",
   "pluginErrorChecksumFilename": "发布校验和或包文件名无效",
   "pluginErrorGithubDigest": "发布校验和必须与 GitHub 附件的 SHA-256 摘要匹配",
-  "pluginErrorTagRevision": "GitHub 未返回发布标签的修订版本",
   "pluginErrorTrustAuthor": "请确认你信任插件作者",
   "pluginErrorPreviewExpired": "此预览已过期。安装前请重新预览仓库。",
   "pluginErrorReviewedChecksum": "包的 SHA-256 与已审核的发布版本不匹配",

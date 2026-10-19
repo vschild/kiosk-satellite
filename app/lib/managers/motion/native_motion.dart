@@ -29,6 +29,12 @@ class NativeMotion {
   static Future<void> showPreview(Duration duration) => _control
       .invokeMethod<void>('showPreview', {'ms': duration.inMilliseconds});
 
+  /// Finish a release the native side still has queued after the
+  /// stream was cancelled, so the camera is free when this returns. The
+  /// barcode scanner calls it before it opens the camera itself. Throws
+  /// where the plugin is missing; callers treat that as best effort.
+  static Future<void> release() => _control.invokeMethod<void>('release');
+
   static Stream<NativeMotionTick> stream({
     required double fps,
     required int sensitivity,
@@ -43,6 +49,7 @@ class NativeMotion {
     bool paused = false,
     bool preview = false,
     bool rtsp = false,
+    ({int width, int height})? plugin,
   }) {
     return _channel
         .receiveBroadcastStream(<String, Object?>{
@@ -79,6 +86,10 @@ class NativeMotion {
           // for it, since its frames are what the preview is made of.
           'preview': preview,
           'rtsp': rtsp,
+          // A plugin holds the camera: the analysis stream is sized for
+          // it and its frames go to the plugin natively.
+          if (plugin != null)
+            'plugin': {'width': plugin.width, 'height': plugin.height},
         })
         .map(NativeMotionTick.fromNative);
   }

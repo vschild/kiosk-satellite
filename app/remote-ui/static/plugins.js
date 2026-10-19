@@ -9,8 +9,9 @@ import { updatePluginReadings } from './plugin-readings.js';
 import { currentPath, showTab, subpageEntry } from './tabs.js';
 import { dashboardField } from './dashboard_picker.js';
 import { cameraViewSpec, fieldVisible, iconField, listSetting } from './plugin_lists.js';
+import { choiceControl, refreshPluginSetup, setupButtonRow } from './plugin_setup.js';
 import { hintRow, introRow, messageBox, modalShell, showToast, swatch } from './widgets.js';
-import { SUBPAGE_ICONS } from './icons.js';
+import { SUBPAGE_ICONS, subpageIcon } from './icons.js';
 import { marked } from './vendor-marked.js';
 import DOMPurify from './vendor-purify.js';
 
@@ -18,6 +19,14 @@ const introText = 'Plugins add additional community developed features to Kiosk 
 const trustNotice = 'Plugins run code inside Kiosk Satellite and can access app data and granted Android permissions. A faulty or malicious plugin can expose private information or stop the app from working. Only install plugins from authors you trust.';
 let busy = false;
 const maxZipBytes = 4 * 1024 * 1024;
+
+const LOCKED = 'button:not(.plugin-setup-start),input,select';
+
+// Waits out a save in flight, at most 10 seconds, so a settings button
+// press reaches the plugin after the field the user just left.
+async function settled() {
+  for (let i = 0; busy && i < 200; i++) await new Promise((resolve) => setTimeout(resolve, 50));
+}
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -126,27 +135,81 @@ function repositoryDialog() {
   });
 }
 
+const SVG = (path) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;
+const REVIEW_ICONS = {
+  version: 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01',
+  license: 'M12 3v18M5 21h14M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0zM6 7h12',
+  listed: 'M9 12l2 2 4-4M12 3l2.4 1.8 3 .2.9 2.9 2.2 2-1 2.9 1 2.9-2.2 2-.9 2.9-3 .2L12 21l-2.4-1.8-3-.2-.9-2.9-2.2-2 1-2.9-1-2.9 2.2-2 .9-2.9 3-.2z',
+  warn: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
+  error: 'M12 8v4M12 16h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
+};
+
+function reviewChip(icon, text, { tone, title } = {}) {
+  const chip = element('span', undefined, `plugin-review-chip${tone ? ` ${tone}` : ''}`);
+  chip.innerHTML = SVG(REVIEW_ICONS[icon]);
+  chip.append(text);
+  if (title) chip.title = title;
+  return chip;
+}
+
+function reviewNotice(icon, text, tone) {
+  const notice = element('div', undefined, `plugin-review-notice ${tone}`);
+  notice.innerHTML = SVG(REVIEW_ICONS[icon]);
+  notice.append(element('div', text));
+  return notice;
+}
+
+// The review before an install or update: who made the plugin and what it is
+// on a header band, the README under it and the trust notice on a footer
+// band above the buttons. Mirrors the device (plugin_settings.dart,
+// showPluginPreview).
 function confirmPreview(preview) {
   return new Promise((resolve) => {
     const plugin = preview.manifest;
     const close = value => { document.removeEventListener('ks-settings-cached', renderError); modal.close(); resolve(value); };
-    const modal = modalShell({ title: plugin.name, width: 760, onDismiss: () => close(false) });
-    let compatibilityRow;
+    const modal = modalShell({ title: '', width: 960, onDismiss: () => close(false) });
+    // The error is drawn again once the language catalogs arrive.
+    let compatibilityNotice;
     function renderError() {
-      if (compatibilityRow) compatibilityRow.replaceWith(compatibilityRow = hintRow(pluginError(preview.compatibilityError), { warn: true }));
+      if (compatibilityNotice) compatibilityNotice.replaceWith(compatibilityNotice = reviewNotice('error', pluginError(preview.compatibilityError), 'error'));
     }
-    modal.body.append(hintRow(plugin.description));
-    for (const [title, value] of Object.entries({ ...(preview.installedVersion ? { 'Installed version': preview.installedVersion } : {}), Version: plugin.version, Author: plugin.author, License: plugin.license })) {
-      const row = element('div', undefined, 'row');
-      row.append(element('span', pluginText(title), 'info'), element('span', value, 'desc')); modal.body.append(row);
-    }
-    modal.body.append(pluginReadme(preview), hintRow(pluginText(trustNotice), { warn: true }),
-      hintRow(pluginText('New plugins start disabled. Updates preserve the enabled state and automatically restart running plugins.')));
+    modal.card.classList.add('plugin-review');
+    modal.head.remove();
+
+    const header = element('div', undefined, 'plugin-review-head');
+    const top = element('div', undefined, 'plugin-review-top');
+    const icon = element('span', undefined, 'plugin-icon plugin-review-icon');
+    if (preview.icon) {
+      const img = element('img'); img.alt = ''; img.referrerPolicy = 'no-referrer';
+      img.onerror = () => img.replaceWith(subpageIcon('Plugins'));
+      img.src = preview.icon; icon.append(img);
+    } else icon.append(subpageIcon('Plugins'));
+    const names = element('div', undefined, 'plugin-review-names');
+    names.append(element('h3', plugin.name, 'plugin-review-name'),
+      element('div', t('pluginByAuthor', { author: plugin.author }), 'plugin-review-author'));
+    const chips = element('div', undefined, 'plugin-review-chips');
+    chips.append(reviewChip('version', preview.installedVersion ? `${preview.installedVersion} → ${plugin.version}` : plugin.version, { title: pluginText('Version') }),
+      reviewChip('license', plugin.license, { title: pluginText('License') }));
+    if (preview.listed === true) chips.append(reviewChip('listed', pluginText('Listed in Community Plugins'), { tone: 'listed' }));
+    else if (preview.listed === false) chips.append(reviewChip('warn', pluginText('Not listed in Community Plugins'), { tone: 'unlisted' }));
+    names.append(chips);
+    top.append(icon, names);
+    header.append(top);
+    modal.card.insertBefore(header, modal.body);
+
+    modal.body.classList.add('plugin-review-body');
+    modal.body.append(element('div', 'README', 'plugin-review-eyebrow'), pluginReadme(preview));
+
+    const footer = element('div', undefined, 'plugin-review-foot');
     if (!preview.compatible) {
-      compatibilityRow = hintRow(pluginError(preview.compatibilityError), { warn: true });
-      modal.body.append(compatibilityRow);
+      compatibilityNotice = reviewNotice('error', pluginError(preview.compatibilityError), 'error');
+      footer.append(compatibilityNotice);
       document.addEventListener('ks-settings-cached', renderError);
     }
+    footer.append(reviewNotice('warn', pluginText(trustNotice), 'warn'));
+    modal.card.insertBefore(footer, modal.foot);
+    footer.append(modal.foot);
+
     const cancel = element('button', pluginText('Cancel'), 'btn-text');
     cancel.onclick = () => close(false);
     const install = element('button', preview.installedVersion ? pluginText('Trust and update') : pluginText('Trust and install'), 'btn-primary');
@@ -177,6 +240,293 @@ async function zipBase64(file) {
     binary += String.fromCharCode(...bytes.subarray(start, start + 8192));
   }
   return btoa(binary);
+}
+
+// Browse plugins: Community Plugins, the directory kiosksatellite.com builds
+// from the plugins repository. Mirrors the device (plugin_directory.dart).
+const DIRECTORY_PAGE = '_browse';
+const SUBMIT_URL = 'https://github.com/jxlarrea/kiosk-satellite-plugins#submit-your-plugin';
+let directory = null;
+let directoryError = '';
+let directoryReading = null;
+let directoryQuery = '';
+let directoryPageIndex = 0;
+// The page sizes Plugins per page offers, so a directory of thousands still
+// builds a short page. This browser remembers the choice.
+const DIRECTORY_PAGE_SIZES = [5, 10, 20, 50, 100];
+const PAGE_SIZE_KEY = 'ks_plugin_directory_page_size';
+let directoryPageSize = (() => {
+  try { const size = Number(localStorage.getItem(PAGE_SIZE_KEY)); return DIRECTORY_PAGE_SIZES.includes(size) ? size : 10; }
+  catch (_) { return 10; }
+})();
+
+async function pluginCommand(name, params) {
+  const result = await cmd(name, params, { timeoutMs: 95000 });
+  if (!result.ok) throw new Error(result.error);
+  return result.data;
+}
+
+// The same preview and trust dialog as Add plugin. True once installed.
+async function installRepository(url) {
+  const preview = await pluginCommand('previewPluginRepository', { url });
+  if (!await confirmPreview(preview)) return false;
+  await pluginCommand('installPluginRepository', { previewId: preview.previewId, trusted: true });
+  return true;
+}
+
+function directoryPage() {
+  return [...document.querySelectorAll('#tab-plugins > .subpage')].find((el) => el.dataset.subpage === DIRECTORY_PAGE);
+}
+
+function loadDirectory(refresh = false) {
+  if (directoryReading) return directoryReading;
+  directoryReading = (async () => {
+    const page = directoryPage();
+    page?.querySelector('.plugin-directory-refresh')?.classList.add('plugin-busy');
+    try {
+      directory = await pluginCommand('getPluginDirectory', { refresh });
+      directoryError = directory.error || '';
+    } catch (error) { directoryError = error.message; }
+    finally { directoryReading = null; }
+    const shown = directoryPage();
+    if (shown) renderDirectory(shown);
+  })();
+  return directoryReading;
+}
+
+// The orders Sort by offers, the same as kiosksatellite.com's. Mirrors the
+// device (plugin_directory.dart, comparator).
+let directorySort = 'downloads';
+const byName = (a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' });
+const byCount = (key) => (a, b) => (Number.isInteger(b[key]) ? b[key] : -1) - (Number.isInteger(a[key]) ? a[key] : -1);
+const byDate = (key) => (a, b) => String(b[key] || '').localeCompare(String(a[key] || ''));
+const chain = (...steps) => (a, b) => { for (const step of steps) { const c = step(a, b); if (c) return c; } return 0; };
+const DIRECTORY_SORTS = {
+  downloads: ['Most downloads', chain(byCount('downloads'), byCount('stars'), byName)],
+  stars: ['Most stars', chain(byCount('stars'), byName)],
+  updated: ['Recently updated', chain(byDate('released'), byName)],
+  newest: ['Newest', chain(byDate('added'), byDate('released'), byName)],
+  name: ['Name', byName],
+};
+
+// Installed plugin icons as data URLs by plugin ID and package digest, so a
+// page rebuilt on every refresh reads each one once and an update shows its new one.
+const installedIcons = new Map();
+
+function installedIcon(plugin) {
+  if (!plugin.icon) return Promise.resolve(null);
+  const key = `${plugin.id}@${plugin.sha256}`;
+  if (!installedIcons.has(key)) {
+    installedIcons.set(key, cmd('getPluginIcon', { id: plugin.id }, { timeoutMs: 15000 })
+      .then((r) => (r?.ok && r.data?.data ? `data:${r.data.mime};base64,${r.data.data}` : null))
+      .catch(() => null)
+      .then((src) => { if (!src) installedIcons.delete(key); return src; }));
+  }
+  return installedIcons.get(key);
+}
+
+function directoryRow(entry) {
+  const row = element('div', undefined, 'row plugin-directory-row');
+  row.tabIndex = 0; row.setAttribute('role', 'button');
+  // The plugin's icon, or the generic plugin icon without one.
+  const avatar = element('span', undefined, 'plugin-icon');
+  if (entry.icon) {
+    const img = element('img'); img.alt = ''; img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
+    img.onerror = () => img.replaceWith(subpageIcon('Plugins'));
+    img.src = entry.icon; avatar.append(img);
+  } else avatar.append(subpageIcon('Plugins'));
+  // Author, version, stars and downloads share a line.
+  const text = info(entry.name);
+  const meta = element('div', undefined, 'desc plugin-directory-meta');
+  meta.append(element('span', `${entry.author} · ${entry.version}`));
+  const number = new Intl.NumberFormat(messageLanguage() || undefined, { notation: 'compact' });
+  const stats = element('div', undefined, 'plugin-directory-stats');
+  for (const [label, value, path] of [
+    [pluginText('Stars'), entry.stars, 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z'],
+    [pluginText('Downloads'), entry.downloads, 'M12 4v11m-4-4 4 4 4-4M5 20h14'],
+    ...(Number.isInteger(entry.installs) ? [[pluginText('Active installs'), entry.installs, 'M4 5h16v11H4zM8 20h8M12 16v4']] : []),
+  ]) {
+    const stat = element('span'); stat.title = label; stat.setAttribute('aria-label', `${label}: ${value || 0}`);
+    stat.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+    stat.append(number.format(value || 0)); stats.append(stat);
+  }
+  meta.append(...stats.children);
+  text.append(meta);
+  if (entry.description) text.append(element('div', entry.description, 'desc plugin-directory-description'));
+  let action;
+  if (entry.updateAvailable) {
+    action = element('button', pluginText('Update'), 'btn-ghost');
+    action.onclick = (event) => { event.stopPropagation(); installListed(entry, true, action); };
+  } else if (entry.installed) {
+    action = element('span', pluginText('Installed'), 'plugin-directory-installed');
+  } else {
+    action = iconButton(pluginText('Install'), 'M12 5v14M5 12h14');
+    action.onclick = (event) => { event.stopPropagation(); installListed(entry, false, action); };
+  }
+  row.append(avatar, text, action);
+  const open = () => {
+    if (busy) return;
+    if (entry.installed && !entry.updateAvailable) showTab(`plugins/${entry.id}`);
+    else installListed(entry, entry.updateAvailable === true, action);
+  };
+  row.onclick = open;
+  row.onkeydown = (event) => { if (event.target === row && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); open(); } };
+  return row;
+}
+
+async function installListed(entry, update, trigger) {
+  if (busy) return;
+  busy = true;
+  trigger?.classList.add('plugin-busy');
+  try {
+    if (update) {
+      const preview = await pluginCommand('checkPluginUpdate', { id: entry.id });
+      if (!preview.updateAvailable) showToast({ title: entry.name, message: pluginText('No updates available.') });
+      else if (await confirmPreview(preview)) await pluginCommand('installPluginRepository', { previewId: preview.previewId, trusted: true });
+    } else {
+      await installRepository(entry.repository);
+    }
+  } catch (failure) {
+    showToast({ title: pluginText('Plugin Manager'), message: pluginError(failure.message), kind: 'error' });
+  } finally {
+    trigger?.classList.remove('plugin-busy');
+    busy = false;
+  }
+  await loadPlugins();
+}
+
+// Previous and next page buttons around "Page 2 of 31".
+function directoryPager(pages, turn) {
+  const pager = element('div', undefined, 'plugin-directory-pager');
+  const number = new Intl.NumberFormat(messageLanguage() || undefined);
+  const previous = iconButton(pluginText('Previous page'), 'm15 18-6-6 6-6');
+  previous.disabled = directoryPageIndex === 0;
+  previous.onclick = () => turn(directoryPageIndex - 1);
+  const next = iconButton(pluginText('Next page'), 'm9 18 6-6-6-6');
+  next.disabled = directoryPageIndex >= pages - 1;
+  next.onclick = () => turn(directoryPageIndex + 1);
+  const label = element('span', t('pluginPageOfPages', { page: number.format(directoryPageIndex + 1), pages: number.format(pages) }));
+  pager.append(previous, label, next);
+  return pager;
+}
+
+function renderDirectory(page) {
+  page.replaceChildren();
+  const searchCard = element('div', undefined, 'card');
+  // Search, sort and page size on one line. A narrow page wraps the sort
+  // and page size under the search.
+  const toolbar = element('div', undefined, 'plugin-directory-toolbar');
+  const input = element('input', undefined, 'field'); input.type = 'text'; input.value = directoryQuery;
+  input.placeholder = pluginText('Search plugins'); input.setAttribute('aria-label', pluginText('Search plugins'));
+  const search = element('label', undefined, 'plugin-directory-field plugin-directory-query');
+  search.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+  search.append(input);
+  const refreshButton = iconButton(pluginText('Refresh'), 'M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5');
+  refreshButton.classList.add('plugin-directory-refresh');
+  refreshButton.onclick = () => loadDirectory(true);
+  const sort = element('select', undefined, 'field'); sort.setAttribute('aria-label', pluginText('Sort by')); sort.title = pluginText('Sort by');
+  for (const [value, [label]] of Object.entries(DIRECTORY_SORTS)) {
+    const option = element('option', pluginText(label)); option.value = value; sort.append(option);
+  }
+  sort.value = directorySort;
+  const sortField = element('label', undefined, 'plugin-directory-field plugin-directory-sort');
+  sortField.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M6 12h12M10 18h4"/></svg>';
+  sortField.append(sort);
+  const size = element('select', undefined, 'field'); size.setAttribute('aria-label', pluginText('Plugins per page')); size.title = pluginText('Plugins per page');
+  const count = new Intl.NumberFormat(messageLanguage() || undefined);
+  for (const value of DIRECTORY_PAGE_SIZES) {
+    const option = element('option', t('pluginCountPerPage', { count: count.format(value) })); option.value = String(value); size.append(option);
+  }
+  size.value = String(directoryPageSize);
+  const sizeField = element('label', undefined, 'plugin-directory-field plugin-directory-size');
+  sizeField.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
+  sizeField.append(size);
+  toolbar.append(search, sortField, sizeField, refreshButton);
+  searchCard.append(toolbar);
+  if (directoryError) searchCard.append(hintRow(pluginError(directoryError), { warn: true }));
+  const list = element('div', undefined, 'card');
+  const fill = () => {
+    const words = directoryQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    const shown = (directory?.plugins || []).filter((p) => {
+      const text = `${p.name} ${p.description} ${p.author} ${p.owner || ''} ${p.id}`.toLowerCase();
+      return words.every((word) => text.includes(word));
+    }).sort((DIRECTORY_SORTS[directorySort] || DIRECTORY_SORTS.downloads)[1]);
+    const pages = Math.ceil(shown.length / directoryPageSize);
+    directoryPageIndex = Math.max(0, Math.min(directoryPageIndex, pages - 1));
+    const start = directoryPageIndex * directoryPageSize;
+    list.replaceChildren(...shown.slice(start, start + directoryPageSize).map(directoryRow));
+    if (!shown.length && directory) {
+      list.append(hintRow(pluginText(words.length ? 'No plugins match your search.' : 'Community Plugins has no plugins yet.')));
+    }
+    if (pages > 1) list.append(directoryPager(pages, (page) => {
+      directoryPageIndex = page;
+      fill();
+      // A new page opens at the top of the page, like opening it again.
+      (document.scrollingElement || document.documentElement).scrollTo({ top: 0, behavior: 'smooth' });
+    }));
+  };
+  // A new search starts at its first page.
+  input.oninput = () => { directoryQuery = input.value; directoryPageIndex = 0; fill(); };
+  // A new order starts at its first page.
+  sort.onchange = () => { directorySort = sort.value; directoryPageIndex = 0; fill(); };
+  size.onchange = () => {
+    directoryPageSize = Number(size.value); directoryPageIndex = 0; fill();
+    try { localStorage.setItem(PAGE_SIZE_KEY, size.value); } catch (_) {}
+  };
+  fill();
+  const submitCard = element('div', undefined, 'card');
+  const submit = element('a', undefined, 'row plugin-guide-row');
+  submit.dataset.searchId = 'x:plugins:submit';
+  submit.href = SUBMIT_URL; submit.target = '_blank'; submit.rel = 'noopener noreferrer';
+  const submitIcon = element('span', undefined, 'icon-btn'); submitIcon.setAttribute('aria-hidden', 'true');
+  submitIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M21 3 10 14M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/></svg>';
+  submit.append(info(pluginText('Submit your plugin'), pluginText('List your plugin in Community Plugins.')), submitIcon);
+  submitCard.append(submit);
+  page.append(searchCard, ...(directory ? [list] : []), submitCard);
+}
+
+document.addEventListener('ks-route', () => {
+  if (currentPath === `plugins/${DIRECTORY_PAGE}`) loadDirectory();
+});
+
+// An install link from kiosksatellite.com: ?install_plugin=owner/repo. It
+// leaves the address at once, so a reload or Back never asks again, and it
+// only opens the same review Add plugin shows. Nothing installs without the
+// person choosing Trust and install.
+let linkedInstall = (() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    const value = params.get('install_plugin');
+    if (value === null) return '';
+    params.delete('install_plugin');
+    const query = params.toString();
+    history.replaceState(history.state, '', location.pathname + (query ? `?${query}` : '') + location.hash);
+    return value.trim().slice(0, 300);
+  } catch (_) { return ''; }
+})();
+
+export async function installFromLink() {
+  const repository = linkedInstall;
+  linkedInstall = '';
+  if (!repository) return;
+  const url = /^https:\/\//i.test(repository) ? repository : `https://github.com/${repository}`;
+  showTab('plugins', { refresh: false });
+  await loadPlugins();
+  try {
+    if (pluginSearchState?.enabled !== true) {
+      const turnOn = pluginText('Turn on');
+      const answer = await messageBox({ title: pluginText('Enable Plugins'), message: pluginText('Turn on Enable Plugins to install this plugin.'),
+        buttons: [pluginText('Cancel'), turnOn] });
+      if (answer !== turnOn) return;
+      await pluginCommand('setPluginsEnabled', { enabled: true });
+      await loadPlugins();
+    }
+    busy = true;
+    await installRepository(url);
+  } catch (failure) {
+    showToast({ title: pluginText('Plugin Manager'), message: pluginError(failure.message), kind: 'error' });
+  } finally { busy = false; }
+  await loadPlugins();
 }
 
 const EYE = 'M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z';
@@ -242,6 +592,13 @@ function render(root, state) {
   addRow.append(info(pluginText('Add plugin'), pluginText('Install from a GitHub repository')));
   const add = iconButton(pluginText('Add plugin'), 'M12 5v14M5 12h14'); addRow.append(add);
   const warning = hintRow(pluginText(trustNotice), { warn: true }); warning.classList.add('plugin-install-warning');
+  const browseRow = subpageEntry('plugins', DIRECTORY_PAGE, { iconName: 'Plugins' });
+  browseRow.dataset.searchId = 'x:plugins:browse';
+  browseRow.querySelector('.name').textContent = pluginText('Browse plugins');
+  browseRow.querySelector('.desc').textContent = pluginText('Find plugins made by the community');
+  browseRow.addEventListener('click', (event) => { if (busy) event.stopImmediatePropagation(); }, true);
+  const browseCard = element('div', undefined, 'card');
+  browseCard.append(browseRow);
   installCard.append(addRow, warning);
   const list = element('div', undefined, 'card');
   const developerTools = element('div', undefined, 'card');
@@ -254,7 +611,7 @@ function render(root, state) {
   zipRow.append(upload, fileInput); developerTools.append(zipRow);
   const guideRow = element('a', undefined, 'row plugin-guide-row');
   guideRow.dataset.searchId = 'x:plugins:create';
-  guideRow.href = 'https://github.com/jxlarrea/kiosk-satellite-plugin-hello-world';
+  guideRow.href = 'https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/getting-started.md';
   guideRow.target = '_blank'; guideRow.rel = 'noopener noreferrer';
   guideRow.append(info(pluginText('Create a plugin'), pluginText('Learn how to create plugins with the Hello World template and documentation.')));
   const guideIcon = element('span', undefined, 'icon-btn'); guideIcon.setAttribute('aria-hidden', 'true');
@@ -271,14 +628,16 @@ function render(root, state) {
     if (busy) return;
     busy = true;
     root.setAttribute('aria-busy', 'true');
-    root.querySelectorAll('button,input,select').forEach((el) => { el.disabled = true; });
+    // Settings buttons stay pressable: a press right after a text edit
+    // lands while that edit saves, and the button waits for it.
+    root.querySelectorAll(LOCKED).forEach((el) => { el.disabled = true; });
     trigger.classList.add('plugin-busy');
     try { await action(); }
     catch (failure) { showToast({ title: pluginText('Plugin Manager'), message: pluginError(failure.message), kind: 'error' }); }
     finally {
       trigger.classList.remove('plugin-busy'); busy = false;
       root.removeAttribute('aria-busy');
-      root.querySelectorAll('button,input,select').forEach((el) => { el.disabled = el.dataset.pluginDisabled === 'true'; });
+      root.querySelectorAll(LOCKED).forEach((el) => { el.disabled = el.dataset.pluginDisabled === 'true'; });
     }
   }
   const refresh = async () => render(root, await command('getPluginState'));
@@ -291,7 +650,11 @@ function render(root, state) {
     if (currentPath.split('/')[0] === 'plugins') showTab('plugins', { refresh: false });
     return;
   }
-  root.append(installCard, heading(pluginText('Installed plugins')), list, heading(pluginText('Developer Tools')), developerTools);
+  root.append(browseCard, installCard, heading(pluginText('Installed plugins')), list, heading(pluginText('Developer Tools')), developerTools);
+  const browsePage = element('div', undefined, 'subpage');
+  browsePage.dataset.subpage = DIRECTORY_PAGE; browsePage.dataset.title = pluginText('Browse plugins');
+  renderDirectory(browsePage);
+  root.append(browsePage);
   add.onclick = () => run(async () => {
     const url = await repositoryDialog();
     if (url === null) return;
@@ -375,10 +738,17 @@ function render(root, state) {
     row.insertBefore(actions, row.lastChild);
     list.append(row);
     const page = element('div', undefined, 'subpage'); page.dataset.subpage = plugin.id; page.dataset.title = plugin.name;
+    page.dataset.pluginRunning = String(plugin.running === true);
     const description = element('div', undefined, 'card');
     const intro = introRow(SUBPAGE_ICONS.Plugins, plugin.name || plugin.id, plugin.description || '');
     intro.dataset.searchId = `plugin:${plugin.id}:intro`;
     description.append(intro);
+    // The plugin's own icon replaces the generic glyph once it arrives.
+    installedIcon(plugin).then((src) => {
+      if (!src) return;
+      const img = element('img'); img.alt = ''; img.src = src;
+      intro.querySelector('.intro-icon').replaceChildren(img);
+    });
     if (plugin.status) {
       const status = hintRow(plugin.status, { warn: plugin.statusError === true });
       status.classList.add('plugin-runtime-status'); description.append(status);
@@ -415,15 +785,16 @@ function render(root, state) {
     const ensureGroup = (group) => {
       if (groups.has(group)) return groups.get(group);
       const panel = element('div', undefined, 'card'); groups.set(group, panel);
-      page.append(heading(group === 'Settings' && !plugin.groups?.some(entry => entry.title === group) && !plugin.settings?.some(entry => entry.group === group) ? pluginText('Settings') : group), panel);
+      page.append(heading(group === 'Settings' && !plugin.groups?.some(entry => entry.title === group) && !plugin.settings?.some(entry => entry.group === group) && !plugin.buttons?.some(entry => entry.group === group) ? pluginText('Settings') : group), panel);
       if (page.pluginGroups.some((entry) => entry.title === group && (entry.charts?.length || entry.readings?.length))) appendOutput(group);
       return panel;
     };
     for (const group of plugin.groups || []) ensureGroup(group.title);
     const values = { ...plugin.values };
+    // Only the changed setting, so a value the plugin saved meanwhile stays.
     const saveSetting = (key, value, trigger) => run(async () => {
       try {
-        await command('configurePlugin', { id: plugin.id, values: { ...plugin.values, [key]: value } });
+        await command('configurePlugin', { id: plugin.id, values: { [key]: value }, patch: true });
       } finally {
         await refresh();
       }
@@ -501,6 +872,14 @@ function render(root, state) {
         }
         settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
         settingRow.classList.add('dp-field-row');
+      } else if (setting.type === 'string' && setting.choices === 'plugin') {
+        // The plugin lists the choices. The setting stores the picked ID.
+        const choice = choiceControl(plugin, setting, values[setting.key] ?? setting.default ?? '', settled,
+          (picked, trigger) => saveSetting(setting.key, picked, trigger));
+        const text = info(setting.title, setting.description || ''); text.append(...choice.lines);
+        settingRow.replaceChildren(text, choice.control);
+        settingRow.classList.add('dp-field-row');
+        choice.attach(settingRow);
       } else if (setting.type === 'select') {
         const select = element('select'); select.setAttribute('aria-label', setting.title);
         for (const choice of setting.options) { const option = element('option', choice); option.value = choice; select.append(option); }
@@ -529,7 +908,7 @@ function render(root, state) {
         // event. A saved secret leaves the field empty and hidden again.
         input.onblur = () => input.value && run(async () => {
           try {
-            await command('configurePlugin', { id: plugin.id, values: { ...plugin.values, [setting.key]: input.value } });
+            await command('configurePlugin', { id: plugin.id, values: { [setting.key]: input.value }, patch: true });
             input.value = ''; show(false); reveal.hidden = true;
           } finally {
             await refresh();
@@ -552,6 +931,10 @@ function render(root, state) {
         input.onkeydown = (event) => { if (event.key === 'Enter') input.blur(); }; settingRow.append(input);
       }
       panel.append(settingRow);
+    }
+    // Buttons close their group, shown by the settings they name.
+    for (const button of (plugin.buttons || []).filter((entry) => fieldVisible(entry, values, plugin.settings || []))) {
+      ensureGroup(button.group || 'Settings').append(setupButtonRow(plugin, button, settled));
     }
     appendOutput();
     if (plugin.commands?.length) {
@@ -621,14 +1004,17 @@ watchUpdates(['plugins'], async () => {
   if (!container) return;
   runtimeLoading = true;
   try {
-    await Promise.allSettled([
+    const outputs = [
       ['getPluginCharts', page, (target, items) => updateGroupedPluginOutput(target, 'charts', items)],
       ['getPluginReadings', page, (target, items) => updateGroupedPluginOutput(target, 'readings', items)],
       ...(page.querySelector('.plugin-shizuku') ? [['getPluginShizukuState', page.querySelector('.plugin-shizuku'), updatePluginShizuku]] : []),
     ].map(async ([command, target, update]) => {
       const result = await cmd(command, { id }, { timeoutMs: 5000 });
       if (target?.isConnected && currentPath === `plugins/${id}` && result.ok) update(target, result.data);
-    }));
+    });
+    // Settings buttons and plugin choices follow their runs.
+    if (page.querySelector('[data-setup-target]')) outputs.push(refreshPluginSetup(id));
+    await Promise.allSettled(outputs);
   } catch (_) { /* Reconnect reads the latest plugin output. */ }
   finally { runtimeLoading = false; }
 }, { visible: () => currentPath.startsWith('plugins/'), intervalMs: 1000 });

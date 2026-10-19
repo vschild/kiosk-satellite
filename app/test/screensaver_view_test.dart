@@ -320,7 +320,13 @@ void main() {
     });
 
     test('one switch per slideshow mode, on by default', () {
-      expect(slideEdgeTapDefs.keys, ['media', 'local', 'gallery', 'immich']);
+      expect(slideEdgeTapDefs.keys, [
+        'media',
+        'local',
+        'gallery',
+        'url',
+        'immich',
+      ]);
       for (final def in slideEdgeTapDefs.values) {
         expect(def.defaultValue, isTrue, reason: def.key);
         expect(def.category, 'Screensaver', reason: def.key);

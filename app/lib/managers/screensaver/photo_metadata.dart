@@ -1,7 +1,7 @@
 /// The photo metadata panel's settings and details, shared by the
 /// screensaver modes that carry one: Immich Media, whose server hands over
-/// the details, and Home Assistant Media and Local Media, which read them
-/// from the photo's own EXIF (issue #953).
+/// the details, and Home Assistant Media, Local Media and Image URL, which
+/// read them from the photo's own EXIF (issue #953).
 library;
 
 import 'dart:async';
@@ -88,6 +88,18 @@ const photoMetadataDefs = <String, PhotoMetadataDefs>{
     textShadow: defs.screensaverLocalMetadataTextShadow,
     scale: defs.screensaverLocalMetadataScale,
     vignette: defs.screensaverLocalVignetteStrength,
+  ),
+  'url': PhotoMetadataDefs(
+    enabled: defs.screensaverUrlMetadata,
+    fields: {
+      'date': defs.screensaverUrlMetadataDate,
+      'camera': defs.screensaverUrlMetadataCamera,
+      'settings': defs.screensaverUrlMetadataCamera,
+    },
+    position: defs.screensaverUrlMetadataPosition,
+    textShadow: defs.screensaverUrlMetadataTextShadow,
+    scale: defs.screensaverUrlMetadataScale,
+    vignette: defs.screensaverUrlVignetteStrength,
   ),
 };
 
@@ -215,6 +227,11 @@ Future<Map<String, String>> localPhotoDetails(String path) =>
         await file.close();
       }
     });
+
+/// A photo already in memory (the Image URL screensaver's fetch), keyed by
+/// [id] since the same address answers with a new photo every time.
+Future<Map<String, String>> memoryPhotoDetails(String id, Uint8List bytes) =>
+    _cached('memory:$id', () async => bytes);
 
 /// A photo Home Assistant serves at [url], keyed by its media id since the
 /// signed URL changes with every resolve. A Range request asks for the head

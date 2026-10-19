@@ -8,7 +8,6 @@
   "pluginErrorChecksum": "SHA-256 пакета не совпадает",
   "pluginErrorDifferentRepository": "Этот ID плагина принадлежит другому репозиторию. Удалите его перед сменой источника.",
   "pluginErrorRestartReplace": "Плагин не остановился корректно. Перезапустите Kiosk Satellite перед заменой.",
-  "pluginErrorPluginLimit": "Можно установить не более 8 плагинов",
   "pluginErrorAlreadyInstalled": "Этот пакет уже установлен",
   "pluginErrorLoadedIntegrity": "Ранее загруженный пакет не прошёл проверку целостности. Перезапустите Kiosk Satellite перед повторной установкой.",
   "pluginErrorRemovePackage": "Не удалось удалить неиспользуемый пакет",

@@ -63,5 +63,7 @@
   "screensaverBackgroundHint": "Путь к изображению на устройстве или URL изображения",
   "screensaverImageUrlError": "Введите полный URL изображения",
   "screensaverRefreshError": "Введите целые минуты от 0 до 1440",
-  "screensaverMaxCharacters": "Используйте не более {count} символов"
+  "screensaverMaxCharacters": "Используйте не более {count} символов",
+  "settingScreensaverClockAmPmTitle": "Показывать AM/PM",
+  "settingScreensaverClockAmPmDescription": "Добавлять AM или PM после времени."
 }

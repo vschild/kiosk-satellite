@@ -12,6 +12,7 @@
   "voiceScaleHelp": "Розмір тексту накладення.",
   "voiceUpdateIntegration": "Оновіть інтеграцію Voice Satellite у Home Assistant, щоб керувати цими налаштуваннями з кіоска.",
   "voiceDashboardRequired": "Доступно, коли кіоск показує панель керування Home Assistant.",
+  "voiceSkinUnavailablePlugin": "Недоступне оформлення плагіна",
   "voiceSkinDefault": "За оформленням",
   "voiceBackground": "Тло",
   "voiceBackgroundHelp": "Наскільки крізь тло видно панель керування.",

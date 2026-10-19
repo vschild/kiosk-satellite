@@ -55,5 +55,6 @@
   "screensaverModeDashboard": "Home-Assistant-Dashboard",
   "settingScreensaverDashboardViewTitle": "Dashboard-Ansicht",
   "settingScreensaverDashboardViewDescription": "Die Home-Assistant-Dashboard-Ansicht, die der Bildschirmschoner zeigt.",
-  "screensaverDashboardSection": "Bildschirmschoner: Home-Assistant-Dashboard"
+  "screensaverDashboardSection": "Bildschirmschoner: Home-Assistant-Dashboard",
+  "screensaverModeUrl": "Bild-URL"
 }

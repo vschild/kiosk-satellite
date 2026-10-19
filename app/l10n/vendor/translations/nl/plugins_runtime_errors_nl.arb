@@ -8,7 +8,6 @@
   "pluginErrorChecksum": "De SHA-256 van het pakket komt niet overeen",
   "pluginErrorDifferentRepository": "Deze plug-in-ID hoort bij een andere repository. Verwijder de plug-in voordat je van bron wisselt.",
   "pluginErrorRestartReplace": "Deze plug-in is niet correct gestopt. Start Kiosk Satellite opnieuw voordat je hem vervangt.",
-  "pluginErrorPluginLimit": "Er kunnen maximaal 8 plug-ins worden geïnstalleerd",
   "pluginErrorAlreadyInstalled": "Dit pakket is al geïnstalleerd",
   "pluginErrorLoadedIntegrity": "De integriteitscontrole van een eerder geladen pakket is mislukt. Start Kiosk Satellite opnieuw voordat je het pakket opnieuw installeert.",
   "pluginErrorRemovePackage": "Het ongebruikte pakket kan niet worden verwijderd",

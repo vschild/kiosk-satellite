@@ -17,6 +17,7 @@ import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/plugins/plugin_manager.dart';
 import 'package:kiosk_satellite/ui/plugin_overlay.dart';
+import 'package:kiosk_satellite/ui/ui_scale.dart';
 import 'package:kiosk_satellite/ui/kit.dart';
 import 'package:kiosk_satellite/ui/plugin_settings.dart';
 
@@ -680,13 +681,21 @@ void main() {
             if (plugin['id'] == args['id'])
               {
                 ...plugin,
-                'values': Map<String, Object?>.from(args['values'] as Map),
+                // A patch writes over the saved values, like the host.
+                'values': <String, Object?>{
+                  if (args['patch'] == true) ...plugin['values'] as Map,
+                  ...args['values'] as Map,
+                },
               }
             else
               plugin,
         ];
       }
       if (call.method == 'remove') installed = [];
+      if (call.method == 'setupRun') return {'run': 'run-${calls.length}'};
+      if (call.method == 'setupCancel' || call.method == 'setupConfirm') {
+        return null;
+      }
       return {'enabled': masterEnabled, 'plugins': installed};
     });
     await plugins.init();
@@ -1204,6 +1213,256 @@ void main() {
     },
   );
 
+  test(
+    'setup runs and choices are session scoped and reach remote commands',
+    () async {
+      Future<void> open(String token) => native('hostSession', {
+        'id': 'hello-world',
+        'session': token,
+        'capabilities': <String>[],
+      });
+      Future<void> publish(String token, Map setup) => native('setup', {
+        'id': 'hello-world',
+        'session': token,
+        'setup': setup,
+      });
+      const state = {
+        'runs': {
+          'button:test': {
+            'run': 'r1',
+            'state': 'running',
+            'message': 'Connecting',
+            'code': '',
+            'origin': 'remote',
+            'confirm': null,
+          },
+        },
+        'choices': {
+          'device': [
+            {'id': 'lamp-1', 'label': 'Kitchen'},
+          ],
+        },
+      };
+      await open('first');
+      await publish('first', state);
+      final read = await commands.execute('getPluginSetup', {
+        'id': 'hello-world',
+      });
+      expect(
+        ((read.data as Map)['runs'] as Map)['button:test']['message'],
+        'Connecting',
+      );
+      // A stale session changes nothing, and a new one starts empty.
+      await open('second');
+      expect(plugins.setup.value, isEmpty);
+      await publish('first', state);
+      expect(plugins.setup.value, isEmpty);
+      expect(
+        (await commands.execute('getPluginSetup', {'id': 'hello-world'})).data,
+        {'runs': {}, 'choices': {}},
+      );
+      final run = await commands.execute('runPluginSetup', {
+        'id': 'hello-world',
+        'target': 'button',
+        'key': 'test',
+      });
+      expect(run.ok, isTrue);
+      expect(calls.last.method, 'setupRun');
+      expect(calls.last.arguments, {
+        'id': 'hello-world',
+        'target': 'button',
+        'key': 'test',
+        'origin': 'remote',
+      });
+      await commands.execute('cancelPluginSetup', {
+        'id': 'hello-world',
+        'run': 'r1',
+      });
+      expect(calls.last.method, 'setupCancel');
+      await commands.execute('answerPluginSetup', {
+        'id': 'hello-world',
+        'run': 'r1',
+        'accepted': true,
+      });
+      expect(calls.last.arguments, {
+        'id': 'hello-world',
+        'run': 'r1',
+        'accepted': true,
+      });
+      await publish('second', state);
+      await native('hostSessionClosed', {
+        'id': 'hello-world',
+        'session': 'second',
+      });
+      expect(plugins.setup.value, isEmpty);
+    },
+  );
+
+  testWidgets('settings buttons and plugin choices run through the host', (
+    tester,
+  ) async {
+    installed[0]['settings'] = [
+      {
+        'key': 'host',
+        'title': 'Host',
+        'type': 'string',
+        'default': '',
+        'group': 'Connection',
+      },
+      {
+        'key': 'device',
+        'title': 'Device',
+        'type': 'string',
+        'default': '',
+        'choices': 'plugin',
+        'group': 'Connection',
+      },
+    ];
+    installed[0]['buttons'] = [
+      {
+        'id': 'test',
+        'title': 'Test connection',
+        'label': 'Test',
+        'group': 'Connection',
+        'visibleWhen': {'key': 'host', 'notEmpty': true},
+      },
+      {
+        'id': 'pair',
+        'title': 'Pair with the bridge',
+        'label': 'Pair',
+        'group': 'Connection',
+        'confirm': {
+          'title': 'Pair now?',
+          'message': 'Press the button on the bridge first.',
+          'confirmLabel': 'Pair now',
+        },
+      },
+    ];
+    installed[0]['values'] = {'host': '', 'device': 'lamp-2'};
+    await plugins.refresh();
+    await native('hostSession', {
+      'id': 'hello-world',
+      'session': 's',
+      'capabilities': <String>[],
+    });
+    Future<void> publish(Map runs, [Map choices = const {}]) =>
+        native('setup', {
+          'id': 'hello-world',
+          'session': 's',
+          'setup': {'runs': runs, 'choices': choices},
+        });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: PluginDetailPanel(plugins: plugins, id: 'hello-world'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The test button waits for a host. The pair button asks first.
+    expect(find.text('Test connection'), findsNothing);
+    expect(find.text('Connection'), findsOneWidget);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Pair'));
+    await tester.pumpAndSettle();
+    expect(find.text('Press the button on the bridge first.'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(calls.where((c) => c.method == 'setupRun'), isEmpty);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Pair'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pair now'));
+    await tester.pumpAndSettle();
+    expect(calls.lastWhere((c) => c.method == 'setupRun').arguments, {
+      'id': 'hello-world',
+      'target': 'button',
+      'key': 'pair',
+      'origin': 'device',
+    });
+    // While it runs the row shows its progress and Cancel.
+    final pairing = {
+      'run': 'p1',
+      'state': 'running',
+      'message': 'Waiting for the bridge',
+      'code': '',
+      'origin': 'device',
+      'confirm': null,
+    };
+    await publish({'button:pair': pairing});
+    await tester.pump();
+    expect(find.text('Waiting for the bridge'), findsOneWidget);
+    // A question from the plugin opens on the device that started the run.
+    await publish({
+      'button:pair': {
+        ...pairing,
+        'confirm': {
+          'title': 'Trust this bridge?',
+          'message': 'SHA-256 AB:CD',
+          'confirmLabel': 'Trust',
+        },
+      },
+    });
+    // The spinner keeps running, so pump past the dialog's entrance.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('SHA-256 AB:CD'), findsOneWidget);
+    await tester.tap(find.text('Trust'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(calls.lastWhere((c) => c.method == 'setupConfirm').arguments, {
+      'id': 'hello-world',
+      'run': 'p1',
+      'accepted': true,
+    });
+    await publish({'button:pair': pairing});
+    await tester.pump();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Cancel'));
+    await tester.pump();
+    expect(calls.lastWhere((c) => c.method == 'setupCancel').arguments, {
+      'id': 'hello-world',
+      'run': 'p1',
+    });
+    await publish({
+      'button:pair': {
+        ...pairing,
+        'state': 'error',
+        'message': '',
+        'code': 'timeout',
+      },
+    });
+    await tester.pump();
+    expect(find.text('The plugin did not answer in time.'), findsOneWidget);
+    // The choice shows its label once the plugin lists it, and a saved one
+    // the list lacks is flagged.
+    await publish(const {}, {
+      'device': [
+        {'id': 'lamp-1', 'label': 'Kitchen'},
+      ],
+    });
+    await tester.pump();
+    expect(find.text('This choice is no longer listed.'), findsOneWidget);
+    await tester.tap(find.byTooltip('Refresh'));
+    await tester.pump();
+    expect(calls.lastWhere((c) => c.method == 'setupRun').arguments, {
+      'id': 'hello-world',
+      'target': 'choices',
+      'key': 'device',
+      'origin': 'device',
+    });
+    await tester.tap(find.byType(PickField));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kitchen').last);
+    await tester.pumpAndSettle();
+    final save =
+        calls.lastWhere((c) => c.method == 'configure').arguments as Map;
+    expect(save['values'], {'device': 'lamp-1'});
+    expect(save['patch'], isTrue);
+    expect(find.text('This choice is no longer listed.'), findsNothing);
+    expect(find.text('Kitchen'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   test('native overlays are session scoped and keep their stacking', () async {
     await overlaySession('first');
     await overlays('first', [overlay('bar', 1), overlay('full', 2)]);
@@ -1543,6 +1802,82 @@ void main() {
     expect(ignoring(0), isFalse);
     expect(ignoring(2), isTrue);
   });
+  testWidgets('native overlays follow the Scale UI factor', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    final views = <MethodCall>[];
+    messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
+      call,
+    ) async {
+      views.add(call);
+      final args = call.arguments;
+      return switch (call.method) {
+        'create' => 0,
+        'resize' => {'width': (args as Map)['width'], 'height': args['height']},
+        _ => null,
+      };
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        null,
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => UiScaler(scale: 1.25, child: child!),
+        home: PluginOverlay(plugins: plugins),
+      ),
+    );
+    await overlaySession('first');
+    await overlays('first', [
+      overlay('bar', 1, inset: 12),
+      overlay(
+        'panel',
+        2,
+        anchor: 'top-left',
+        width: 100,
+        height: 40,
+        offsetX: 8,
+        offsetY: 4,
+      ),
+    ]);
+    await tester.pump();
+    final params =
+        const StandardMessageCodec().decodeMessage(
+              ByteData.sublistView(
+                (views.firstWhere((c) => c.method == 'create').arguments
+                        as Map)['params']
+                    as Uint8List,
+              ),
+            )
+            as Map;
+    expect(params['scale'], 1.25);
+    expect(params['insets'], [12, 12, 12, 12]);
+    // Sizes, insets and offsets in dp grow by the factor.
+    expect(
+      tester.getRect(find.byType(AndroidView).at(1)),
+      const Rect.fromLTWH(10, 5, 125, 50),
+    );
+    await native('overlaySize', {
+      'id': 'hello-world',
+      'session': 'first',
+      'key': 'bar',
+      'generation': 1,
+      'width': 300,
+      'height': 64,
+    });
+    await tester.pump();
+    // A wrapped view already drew at the scaled density, so its measured
+    // pixels map one to one onto the screen: 300 x 64 at a ratio of 2,
+    // centered under a 15 dp inset.
+    expect(
+      tester.getRect(find.byType(AndroidView).at(0)),
+      const Rect.fromLTWH(125, 15, 150, 32),
+    );
+  });
+
   testWidgets('window stays reachable after a display resize', (tester) async {
     tester.view.physicalSize = const Size(320, 240);
     tester.view.devicePixelRatio = 1;
@@ -1855,6 +2190,83 @@ void main() {
     },
   );
 
+  testWidgets('list rows show entity fields the way the entity picker does', (
+    tester,
+  ) async {
+    installed[0]['settings'] = [
+      {
+        'key': 'sensors',
+        'title': 'Sensors',
+        'type': 'list',
+        'row': {'title': 'entity'},
+        'default': [],
+        'fields': [
+          {'key': 'entity', 'title': 'Entity', 'type': 'entity'},
+        ],
+      },
+      {
+        'key': 'buttons',
+        'title': 'Buttons',
+        'type': 'list',
+        'row': {'title': 'label', 'subtitle': 'target'},
+        'default': [],
+        'fields': [
+          {'key': 'label', 'title': 'Label', 'type': 'string'},
+          {'key': 'target', 'title': 'Target', 'type': 'entity'},
+        ],
+      },
+    ];
+    installed[0]['values'] = {
+      'sensors': [
+        {'entity': 'sensor.room'},
+        {'entity': 'sensor.gone'},
+      ],
+      'buttons': [
+        {'label': 'Porch', 'target': 'light.porch'},
+      ],
+    };
+    PickCatalog.reset();
+    commands.register(
+      Command(
+        name: 'haListEntities',
+        description: 'test',
+        handler: (_) async => const CommandResult.ok([
+          {
+            'entity_id': 'sensor.room',
+            'name': 'Room temperature',
+            'state': '21 °C',
+            'icon': 'mdi:thermometer',
+            'domain': 'sensor',
+          },
+          {
+            'entity_id': 'light.porch',
+            'name': 'Porch light',
+            'state': 'On',
+            'domain': 'light',
+          },
+        ]),
+      ),
+    );
+    await plugins.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: PluginDetailPanel(plugins: plugins, id: 'hello-world'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Room temperature'), findsOneWidget);
+    expect(find.text('21 °C · sensor.room'), findsOneWidget);
+    expect(find.text('sensor.gone'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    expect(find.text('Porch'), findsOneWidget);
+    expect(find.text('Porch light · On'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('demo output follows its settings with charts before readings', (
     tester,
   ) async {
@@ -1991,6 +2403,70 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the plugin page shows the icon the plugin names', (
+    tester,
+  ) async {
+    final png = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    );
+    messenger.setMockMethodCallHandler(PluginManager.channel, (call) async {
+      calls.add(call);
+      if (call.method == 'icon') return png;
+      return {'enabled': true, 'plugins': installed};
+    });
+    Future<Finder> open() async {
+      await plugins.refresh();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PluginDetailPanel(
+                key: UniqueKey(),
+                plugins: plugins,
+                id: 'hello-world',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return find.byType(IntroRow);
+    }
+
+    // Without an icon the page keeps the generic glyph and never asks.
+    var intro = await open();
+    expect(
+      find.descendant(
+        of: intro,
+        matching: find.byIcon(Icons.extension_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(calls.where((c) => c.method == 'icon'), isEmpty);
+
+    installed[0] = {
+      ...installed[0],
+      'icon': 'assets/icon.png',
+      'sha256': 'a' * 64,
+    };
+    intro = await open();
+    expect(
+      find.descendant(of: intro, matching: find.byType(Image)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: intro,
+        matching: find.byIcon(Icons.extension_rounded),
+      ),
+      findsNothing,
+    );
+    expect(calls.where((c) => c.method == 'icon').single.arguments, {
+      'id': 'hello-world',
+    });
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('secret settings stay masked and are only replaced', (
     tester,
   ) async {
@@ -2036,9 +2512,10 @@ void main() {
     expect(
       (calls.lastWhere((c) => c.method == 'configure').arguments
           as Map)['values'],
-      {'token': 'rotated', 'host': 'nas.local'},
+      // Only the replaced secret. The host keeps the rest.
+      {'token': 'rotated'},
     );
-    // Editing another setting echoes the mask, which the host keeps.
+    // Editing another setting sends only that one, so the secret stays.
     installed[0]['values'] = {'token': '__set__', 'host': 'nas.local'};
     await plugins.refresh();
     await tester.pumpAndSettle();
@@ -2051,7 +2528,7 @@ void main() {
     expect(
       (calls.lastWhere((c) => c.method == 'configure').arguments
           as Map)['values'],
-      {'token': '__set__', 'host': 'nas.lan'},
+      {'host': 'nas.lan'},
     );
     expect(tester.takeException(), isNull);
   });
@@ -2318,7 +2795,7 @@ void main() {
     expect(
       (calls.lastWhere((c) => c.method == 'configure').arguments
           as Map)['values'],
-      {'brightness': 75.0, 'effect': 'None', 'color': '#123456'},
+      {'brightness': 75.0},
     );
     await tester.tap(find.text('None'));
     await tester.pumpAndSettle();
@@ -2328,7 +2805,7 @@ void main() {
     expect(
       (calls.lastWhere((c) => c.method == 'configure').arguments
           as Map)['values'],
-      {'brightness': 75.0, 'effect': 'Pulse', 'color': '#123456'},
+      {'effect': 'Pulse'},
     );
     expect(tester.takeException(), isNull);
   });
@@ -2394,6 +2871,7 @@ void main() {
       expect(configure.arguments, {
         'id': 'hello-world',
         'values': {'message': 'Edited greeting'},
+        'patch': true,
       });
       expect(find.widgetWithText(FilledButton, 'Save settings'), findsNothing);
       expect(find.text('Edited greeting'), findsOneWidget);

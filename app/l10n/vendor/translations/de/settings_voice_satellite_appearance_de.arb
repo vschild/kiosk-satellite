@@ -12,6 +12,7 @@
   "voiceScaleHelp": "Die Größe des Assistententextes auf dem Bildschirm.",
   "voiceUpdateIntegration": "Aktualisiere die Voice-Satellite-Integration in Home Assistant, um diese Einstellungen vom Kiosk aus steuern zu können.",
   "voiceDashboardRequired": "Verfügbar, solange der Kiosk dein Home-Assistant-Dashboard anzeigt.",
+  "voiceSkinUnavailablePlugin": "Design eines Plugins nicht verfügbar",
   "voiceSkinDefault": "Wie im Design",
   "voiceBackground": "Hintergrund",
   "voiceBackgroundHelp": "Wie viel vom Dashboard durchscheint.",

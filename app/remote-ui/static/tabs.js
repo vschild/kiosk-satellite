@@ -104,6 +104,16 @@ export let currentPath = 'dashboard';
 // goes through this instead.
 export function setCurrentPath(path) { currentPath = path; }
 
+// The hash showTab last left in the address bar. Back fires both popstate
+// and hashchange, and only the first of them has a page to change.
+let routedHash = '';
+
+// Back, Forward and an address typed by hand.
+export function followRoute() {
+  if (location.hash === routedHash) return;
+  showTab(readRoute(), { push: false });
+}
+
 // Where the parent page was scrolled to when a second-level page opened over
 // it. Coming back lands on the entry row that was tapped instead of at the
 // top of a long page, which is where the browser would otherwise leave it:
@@ -182,9 +192,12 @@ export function showTab(name, { push = true, refresh = true } = {}) {
   }
   const canonical = routeHash(currentPath);
   if (readRoute() !== canonical) {
-    if (push) location.hash = canonical;
+    // pushState, never location.hash: Safari 27 reloads the whole page on
+    // a fragment navigation. Back and Forward arrive through popstate.
+    if (push) history.pushState(null, '', '#' + canonical);
     else history.replaceState(null, '', '#' + canonical);
   }
+  routedHash = location.hash;
   document.dispatchEvent(new CustomEvent('ks-route'));
   // Nothing on the Overview is a setting: it is re-read on every visit.
   if (tab === 'dashboard' && !sameTab) overviewShown();

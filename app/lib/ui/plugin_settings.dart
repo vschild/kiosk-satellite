@@ -1,6 +1,7 @@
 import '../l10n/messages.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 
@@ -14,16 +15,23 @@ import '../core/command_registry.dart';
 import 'dashboard_view_picker.dart';
 import 'entity_picker.dart';
 import 'kit.dart';
+import 'plugin_directory.dart';
 import 'plugin_list_setting.dart';
 import 'plugin_chart.dart';
 import 'plugin_readings.dart';
+import 'plugin_setup.dart';
 import 'plugin_shizuku.dart';
+import 'theme.dart';
 import 'color_picker.dart';
 import 'toast.dart';
 import 'settings_search.dart';
 
 const pluginIntro =
     'Plugins add additional community developed features to Kiosk Satellite.';
+
+/// The Plugin Manager page that lists Community Plugins. Plugin IDs never
+/// hold an underscore, so it cannot clash with a plugin's own page.
+const pluginDirectoryPage = '_browse';
 
 const pluginTrustNotice =
     'Plugins run code inside Kiosk Satellite and can access '
@@ -94,6 +102,293 @@ class PluginReadme extends StatelessWidget {
             );
     },
   );
+}
+
+/// The review before an install or update: who made the plugin and what it
+/// is on a header band, the README under it and the trust notice on a
+/// footer band above the buttons. True once the person chooses to trust
+/// and install. Mirrors the remote admin (plugins.js, confirmPreview).
+Future<bool> showPluginPreview(
+  BuildContext context,
+  Map<String, Object?> preview,
+) async {
+  final install = await showDialog<bool>(
+    context: context,
+    builder: (context) => _PluginReviewDialog(preview: preview),
+  );
+  return install == true;
+}
+
+class _PluginReviewDialog extends StatelessWidget {
+  const _PluginReviewDialog({required this.preview});
+  final Map<String, Object?> preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final manifest = preview['manifest'] as Map;
+    final isUpdate = preview.containsKey('installedVersion');
+    final compatible = preview['compatible'] == true;
+    final muted = theme.textTheme.bodyMedium?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    final chips = <Widget>[
+      _ReviewChip(
+        icon: Icons.sell_outlined,
+        tooltip: pluginText(context, 'Version'),
+        text: isUpdate
+            ? '${preview['installedVersion']} → ${manifest['version']}'
+            : '${manifest['version']}',
+      ),
+      _ReviewChip(
+        icon: Icons.balance_rounded,
+        tooltip: pluginText(context, 'License'),
+        text: '${manifest['license']}',
+      ),
+      if (preview['listed'] == true)
+        _ReviewChip(
+          icon: Icons.verified_outlined,
+          text: pluginText(context, 'Listed in Community Plugins'),
+          background: scheme.primaryContainer,
+          foreground: scheme.onPrimaryContainer,
+        )
+      else if (preview['listed'] == false)
+        _ReviewChip(
+          icon: Icons.warning_amber_rounded,
+          text: pluginText(context, 'Not listed in Community Plugins'),
+          background: scheme.tertiaryContainer,
+          foreground: scheme.onTertiaryContainer,
+        ),
+    ];
+    // A phone gives the README the room: the header scrolls away with it
+    // and only the footer with the buttons stays put.
+    final narrow = MediaQuery.sizeOf(context).width < 600;
+    final Widget header = Container(
+      color: scheme.surfaceContainerHigh,
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PluginIcon(url: preview['icon'] as String?, size: 56),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${manifest['name']}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n(context).pluginByAuthor('${manifest['author']}'),
+                      style: muted,
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 8, runSpacing: 6, children: chips),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    return Dialog(
+      clipBehavior: Clip.antiAlias,
+      insetPadding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 960,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!narrow) header,
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (narrow) header,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 18, 24, 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'README',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          PluginReadme(source: preview),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh,
+                border: Border(top: BorderSide(color: scheme.outlineVariant)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!compatible) ...[
+                    _ReviewNotice(
+                      icon: Icons.error_outline,
+                      text: pluginError(
+                        context,
+                        '${preview['compatibilityError']}',
+                      ),
+                      background: scheme.errorContainer,
+                      foreground: scheme.onErrorContainer,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  _ReviewNotice(
+                    icon: Icons.warning_amber_rounded,
+                    text: pluginText(context, pluginTrustNotice),
+                    background: scheme.tertiaryContainer,
+                    foreground: scheme.onTertiaryContainer,
+                  ),
+                  const SizedBox(height: 16),
+                  // The buttons stack when a long label does not fit beside
+                  // Cancel.
+                  OverflowBar(
+                    alignment: MainAxisAlignment.end,
+                    overflowAlignment: OverflowBarAlignment.end,
+                    spacing: 8,
+                    overflowSpacing: 8,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(pluginText(context, 'Cancel')),
+                      ),
+                      FilledButton(
+                        onPressed: compatible
+                            ? () => Navigator.pop(context, true)
+                            : null,
+                        child: Text(
+                          isUpdate
+                              ? pluginText(context, 'Trust and update')
+                              : pluginText(context, 'Trust and install'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A fact about the plugin on the review's header band.
+class _ReviewChip extends StatelessWidget {
+  const _ReviewChip({
+    required this.icon,
+    required this.text,
+    this.tooltip,
+    this.background,
+    this.foreground,
+  });
+  final IconData icon;
+  final String text;
+  final String? tooltip;
+  final Color? background;
+  final Color? foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final ink = foreground ?? scheme.onSurfaceVariant;
+    final chip = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: background ?? scheme.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: background == null
+            ? Border.all(color: scheme.outlineVariant)
+            : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: ink),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: ink),
+            ),
+          ),
+        ],
+      ),
+    );
+    return tooltip == null ? chip : Tooltip(message: tooltip!, child: chip);
+  }
+}
+
+/// A notice on the review's footer band: a tinted panel, edge to edge.
+class _ReviewNotice extends StatelessWidget {
+  const _ReviewNotice({
+    required this.icon,
+    required this.text,
+    required this.background,
+    required this.foreground,
+  });
+  final IconData icon;
+  final String text;
+  final Color background;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      fontSize: 13,
+      height: 1.4,
+      color: foreground,
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: foreground),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: style)),
+        ],
+      ),
+    );
+  }
 }
 
 class PluginSettingsPanel extends StatefulWidget {
@@ -202,74 +497,7 @@ class _PluginSettingsPanelState extends State<PluginSettingsPanel> {
 
   Future<void> _confirmPreview(Map<String, Object?> preview) async {
     if (!mounted) return;
-    final isUpdate = preview.containsKey('installedVersion');
-    final manifest = preview['manifest'] as Map;
-    final install = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${manifest['name']}'),
-        content: SizedBox(
-          width: 640,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${manifest['description']}'),
-                const SizedBox(height: 16),
-                for (final entry in {
-                  if (isUpdate)
-                    pluginText(context, 'Installed version'):
-                        preview['installedVersion'],
-                  pluginText(context, 'Version'): manifest['version'],
-                  pluginText(context, 'Author'): manifest['author'],
-                  pluginText(context, 'License'): manifest['license'],
-                }.entries)
-                  SettingsRow(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(entry.key),
-                    trailing: Text('${entry.value}'),
-                  ),
-                const SizedBox(height: 16),
-                PluginReadme(source: preview),
-                const Divider(height: 32),
-                WarnRow(pluginText(context, pluginTrustNotice)),
-                const SizedBox(height: 12),
-                HintRow(
-                  pluginText(
-                    context,
-                    'New plugins start disabled. Updates preserve the enabled state and automatically restart running plugins.',
-                  ),
-                ),
-                if (preview['compatible'] != true)
-                  Text(
-                    pluginError(context, '${preview['compatibilityError']}'),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(pluginText(context, 'Cancel')),
-          ),
-          FilledButton(
-            onPressed: preview['compatible'] == true
-                ? () => Navigator.pop(context, true)
-                : null,
-            child: Text(
-              isUpdate
-                  ? pluginText(context, 'Trust and update')
-                  : pluginText(context, 'Trust and install'),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (install == true) {
+    if (await showPluginPreview(context, preview)) {
       await widget.plugins.installRepository(
         preview['previewId'] as String,
         trusted: true,
@@ -422,6 +650,23 @@ class _PluginSettingsPanelState extends State<PluginSettingsPanel> {
           ],
         ),
         if (enabled) ...[
+          SettingsCard(
+            children: [
+              SearchLandingTarget(
+                id: 'x:plugins:browse',
+                child: SettingsRow(
+                  leading: const Icon(Icons.extension_rounded),
+                  title: Text(pluginText(context, 'Browse plugins')),
+                  subtitle: Text(
+                    pluginText(context, 'Find plugins made by the community'),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  enabled: !_busy,
+                  onTap: () => widget.onOpen(pluginDirectoryPage),
+                ),
+              ),
+            ],
+          ),
           SettingsCard(
             children: [
               SearchLandingTarget(
@@ -597,7 +842,7 @@ class _PluginSettingsPanelState extends State<PluginSettingsPanel> {
                   onTap: () => _run(() async {
                     final opened = await launchUrl(
                       Uri.parse(
-                        'https://github.com/jxlarrea/kiosk-satellite-plugin-hello-world',
+                        'https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/getting-started.md',
                       ),
                       mode: LaunchMode.externalApplication,
                     );
@@ -712,7 +957,10 @@ class _PluginDetailPanelState extends State<PluginDetailPanel> {
               SearchLandingTarget(
                 id: 'plugin:${widget.id}:intro',
                 child: IntroRow(
-                  icon: const Icon(Icons.extension_rounded),
+                  icon: _InstalledPluginIcon(
+                    plugins: widget.plugins,
+                    id: widget.id,
+                  ),
                   title: '${plugin['name'] ?? widget.id}',
                   subtitle: '${plugin['description'] ?? ''}',
                 ),
@@ -780,10 +1028,24 @@ class _PluginSettingsState extends State<_PluginSettings> {
   late Map<String, Object?> _values;
   bool _saving = false;
   bool get _busy => widget.busy || _saving;
+  late final _prompts = PluginSetupPrompts(
+    widget.plugins,
+    '${widget.plugin['id']}',
+  );
   @override
   void initState() {
     super.initState();
     _reset();
+    // A question can be waiting already, and a dialog needs a built page.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _prompts.attach(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _prompts.detach();
+    super.dispose();
   }
 
   @override
@@ -816,9 +1078,11 @@ class _PluginSettingsState extends State<_PluginSettings> {
       _values[key] = value;
     });
     try {
+      // Only this setting, so a value the plugin saved meanwhile stays.
       await widget.run('configure', {
         'id': widget.plugin['id'],
-        'values': {...?widget.plugin['values'] as Map?, key: value},
+        'values': {key: value},
+        'patch': true,
       });
     } finally {
       if (mounted) {
@@ -1004,6 +1268,19 @@ class _PluginSettingsState extends State<_PluginSettings> {
         enabled: !_busy,
         onPick: (id) async {
           if (mounted && !_busy) await _saveValue('${raw['key']}', id ?? '');
+        },
+      );
+    }
+    if (raw['type'] == 'string' && raw['choices'] == 'plugin') {
+      return PluginChoiceRow(
+        plugins: widget.plugins,
+        pluginId: '${widget.plugin['id']}',
+        setting: raw,
+        value: '${_values[raw['key']] ?? raw['default']}',
+        running: widget.plugin['running'] == true,
+        enabled: !_busy,
+        onPick: (id) {
+          if (mounted && !_busy) _saveValue('${raw['key']}', id);
         },
       );
     }
@@ -1207,18 +1484,25 @@ class _PluginSettingsState extends State<_PluginSettings> {
       for (final raw in declared.whereType<Map>())
         if (pluginFieldVisible(raw, _values, declared)) raw,
     ];
+    // Buttons follow the same conditions, by the settings they name.
+    final buttons = [
+      for (final raw
+          in (plugin['buttons'] as List? ?? const []).whereType<Map>())
+        if (pluginFieldVisible(raw, _values, declared)) raw,
+    ];
     final commands = plugin['commands'] as List? ?? const [];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (settings.isNotEmpty) ...[
+        if (settings.isNotEmpty || buttons.isNotEmpty) ...[
           for (final group in pluginSettingsGroups(plugin)) ...[
             SectionHeading(
               group == 'Settings' &&
                       !(plugin['groups'] as List? ?? []).any(
                         (g) => g['title'] == group,
                       ) &&
-                      !settings.any((entry) => entry['group'] == group)
+                      !settings.any((entry) => entry['group'] == group) &&
+                      !buttons.any((entry) => entry['group'] == group)
                   ? pluginText(context, 'Settings')
                   : group,
             ),
@@ -1228,13 +1512,32 @@ class _PluginSettingsState extends State<_PluginSettings> {
                   for (final raw in settings)
                     if ('${raw['group'] ?? 'Settings'}' == group) raw,
                 ];
-                if (rows.isEmpty) return const SizedBox.shrink();
+                final pressable = [
+                  for (final raw in buttons)
+                    if ('${raw['group'] ?? 'Settings'}' == group) raw,
+                ];
+                if (rows.isEmpty && pressable.isEmpty) {
+                  return const SizedBox.shrink();
+                }
                 return SettingsCard(
                   children: [
                     for (final raw in rows)
                       SearchLandingTarget(
                         id: 'plugin:${plugin['id']}:setting:${raw['key']}',
-                        child: _settingRow(raw, alone: rows.length == 1),
+                        child: _settingRow(
+                          raw,
+                          alone: rows.length + pressable.length == 1,
+                        ),
+                      ),
+                    for (final raw in pressable)
+                      SearchLandingTarget(
+                        id: 'plugin:${plugin['id']}:button:${raw['id']}',
+                        child: PluginSetupButtonRow(
+                          plugins: widget.plugins,
+                          pluginId: '${plugin['id']}',
+                          button: raw,
+                          running: plugin['running'] == true,
+                        ),
                       ),
                   ],
                 );
@@ -1277,6 +1580,9 @@ List<String> pluginSettingsGroups(Map plugin) => {
   for (final setting
       in (plugin['settings'] as List? ?? const []).whereType<Map>())
     '${setting['group'] ?? 'Settings'}',
+  for (final button
+      in (plugin['buttons'] as List? ?? const []).whereType<Map>())
+    '${button['group'] ?? 'Settings'}',
 }.toList();
 
 /// Runtime updates stay below their settings without rebuilding editing controls.
@@ -1327,6 +1633,34 @@ class _PluginGroupOutput extends StatelessWidget {
             title: layout?['readingsTitle']?.toString(),
           ),
         ],
+      );
+    },
+  );
+}
+
+/// The icon an installed plugin names in its manifest, filling the intro
+/// row's tile, or the generic plugin glyph without one.
+class _InstalledPluginIcon extends StatelessWidget {
+  const _InstalledPluginIcon({required this.plugins, required this.id});
+  final PluginManager plugins;
+  final String id;
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Uint8List?>(
+    future: plugins.pluginIcon(id),
+    builder: (context, snapshot) {
+      final bytes = snapshot.data;
+      if (bytes == null) return const Icon(Icons.extension_rounded);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(Ks.radiusRow),
+        child: Image.memory(
+          bytes,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (_, _, _) => const Icon(Icons.extension_rounded),
+        ),
       );
     },
   );

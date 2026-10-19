@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "Aucun média dans la source sélectionnée.",
   "screensaverImmichUnreachable": "Impossible de joindre le serveur Immich.",
   "screensaverRetryNotice": "{error} Nouvelle tentative automatique.",
-  "screensaverVideosTooLarge": "Toutes les vidéos de cette liste de lecture sont trop volumineuses pour être lues sur cet appareil."
+  "screensaverVideosTooLarge": "Toutes les vidéos de cette liste de lecture sont trop volumineuses pour être lues sur cet appareil.",
+  "screensaverUrlNotSet": "Aucune URL d'image définie. Ajoutez-en une dans les Paramètres.",
+  "screensaverUrlLoadFailed": "Impossible de charger l'image."
 }

@@ -230,7 +230,9 @@ class GesturesManager extends Manager {
   /// the mappings retunes a live subscription without touching the capture.
   Future<void> _syncClapper() async {
     _detector.targets = _detectorTargets();
-    _detector.strict = _settings.get(defs.clapStrictness) == 'strict';
+    final strictness = _settings.get(defs.clapStrictness);
+    _detector.strict = strictness == 'strict';
+    _detector.largeRoom = strictness == 'large_room';
     final wanted = _clapsWanted;
     if (wanted && _micSub == null) {
       // Ask for the microphone ourselves: on a device with wake word

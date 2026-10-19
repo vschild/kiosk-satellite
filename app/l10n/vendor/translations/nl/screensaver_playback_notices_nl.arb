@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "Geen media in de geselecteerde bron.",
   "screensaverImmichUnreachable": "Kon de Immich-server niet bereiken.",
   "screensaverRetryNotice": "{error} Er wordt automatisch opnieuw geprobeerd.",
-  "screensaverVideosTooLarge": "Elke video in deze afspeellijst is te groot voor dit apparaat om af te spelen."
+  "screensaverVideosTooLarge": "Elke video in deze afspeellijst is te groot voor dit apparaat om af te spelen.",
+  "screensaverUrlNotSet": "Geen afbeeldings-URL ingesteld. Voeg er een toe in Instellingen.",
+  "screensaverUrlLoadFailed": "Kon de afbeelding niet laden."
 }

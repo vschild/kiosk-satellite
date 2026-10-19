@@ -1,4 +1,7 @@
 {
   "@@locale": "nl",
-  "pluginCloseWindow": "{name} sluiten"
+  "pluginCloseWindow": "{name} sluiten",
+  "pluginScanTitle": "Scan een code",
+  "pluginScanHelp": "Houd de code binnen het kader.",
+  "pluginScanSource": "Aangevraagd door {name}"
 }

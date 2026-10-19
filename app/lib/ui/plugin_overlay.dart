@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import '../managers/plugins/plugin_manager.dart';
 import '../l10n/messages.dart';
 import 'theme.dart';
-import 'ui_scale.dart' show UiScaleExempt;
+import 'ui_scale.dart' show UiScaleExempt, UiScaleScope;
 
 /// Plugin overlays and floating windows stay below the kiosk drawer and
 /// ambient overlays. Windows sit over the native overlays.
@@ -175,8 +175,8 @@ class _PluginNativeOverlaysState extends State<PluginNativeOverlays> {
     final theme = widget.plugins.overlayTheme(
       pluginOverlayTheme(Theme.of(context)),
     );
-    // Native views draw in physical pixels, so Scale UI leaves them alone
-    // the way it leaves the dashboard alone.
+    // A scaled platform view would be stretched and blurred, so this layer
+    // is exempt and each overlay applies the Scale UI factor itself.
     return UiScaleExempt(
       child: Stack(
         fit: StackFit.expand,
@@ -339,9 +339,14 @@ class _NativeOverlayState extends State<_NativeOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final ratio = MediaQuery.devicePixelRatioOf(context);
+    // Plugins follow the Scale UI factor like the rest of the kiosk. The
+    // plugin's view gets a density that includes it, so every dp the
+    // plugin passes is scaled here to match. This layer is exempt, so its
+    // logical pixels and its pixel ratio are the unscaled ones.
+    final scale = UiScaleScope.of(context);
+    final ratio = MediaQuery.devicePixelRatioOf(context) / scale;
     return Padding(
-      padding: overlay.insets,
+      padding: overlay.insets * scale,
       child: LayoutBuilder(
         builder: (context, bounds) {
           double side(int value, double? measured, double available) =>
@@ -349,12 +354,12 @@ class _NativeOverlayState extends State<_NativeOverlay>
                 PluginNativeOverlay.fill => available,
                 PluginNativeOverlay.wrap =>
                   measured == null ? 1 : math.min(measured / ratio, available),
-                _ => math.min(value.toDouble(), available),
+                _ => math.min(value * scale, available),
               });
           return CustomSingleChildLayout(
             delegate: _Placed(
               _NativeOverlay.alignment(overlay.anchor),
-              overlay.offset,
+              overlay.offset * scale,
             ),
             child: SizedBox(
               width: side(
@@ -375,6 +380,9 @@ class _NativeOverlayState extends State<_NativeOverlay>
                   child: IgnorePointer(
                     ignoring: !_ready || !overlay.touchable || widget.leaving,
                     child: AndroidView(
+                      // The density is fixed when the view is built, so a
+                      // new Scale UI factor builds it again.
+                      key: ValueKey(scale),
                       viewType: PluginNativeOverlays.viewType,
                       creationParams: {
                         'id': overlay.pluginId,
@@ -389,6 +397,7 @@ class _NativeOverlayState extends State<_NativeOverlay>
                           overlay.insets.right.round(),
                           overlay.insets.bottom.round(),
                         ],
+                        'scale': scale,
                         'theme': widget.theme,
                       },
                       creationParamsCodec: const StandardMessageCodec(),

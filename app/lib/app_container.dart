@@ -6,7 +6,9 @@ import 'core/events.dart';
 import 'core/headless.dart';
 import 'core/logging.dart';
 import 'core/manager.dart';
+import 'managers/plugins/plugin_camera.dart';
 import 'managers/plugins/plugin_manager.dart';
+import 'managers/plugins/plugin_host_api.dart';
 import 'managers/shizuku/shizuku_manager.dart';
 import 'managers/assist_pipeline/assist_pipeline_manager.dart';
 import 'managers/audio/audio_routing_manager.dart';
@@ -159,8 +161,22 @@ class AppContainer {
     // After homeAssistant: it reads states through it for the fallback.
     glance = GlanceManager(bus, commands, log, settings, homeAssistant);
     shizuku = ShizukuManager(bus, commands, log);
-    plugins = PluginManager(bus, commands, log);
+    plugins = PluginManager(bus, commands, log)
+      ..voice = PluginVoiceFeed(
+        view: voice.view,
+        level: voice.level,
+        settings: settings,
+      )
+      ..camera = PluginCamera(
+        motion: motion,
+        commands: commands,
+        settings: settings,
+        log: log,
+      );
+    // A snapshot binding the camera mid-scan would take it from the scanner.
+    deviceCamera.scannerActive = () => motion.scannerHeld;
     settings.pluginScreensavers = () => plugins.screensaverOptions;
+    settings.pluginVoiceSkins = () => plugins.voiceSkinOptions;
     remote = RemoteManager(bus, commands, log, settings);
     fleet = FleetManager(bus, commands, log, settings);
     fleetSync = FleetSyncManager(bus, commands, log, settings)
@@ -389,6 +405,7 @@ class AppContainer {
         intercom: intercom,
         voice: voice,
         voiceTimers: voiceTimers,
+        sendspin: sendspin,
       ).start();
     }
     log.info('app', 'all managers initialized');

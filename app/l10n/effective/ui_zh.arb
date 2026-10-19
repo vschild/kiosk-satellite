@@ -10884,6 +10884,45 @@
       }
     }
   },
+  "pluginScanTitle": "扫码",
+  "@pluginScanTitle": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Scanner heading when the plugin that opened the scanner gives none. A code is a barcode or a QR code.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanHelp": "请将条码或二维码置于框内。",
+  "@pluginScanHelp": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Help under the scanner heading when the plugin gives none.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanSource": "由 {name} 请求",
+  "@pluginScanSource": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Says which plugin opened the scanner. The placeholder is the plugin's name.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Hello World"
+      }
+    }
+  },
   "pluginActions": "操作",
   "@pluginActions": {
     "context": "Settings > Plugin Manager > a plugin > Actions",
@@ -10993,6 +11032,45 @@
       }
     },
     "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginThePluginDidNotAnswerInTime": "插件未及时响应。",
+  "@pluginThePluginDidNotAnswerInTime": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginNoChoicesYetRefreshToLookForThem": "暂无选项。请刷新以查找。",
+  "@pluginNoChoicesYetRefreshToLookForThem": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginThisChoiceIsNoLongerListed": "此选项已不在列表中。",
+  "@pluginThisChoiceIsNoLongerListed": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
   },
   "pluginPlugin": "插件",
   "@pluginPlugin": {
@@ -11658,6 +11736,411 @@
       ]
     }
   },
+  "pluginBrowsePlugins": "浏览插件",
+  "@pluginBrowsePlugins": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginFindPluginsMadeByTheCommunity": "查找社区制作的插件",
+  "@pluginFindPluginsMadeByTheCommunity": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginSearchPlugins": "搜索插件",
+  "@pluginSearchPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginUpdate": "更新",
+  "@pluginUpdate": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginInstalled": "已安装",
+  "@pluginInstalled": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginStars": "星标",
+  "@pluginStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginDownloads": "下载量",
+  "@pluginDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginActiveInstalls": "活跃安装",
+  "@pluginActiveInstalls": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNoPluginsMatchYourSearch": "没有与搜索匹配的插件。",
+  "@pluginNoPluginsMatchYourSearch": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCommunityPluginsHasNoPluginsYet": "社区插件中还没有插件。",
+  "@pluginCommunityPluginsHasNoPluginsYet": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSubmitYourPlugin": "提交你的插件",
+  "@pluginSubmitYourPlugin": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginListYourPluginInCommunityPlugins": "将你的插件收录到社区插件。",
+  "@pluginListYourPluginInCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotReachCommunityPlugins": "无法连接社区插件。请检查网络连接。",
+  "@pluginCouldNotReachCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotLoadCommunityPlugins": "无法加载社区插件。请稍后重试。",
+  "@pluginCouldNotLoadCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginTurnOn": "开启",
+  "@pluginTurnOn": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginTurnOnEnablePluginsToInstall": "请开启“启用插件”以安装此插件。",
+  "@pluginTurnOnEnablePluginsToInstall": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginPreviousPage": "上一页",
+  "@pluginPreviousPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNextPage": "下一页",
+  "@pluginNextPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPageOfPages": "第 {page} 页，共 {pages} 页",
+  "@pluginPageOfPages": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginSortBy": "排序方式",
+  "@pluginSortBy": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostStars": "星标最多",
+  "@pluginSortMostStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortRecentlyUpdated": "最近更新",
+  "@pluginSortRecentlyUpdated": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortNewest": "最新",
+  "@pluginSortNewest": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortName": "名称",
+  "@pluginSortName": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostDownloads": "下载最多",
+  "@pluginSortMostDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPluginsPerPage": "每页插件数",
+  "@pluginPluginsPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCountPerPage": "每页 {count} 个",
+  "@pluginCountPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "A page size for the Browse plugins list, such as 10 per page.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginByAuthor": "作者：{author}",
+  "@pluginByAuthor": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "Who made the plugin, under its name in the install review.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    },
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginListedChip": "已收录于社区插件",
+  "@pluginListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
+  "pluginNotListedChip": "未收录于社区插件",
+  "@pluginNotListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
   "pluginCharts": "图表",
   "@pluginCharts": {
     "context": "Settings > Plugin Manager > a plugin > Charts and Readings",
@@ -12298,19 +12781,6 @@
       ]
     }
   },
-  "pluginErrorTagRevision": "GitHub 未返回发布标签的修订版本",
-  "@pluginErrorTagRevision": {
-    "context": "Settings > Plugin Manager > Add plugin, preview or install",
-    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ]
-    }
-  },
   "pluginErrorTrustAuthor": "请确认你信任插件作者",
   "@pluginErrorTrustAuthor": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -12577,19 +13047,6 @@
   },
   "pluginErrorRestartReplace": "此插件未能正常停止。替换前请重启 Kiosk Satellite。",
   "@pluginErrorRestartReplace": {
-    "context": "Settings > Plugin Manager > Install, update or enable a plugin",
-    "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager"
-      ]
-    }
-  },
-  "pluginErrorPluginLimit": "最多可安装 8 个插件",
-  "@pluginErrorPluginLimit": {
     "context": "Settings > Plugin Manager > Install, update or enable a plugin",
     "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
     "x-locations": {
@@ -15180,6 +15637,28 @@
   },
   "screensaverVideosTooLarge": "此播放列表中的所有视频都过大，此设备无法播放。",
   "@screensaverVideosTooLarge": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlNotSet": "未设置图片地址。请在设置中添加。",
+  "@screensaverUrlNotSet": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlLoadFailed": "无法加载图片。",
+  "@screensaverUrlLoadFailed": {
     "context": "Screensaver > local media or Immich > playback errors",
     "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
     "x-locations": {
@@ -26708,8 +27187,8 @@
       ]
     }
   },
-  "settingClapStrictnessDescription": "严格模式要求拍手声音更大、间隔更均匀。家庭噪声造成误触发时可尝试此模式。",
-  "@settingClapStrictnessDescription": {
+  "settingClapDetectionDescription": "严格模式要求拍手声音更大、间隔更均匀。大房间模式会给有回声的房间里的拍手声留出消散时间。",
+  "@settingClapDetectionDescription": {
     "context": "Settings > Gestures",
     "description": "Help below this setting.",
     "x-locations": {
@@ -26738,6 +27217,19 @@
   "@gestureStrictnessStrict": {
     "context": "Settings > Gestures",
     "description": "Clap detection option.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Clapper > Clap detection"
+      ],
+      "remoteAdmin": [
+        "Gestures > Clapper > Clap detection"
+      ]
+    }
+  },
+  "gestureStrictnessLargeRoom": "大房间",
+  "@gestureStrictnessLargeRoom": {
+    "context": "Settings > Gestures",
+    "description": "Clap detection option, for big rooms where claps echo.",
     "x-locations": {
       "device": [
         "Settings > Gestures > Clapper > Clap detection"
@@ -32377,8 +32869,8 @@
       ]
     }
   },
-  "settingSendspinVolumeKeysDescription": "此设备的音量键改为调整所选播放器的音量，而非设备自身音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。",
-  "@settingSendspinVolumeKeysDescription": {
+  "settingSendspinVolumeKeysGroupDescription": "此设备的音量键改为调整所选播放器的音量，而非设备自身音量。此设备加入播放组时，音量键会调整整个组的音量。可仅在“正在播放”页面显示时生效，或在播放器播放时生效。",
+  "@settingSendspinVolumeKeysGroupDescription": {
     "context": "Settings > Media Player",
     "description": "Help below this setting.",
     "x-locations": {
@@ -37494,6 +37986,40 @@
       }
     }
   },
+  "settingScreensaverClockAmPmTitle": "显示 AM/PM",
+  "@settingScreensaverClockAmPmTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label. A switch shown while the 24-hour clock is off.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
+  "settingScreensaverClockAmPmDescription": "在时间后显示 AM 或 PM。",
+  "@settingScreensaverClockAmPmDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
   "screensaverOverlayEntity": "实体",
   "@screensaverOverlayEntity": {
     "context": "Settings > Screensaver > Widgets > Entity widget or At a Glance > Entities",
@@ -38798,6 +39324,21 @@
       ],
       "remoteAdmin": [
         "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "screensaverModeUrl": "图片地址",
+  "@screensaverModeUrl": {
+    "context": "Settings:Screensaver",
+    "description": "Screensaver mode that shows an image fetched from a web address. Also the title of the address field.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Screensaver mode",
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Screensaver mode",
+        "Screensaver > Image URL screensaver"
       ]
     }
   },
@@ -42331,6 +42872,71 @@
       ]
     }
   },
+  "settingScreensaverUrlImageDescription": "设备在每张幻灯片时重新获取的图片地址。",
+  "@settingScreensaverUrlImageDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "settingScreensaverUrlIntervalDescription": "每张照片在获取下一张之前显示的时长。",
+  "@settingScreensaverUrlIntervalDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPage": "图片地址屏保",
+  "@screensaverMediaUrlPage": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPageHint": "地址、时长、切换效果和元数据",
+  "@screensaverMediaUrlPageHint": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlMetadata": "图片地址元数据",
+  "@screensaverMediaUrlMetadata": {
+    "context": "Settings:Screensaver:Image URL screensaver:Image URL metadata",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver > Image URL metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver > Image URL metadata"
+      ]
+    }
+  },
   "settingScreensaverDismissOnMotionTitle": "检测到运动时关闭屏保",
   "@settingScreensaverDismissOnMotionTitle": {
     "context": "Settings > Screensaver > Motion Detection",
@@ -45716,6 +46322,11 @@
         "Voice Satellite > Appearance"
       ]
     }
+  },
+  "voiceSkinUnavailablePlugin": "插件皮肤不可用",
+  "@voiceSkinUnavailablePlugin": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "The Skin row's value when it picks a plugin that is no longer installed. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
   "voiceSkinDefault": "皮肤默认值",
   "@voiceSkinDefault": {

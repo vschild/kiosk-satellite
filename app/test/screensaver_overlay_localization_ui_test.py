@@ -34,7 +34,7 @@ def setting(key, value, subpage=None, kind='string', **extra):
 
 initial = [{'position': 'top_right', 'type': 'clock', 'config': {
     'color': '1,2,3', 'scale': 15, 'font': 'oswald', 'font_weight': 'black',
-    'h24': True, 'date': False}}]
+    'h24': True, 'ampm': True, 'date': False}}]
 setting('ui.language', 'es', hidden=True)
 setting('screensaver.widgets', json.dumps(initial), 'Widgets')
 setting('screensaver.widget_font_weight', 'black', 'Widgets', 'select',

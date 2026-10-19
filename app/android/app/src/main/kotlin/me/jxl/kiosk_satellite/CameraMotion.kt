@@ -28,6 +28,7 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import me.jxl.kiosk_satellite.plugins.PluginCameraFrames
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
@@ -495,6 +496,12 @@ class CameraMotion(
      *  last emitted and the paced interval to the next. Whether the bound
      *  camera faces the person, so the Dart side mirrors the view. */
     @Volatile private var previewWanted = false
+
+    /** The analysis size a plugin holding the camera asked for, or null
+     *  when none does. Its frames go to [PluginCameraFrames] as they
+     *  arrive, paced by the plugin bridge. Set in onListen like the legs
+     *  above. */
+    @Volatile private var pluginFrames: Size? = null
     @Volatile private var previewUntilNs = 0L
     private var lastPreviewNs = 0L
     private var previewIntervalNs = PREVIEW_MIN_INTERVAL_NS
@@ -771,6 +778,16 @@ class CameraMotion(
                 setPaused((call.arguments as? Map<*, *>)?.get("paused") == true)
                 result.success(null)
             }
+            // The barcode scanner takes the camera next, and its own
+            // CameraX binding must not meet a release still on its way.
+            "release" -> {
+                cancelPending?.let {
+                    mainHandler.removeCallbacks(it)
+                    cancelPending = null
+                    it.run()
+                }
+                result.success(null)
+            }
             "showPreview" -> {
                 val ms = ((call.arguments as? Map<*, *>)?.get("ms") as? Number)
                     ?.toLong()?.coerceIn(0L, 60_000L) ?: 0L
@@ -823,7 +840,7 @@ class CameraMotion(
         val wantsRtsp = args?.get("rtsp") == true && rtsp?.demand == true
         val canReuse = boundRtsp && wantsRtsp && boundCamera != null && boundRtspServer === rtsp &&
             boundVideoConfig == rtspConfig &&
-            listOf("camera", "snapshotWidth", "snapshotHeight").all { boundArguments?.get(it) == args?.get(it) }
+            listOf("camera", "snapshotWidth", "snapshotHeight", "plugin").all { boundArguments?.get(it) == args?.get(it) }
         if (!canReuse) releaseCamera()
         boundArguments = args
         boundRtsp = wantsRtsp
@@ -856,6 +873,11 @@ class CameraMotion(
                 ((args?.get("faceMinWidth") as? Number)?.toFloat() ?: 0.1f).coerceIn(0.01f, 1f)
             lastFaceEmitNs = 0L
             previewWanted = allowAnalysis && args?.get("preview") == true
+            pluginFrames = (args?.get("plugin") as? Map<*, *>)?.let { plugin ->
+                val width = (plugin["width"] as? Number)?.toInt() ?: 640
+                val height = (plugin["height"] as? Number)?.toInt() ?: 480
+                Size(width.coerceIn(160, 1920), height.coerceIn(120, 1080))
+            }
             lastPreviewNs = 0L
             previewIntervalNs = PREVIEW_MIN_INTERVAL_NS
             resetVisionGate()
@@ -912,7 +934,7 @@ class CameraMotion(
         val startedAt = SystemClock.elapsedRealtime()
         CameraDiagnostics.record(diagnosticId, "start", "camera=${boundArguments?.get("camera")}, " +
             "motion=$motionWanted, faces=$facesWanted, hands=$fingersWanted, paused=$paused, " +
-            "RTSP=$boundRtsp, listener=$listenerSession, previous=$previousDiagnostic, analysisFps=$requestedFps, snapshot=$snapshotTarget")
+            "RTSP=$boundRtsp, plugin=$pluginFrames, listener=$listenerSession, previous=$previousDiagnostic, analysisFps=$requestedFps, snapshot=$snapshotTarget")
         val deadline = SystemClock.elapsedRealtime() + 5_000L
         lateinit var awaitClose: Runnable
         awaitClose = Runnable {
@@ -1008,16 +1030,22 @@ class CameraMotion(
                 boundRtsp = false
             }
             val captureLevel = if (boundRtsp) capturePolicy.level(cameraId) else 0
-            val includeAnalysis = !boundRtsp || rtspConfig["analysis"] != false
+            val pluginSize = pluginFrames
+            val includeAnalysis = !boundRtsp || rtspConfig["analysis"] != false || pluginSize != null
 
             // The grid reads a fixed handful of pixels per cell. The larger
             // stream is used for hands because a crop around a distant hand
             // retains twice as much detail before MediaPipe scales it to its
             // 192x192 input. Preview and RTSP also need the larger stream
             // because people see those frames directly.
-            val analysisSize =
+            // A plugin holding the camera gets the size it asked for, or
+            // the larger one the other legs need.
+            val legSize =
                 if (captureLevel >= 2) Size(320, 240)
                 else if (palmsWanted || previewWanted || boundRtsp) Size(640, 480) else Size(320, 240)
+            val analysisSize =
+                if (pluginSize != null && captureLevel < 2 && pluginSize.width * pluginSize.height > legSize.width * legSize.height) pluginSize
+                else legSize
             val resolution = streamAnalysisResolutionSelector(analysisSize)
 
             val analysisBuilder = ImageAnalysis.Builder()
@@ -1323,8 +1351,11 @@ class CameraMotion(
             if (session != boundSession) return
             lastFrameAtMs = SystemClock.elapsedRealtime()
             deviceCamera?.captureAnalysisFrame(image)
-            if (!motionWanted && !facesWanted && !fingersWanted && !previewWanted) return
+            if (!motionWanted && !facesWanted && !fingersWanted && !previewWanted && pluginFrames == null) return
             val now = System.nanoTime()
+            // A plugin holding the camera is offered every frame, never
+            // during a voice turn. The bridge paces and copies them.
+            if (pluginFrames != null && !paused) PluginCameraFrames.offer(image, boundFront)
             // The camera preview reads every frame the camera delivers
             // while its window is open, ahead of the analysis slots (see
             // PREVIEW_MIN_INTERVAL_NS), and never during a voice turn.

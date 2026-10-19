@@ -990,7 +990,7 @@ const settingMessageIds = <String, Map<String, String>>{
   },
   "sendspin.volume_keys": {
     "title": "settingSendspinVolumeKeysTitle",
-    "description": "settingSendspinVolumeKeysDescription",
+    "description": "settingSendspinVolumeKeysGroupDescription",
   },
   "sendspin.volume_key_step": {
     "title": "settingSendspinVolumeKeyStepTitle",
@@ -1358,7 +1358,7 @@ const settingMessageIds = <String, Map<String, String>>{
   },
   "gestures.clap_strictness": {
     "title": "settingClapStrictnessTitle",
-    "description": "settingClapStrictnessDescription",
+    "description": "settingClapDetectionDescription",
   },
   "fleet.leader": {
     "title": "fleetLeadThisFleet",
@@ -2199,5 +2199,61 @@ const settingMessageIds = <String, Map<String, String>>{
   "led.enabled": {
     "title": "settingLedEnabledTitle",
     "description": "settingLedEnabledDescription",
+  },
+  "screensaver.url_image": {
+    "title": "screensaverModeUrl",
+    "description": "settingScreensaverUrlImageDescription",
+  },
+  "screensaver.url_interval_seconds": {
+    "title": "settingScreensaverLocalIntervalTitle",
+    "description": "settingScreensaverUrlIntervalDescription",
+  },
+  "screensaver.url_transition": {
+    "title": "settingScreensaverLocalTransitionTitle",
+    "description": "settingScreensaverLocalTransitionDescription",
+  },
+  "screensaver.url_fill": {
+    "title": "settingScreensaverLocalFillTitle",
+    "description": "settingScreensaverLocalFillDescription",
+  },
+  "screensaver.url_edge_taps": {
+    "title": "settingScreensaverLocalEdgeTapsTitle",
+    "description": "settingScreensaverLocalEdgeTapsDescription",
+  },
+  "screensaver.url_metadata": {
+    "title": "settingScreensaverLocalMetadataTitle",
+    "description": "settingScreensaverLocalMetadataDescription",
+  },
+  "screensaver.url_metadata_date": {
+    "title": "settingScreensaverLocalMetadataDateTitle",
+    "description": "settingScreensaverLocalMetadataDateDescription",
+  },
+  "screensaver.url_metadata_camera": {
+    "title": "settingScreensaverLocalMetadataCameraTitle",
+    "description": "settingScreensaverLocalMetadataCameraDescription",
+  },
+  "screensaver.url_metadata_position": {
+    "title": "settingScreensaverLocalMetadataPositionTitle",
+    "description": "settingScreensaverLocalMetadataPositionDescription",
+  },
+  "screensaver.url_metadata_text_shadow": {
+    "title": "settingScreensaverLocalMetadataTextShadowTitle",
+    "description": "settingScreensaverLocalMetadataTextShadowDescription",
+  },
+  "screensaver.url_metadata_scale": {
+    "title": "settingScreensaverLocalMetadataScaleTitle",
+    "description": "settingScreensaverLocalMetadataScaleDescription",
+  },
+  "screensaver.url_vignette_strength": {
+    "title": "settingScreensaverLocalVignetteStrengthTitle",
+    "description": "settingScreensaverLocalVignetteStrengthDescription",
+  },
+  "screensaver.clock_ampm": {
+    "title": "settingScreensaverClockAmPmTitle",
+    "description": "settingScreensaverClockAmPmDescription",
+  },
+  "screensaver.weather_clock_ampm": {
+    "title": "settingScreensaverClockAmPmTitle",
+    "description": "settingScreensaverClockAmPmDescription",
   },
 };

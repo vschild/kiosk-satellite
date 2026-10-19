@@ -135,5 +135,27 @@
       ],
       "remoteAdmin": []
     }
+  },
+  "screensaverUrlNotSet": "No image URL set. Add one in Settings.",
+  "@screensaverUrlNotSet": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlLoadFailed": "Could not load the image.",
+  "@screensaverUrlLoadFailed": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
   }
 }

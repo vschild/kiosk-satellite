@@ -12,6 +12,7 @@
   "voiceScaleHelp": "Размер текста наложения.",
   "voiceUpdateIntegration": "Обновите интеграцию Voice Satellite в Home Assistant, чтобы управлять этими настройками с киоска.",
   "voiceDashboardRequired": "Доступно, пока киоск показывает панель Home Assistant.",
+  "voiceSkinUnavailablePlugin": "Недоступный облик плагина",
   "voiceSkinDefault": "Как у облика",
   "voiceBackground": "Фон",
   "voiceBackgroundHelp": "Сколько панели просвечивает.",

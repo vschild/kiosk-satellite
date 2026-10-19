@@ -110,7 +110,8 @@ def api(route):
         if name in ('enablePlugin', 'disablePlugin'):
             installed[0]['enabled'] = name == 'enablePlugin'
         elif name == 'configurePlugin':
-            installed[0]['values'] = dict(params['values'])
+            # A patch writes over the saved values, like the host.
+            installed[0]['values'] = {**(installed[0]['values'] if params.get('patch') else {}), **params['values']}
             # The host lists a saved secret as __set__, never its value.
             if installed[0]['values'].get('token'):
                 installed[0]['values']['token'] = '__set__'
@@ -137,7 +138,7 @@ try:
           (await import('/static/tabs.js')).showTab('plugins', {refresh: false});
         }""")
         root = page.locator('#tab-plugins')
-        row = root.locator('.subpage-entry')
+        row = root.locator('.subpage-entry[data-subpage-entry="hello-world"]')
         expect(row.get_by_text('Hello World', exact=True)).to_be_visible()
         expect(root.get_by_role('button', name='Save settings')).not_to_be_visible()
         master = root.get_by_role('checkbox', name='Enable Plugins', exact=True)
@@ -220,13 +221,14 @@ try:
         expect(root.get_by_role('button', name='Save settings')).to_have_count(0)
         expect(root.get_by_role('textbox', name='Greeting')).to_have_value('Changed on the subpage')
         # A saved secret shows only a placeholder. Typing replaces it and
-        # other edits echo the mask. The eye shows only what is typed.
+        # other edits leave it out. The eye shows only what is typed.
         token = root.get_by_label('API token', exact=True)
         expect(token).to_have_attribute('type', 'password')
         expect(token).to_have_value('')
         expect(token).to_have_attribute('placeholder', '•••••• (set)')
         configured = lambda: [r for r in requests if r[0] == 'configurePlugin'][-1][1]['values']
-        assert configured()['token'] == '__set__'
+        assert configured() == {'message': 'Changed on the subpage'}
+        assert [r for r in requests if r[0] == 'configurePlugin'][-1][1]['patch'] is True
         expect(root.locator('.plugin-secret').get_by_role('button', name='Clear')).to_have_count(0)
         reveal = root.locator('.plugin-secret').get_by_role('button', name='Show password')
         expect(reveal).to_be_hidden()
@@ -320,7 +322,8 @@ try:
         update_available = True
         installs_before = sum(name == 'installPluginRepository' for name, _ in requests)
         check.click()
-        expect(modal.get_by_text('Installed version', exact=True)).to_be_visible()
+        # The version chip shows the installed version and the release's.
+        expect(modal.locator('.plugin-review-chip').first).to_contain_text('1.0.0 → 1.0.0')
         modal.get_by_role('button', name='Cancel', exact=True).click()
         assert sum(name == 'installPluginRepository' for name, _ in requests) == installs_before
         compatible = False

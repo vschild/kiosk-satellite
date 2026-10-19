@@ -1,9 +1,10 @@
 {
   "@@locale": "ru",
   "settingClapStrictnessTitle": "Определение хлопков",
-  "settingClapStrictnessDescription": "«Строго» требует более громких и равномерно распределённых хлопков; попробуйте, если бытовой шум вызывает ложные срабатывания.",
+  "settingClapDetectionDescription": "«Строго» требует более громких и равномерно распределённых хлопков. «Большая комната» даёт хлопкам время затихнуть в помещении с эхом.",
   "gestureStrictnessStandard": "Стандартно",
   "gestureStrictnessStrict": "Строго",
+  "gestureStrictnessLargeRoom": "Большая комната",
   "gestureOff": "Жесты выключены",
   "gestureOffHelp": "В настройках режима киоска включено «Отключить жесты».",
   "gestureEmpty": "Жесты не настроены",

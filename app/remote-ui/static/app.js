@@ -1,6 +1,6 @@
 import { setLanguagePreference } from './localization.js';
 import { readRoute, routeHash } from './routes.js';
-import { loadPlugins } from './plugins.js';
+import { installFromLink, loadPlugins } from './plugins.js';
 import { api, showView } from './core.js';
 import { refreshUpdateBadge } from './device.js';
 import { initFleet } from './fleet.js';
@@ -60,6 +60,8 @@ export async function start() {
   }
   showView('app');
   initFleet();
+  // A plugin install link from kiosksatellite.com, once the app is up.
+  installFromLink();
   // Nothing to capture on a device without a screen.
   if (isHeadless()) return;
   // The screenshot is the one thing not worth holding the splash for: the

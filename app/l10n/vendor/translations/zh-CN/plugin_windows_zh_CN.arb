@@ -1,4 +1,7 @@
 {
   "@@locale": "zh_CN",
-  "pluginCloseWindow": "关闭 {name}"
+  "pluginCloseWindow": "关闭 {name}",
+  "pluginScanTitle": "扫码",
+  "pluginScanHelp": "请将条码或二维码置于框内。",
+  "pluginScanSource": "由 {name} 请求"
 }

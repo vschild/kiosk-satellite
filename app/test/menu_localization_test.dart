@@ -697,6 +697,7 @@ void main() {
           'font': 'oswald',
           'font_weight': 'black',
           'h24': true,
+          'ampm': true,
           'date': false,
         },
       },

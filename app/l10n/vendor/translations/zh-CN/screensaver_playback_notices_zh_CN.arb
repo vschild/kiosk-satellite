@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "所选来源中没有媒体。",
   "screensaverImmichUnreachable": "无法连接 Immich 服务器。",
   "screensaverRetryNotice": "{error} 正在自动重试。",
-  "screensaverVideosTooLarge": "此播放列表中的所有视频都过大，此设备无法播放。"
+  "screensaverVideosTooLarge": "此播放列表中的所有视频都过大，此设备无法播放。",
+  "screensaverUrlNotSet": "未设置图片地址。请在设置中添加。",
+  "screensaverUrlLoadFailed": "无法加载图片。"
 }

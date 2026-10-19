@@ -2,6 +2,7 @@ package me.jxl.kiosk_satellite.plugins
 
 import android.content.Context
 import android.content.res.AssetManager
+import android.content.res.Configuration
 import android.graphics.Path
 import android.graphics.Typeface
 import android.os.Build
@@ -43,6 +44,8 @@ internal class PluginOverlayViews(
         val session: String,
         val factory: OverlayFactory,
         val frame: OverlayFrame,
+        /** The context the plugin's view was built with, at the kiosk's UI scale. */
+        val context: Context,
         var themeArgs: Map<*, *>?,
     ) : PlatformView {
         var content: View? = null
@@ -73,7 +76,8 @@ internal class PluginOverlayViews(
         val wrapWidth = (params["width"] as? Number)?.toInt() == PluginOverlays.WRAP
         val wrapHeight = (params["height"] as? Number)?.toInt() == PluginOverlays.WRAP
         val insets = (params["insets"] as? List<*>)?.map { (it as? Number)?.toInt() ?: 0 }?.takeIf { it.size == 4 } ?: listOf(0, 0, 0, 0)
-        val frame = OverlayFrame(context, wrapWidth, wrapHeight, insets) { width, height ->
+        val scale = (params["scale"] as? Number)?.toFloat()?.takeIf { it > 0f } ?: 1f
+        val frame = OverlayFrame(context, wrapWidth, wrapHeight, insets, scale) { width, height ->
             measured(mapOf("id" to id, "session" to session, "key" to key, "generation" to generation, "width" to width, "height" to height))
         }
         val factory = lookup(id, session, key, generation)
@@ -82,11 +86,19 @@ internal class PluginOverlayViews(
                 override fun getView(): View = frame
                 override fun dispose() {}
             }
-        val hosted = Hosted(id, session, factory, frame, themeArgs)
-        live.add(hosted)
-        val theme = theme(context, themeArgs)
+        val dark = themeArgs?.get("dark") as? Boolean ?: true
         val themed = ContextThemeWrapper(context,
-            if (theme.isDark) android.R.style.Theme_DeviceDefault_NoActionBar else android.R.style.Theme_DeviceDefault_Light_NoActionBar)
+            if (dark) android.R.style.Theme_DeviceDefault_NoActionBar else android.R.style.Theme_DeviceDefault_Light_NoActionBar)
+        // The kiosk's UI scale goes into the density, so dp and sp lengths
+        // in the plugin's views, layouts and KsTheme all grow with it.
+        if (scale != 1f) {
+            themed.applyOverrideConfiguration(Configuration().apply {
+                densityDpi = Math.round(context.resources.configuration.densityDpi * scale)
+            })
+        }
+        val hosted = Hosted(id, session, factory, frame, themed, themeArgs)
+        live.add(hosted)
+        val theme = theme(themed, themeArgs)
         guard(hosted) {
             val view = factory.create(themed, theme) ?: throw IllegalStateException("Overlay factory returned no view")
             hosted.content = view
@@ -101,7 +113,7 @@ internal class PluginOverlayViews(
             if (hosted.themeArgs == args) continue
             hosted.themeArgs = args
             val view = hosted.content ?: continue
-            val theme = theme(hosted.frame.context, args)
+            val theme = theme(hosted.context, args)
             guard(hosted) { hosted.factory.onThemeChanged(view, theme) }
         }
     }
@@ -154,6 +166,8 @@ internal class PluginOverlayViews(
         private val wrapHeight: Boolean,
         /** Left, top, right and bottom, in dp. */
         private val insetsDp: List<Int>,
+        /** The kiosk's UI scale, which Dart also applies to the insets. */
+        private val scale: Float,
         private val onMeasured: (Int, Int) -> Unit,
     ) : FrameLayout(context) {
         private var reported: Pair<Int, Int>? = null
@@ -164,8 +178,8 @@ internal class PluginOverlayViews(
             val height = MeasureSpec.getSize(heightMeasureSpec)
             if (child == null) { setMeasuredDimension(width, height); return }
             val metrics = resources.displayMetrics
-            val across = Math.round((insetsDp[0] + insetsDp[2]) * metrics.density)
-            val down = Math.round((insetsDp[1] + insetsDp[3]) * metrics.density)
+            val across = Math.round((insetsDp[0] + insetsDp[2]) * metrics.density * scale)
+            val down = Math.round((insetsDp[1] + insetsDp[3]) * metrics.density * scale)
             fun spec(wrap: Boolean, exact: Int, available: Int) =
                 if (wrap) MeasureSpec.makeMeasureSpec(maxOf(0, available), MeasureSpec.AT_MOST)
                 else MeasureSpec.makeMeasureSpec(exact, MeasureSpec.EXACTLY)

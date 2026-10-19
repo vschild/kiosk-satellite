@@ -7,5 +7,8 @@
   "pluginAlsoAvailableWhileLockedIfTheKioskDrawerIs": "允许使用 Kiosk 抽屉菜单时，锁定状态下也可用。",
   "pluginExposeToHomeAssistant": "提供给 Home Assistant",
   "pluginAddsAButtonToTheKioskEsphomeDeviceRequires": "在 Kiosk 的 ESPHome 设备中添加按钮。此功能需要 ESPHome 和原生实体。",
-  "pluginConfigureName": "配置 {name}"
+  "pluginConfigureName": "配置 {name}",
+  "pluginThePluginDidNotAnswerInTime": "插件未及时响应。",
+  "pluginNoChoicesYetRefreshToLookForThem": "暂无选项。请刷新以查找。",
+  "pluginThisChoiceIsNoLongerListed": "此选项已不在列表中。"
 }

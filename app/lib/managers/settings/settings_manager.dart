@@ -24,6 +24,10 @@ class SettingsManager extends Manager {
 
   /// Live renderer names, supplied by the plugin runtime without persisting HTML.
   Map<String, String> Function() pluginScreensavers = () => const {};
+
+  /// Installed plugins that offer a voice skin: `plugin:ID` to the plugin's
+  /// name. Supplied by the plugin runtime.
+  Map<String, String> Function() pluginVoiceSkins = () => const {};
   List<String>? _cameraStreamResolutions;
   List<String>? get cameraStreamResolutions => _cameraStreamResolutions;
   CameraStreamingCapabilities? _cameraStreamingCapabilities;
@@ -119,10 +123,16 @@ class SettingsManager extends Manager {
       ? _cameraStreamResolutions ?? const []
       : _realtimeOptions(def) ??
             [
-              ...?def.options,
+              for (final option in def.options ?? const <String>[])
+                if (!(deviceHiddenOptions[def.key]?.contains(option) ?? false))
+                  option,
               if (def.key == screensaverMode.key) ...{
                 ...pluginScreensavers().keys,
                 if (isPluginScreensaver(get(def))) get(def) as String,
+              },
+              if (def.key == voiceSkin.key) ...{
+                ...pluginVoiceSkins().keys,
+                if (isPluginVoiceSkin(get(def))) get(def) as String,
               },
             ];
   String? optionLabel(SettingDef<Object> def, String value) =>
@@ -138,6 +148,11 @@ class SettingsManager extends Manager {
                 ? pluginScreensavers()[value] ??
                       (isPluginScreensaver(value)
                           ? 'Unavailable plugin screensaver'
+                          : null)
+                : def.key == voiceSkin.key
+                ? pluginVoiceSkins()[value] ??
+                      (isPluginVoiceSkin(value)
+                          ? 'Unavailable plugin skin'
                           : null)
                 : null);
 
@@ -701,7 +716,8 @@ class SettingsManager extends Manager {
                   (def.key == cameraRtspResolution.key &&
                       isCameraStreamResolution(value)) ||
                   (def.key == screensaverMode.key &&
-                      isPluginScreensaver(value))):
+                      isPluginScreensaver(value)) ||
+                  (def.key == voiceSkin.key && isPluginVoiceSkin(value))):
         await set(def, value, source: source);
       default:
         return false;
@@ -781,6 +797,11 @@ class SettingsManager extends Manager {
                 isPluginScreensaver(get(def)) &&
                 !pluginScreensavers().containsKey(get(def)))
               get(def) as String: 'Unavailable plugin screensaver',
+            if (def.key == voiceSkin.key) ...pluginVoiceSkins(),
+            if (def.key == voiceSkin.key &&
+                isPluginVoiceSkin(get(def)) &&
+                !pluginVoiceSkins().containsKey(get(def)))
+              get(def) as String: 'Unavailable plugin skin',
           },
         // Number ranges: with min+max present the remote renders a
         // slider, exactly as the device does.

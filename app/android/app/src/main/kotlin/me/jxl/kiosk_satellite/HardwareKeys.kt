@@ -73,6 +73,9 @@ object HardwareKeys {
                 setService(context, true)
             }
             watchMicMute(context)
+            BiscuitVolumeButtons.attach(context) { direction ->
+                main.post { channel?.invokeMethod("volumeKey", mapOf("direction" to direction)) }
+            }
         }
         channel = MethodChannel(messenger, CHANNEL).apply {
             setMethodCallHandler { call, result ->
@@ -87,6 +90,12 @@ object HardwareKeys {
                             "switchedOn" to (broadcastButtons || switchedOn(context)),
                         ),
                     )
+                    // Dart's answer to whether the volume buttons steer a
+                    // player or a group right now.
+                    "claimVolumeButtons" -> {
+                        BiscuitVolumeButtons.claim(call.arguments as? Boolean ?: false)
+                        result.success(null)
+                    }
                     // Set even when the mute reads the same: the Dot's
                     // audio HAL reports it unreliably.
                     "setMicMuted" -> {

@@ -1,0 +1,68 @@
+{
+  "@@locale": "en",
+  "settingScreensaverUrlImageDescription": "An image address the device fetches again for every slide.",
+  "@settingScreensaverUrlImageDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "settingScreensaverUrlIntervalDescription": "How long each photo shows before the next fetch.",
+  "@settingScreensaverUrlIntervalDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPage": "Image URL screensaver",
+  "@screensaverMediaUrlPage": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPageHint": "URL, timing, transition, metadata",
+  "@screensaverMediaUrlPageHint": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlMetadata": "Image URL metadata",
+  "@screensaverMediaUrlMetadata": {
+    "context": "Settings:Screensaver:Image URL screensaver:Image URL metadata",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver > Image URL metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver > Image URL metadata"
+      ]
+    }
+  }
+}

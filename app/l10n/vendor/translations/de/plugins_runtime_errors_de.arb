@@ -8,7 +8,6 @@
   "pluginErrorChecksum": "Der SHA-256-Hash des Pakets stimmt nicht überein",
   "pluginErrorDifferentRepository": "Diese Plugin-ID gehört zu einem anderen Repository. Deinstalliere das Plugin, bevor du die Quelle wechselst.",
   "pluginErrorRestartReplace": "Dieses Plugin wurde nicht ordnungsgemäß beendet. Starte Kiosk Satellite neu, bevor du es ersetzt.",
-  "pluginErrorPluginLimit": "Es können maximal 8 Plugins installiert werden",
   "pluginErrorAlreadyInstalled": "Dieses Paket ist bereits installiert",
   "pluginErrorLoadedIntegrity": "Das zuvor geladene Paket hat die Integritätsprüfung nicht bestanden. Starte Kiosk Satellite neu, bevor du es erneut installierst.",
   "pluginErrorRemovePackage": "Das ungenutzte Paket kann nicht entfernt werden",

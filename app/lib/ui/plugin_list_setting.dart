@@ -106,8 +106,37 @@ String? _rowKey(Map list, String part, String type) {
   return part == 'subtitle' ? null : first?['key']?.toString();
 }
 
+Map? _fieldOf(Map list, String? key) => key == null
+    ? null
+    : (list['fields'] as List)
+          .whereType<Map>()
+          .where((f) => f['key'] == key)
+          .firstOrNull;
+
+/// The entity a row's title names, when its title is an entity field that
+/// holds one. Its item comes from the shared entity list once that loads.
+({String id, PickItem? item})? _titleEntity(Map list, Map row) {
+  final key = _rowKey(list, 'title', 'string');
+  if (_fieldOf(list, key)?['type'] != 'entity') return null;
+  final id = '${row[key] ?? ''}'.trim();
+  if (id.isEmpty) return null;
+  return (id: id, item: PickCatalog.of('entities').value?.find(id));
+}
+
+/// Whether a row's title or second line reads from the entity list.
+bool _rowShowsEntities(Map list) {
+  final declared = (list['row'] as Map?)?['subtitle'];
+  return [
+    _rowKey(list, 'title', 'string'),
+    ...(declared is List ? declared : [?declared]),
+  ].any((key) => _fieldOf(list, key?.toString())?['type'] == 'entity');
+}
+
 /// The name a row shows, its first text field unless the list names one.
+/// An entity shows its friendly name, or its id until the list has it.
 String pluginRowTitle(BuildContext context, Map list, Map row) {
+  final entity = _titleEntity(list, row);
+  if (entity != null) return entity.item?.name ?? entity.id;
   final key = _rowKey(list, 'title', 'string');
   final value = key == null ? '' : '${row[key] ?? ''}'.trim();
   return value.isEmpty ? pluginText(context, 'Untitled') : value;
@@ -117,13 +146,19 @@ String _addTitle(BuildContext context, Map list) =>
     list['addTitle']?.toString() ?? l10n(context).commonAdd;
 
 /// One value as a row's second line shows it: a camera view by its name,
-/// a number with its unit. Null when there is nothing to say.
+/// a number with its unit, an entity by its name and state. Null when
+/// there is nothing to say.
 String? _displayValue(Map field, Object? value, PluginFieldServices services) {
   switch (field['type']) {
     case 'boolean' || 'list' || 'color':
       return null;
     case 'number':
       return '$value ${field['unit'] ?? ''}'.trim();
+    case 'entity':
+      final item = PickCatalog.of('entities').value?.find('$value');
+      if (item != null) {
+        return [item.name, ?item.state].where((t) => t.isNotEmpty).join(' · ');
+      }
     case 'cameraView':
       final views = services.container?.camera.config.views ?? const [];
       final view = views.where((v) => v.id == value).firstOrNull;
@@ -133,20 +168,24 @@ String? _displayValue(Map field, Object? value, PluginFieldServices services) {
   return text.isEmpty ? null : text;
 }
 
+/// A row's second line: the first declared subtitle with something to
+/// say. Without one, an entity title adds its state and id, the way the
+/// At a Glance rows do.
 String? _rowSubtitle(Map list, Map row, PluginFieldServices services) {
   final declared = (list['row'] as Map?)?['subtitle'];
   final keys = declared is List ? declared : [?declared];
   final fields = list['fields'] as List;
   for (final key in keys) {
-    final field = fields
-        .whereType<Map>()
-        .where((f) => f['key'] == key)
-        .firstOrNull;
+    final field = _fieldOf(list, '$key');
     if (field == null || !pluginFieldVisible(field, row, fields)) continue;
     final text = _displayValue(field, row[key], services);
     if (text != null) return text;
   }
-  return null;
+  // An entity the list lacks already shows its id as the title.
+  final item = _titleEntity(list, row)?.item;
+  if (item == null) return null;
+  final state = item.state ?? '';
+  return state.isEmpty ? item.id : '$state · ${item.id}';
 }
 
 /// Material Design Icons by name for icon settings, as a grid of tiles
@@ -304,28 +343,59 @@ class PluginRows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!_rowShowsEntities(list)) return _rows(context);
+    // Entity names and states come from the shared list, so the rows
+    // redraw once it loads.
+    final catalog = PickCatalog.of('entities');
+    if (catalog.value == null) unawaited(loadEntityCatalog(services.commands));
+    return ValueListenableBuilder<PickList?>(
+      valueListenable: catalog,
+      builder: (context, _, _) => _rows(context),
+    );
+  }
+
+  Widget _rows(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final max = (list['maxItems'] as num?)?.toInt() ?? 32;
     final iconKey = (list['row'] as Map?)?['icon'] as String?;
+    final titleIsEntity =
+        _fieldOf(list, _rowKey(list, 'title', 'string'))?['type'] == 'entity';
     final indent = contentPadding == null ? Ks.inset : 12.0;
     final divider = Divider(height: 1, indent: indent, endIndent: indent);
+    // A picked icon wins. Without one, an entity title brings its own,
+    // or a warning when Home Assistant no longer has it.
+    Widget? leading(Map value) {
+      final icon = iconKey == null ? '' : '${value[iconKey] ?? ''}';
+      if (icon.isNotEmpty) {
+        return MdiIcon(
+          name: icon,
+          size: 24,
+          color: scheme.onSurfaceVariant,
+          fallback: Icons.circle_outlined,
+        );
+      }
+      if (titleIsEntity) {
+        final entity = _titleEntity(list, value);
+        final loaded = PickCatalog.of('entities').value != null;
+        if (entity != null && entity.item == null && loaded) {
+          return Icon(Icons.warning_amber_rounded, color: scheme.error);
+        }
+        return PickIcon(
+          icon: entity?.item?.icon,
+          size: 24,
+          color: scheme.onSurfaceVariant,
+        );
+      }
+      return iconKey == null ? null : const Icon(Icons.circle_outlined);
+    }
+
     Widget row(int index) {
       final value = rows[index];
-      final icon = iconKey == null ? null : '${value[iconKey] ?? ''}';
       final subtitle = _rowSubtitle(list, value, services);
       return SettingsRow(
         contentPadding: contentPadding,
         enabled: enabled,
-        leading: icon == null
-            ? null
-            : icon.isEmpty
-            ? const Icon(Icons.circle_outlined)
-            : MdiIcon(
-                name: icon,
-                size: 24,
-                color: scheme.onSurfaceVariant,
-                fallback: Icons.circle_outlined,
-              ),
+        leading: leading(value),
         title: Text(pluginRowTitle(context, list, value)),
         subtitle: subtitle == null
             ? null

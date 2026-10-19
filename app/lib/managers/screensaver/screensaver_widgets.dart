@@ -16,7 +16,8 @@
 ///   decoder keeps the first entry claiming a corner and drops the rest.
 /// - type: what the widget shows. Types and their config keys:
 ///    - clock: color ("r,g,b" text color), h24 (24-hour time instead of
-///      AM/PM), date (short date under the time)
+///      AM/PM), ampm (AM or PM after a 12-hour time; on when missing),
+///      date (short date under the time)
 ///    - weather: entity (a weather.* entity id), name (its friendly name,
 ///      cached for the editors), label (the location text shown over the
 ///      temperature; the entity name when empty — weather entities carry
@@ -107,6 +108,7 @@ Map<String, Object?> screensaverWidgetDefaults(String type) => switch (type) {
     'font': screensaverWidgetFontDefault,
     'font_weight': screensaverWidgetFontDefault,
     'h24': false,
+    'ampm': true,
     'date': false,
   },
   'weather' => {

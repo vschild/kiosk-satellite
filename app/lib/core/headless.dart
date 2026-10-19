@@ -12,11 +12,22 @@ abstract final class Headless {
 
   static bool _active = false;
 
+  static bool _volumeClaim = false;
+
   static bool get active => _active;
+
+  /// Whether the ROM lets the kiosk claim the volume buttons, so they can
+  /// steer a player or a group instead of the device's own volume
+  /// (BiscuitVolumeButtons.kt). Only on a device without a screen.
+  static bool get volumeClaim => _volumeClaim;
 
   static Future<void> detect() async {
     try {
       _active = await _channel.invokeMethod<bool>('isHeadless') ?? false;
+      if (_active) {
+        _volumeClaim =
+            await _channel.invokeMethod<bool>('volumeClaim') ?? false;
+      }
     } catch (_) {
       // No native side (a test): a device with a screen.
     }
@@ -24,4 +35,7 @@ abstract final class Headless {
 
   /// Tests only.
   static set debugActive(bool value) => _active = value;
+
+  /// Tests only.
+  static set debugVolumeClaim(bool value) => _volumeClaim = value;
 }

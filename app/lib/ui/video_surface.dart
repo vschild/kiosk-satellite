@@ -22,6 +22,10 @@
 /// into Flutter's GPU context leaks the decompressed copies: a Galaxy Tab
 /// S9 FE grew by gigabytes of EGL memory and never gave it back. A
 /// SurfaceView passes the frames to SurfaceFlinger, which reads SBWC as is.
+///
+/// Google Pixels start there too (issue #1024). Flutter's texture draws the
+/// decoder's whole buffer and skips its crop, so a 1080p video decoded into
+/// 1088 rows showed a green line along the bottom.
 library;
 
 import 'package:video_player/video_player.dart';

@@ -586,13 +586,19 @@ class SendspinManager extends Manager {
           ? _settings.get(defs.mediaVolume).toInt()
           : (nowPlaying.value?['volume'] as num?)?.toInt());
 
+  /// Whether the volume keys can steer something other than the device's
+  /// own volume: a followed player that takes a volume (issue #544) or
+  /// the Music Assistant group the local player plays in (issue #1032).
+  bool get _volumeKeysSteer =>
+      groupVolumeActive || (!_deviceVolume && volumeAvailable);
+
   /// Whether the hardware volume keys should steer the followed player
-  /// (issue #544), given whether the Now Playing view is on screen: the
-  /// setting's mode, for a player elsewhere that takes a volume. The
+  /// or this device's group, given whether the Now Playing view is on
+  /// screen: the setting's mode, while there is something to steer. The
   /// kiosk screen, which knows what is on screen, pushes the answer to
   /// the native side.
   bool volumeKeysWanted({required bool viewShown}) {
-    if (_deviceVolume || !volumeAvailable) return false;
+    if (!_volumeKeysSteer) return false;
     return switch (_settings.get(defs.sendspinVolumeKeys)) {
       'now_playing' => viewShown,
       'playing' => viewShown || nowPlaying.value?['playing'] == true,
@@ -612,13 +618,13 @@ class SendspinManager extends Manager {
   bool _volumeSending = false;
   bool _volumeDirty = false;
 
-  /// A volume key press (issue #544): move the followed player's volume
-  /// by [delta] percent. Presses arriving while a command is out are
+  /// A volume key press (issue #544): move the followed player's volume,
+  /// or the group's, by [delta] percent. Presses arriving while a command is out are
   /// folded into one trailing command at the latest target, so a held
   /// key, which repeats many times a second, sends the player one
   /// request at a time rather than a flood.
   Future<void> nudgeVolume(int delta) async {
-    if (_deviceVolume || !volumeAvailable) return;
+    if (!_volumeKeysSteer) return;
     final base = volumeLevel;
     if (base == null) return;
     _volumeTarget = (base + delta).clamp(0, 100);
@@ -652,7 +658,7 @@ class SendspinManager extends Manager {
       case 'down':
         unawaited(nudgeVolume(-_settings.get(defs.sendspinVolumeKeyStep)));
       case 'mute':
-        if (_deviceVolume || !volumeAvailable) return;
+        if (!_volumeKeysSteer) return;
         volumeNudge.value++;
         unawaited(toggleMute());
     }

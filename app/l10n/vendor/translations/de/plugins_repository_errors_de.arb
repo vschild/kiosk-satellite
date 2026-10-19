@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "Die Plugin-ID oder Version ist ungültig",
   "pluginErrorChecksumFilename": "Die Prüfsumme der Version oder der Paketname ist ungültig",
   "pluginErrorGithubDigest": "Die Prüfsumme der Version muss mit dem SHA-256-Hash der Datei auf GitHub übereinstimmen",
-  "pluginErrorTagRevision": "GitHub hat die Revision des Release-Tags nicht zurückgegeben",
   "pluginErrorTrustAuthor": "Bitte bestätige, dass du dem Autor des Plugins vertraust",
   "pluginErrorPreviewExpired": "Diese Vorschau ist abgelaufen. Rufe die Repository-Vorschau erneut auf, bevor du installierst.",
   "pluginErrorReviewedChecksum": "Der SHA-256-Hash des Pakets stimmt nicht mit der geprüften Version überein",

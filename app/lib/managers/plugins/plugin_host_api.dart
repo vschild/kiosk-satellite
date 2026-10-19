@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/command_registry.dart';
 import '../../core/event_bus.dart';
 import '../../core/events.dart';
@@ -9,12 +11,36 @@ import '../home_assistant/plugin_entities.dart';
 import '../home_assistant/plugin_ha_socket.dart';
 import '../intercom/intercom_sensors.dart';
 import '../settings/definitions.dart' as defs;
+import '../settings/settings_manager.dart';
+import '../voice/assist_view.dart';
+
+/// What plugins follow of a voice turn: the overlay's view, the level its
+/// bar follows and the settings that pick what it shows.
+class PluginVoiceFeed {
+  const PluginVoiceFeed({
+    required this.view,
+    required this.level,
+    required this.settings,
+  });
+
+  final ValueListenable<AssistView> view;
+  final ValueListenable<double> level;
+  final SettingsManager settings;
+}
 
 /// Explicit SDK 1 host surface. Registry additions do not expand plugin access.
 class PluginHostApi {
-  PluginHostApi(this.commands, EventBus bus, this.sendEvent, {this.ha}) {
+  PluginHostApi(
+    this.commands,
+    EventBus bus,
+    this.sendEvent, {
+    this.ha,
+    this.voice,
+  }) {
     _events = bus.stream.listen(_onEvent);
     ha?.emit = _onHaEvent;
+    voice?.view.addListener(_onVoice);
+    voice?.level.addListener(_onVoiceLevel);
   }
 
   final CommandRegistry commands;
@@ -23,10 +49,16 @@ class PluginHostApi {
   /// the `ha` capability.
   final HaPluginSocket? ha;
   final Future<void> Function(Map<String, Object?>) sendEvent;
+
+  /// The voice turn, for voice.text, voice.level and voice.skin.
+  final PluginVoiceFeed? voice;
   late final StreamSubscription<AppEvent> _events;
   final _sessions = <String, _HostSession>{};
   bool _disposed = false;
   String? _intercomSent;
+  String? _voiceTextSent;
+  String _overlaySent = 'hidden';
+  double _voiceLevelSent = 0;
 
   static const commandNames = [
     'getHostApi',
@@ -47,6 +79,7 @@ class PluginHostApi {
     'getCameraViewState',
     'getWakeWordState',
     'getVoiceState',
+    'getVoiceAppearance',
     'getIntercomState',
     'haStatus',
     'getHaEntityState',
@@ -88,6 +121,15 @@ class PluginHostApi {
   /// so in its manifest.
   static const noiseCommandNames = ['getNoiseLevel'];
   static const noiseEventNames = ['audio.noise'];
+
+  /// What was said and answered, for sessions that also declare the
+  /// voice.text capability (issue #1027). It follows the Conversation
+  /// settings the overlay follows.
+  static const voiceTextCommandNames = ['getVoiceText'];
+  static const voiceTextEventNames = ['voice.text'];
+
+  /// The longest command or answer a plugin gets, in characters.
+  static const maxVoiceText = 16000;
 
   static bool _volumeChannel(Map params) =>
       !params.containsKey('channel') ||
@@ -203,6 +245,10 @@ class PluginHostApi {
     'detection.presence',
     'voice.interaction',
     'voice.state',
+    'voice.level',
+    'voice.overlay',
+    'voice.skin',
+    'voice.appearance',
     'intercom.state',
     'wakeword.state',
     'wakeword.detected',
@@ -255,7 +301,7 @@ class PluginHostApi {
       'statusLabel',
       'muted',
     ],
-    'getVoiceState': ['enabled', 'state'],
+    'getVoiceState': ['enabled', 'state', 'skinSelected', 'overlay'],
     'getIntercomState': ['enabled', 'state', 'kiosk', 'dnd'],
     'haStatus': ['configured', 'connected'],
     'getDashboardState': [
@@ -287,6 +333,7 @@ class PluginHostApi {
       capabilities.contains('host.control'),
       canNoise: capabilities.contains('noise'),
       canHa: capabilities.contains('ha'),
+      canVoiceText: capabilities.contains('voice.text'),
     );
   }
 
@@ -326,6 +373,7 @@ class PluginHostApi {
         name is! String ||
         (!eventNames.contains(name) &&
             !(session.canNoise && noiseEventNames.contains(name)) &&
+            !(session.canVoiceText && voiceTextEventNames.contains(name)) &&
             entityEventId(name) == null)) {
       return;
     }
@@ -376,6 +424,9 @@ class PluginHostApi {
             !(session.canRead &&
                 session.canNoise &&
                 noiseCommandNames.contains(name)) &&
+            !(session.canRead &&
+                session.canVoiceText &&
+                voiceTextCommandNames.contains(name)) &&
             !(session.canControl && isControl))) {
       return const CommandResult.fail(
         'Command is not available through this plugin session',
@@ -403,18 +454,37 @@ class PluginHostApi {
           if (session.canControl) 'host.control',
           if (session.canRead && session.canNoise) 'noise',
           if (session.canHa && ha != null) 'ha',
+          if (session.canRead && session.canVoiceText) 'voice.text',
         ],
         'commands': [
           'getHostApi',
           if (session.canRead) ...commandNames.skip(1),
           if (session.canRead && session.canNoise) ...noiseCommandNames,
+          if (session.canRead && session.canVoiceText) ...voiceTextCommandNames,
           if (session.canControl) ...controlNames,
         ],
         'events': [
           if (session.canRead) ...eventNames,
           if (session.canRead && session.canNoise) ...noiseEventNames,
+          if (session.canRead && session.canVoiceText) ...voiceTextEventNames,
         ],
       }).toJson();
+    }
+    if (name == 'getVoiceAppearance') {
+      final appearance = _appearance();
+      return appearance == null
+          ? const CommandResult.fail(
+              'KS could not complete this command. The feature may be unavailable.',
+            ).toJson()
+          : CommandResult.ok(appearance).toJson();
+    }
+    if (name == 'getVoiceText') {
+      final text = _voiceText();
+      return text == null
+          ? const CommandResult.fail(
+              'KS could not complete this command. The feature may be unavailable.',
+            ).toJson()
+          : CommandResult.ok(text).toJson();
     }
     try {
       if (name == 'getCameraViews' || name == 'getDashboards') {
@@ -513,7 +583,14 @@ class PluginHostApi {
             'KS returned an unexpected read response',
           ).toJson();
         }
-        data = {for (final key in fields) key: data[key]};
+        data = {
+          for (final key in fields)
+            key: switch (key) {
+              'skinSelected' => _skinSelected(session),
+              'overlay' => _overlay(),
+              _ => data[key],
+            },
+        };
         if (data.entries.any((entry) {
           final value = entry.value;
           if (name == 'getDeviceInfo' &&
@@ -773,7 +850,157 @@ class PluginHostApi {
     _ => null,
   };
 
+  /// Whether the Skin setting picks this session's plugin.
+  bool _skinSelected(_HostSession session) =>
+      voice?.settings.get(defs.voiceSkin) == 'plugin:${session.id}';
+
+  /// The turn's words as the overlay would show them: a line whose
+  /// Conversation setting is off is empty.
+  Map<String, Object?>? _voiceText() {
+    final feed = voice;
+    if (feed == null) return null;
+    final view = feed.view.value;
+    final settings = feed.settings;
+    String cap(String text) =>
+        text.length > maxVoiceText ? text.substring(0, maxVoiceText) : text;
+    return {
+      'command': settings.get(defs.voiceShowCommand) ? cap(view.command) : '',
+      'answer': settings.get(defs.voiceShowAnswer) ? cap(view.answer) : '',
+      'tools': settings.get(defs.voiceShowTools)
+          ? [for (final tool in view.tools.take(20)) cap(tool)]
+          : const <String>[],
+      'streaming': view.streaming,
+      'announcement': view.phase == AssistPhase.announcement,
+    };
+  }
+
+  /// Whether the voice overlay shows, and how: `hidden`, `full` or
+  /// `docked`. It shows for a preview and while an answer stays on screen,
+  /// when the turn's state already reads idle.
+  String _overlay() {
+    final view = voice?.view.value;
+    if (view == null || !view.visible) return 'hidden';
+    return view.docked ? 'docked' : 'full';
+  }
+
+  void _onVoice() {
+    _onVoiceLevel();
+    final overlay = _overlay();
+    if (overlay != _overlaySent) {
+      _overlaySent = overlay;
+      for (final session in _sessions.values) {
+        if (!session.subscriptions.contains('voice.overlay')) continue;
+        session.pending['voice.overlay'] = {
+          'overlay': overlay,
+          'time': DateTime.now().toUtc().toIso8601String(),
+        };
+        _schedule(session);
+      }
+    }
+    final text = _voiceText();
+    if (text == null) return;
+    final value = jsonEncode(text);
+    if (value == _voiceTextSent) return;
+    _voiceTextSent = value;
+    for (final session in _sessions.values) {
+      if (!session.canVoiceText ||
+          !session.subscriptions.contains('voice.text')) {
+        continue;
+      }
+      session.pending['voice.text'] = {
+        ...text,
+        'time': DateTime.now().toUtc().toIso8601String(),
+      };
+      _schedule(session);
+    }
+  }
+
+  /// The Appearance settings a skin follows: Theme, Background (null for
+  /// the skin's own), Text size as a factor and Reactive activity bar.
+  Map<String, Object?>? _appearance() {
+    final settings = voice?.settings;
+    if (settings == null) return null;
+    final background = settings.get(defs.voiceBackgroundOpacity).toDouble();
+    return {
+      'theme': settings.get(defs.voiceTheme),
+      'background': background < 0 ? null : background.clamp(0, 100) / 100,
+      'textScale': settings.get(defs.voiceTextScale).toDouble() / 100,
+      'reactive': settings.get(defs.voiceReactiveBar),
+    };
+  }
+
+  /// The level the reactive bar follows: the voice while listening, the
+  /// answer while speaking, 0 while the assistant thinks, the wake chime
+  /// plays, nothing shows or Reactive activity bar is off.
+  double _voiceLevel() {
+    final view = voice!.view.value;
+    final live =
+        voice!.settings.get(defs.voiceReactiveBar) &&
+        view.reactive &&
+        !view.lingering &&
+        const [
+          AssistPhase.listening,
+          AssistPhase.speaking,
+          AssistPhase.announcement,
+        ].contains(view.phase);
+    final level = voice!.level.value;
+    return live && level.isFinite
+        ? (level.clamp(0.0, 1.0) * 1000).roundToDouble() / 1000
+        : 0;
+  }
+
+  void _onVoiceLevel() {
+    if (voice == null) return;
+    final level = _voiceLevel();
+    if (level == _voiceLevelSent) return;
+    _voiceLevelSent = level;
+    for (final session in _sessions.values) {
+      if (!session.subscriptions.contains('voice.level')) continue;
+      session.pending['voice.level'] = {
+        'level': level,
+        'time': DateTime.now().toUtc().toIso8601String(),
+      };
+      _schedule(session);
+    }
+  }
+
   void _onEvent(AppEvent event) {
+    if (event is SettingChanged &&
+        (event.key == defs.voiceTheme.key ||
+            event.key == defs.voiceBackgroundOpacity.key ||
+            event.key == defs.voiceTextScale.key ||
+            event.key == defs.voiceReactiveBar.key)) {
+      final appearance = _appearance();
+      if (appearance == null) return;
+      for (final session in _sessions.values) {
+        if (!session.subscriptions.contains('voice.appearance')) continue;
+        session.pending['voice.appearance'] = {
+          ...appearance,
+          'time': DateTime.now().toUtc().toIso8601String(),
+        };
+        _schedule(session);
+      }
+      if (event.key == defs.voiceReactiveBar.key) _onVoiceLevel();
+      return;
+    }
+    if (event is SettingChanged &&
+        (event.key == defs.voiceShowCommand.key ||
+            event.key == defs.voiceShowAnswer.key ||
+            event.key == defs.voiceShowTools.key)) {
+      _onVoice();
+      return;
+    }
+    if (event is SettingChanged && event.key == defs.voiceSkin.key) {
+      for (final session in _sessions.values) {
+        if (!session.subscriptions.contains('voice.skin')) continue;
+        session.pending['voice.skin'] = {
+          'selected': event.value == 'plugin:${session.id}',
+          'time': DateTime.now().toUtc().toIso8601String(),
+        };
+        _schedule(session);
+      }
+      return;
+    }
     if (event is PluginHaStateChanged) {
       final name = 'ha.entity.${event.entityId}';
       for (final session in _sessions.values) {
@@ -822,46 +1049,55 @@ class PluginHostApi {
             session.haDropped.isEmpty)) {
       return;
     }
-    session.timer = Timer(const Duration(milliseconds: 100), () async {
-      session.timer = null;
-      session.sending = true;
-      final batch = [
-        ...session.pending.entries,
-        ...session.haQueue,
-        // Events that did not fit: the plugin hears how many it missed.
-        for (final entry in session.haDropped.entries)
-          MapEntry(entry.key, {
-            'type': 'overflow',
-            'dropped': entry.value,
-            'time': DateTime.now().toUtc().toIso8601String(),
-          }),
-      ];
-      session.pending.clear();
-      session.haQueue.clear();
-      session.haDropped.clear();
-      try {
-        for (final entry in batch) {
-          if (session.closed) break;
-          // Unsubscribed while the batch went out. The Android side drops
-          // events for ended Home Assistant subscriptions.
-          if (!entry.key.startsWith('ha.subscription.') &&
-              !session.subscriptions.contains(entry.key)) {
-            continue;
+    // The voice level alone goes out about 30 times a second, so a skin
+    // moves with the voice. Everything else is batched every 100 ms.
+    final levelOnly =
+        session.haQueue.isEmpty &&
+        session.haDropped.isEmpty &&
+        session.pending.keys.every((k) => k == 'voice.level');
+    session.timer = Timer(
+      Duration(milliseconds: levelOnly ? 33 : 100),
+      () async {
+        session.timer = null;
+        session.sending = true;
+        final batch = [
+          ...session.pending.entries,
+          ...session.haQueue,
+          // Events that did not fit: the plugin hears how many it missed.
+          for (final entry in session.haDropped.entries)
+            MapEntry(entry.key, {
+              'type': 'overflow',
+              'dropped': entry.value,
+              'time': DateTime.now().toUtc().toIso8601String(),
+            }),
+        ];
+        session.pending.clear();
+        session.haQueue.clear();
+        session.haDropped.clear();
+        try {
+          for (final entry in batch) {
+            if (session.closed) break;
+            // Unsubscribed while the batch went out. The Android side drops
+            // events for ended Home Assistant subscriptions.
+            if (!entry.key.startsWith('ha.subscription.') &&
+                !session.subscriptions.contains(entry.key)) {
+              continue;
+            }
+            await sendEvent({
+              'id': session.id,
+              'session': session.token,
+              'event': entry.key,
+              'payload': entry.value,
+            });
           }
-          await sendEvent({
-            'id': session.id,
-            'session': session.token,
-            'event': entry.key,
-            'payload': entry.value,
-          });
+        } catch (_) {
+          // Stopping the host or plugin can cancel an event delivery.
+        } finally {
+          session.sending = false;
+          _schedule(session);
         }
-      } catch (_) {
-        // Stopping the host or plugin can cancel an event delivery.
-      } finally {
-        session.sending = false;
-        _schedule(session);
-      }
-    });
+      },
+    );
   }
 
   Future<void> dispose() async {
@@ -870,6 +1106,8 @@ class PluginHostApi {
       _closeSession(session);
     }
     _sessions.clear();
+    voice?.view.removeListener(_onVoice);
+    voice?.level.removeListener(_onVoiceLevel);
     await _events.cancel();
   }
 
@@ -888,6 +1126,7 @@ class _HostSession {
     this.canControl, {
     this.canNoise = false,
     this.canHa = false,
+    this.canVoiceText = false,
   });
 
   /// Home Assistant events waiting for a slow plugin. Past this the newest
@@ -898,6 +1137,7 @@ class _HostSession {
   final bool canControl;
   final bool canNoise;
   final bool canHa;
+  final bool canVoiceText;
   final String id;
   final String token;
   String get owner => '$id:$token';

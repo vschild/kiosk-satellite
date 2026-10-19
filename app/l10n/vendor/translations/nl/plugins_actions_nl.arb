@@ -7,5 +7,8 @@
   "pluginAlsoAvailableWhileLockedIfTheKioskDrawerIs": "Ook beschikbaar wanneer het apparaat is vergrendeld, mits het kioskmenu is toegestaan.",
   "pluginExposeToHomeAssistant": "Beschikbaar stellen aan Home Assistant",
   "pluginAddsAButtonToTheKioskEsphomeDeviceRequires": "Voegt een knop toe aan het ESPHome-apparaat van de kiosk. Hiervoor zijn ESPHome en systeemeigen entiteiten vereist.",
-  "pluginConfigureName": "{name} instellen"
+  "pluginConfigureName": "{name} instellen",
+  "pluginThePluginDidNotAnswerInTime": "De plug-in heeft niet op tijd geantwoord.",
+  "pluginNoChoicesYetRefreshToLookForThem": "Nog geen keuzes. Vernieuw om ernaar te zoeken.",
+  "pluginThisChoiceIsNoLongerListed": "Deze keuze staat niet meer in de lijst."
 }

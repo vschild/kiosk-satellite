@@ -12,6 +12,7 @@
   "voiceScaleHelp": "La taille du texte de la superposition.",
   "voiceUpdateIntegration": "Mettez à jour l'intégration Voice Satellite dans Home Assistant pour contrôler ces paramètres depuis le kiosque.",
   "voiceDashboardRequired": "Disponible tant que le kiosque affiche votre tableau de bord Home Assistant.",
+  "voiceSkinUnavailablePlugin": "Habillage de plugin indisponible",
   "voiceSkinDefault": "Selon l'habillage",
   "voiceBackground": "Arrière-plan",
   "voiceBackgroundHelp": "La part du tableau de bord visible à travers.",

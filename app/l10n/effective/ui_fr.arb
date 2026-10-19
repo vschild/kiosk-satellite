@@ -10884,6 +10884,45 @@
       }
     }
   },
+  "pluginScanTitle": "Scanner un code",
+  "@pluginScanTitle": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Scanner heading when the plugin that opened the scanner gives none. A code is a barcode or a QR code.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanHelp": "Placez le code dans le cadre.",
+  "@pluginScanHelp": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Help under the scanner heading when the plugin gives none.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanSource": "Demandé par {name}",
+  "@pluginScanSource": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Says which plugin opened the scanner. The placeholder is the plugin's name.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Hello World"
+      }
+    }
+  },
   "pluginActions": "Actions",
   "@pluginActions": {
     "context": "Settings > Plugin Manager > a plugin > Actions",
@@ -10993,6 +11032,45 @@
       }
     },
     "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginThePluginDidNotAnswerInTime": "Le plugin n'a pas répondu à temps.",
+  "@pluginThePluginDidNotAnswerInTime": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginNoChoicesYetRefreshToLookForThem": "Aucun choix pour l'instant. Actualisez pour en rechercher.",
+  "@pluginNoChoicesYetRefreshToLookForThem": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginThisChoiceIsNoLongerListed": "Ce choix ne figure plus dans la liste.",
+  "@pluginThisChoiceIsNoLongerListed": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
   },
   "pluginPlugin": "Plugin",
   "@pluginPlugin": {
@@ -11658,6 +11736,411 @@
       ]
     }
   },
+  "pluginBrowsePlugins": "Parcourir les plugins",
+  "@pluginBrowsePlugins": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginFindPluginsMadeByTheCommunity": "Trouver des plugins créés par la communauté",
+  "@pluginFindPluginsMadeByTheCommunity": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginSearchPlugins": "Rechercher des plugins",
+  "@pluginSearchPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginUpdate": "Mettre à jour",
+  "@pluginUpdate": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginInstalled": "Installé",
+  "@pluginInstalled": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginStars": "Étoiles",
+  "@pluginStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginDownloads": "Téléchargements",
+  "@pluginDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginActiveInstalls": "Installations actives",
+  "@pluginActiveInstalls": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNoPluginsMatchYourSearch": "Aucun plugin ne correspond à votre recherche.",
+  "@pluginNoPluginsMatchYourSearch": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCommunityPluginsHasNoPluginsYet": "Plugins de la communauté ne contient encore aucun plugin.",
+  "@pluginCommunityPluginsHasNoPluginsYet": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSubmitYourPlugin": "Proposer votre plugin",
+  "@pluginSubmitYourPlugin": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginListYourPluginInCommunityPlugins": "Ajoutez votre plugin à Plugins de la communauté.",
+  "@pluginListYourPluginInCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotReachCommunityPlugins": "Impossible de joindre Plugins de la communauté. Vérifiez la connexion Internet.",
+  "@pluginCouldNotReachCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotLoadCommunityPlugins": "Impossible de charger Plugins de la communauté. Réessayez plus tard.",
+  "@pluginCouldNotLoadCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginTurnOn": "Activer",
+  "@pluginTurnOn": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginTurnOnEnablePluginsToInstall": "Activez « Activer les plugins » pour installer ce plugin.",
+  "@pluginTurnOnEnablePluginsToInstall": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginPreviousPage": "Page précédente",
+  "@pluginPreviousPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNextPage": "Page suivante",
+  "@pluginNextPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPageOfPages": "Page {page} sur {pages}",
+  "@pluginPageOfPages": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginSortBy": "Trier par",
+  "@pluginSortBy": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostStars": "Plus d'étoiles",
+  "@pluginSortMostStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortRecentlyUpdated": "Mis à jour récemment",
+  "@pluginSortRecentlyUpdated": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortNewest": "Plus récents",
+  "@pluginSortNewest": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortName": "Nom",
+  "@pluginSortName": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostDownloads": "Plus téléchargés",
+  "@pluginSortMostDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPluginsPerPage": "Plugins par page",
+  "@pluginPluginsPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCountPerPage": "{count} par page",
+  "@pluginCountPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "A page size for the Browse plugins list, such as 10 per page.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginByAuthor": "par {author}",
+  "@pluginByAuthor": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "Who made the plugin, under its name in the install review.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    },
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginListedChip": "Répertorié dans Plugins de la communauté",
+  "@pluginListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
+  "pluginNotListedChip": "Absent de Plugins de la communauté",
+  "@pluginNotListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
   "pluginCharts": "Graphiques",
   "@pluginCharts": {
     "context": "Settings > Plugin Manager > a plugin > Charts and Readings",
@@ -12298,19 +12781,6 @@
       ]
     }
   },
-  "pluginErrorTagRevision": "GitHub n'a pas renvoyé la révision de l'étiquette de version",
-  "@pluginErrorTagRevision": {
-    "context": "Settings > Plugin Manager > Add plugin, preview or install",
-    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ]
-    }
-  },
   "pluginErrorTrustAuthor": "Confirmez que vous faites confiance à l'auteur du plugin",
   "@pluginErrorTrustAuthor": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -12577,19 +13047,6 @@
   },
   "pluginErrorRestartReplace": "Ce plugin ne s'est pas arrêté proprement. Redémarrez Kiosk Satellite avant de le remplacer.",
   "@pluginErrorRestartReplace": {
-    "context": "Settings > Plugin Manager > Install, update or enable a plugin",
-    "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager"
-      ]
-    }
-  },
-  "pluginErrorPluginLimit": "8 plugins maximum peuvent être installés",
-  "@pluginErrorPluginLimit": {
     "context": "Settings > Plugin Manager > Install, update or enable a plugin",
     "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
     "x-locations": {
@@ -15180,6 +15637,28 @@
   },
   "screensaverVideosTooLarge": "Toutes les vidéos de cette liste de lecture sont trop volumineuses pour être lues sur cet appareil.",
   "@screensaverVideosTooLarge": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlNotSet": "Aucune URL d'image définie. Ajoutez-en une dans les Paramètres.",
+  "@screensaverUrlNotSet": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlLoadFailed": "Impossible de charger l'image.",
+  "@screensaverUrlLoadFailed": {
     "context": "Screensaver > local media or Immich > playback errors",
     "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
     "x-locations": {
@@ -26708,8 +27187,8 @@
       ]
     }
   },
-  "settingClapStrictnessDescription": "Le mode Strict exige des claquements plus forts et régulièrement espacés ; essayez-le si le bruit ambiant provoque de faux déclenchements.",
-  "@settingClapStrictnessDescription": {
+  "settingClapDetectionDescription": "Le mode Strict exige des claquements plus forts et régulièrement espacés. Grande pièce laisse aux claquements le temps de s'estomper dans une pièce qui résonne.",
+  "@settingClapDetectionDescription": {
     "context": "Settings > Gestures",
     "description": "Help below this setting.",
     "x-locations": {
@@ -26738,6 +27217,19 @@
   "@gestureStrictnessStrict": {
     "context": "Settings > Gestures",
     "description": "Clap detection option.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Clapper > Clap detection"
+      ],
+      "remoteAdmin": [
+        "Gestures > Clapper > Clap detection"
+      ]
+    }
+  },
+  "gestureStrictnessLargeRoom": "Grande pièce",
+  "@gestureStrictnessLargeRoom": {
+    "context": "Settings > Gestures",
+    "description": "Clap detection option, for big rooms where claps echo.",
     "x-locations": {
       "device": [
         "Settings > Gestures > Clapper > Clap detection"
@@ -32377,8 +32869,8 @@
       ]
     }
   },
-  "settingSendspinVolumeKeysDescription": "Les boutons de volume de cet appareil modifient le volume du lecteur suivi plutôt que le sien. Uniquement tant que la vue Lecture en cours est à l'écran, ou tant que le lecteur joue.",
-  "@settingSendspinVolumeKeysDescription": {
+  "settingSendspinVolumeKeysGroupDescription": "Les boutons de volume de cet appareil modifient le volume du lecteur suivi plutôt que le sien. Tant que cet appareil joue au sein d'un groupe, ils règlent le volume du groupe. Uniquement tant que la vue Lecture en cours est à l'écran, ou tant que le lecteur joue.",
+  "@settingSendspinVolumeKeysGroupDescription": {
     "context": "Settings > Media Player",
     "description": "Help below this setting.",
     "x-locations": {
@@ -37494,6 +37986,40 @@
       }
     }
   },
+  "settingScreensaverClockAmPmTitle": "Afficher AM/PM",
+  "@settingScreensaverClockAmPmTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label. A switch shown while the 24-hour clock is off.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
+  "settingScreensaverClockAmPmDescription": "Ajouter AM ou PM après l'heure.",
+  "@settingScreensaverClockAmPmDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
   "screensaverOverlayEntity": "Entité",
   "@screensaverOverlayEntity": {
     "context": "Settings > Screensaver > Widgets > Entity widget or At a Glance > Entities",
@@ -38798,6 +39324,21 @@
       ],
       "remoteAdmin": [
         "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "screensaverModeUrl": "URL d'image",
+  "@screensaverModeUrl": {
+    "context": "Settings:Screensaver",
+    "description": "Screensaver mode that shows an image fetched from a web address. Also the title of the address field.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Screensaver mode",
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Screensaver mode",
+        "Screensaver > Image URL screensaver"
       ]
     }
   },
@@ -42331,6 +42872,71 @@
       ]
     }
   },
+  "settingScreensaverUrlImageDescription": "Adresse d'une image que l'appareil récupère à nouveau pour chaque diapositive.",
+  "@settingScreensaverUrlImageDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "settingScreensaverUrlIntervalDescription": "Durée d'affichage de chaque photo avant la récupération suivante.",
+  "@settingScreensaverUrlIntervalDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPage": "Économiseur d'écran URL d'image",
+  "@screensaverMediaUrlPage": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPageHint": "URL, cadence, transition, métadonnées",
+  "@screensaverMediaUrlPageHint": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlMetadata": "Métadonnées de l'URL d'image",
+  "@screensaverMediaUrlMetadata": {
+    "context": "Settings:Screensaver:Image URL screensaver:Image URL metadata",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver > Image URL metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver > Image URL metadata"
+      ]
+    }
+  },
   "settingScreensaverDismissOnMotionTitle": "Fermer sur mouvement",
   "@settingScreensaverDismissOnMotionTitle": {
     "context": "Settings > Screensaver > Motion Detection",
@@ -45716,6 +46322,11 @@
         "Voice Satellite > Appearance"
       ]
     }
+  },
+  "voiceSkinUnavailablePlugin": "Habillage de plugin indisponible",
+  "@voiceSkinUnavailablePlugin": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "The Skin row's value when it picks a plugin that is no longer installed. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
   "voiceSkinDefault": "Selon l'habillage",
   "@voiceSkinDefault": {

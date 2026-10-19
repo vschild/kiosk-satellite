@@ -2842,6 +2842,17 @@ class UiStringsNl extends UiStrings {
   }
 
   @override
+  String get pluginScanTitle => 'Scan een code';
+
+  @override
+  String get pluginScanHelp => 'Houd de code binnen het kader.';
+
+  @override
+  String pluginScanSource(String name) {
+    return 'Aangevraagd door $name';
+  }
+
+  @override
   String get pluginActions => 'Acties';
 
   @override
@@ -2870,6 +2881,18 @@ class UiStringsNl extends UiStrings {
   String pluginConfigureName(String name) {
     return '$name instellen';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime =>
+      'De plug-in heeft niet op tijd geantwoord.';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem =>
+      'Nog geen keuzes. Vernieuw om ernaar te zoeken.';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed =>
+      'Deze keuze staat niet meer in de lijst.';
 
   @override
   String get pluginPlugin => 'Plug-in';
@@ -3044,6 +3067,109 @@ class UiStringsNl extends UiStrings {
   @override
   String get pluginCouldNotReadTheSelectedZip =>
       'Kon de geselecteerde ZIP niet lezen';
+
+  @override
+  String get pluginBrowsePlugins => 'Plug-ins bekijken';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity =>
+      'Vind plug-ins die de community heeft gemaakt';
+
+  @override
+  String get pluginSearchPlugins => 'Plug-ins zoeken';
+
+  @override
+  String get pluginUpdate => 'Bijwerken';
+
+  @override
+  String get pluginInstalled => 'Geïnstalleerd';
+
+  @override
+  String get pluginStars => 'Sterren';
+
+  @override
+  String get pluginDownloads => 'Downloads';
+
+  @override
+  String get pluginActiveInstalls => 'Actieve installaties';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch =>
+      'Geen plug-ins gevonden voor je zoekopdracht.';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet =>
+      'Communityplug-ins heeft nog geen plug-ins.';
+
+  @override
+  String get pluginSubmitYourPlugin => 'Je plug-in indienen';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins =>
+      'Zet je plug-in in Communityplug-ins.';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins =>
+      'Kan Communityplug-ins niet bereiken. Controleer de internetverbinding.';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins =>
+      'Kan Communityplug-ins niet laden. Probeer het later opnieuw.';
+
+  @override
+  String get pluginTurnOn => 'Inschakelen';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall =>
+      'Schakel ‘Plug-ins inschakelen’ in om deze plug-in te installeren.';
+
+  @override
+  String get pluginPreviousPage => 'Vorige pagina';
+
+  @override
+  String get pluginNextPage => 'Volgende pagina';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return 'Pagina $page van $pages';
+  }
+
+  @override
+  String get pluginSortBy => 'Sorteren op';
+
+  @override
+  String get pluginSortMostStars => 'Meeste sterren';
+
+  @override
+  String get pluginSortRecentlyUpdated => 'Onlangs bijgewerkt';
+
+  @override
+  String get pluginSortNewest => 'Nieuwste';
+
+  @override
+  String get pluginSortName => 'Naam';
+
+  @override
+  String get pluginSortMostDownloads => 'Meeste downloads';
+
+  @override
+  String get pluginPluginsPerPage => 'Plug-ins per pagina';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '$count per pagina';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return 'door $author';
+  }
+
+  @override
+  String get pluginListedChip => 'Staat in Communityplug-ins';
+
+  @override
+  String get pluginNotListedChip => 'Staat niet in Communityplug-ins';
 
   @override
   String get pluginCharts => 'Grafieken';
@@ -3224,10 +3350,6 @@ class UiStringsNl extends UiStrings {
       'De releasecontrolesom moet overeenkomen met de SHA-256-digest van het GitHub-releasebestand';
 
   @override
-  String get pluginErrorTagRevision =>
-      'GitHub heeft de revisie van de releasetag niet teruggestuurd';
-
-  @override
   String get pluginErrorTrustAuthor =>
       'Bevestig dat je de auteur van de plug-in vertrouwt';
 
@@ -3304,10 +3426,6 @@ class UiStringsNl extends UiStrings {
   @override
   String get pluginErrorRestartReplace =>
       'Deze plug-in is niet correct gestopt. Start Kiosk Satellite opnieuw voordat je hem vervangt.';
-
-  @override
-  String get pluginErrorPluginLimit =>
-      'Er kunnen maximaal 8 plug-ins worden geïnstalleerd';
 
   @override
   String get pluginErrorAlreadyInstalled => 'Dit pakket is al geïnstalleerd';
@@ -4051,6 +4169,13 @@ class UiStringsNl extends UiStrings {
   @override
   String get screensaverVideosTooLarge =>
       'Elke video in deze afspeellijst is te groot voor dit apparaat om af te spelen.';
+
+  @override
+  String get screensaverUrlNotSet =>
+      'Geen afbeeldings-URL ingesteld. Voeg er een toe in Instellingen.';
+
+  @override
+  String get screensaverUrlLoadFailed => 'Kon de afbeelding niet laden.';
 
   @override
   String get settingKioskAllowAlarmsTitle => 'Alarmen';
@@ -7124,14 +7249,17 @@ class UiStringsNl extends UiStrings {
   String get settingClapStrictnessTitle => 'Klapdetectie';
 
   @override
-  String get settingClapStrictnessDescription =>
-      'Strikt vereist luider en gelijkmatiger handgeklap. Probeer dit als omgevingsgeluiden gebaren ten onrechte activeren.';
+  String get settingClapDetectionDescription =>
+      'Strikt vereist luider en gelijkmatiger handgeklap. Grote ruimte geeft handgeklap de tijd om weg te sterven in een galmende ruimte.';
 
   @override
   String get gestureStrictnessStandard => 'Standaard';
 
   @override
   String get gestureStrictnessStrict => 'Strikt';
+
+  @override
+  String get gestureStrictnessLargeRoom => 'Grote ruimte';
 
   @override
   String get gestureOff => 'Gebaren zijn uitgeschakeld';
@@ -8657,8 +8785,8 @@ class UiStringsNl extends UiStrings {
       'Volumeknoppen bedienen de speler';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      'De volumeknoppen van dit apparaat wijzigen het volume van de gevolgde speler in plaats van het eigen apparaatvolume. Dit gebeurt alleen wanneer Speelt nu zichtbaar is of wanneer de speler muziek afspeelt.';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      'De volumeknoppen van dit apparaat wijzigen het volume van de gevolgde speler in plaats van het eigen apparaatvolume. Wanneer dit apparaat in een groep afspeelt, wijzigen ze het volume van de groep. Dit gebeurt alleen wanneer Speelt nu zichtbaar is of wanneer de speler muziek afspeelt.';
 
   @override
   String get settingSendspinVolumeKeyStepTitle => 'Stapgrootte van volumeknop';
@@ -10006,6 +10134,13 @@ class UiStringsNl extends UiStrings {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => 'AM/PM tonen';
+
+  @override
+  String get settingScreensaverClockAmPmDescription =>
+      'Toon AM of PM na de tijd.';
+
+  @override
   String get screensaverOverlayEntity => 'Entiteit';
 
   @override
@@ -10356,6 +10491,9 @@ class UiStringsNl extends UiStrings {
   @override
   String get screensaverDashboardSection =>
       'Home Assistant-dashboard als schermbeveiliging';
+
+  @override
+  String get screensaverModeUrl => 'Afbeeldings-URL';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Rij schalen';
@@ -11277,6 +11415,24 @@ class UiStringsNl extends UiStrings {
       'Map, timing, willekeurige volgorde, overgangen en metadata';
 
   @override
+  String get settingScreensaverUrlImageDescription =>
+      'Een afbeeldingsadres dat het apparaat voor elke dia opnieuw ophaalt.';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription =>
+      'Hoelang elke foto wordt getoond voordat de volgende wordt opgehaald.';
+
+  @override
+  String get screensaverMediaUrlPage => 'Afbeeldings-URL-schermbeveiliging';
+
+  @override
+  String get screensaverMediaUrlPageHint =>
+      'URL, timing, overgangen en metadata';
+
+  @override
+  String get screensaverMediaUrlMetadata => 'Metadata van afbeeldings-URL';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle => 'Sluiten bij beweging';
 
   @override
@@ -12173,6 +12329,10 @@ class UiStringsNl extends UiStrings {
   @override
   String get voiceDashboardRequired =>
       'Beschikbaar terwijl de kiosk je Home Assistant-dashboard toont.';
+
+  @override
+  String get voiceSkinUnavailablePlugin =>
+      'Vormgeving van plug-in niet beschikbaar';
 
   @override
   String get voiceSkinDefault => 'Standaardvormgeving';

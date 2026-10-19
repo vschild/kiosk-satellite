@@ -56,7 +56,25 @@ plugin = {
         'items': [{'label': 'Home', 'icon': 'mdi:home', 'opens': 'Web address', 'url': 'https://example.com', 'camera': '', 'entries': []}],
     },
 }
-installed = [copy.deepcopy(plugin)]
+sensors = {
+    'id': 'sensors', 'name': 'Sensors', 'version': '1.0.0', 'description': 'Entity lists',
+    'capabilities': [], 'enabled': True, 'running': True, 'commands': [], 'groups': [],
+    'settings': [
+        {'key': 'sensors', 'title': 'Sensors', 'type': 'list', 'default': [], 'row': {'title': 'entity'},
+         'fields': [{'key': 'entity', 'title': 'Entity', 'type': 'entity'}]},
+        {'key': 'buttons', 'title': 'Buttons', 'type': 'list', 'default': [], 'row': {'title': 'label', 'subtitle': 'target'},
+         'fields': [{'key': 'label', 'title': 'Label', 'type': 'string'}, {'key': 'target', 'title': 'Target', 'type': 'entity'}]},
+    ],
+    'values': {
+        'sensors': [{'entity': 'sensor.room'}, {'entity': 'sensor.gone'}],
+        'buttons': [{'label': 'Porch', 'target': 'light.porch'}],
+    },
+}
+entities = [
+    {'entity_id': 'sensor.room', 'name': 'Room temperature', 'state': '21 °C', 'domain': 'sensor', 'icon_path': 'M15,13V5A3,3 0 0,0 9,5V13A5,5 0 1,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z'},
+    {'entity_id': 'light.porch', 'name': 'Porch light', 'state': 'On', 'domain': 'light'},
+]
+installed = [copy.deepcopy(plugin), sensors]
 icons = {'mdi:home': 'M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z', 'mdi:garage': 'M19,20H17V11H7V20H5V9L12,5L19,9V20Z',
          'mdi:garage-open': 'M19,20H17V11H7V20H5V9L12,5L19,9V20M8,12H16V14H8Z', 'mdi:cctv': 'M18.15,4.94L4,6Z'}
 saved = []
@@ -68,7 +86,8 @@ def api(route):
     if name == 'getPluginState':
         result = {'enabled': True, 'plugins': installed}
     elif name == 'configurePlugin':
-        installed[0]['values'] = copy.deepcopy(params['values'])
+        # A patch writes over the saved values, like the host.
+        installed[0]['values'] = {**(installed[0]['values'] if params.get('patch') else {}), **copy.deepcopy(params['values'])}
         saved.append(copy.deepcopy(params['values']))
         result = installed
     elif name == 'searchIcons':
@@ -77,6 +96,8 @@ def api(route):
         else:
             words = params.get('query', '').split()
             result = [{'name': n, 'path': p} for n, p in icons.items() if all(w in n for w in words)]
+    elif name == 'haListEntities':
+        result = entities
     elif name == 'cameraGetConfig':
         result = {'cameras': [], 'views': [{'id': 'a1b2c3d4e5f60718293a4b5c6d7e8f90', 'name': 'Front door', 'cameraIds': ['c1']},
                                            {'id': 'default', 'name': 'Default', 'cameraIds': []}]}
@@ -102,7 +123,7 @@ try:
           await (await import('/static/plugins.js')).loadPlugins();
           (await import('/static/tabs.js')).showTab('plugins/navbar', {refresh: false});
         }""")
-        root = page.locator('#tab-plugins')
+        root = page.locator('#tab-plugins > .subpage[data-subpage="navbar"]')
         expect(page.locator('#pageTitle')).to_contain_text('Navbar')
         # A setting whose condition fails stays off the page. The list,
         # alone in its group, has no title row of its own.
@@ -185,6 +206,23 @@ try:
         root.locator('.row:has-text("Collapse") select').first.select_option('On')
         expect(root.get_by_text('Collapse after', exact=True)).to_be_visible()
         page.screenshot(path='/tmp/kiosk-plugin-list-settings.png', full_page=True)
+
+        # Entity fields show the entity's name, icon and state, and an
+        # entity Home Assistant lacks keeps its id with a warning.
+        page.evaluate("(async () => (await import('/static/tabs.js')).showTab('plugins/sensors', {refresh: false}))()")
+        expect(page.locator('#pageTitle')).to_contain_text('Sensors')
+        rows = page.locator('#tab-plugins > .subpage[data-subpage="sensors"] .plugin-list-row')
+        expect(rows).to_have_count(3)
+        expect(rows.nth(0).locator('.name')).to_have_text('Room temperature')
+        expect(rows.nth(0).locator('.desc')).to_have_text('21 °C · sensor.room')
+        expect(rows.nth(0).locator('.camera-row-main .camera-row-icon svg path')).to_have_attribute('d', entities[0]['icon_path'])
+        expect(rows.nth(1).locator('.name')).to_have_text('sensor.gone')
+        expect(rows.nth(1).locator('.desc')).to_have_count(0)
+        expect(rows.nth(1).locator('.plugin-row-missing')).to_have_count(1)
+        expect(rows.nth(2).locator('.name')).to_have_text('Porch')
+        expect(rows.nth(2).locator('.desc')).to_have_text('Porch light · On')
+        expect(rows.nth(2).locator('.camera-row-main .camera-row-icon')).to_have_count(0)
+        page.screenshot(path='/tmp/kiosk-plugin-list-entities.png', full_page=True)
         assert not errors, errors
         browser.close()
 finally:

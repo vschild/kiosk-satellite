@@ -43,6 +43,13 @@ class ClapDetector {
   /// impulsive enough to pass the standard checks.
   bool strict = false;
 
+  /// Large room mode (also gestures.clap_strictness): for big rooms with
+  /// hard surfaces, where a clap still rings past the quarter-second decay
+  /// check and reads as sustained sound. A tail that keeps falling gets up
+  /// to 800 ms to die away, and it does not lift the noise floor in the
+  /// meantime. Not the default, because a slow drum rings the same way.
+  bool largeRoom = false;
+
   // All tunables in 10 ms subframes of 160 samples.
   static const int _subframeSamples = 160;
   static const int _warmupFrames = 50; // let the noise floor settle first
@@ -53,6 +60,7 @@ class ClapDetector {
   static const int _decayCheckFrames = 25; // decay window: 250 ms past onset
   static const int _decayLateFrames = 10; // judged on its last 100 ms
   static const double _decayDropRatio = 32; // a clap is 15 dB down by then
+  static const double _decayFallRatio = 1.4; // reverb: 1.5 dB per 100 ms
   static const int _maxGapFrames = 70; // 700 ms between claps in a sequence
   static const int _vetoCooldownFrames = 100; // quiet-down after a false start
   static const double _leadLoudRatio = 10; // what counts as noise beforehand
@@ -64,6 +72,7 @@ class ClapDetector {
   int get _quietLeadFrames => strict ? 50 : 30; // quiet before the first clap
   double get _rhythmMaxRatio => strict ? 1.5 : 1.8; // longest gap / shortest
   double get _levelMaxRatio => strict ? 6 : 12; // loudest clap / quietest
+  int get _decayMaxFrames => largeRoom ? 80 : _decayCheckFrames;
 
   int _frame = 0;
   double _floor = 1e-4;
@@ -86,11 +95,21 @@ class ClapDetector {
   /// ones worked), but that reverb is 20+ dB below the clap's peak, where
   /// music or an alarm is still sitting at full level. Majority-of-window
   /// rather than one sampled frame, so a stray blip cannot decide it.
+  ///
+  /// A big, hard room rings longer than 250 ms: its tail can still sit
+  /// within 15 dB of the peak at the check. What sets it apart from music
+  /// is that it keeps falling, so in [largeRoom] mode a loud window that is
+  /// clearly below the 100 ms before it pushes the judgment out another
+  /// 100 ms, up to [_decayMaxFrames]. A sound that holds its level is still
+  /// vetoed at 250 ms.
   int _decayCheckAt = -1;
+  int _decayDeadline = -1;
   double _onsetEnergy = 0;
   double _onsetFloor = 0;
   int _lateLoud = 0;
   int _lateTotal = 0;
+  double _lateEnergy = 0;
+  double _priorEnergy = 0;
 
   /// Partial subframe carried between chunks, plus the last sample of the
   /// previous subframe so the first difference is continuous across edges.
@@ -110,9 +129,12 @@ class ClapDetector {
     _levels.clear();
     _lastLoudFrame = 0;
     _decayCheckAt = -1;
+    _decayDeadline = -1;
     _onsetEnergy = 0;
     _lateLoud = 0;
     _lateTotal = 0;
+    _lateEnergy = 0;
+    _priorEnergy = 0;
     _carried = 0;
     _lastSample = 0;
   }
@@ -156,13 +178,34 @@ class ClapDetector {
       _closeSequence();
     }
 
+    // Quiet lead-in: a first clap that is a command comes out of calm, not
+    // out of ongoing clatter. Only the sequence's first clap needs it:
+    // later ones follow other claps by design.
+    final leadOk =
+        _onsets.isNotEmpty || _frame - _lastLoudFrame >= _quietLeadFrames;
+    final canDetect =
+        _frame > _warmupFrames &&
+        _frame >= _suppressedUntil &&
+        (_onsets.isEmpty || _frame - _onsets.last >= _refractoryFrames);
+    final onset =
+        canDetect &&
+        leadOk &&
+        energy > _minEnergy &&
+        energy > _floor * _onsetRatio &&
+        energy > _prevEnergy * _riseRatio &&
+        hf > energy * _minHfRatio;
+
     // The decay check for the newest clap: a real clap has fallen far below
     // its own peak a quarter second after it hit. Something still near that
-    // level is music, an alarm, a truck — cancel the sequence and stand down
-    // briefly so a sustained sound cannot keep restarting it.
-    if (_decayCheckAt > 0) {
-      if (_frame > _decayCheckAt - _decayLateFrames) {
+    // level is music, an alarm, a truck. Cancel the sequence and stand down
+    // briefly so a sustained sound cannot keep restarting it. A new clap
+    // replaces the check, so the clap itself never counts against the one
+    // before it.
+    if (_decayCheckAt > 0 && !onset) {
+      final lateStart = _decayCheckAt - _decayLateFrames;
+      if (_frame > lateStart) {
         _lateTotal++;
+        _lateEnergy += energy;
         // Near the clap's peak, above pre-clap ambience, and not mere noise:
         // all three, so neither a quiet room nor a noisy one skews the count.
         final loudBar = [
@@ -171,14 +214,28 @@ class ClapDetector {
           _minEnergy,
         ].reduce((a, b) => a > b ? a : b);
         if (energy > loudBar) _lateLoud++;
-      } else if (energy > _onsetEnergy) {
+      } else {
         // The burst can peak a frame or two past the onset frame.
-        _onsetEnergy = energy;
+        if (energy > _onsetEnergy) _onsetEnergy = energy;
+        // The 100 ms before the late window, to tell a falling tail apart.
+        if (_frame > lateStart - _decayLateFrames) _priorEnergy += energy;
       }
       if (_frame == _decayCheckAt) {
-        final veto = _lateLoud * 2 > _lateTotal;
-        _decayCheckAt = -1;
-        if (veto) {
+        final loud = _lateLoud * 2 > _lateTotal;
+        final falling = _lateEnergy * _decayFallRatio < _priorEnergy;
+        if (loud &&
+            falling &&
+            _decayCheckAt + _decayLateFrames <= _decayDeadline) {
+          // Still ringing but on its way down: judge the next 100 ms.
+          _decayCheckAt += _decayLateFrames;
+          _priorEnergy = _lateEnergy;
+          _lateEnergy = 0;
+          _lateLoud = 0;
+          _lateTotal = 0;
+        } else {
+          _decayCheckAt = -1;
+        }
+        if (loud && _decayCheckAt < 0) {
           final count = _onsets.length;
           _onsets.clear();
           _levels.clear();
@@ -188,27 +245,17 @@ class ClapDetector {
       }
     }
 
-    // Quiet lead-in: a first clap that is a command comes out of calm, not
-    // out of ongoing clatter. Only the sequence's first clap needs it —
-    // later ones follow other claps by design.
-    final leadOk = _onsets.isNotEmpty ||
-        _frame - _lastLoudFrame >= _quietLeadFrames;
-    final canDetect = _frame > _warmupFrames &&
-        _frame >= _suppressedUntil &&
-        (_onsets.isEmpty || _frame - _onsets.last >= _refractoryFrames);
-    if (canDetect &&
-        leadOk &&
-        energy > _minEnergy &&
-        energy > _floor * _onsetRatio &&
-        energy > _prevEnergy * _riseRatio &&
-        hf > energy * _minHfRatio) {
+    if (onset) {
       _onsets.add(_frame);
       _levels.add(energy);
       _decayCheckAt = _frame + _decayCheckFrames;
+      _decayDeadline = _frame + _decayMaxFrames;
       _onsetEnergy = energy;
       _onsetFloor = _floor;
       _lateLoud = 0;
       _lateTotal = 0;
+      _lateEnergy = 0;
+      _priorEnergy = 0;
       // Nothing larger is configured, so there is nothing to wait for.
       var maxTarget = 0;
       for (final t in targets) {
@@ -224,8 +271,14 @@ class ClapDetector {
 
     // Asymmetric noise-floor EMA: falls fast, rises slowly (a ~500 ms time
     // constant), so a clap barely moves it but steady loudness becomes the
-    // new normal that claps must then punch through.
-    _floor += (energy < _floor ? 0.3 : 0.02) * (energy - _floor);
+    // new normal that claps must then punch through. In a large room a
+    // clap's own tail is not ambience: while it is being judged the floor
+    // only falls, or the long reverb would lift it into the next clap's way.
+    if (energy < _floor) {
+      _floor += 0.3 * (energy - _floor);
+    } else if (!largeRoom || _decayCheckAt < 0) {
+      _floor += 0.02 * (energy - _floor);
+    }
     if (_floor < 1e-7) _floor = 1e-7;
     _prevEnergy = energy;
   }

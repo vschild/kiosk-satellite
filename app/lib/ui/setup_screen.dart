@@ -147,9 +147,22 @@ class _SetupScreenState extends State<SetupScreen> {
       );
       return;
     }
-    final token = await Navigator.of(
-      context,
-    ).push<String>(MaterialPageRoute(builder: (_) => const TokenQrScanner()));
+    // The scanner opens the camera itself, so no other session may hold it.
+    final motion = widget.container.motion;
+    await motion.holdForScanner();
+    if (!mounted) {
+      motion.releaseScanner();
+      return;
+    }
+    String? scanned;
+    try {
+      scanned = await Navigator.of(
+        context,
+      ).push<String>(MaterialPageRoute(builder: (_) => const TokenQrScanner()));
+    } finally {
+      motion.releaseScanner();
+    }
+    final token = scanned;
     if (token != null && token.isNotEmpty && mounted) {
       setState(() => _haToken.text = token);
     }

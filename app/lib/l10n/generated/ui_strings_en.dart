@@ -2820,6 +2820,17 @@ class UiStringsEn extends UiStrings {
   }
 
   @override
+  String get pluginScanTitle => 'Scan a code';
+
+  @override
+  String get pluginScanHelp => 'Hold the code inside the frame.';
+
+  @override
+  String pluginScanSource(String name) {
+    return 'Requested by $name';
+  }
+
+  @override
   String get pluginActions => 'Actions';
 
   @override
@@ -2847,6 +2858,18 @@ class UiStringsEn extends UiStrings {
   String pluginConfigureName(String name) {
     return 'Configure $name';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime =>
+      'The plugin did not answer in time.';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem =>
+      'No choices yet. Refresh to look for them.';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed =>
+      'This choice is no longer listed.';
 
   @override
   String get pluginPlugin => 'Plugin';
@@ -3023,6 +3046,108 @@ class UiStringsEn extends UiStrings {
       'Could not read the selected ZIP';
 
   @override
+  String get pluginBrowsePlugins => 'Browse plugins';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity =>
+      'Find plugins made by the community';
+
+  @override
+  String get pluginSearchPlugins => 'Search plugins';
+
+  @override
+  String get pluginUpdate => 'Update';
+
+  @override
+  String get pluginInstalled => 'Installed';
+
+  @override
+  String get pluginStars => 'Stars';
+
+  @override
+  String get pluginDownloads => 'Downloads';
+
+  @override
+  String get pluginActiveInstalls => 'Active installs';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch => 'No plugins match your search.';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet =>
+      'Community Plugins has no plugins yet.';
+
+  @override
+  String get pluginSubmitYourPlugin => 'Submit your plugin';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins =>
+      'List your plugin in Community Plugins.';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins =>
+      'Could not reach Community Plugins. Check the internet connection.';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins =>
+      'Could not load Community Plugins. Try again later.';
+
+  @override
+  String get pluginTurnOn => 'Turn on';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall =>
+      'Turn on Enable Plugins to install this plugin.';
+
+  @override
+  String get pluginPreviousPage => 'Previous page';
+
+  @override
+  String get pluginNextPage => 'Next page';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return 'Page $page of $pages';
+  }
+
+  @override
+  String get pluginSortBy => 'Sort by';
+
+  @override
+  String get pluginSortMostStars => 'Most stars';
+
+  @override
+  String get pluginSortRecentlyUpdated => 'Recently updated';
+
+  @override
+  String get pluginSortNewest => 'Newest';
+
+  @override
+  String get pluginSortName => 'Name';
+
+  @override
+  String get pluginSortMostDownloads => 'Most downloads';
+
+  @override
+  String get pluginPluginsPerPage => 'Plugins per page';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '$count per page';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return 'by $author';
+  }
+
+  @override
+  String get pluginListedChip => 'Listed in Community Plugins';
+
+  @override
+  String get pluginNotListedChip => 'Not listed in Community Plugins';
+
+  @override
   String get pluginCharts => 'Charts';
 
   @override
@@ -3194,10 +3319,6 @@ class UiStringsEn extends UiStrings {
       'The release checksum must match GitHub asset SHA-256 digest';
 
   @override
-  String get pluginErrorTagRevision =>
-      'GitHub did not return the release tag revision';
-
-  @override
   String get pluginErrorTrustAuthor =>
       'Confirm that you trust the plugin author';
 
@@ -3271,9 +3392,6 @@ class UiStringsEn extends UiStrings {
   @override
   String get pluginErrorRestartReplace =>
       'This plugin did not stop cleanly. Restart Kiosk Satellite before replacing it.';
-
-  @override
-  String get pluginErrorPluginLimit => 'At most 8 plugins can be installed';
 
   @override
   String get pluginErrorAlreadyInstalled => 'This package is already installed';
@@ -4004,6 +4122,12 @@ class UiStringsEn extends UiStrings {
   @override
   String get screensaverVideosTooLarge =>
       'Every video in this playlist is too large for this device to play.';
+
+  @override
+  String get screensaverUrlNotSet => 'No image URL set. Add one in Settings.';
+
+  @override
+  String get screensaverUrlLoadFailed => 'Could not load the image.';
 
   @override
   String get settingKioskAllowAlarmsTitle => 'Alarms';
@@ -7039,14 +7163,17 @@ class UiStringsEn extends UiStrings {
   String get settingClapStrictnessTitle => 'Clap detection';
 
   @override
-  String get settingClapStrictnessDescription =>
-      'Strict needs louder, evenly spaced claps; try it if household noise false-triggers.';
+  String get settingClapDetectionDescription =>
+      'Strict needs louder, evenly spaced claps. Large room gives claps time to fade in an echoey room.';
 
   @override
   String get gestureStrictnessStandard => 'Standard';
 
   @override
   String get gestureStrictnessStrict => 'Strict';
+
+  @override
+  String get gestureStrictnessLargeRoom => 'Large room';
 
   @override
   String get gestureOff => 'Gestures are off';
@@ -8552,8 +8679,8 @@ class UiStringsEn extends UiStrings {
       'Volume buttons control the player';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      'This device\'s volume buttons change the followed player\'s volume instead of its own. Only while the Now Playing view is on screen, or whenever the player is playing.';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      'This device\'s volume buttons change the followed player\'s volume instead of its own. While this device plays in a group they change the group\'s volume. Only while the Now Playing view is on screen or whenever the player is playing.';
 
   @override
   String get settingSendspinVolumeKeyStepTitle => 'Volume button step';
@@ -9881,6 +10008,13 @@ class UiStringsEn extends UiStrings {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => 'Show AM/PM';
+
+  @override
+  String get settingScreensaverClockAmPmDescription =>
+      'Add AM or PM after the time.';
+
+  @override
   String get screensaverOverlayEntity => 'Entity';
 
   @override
@@ -10225,6 +10359,9 @@ class UiStringsEn extends UiStrings {
   @override
   String get screensaverDashboardSection =>
       'Home Assistant Dashboard screensaver';
+
+  @override
+  String get screensaverModeUrl => 'Image URL';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Row scaling';
@@ -11143,6 +11280,23 @@ class UiStringsEn extends UiStrings {
       'Folder, timing, shuffle, transition, metadata';
 
   @override
+  String get settingScreensaverUrlImageDescription =>
+      'An image address the device fetches again for every slide.';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription =>
+      'How long each photo shows before the next fetch.';
+
+  @override
+  String get screensaverMediaUrlPage => 'Image URL screensaver';
+
+  @override
+  String get screensaverMediaUrlPageHint => 'URL, timing, transition, metadata';
+
+  @override
+  String get screensaverMediaUrlMetadata => 'Image URL metadata';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle => 'Dismiss on motion';
 
   @override
@@ -12033,6 +12187,9 @@ class UiStringsEn extends UiStrings {
   @override
   String get voiceDashboardRequired =>
       'Available while the kiosk is showing your Home Assistant dashboard.';
+
+  @override
+  String get voiceSkinUnavailablePlugin => 'Unavailable plugin skin';
 
   @override
   String get voiceSkinDefault => 'Skin default';

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
+import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/sendspin/ma_remote_player.dart';
 import 'package:kiosk_satellite/managers/sendspin/music_assistant_api.dart';
@@ -12,7 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// The Now Playing volume slider while this device plays in a Music
 /// Assistant group (issue #867): the whole group's volume and mute, or
-/// this device's own with the switch off or no group.
+/// this device's own with the switch off or no group. The hardware
+/// volume keys follow the same group (issue #1032).
 
 class _Api extends MusicAssistantApi {
   _Api() : super(baseUrl: 'ma.local', token: 'token');
@@ -64,12 +66,16 @@ void main() {
   const channel = MethodChannel('kiosk_satellite/sendspin');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  late EventBus bus;
   late SettingsManager settings;
   late SendspinManager manager;
   late _Api api;
   _Watcher? watcher;
 
-  Future<void> boot({bool groupVolume = true}) async {
+  Future<void> boot({
+    bool groupVolume = true,
+    String volumeKeys = 'off',
+  }) async {
     SharedPreferences.setMockInitialValues({
       'ks.sendspin.enabled': true,
       'ks.sendspin.client_id': 'tablet',
@@ -77,12 +83,13 @@ void main() {
       'ks.sendspin.ma_token': 'token',
       'ks.sendspin.lyrics': false,
       'ks.sendspin.group_volume': groupVolume,
+      'ks.sendspin.volume_keys': volumeKeys,
       'ks.audio.media_volume': 30,
     });
     watcher = null;
     messenger.setMockMethodCallHandler(channel, (call) async => true);
     addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
-    final bus = EventBus();
+    bus = EventBus();
     final log = Logger();
     final commands = CommandRegistry(log);
     settings = SettingsManager(bus, commands, log);
@@ -179,6 +186,80 @@ void main() {
     await manager.setVolume(40);
     expect(watcher!.groupLevels, isEmpty);
     expect(settings.get(defs.mediaVolume), 40);
+  });
+
+  Future<void> press(String direction) async {
+    bus.publish(VolumeKeyPressed(direction: direction));
+    await pumpEventQueue();
+  }
+
+  group('volume keys (issue #1032)', () {
+    test(
+      'the setting shows for this device but not another app or AirPlay',
+      () {
+        expect(defs.sendspinVolumeKeys.dependsSatisfiedBy(''), isTrue);
+        expect(defs.sendspinVolumeKeys.alsoDependsOn, defs.sendspinPlayer.key);
+        expect(defs.sendspinVolumeKeys.alsoDependsSatisfiedBy(''), isTrue);
+        expect(defs.sendspinVolumeKeys.alsoDependsSatisfiedBy('ma:p1'), isTrue);
+        expect(
+          defs.sendspinVolumeKeys.alsoDependsSatisfiedBy('session:*'),
+          isFalse,
+        );
+        expect(
+          defs.sendspinVolumeKeys.alsoDependsSatisfiedBy('airplay'),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'grouped, the keys are wanted; alone, they stay the device\'s',
+      () async {
+        await boot(volumeKeys: 'playing');
+        expect(manager.volumeKeysWanted(viewShown: true), isFalse);
+        grouped(55);
+        expect(manager.volumeKeysWanted(viewShown: false), isTrue);
+        grouped(null);
+        expect(manager.volumeKeysWanted(viewShown: true), isFalse);
+      },
+    );
+
+    test('while Now Playing is shown: the view alone', () async {
+      await boot(volumeKeys: 'now_playing');
+      grouped(55);
+      expect(manager.volumeKeysWanted(viewShown: false), isFalse);
+      expect(manager.volumeKeysWanted(viewShown: true), isTrue);
+    });
+
+    test('up and down step the group and leave the device alone', () async {
+      await boot(volumeKeys: 'playing');
+      grouped(55);
+      await press('up');
+      await press('up');
+      await press('down');
+      expect(watcher!.groupLevels, [60, 65, 60]);
+      expect(manager.volumeLevel, 60);
+      expect(manager.volumeNudge.value, 3);
+      expect(settings.get(defs.mediaVolume), 30);
+    });
+
+    test('mute mutes the group', () async {
+      await boot(volumeKeys: 'playing');
+      grouped(55);
+      await press('mute');
+      expect(watcher!.groupMutes, [true]);
+      expect(settings.get(defs.mediaVolume), 30);
+    });
+
+    test('with the group switch off the keys stay the device\'s', () async {
+      await boot(groupVolume: false, volumeKeys: 'playing');
+      grouped(55);
+      expect(manager.volumeKeysWanted(viewShown: true), isFalse);
+      await press('up');
+      expect(watcher!.groupLevels, isEmpty);
+      expect(settings.get(defs.mediaVolume), 30);
+      expect(manager.volumeNudge.value, 0);
+    });
   });
 
   test('a member slider in the group menu sets that player alone', () async {

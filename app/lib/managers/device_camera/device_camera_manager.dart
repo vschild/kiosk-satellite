@@ -34,6 +34,10 @@ class DeviceCameraManager extends Manager {
 
   final SettingsManager _settings;
 
+  /// Whether the barcode scanner has the camera. Set by the app container.
+  bool Function() scannerActive = _never;
+  static bool _never() => false;
+
   @override
   String get name => 'device_camera';
 
@@ -350,6 +354,11 @@ class DeviceCameraManager extends Manager {
     if (!enabled) {
       return const CommandResult.fail(
         'The camera is disabled in the Camera settings.',
+      );
+    }
+    if (scannerActive()) {
+      return const CommandResult.fail(
+        'The camera is busy with a barcode scan.',
       );
     }
     // Timer ticks and entity button presses can overlap a capture still in

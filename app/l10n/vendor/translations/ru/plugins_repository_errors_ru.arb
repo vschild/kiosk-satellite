@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "Недопустимый ID или версия плагина",
   "pluginErrorChecksumFilename": "Недопустимая контрольная сумма выпуска или имя файла пакета",
   "pluginErrorGithubDigest": "Контрольная сумма выпуска должна совпадать с дайджестом SHA-256 ресурса GitHub",
-  "pluginErrorTagRevision": "GitHub не вернул ревизию тега выпуска",
   "pluginErrorTrustAuthor": "Подтвердите, что вы доверяете автору плагина",
   "pluginErrorPreviewExpired": "Предпросмотр истёк. Выполните предпросмотр репозитория снова перед установкой.",
   "pluginErrorReviewedChecksum": "SHA-256 пакета не совпадает с проверенным выпуском",

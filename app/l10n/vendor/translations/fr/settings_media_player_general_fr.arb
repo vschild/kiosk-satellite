@@ -9,7 +9,7 @@
   "settingSendspinEsphomeEntitiesTitle": "Exposer les entités ESPHome",
   "settingSendspinEsphomeEntitiesDescription": "Boutons lecture, pause, suivant et précédent pour le lecteur suivi dans Home Assistant, avec son état, son titre, son artiste et sa source comme capteurs.",
   "settingSendspinVolumeKeysTitle": "Les boutons de volume contrôlent le lecteur",
-  "settingSendspinVolumeKeysDescription": "Les boutons de volume de cet appareil modifient le volume du lecteur suivi plutôt que le sien. Uniquement tant que la vue Lecture en cours est à l'écran, ou tant que le lecteur joue.",
+  "settingSendspinVolumeKeysGroupDescription": "Les boutons de volume de cet appareil modifient le volume du lecteur suivi plutôt que le sien. Tant que cet appareil joue au sein d'un groupe, ils règlent le volume du groupe. Uniquement tant que la vue Lecture en cours est à l'écran, ou tant que le lecteur joue.",
   "settingSendspinVolumeKeyStepTitle": "Pas des boutons de volume",
   "settingSendspinVolumeKeyStepDescription": "Variation de volume produite par un appui sur un bouton de volume.",
   "mediaIntro": "Le lecteur flottant et Lecture en cours ne s'affichent que lorsque le lecteur choisi lit un morceau ou a une file d'attente chargée. Sans lecture ni file d'attente, aucun des deux n'apparaît.",

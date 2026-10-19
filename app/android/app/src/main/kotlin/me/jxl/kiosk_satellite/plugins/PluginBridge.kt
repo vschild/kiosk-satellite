@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import dalvik.system.DexClassLoader
 import io.flutter.plugin.common.BinaryMessenger
@@ -33,6 +34,12 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
     companion object {
         /** Incomplete startups in a row that switch the enabled plugins off. */
         internal const val STARTUP_STRIKES = 2
+
+        /** How often running setup runs are checked for a quiet plugin. */
+        internal const val SETUP_CHECK_MS = 5_000L
+
+        /** The largest voice skin picture a plugin may name, in bytes. */
+        internal const val MAX_THUMBNAIL_BYTES = 256 * 1024L
 
         /**
          * Restart app and Exit end the process on purpose, so a startup still
@@ -161,6 +168,32 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val overlays = PluginOverlays<OverlayFactory>()
         fun notifyOverlays() = emit("overlays", mapOf("id" to id, "session" to token, "overlays" to overlays.snapshot()), alive)
         val triggers = PluginTriggers(manifest::hasTrigger)
+        val setup = PluginSetup(manifest)
+        private val setupPending = AtomicBoolean(false)
+        private val setupUpdate = Runnable {
+            setupPending.set(false)
+            if (alive.get()) emit("setup", mapOf("id" to id, "session" to token, "setup" to setup.snapshot()), alive)
+        }
+        fun notifySetup() {
+            if (setupPending.compareAndSet(false, true)) main.postDelayed(setupUpdate, 100)
+        }
+        fun closeSetup() = main.removeCallbacks(setupUpdate)
+        private val setupWatched = AtomicBoolean(false)
+        /** Fails runs the plugin went quiet on, checking while any is running. Called on the worker. */
+        fun watchSetup() {
+            if (!setupWatched.compareAndSet(false, true)) return
+            main.postDelayed(object : Runnable {
+                override fun run() {
+                    worker.execute {
+                        if (!alive.get() || sessions[id] !== this@Session) { setupWatched.set(false); return@execute }
+                        val ended = setup.expire(SystemClock.elapsedRealtime())
+                        if (ended.isNotEmpty()) notifySetup()
+                        for (run in ended) deliverSetup(this@Session, "settings.cancel", mapOf("run" to run.run, "reason" to run.reason))
+                        if (alive.get() && setup.hasRunning()) main.postDelayed(this, SETUP_CHECK_MS) else setupWatched.set(false)
+                    }
+                }
+            }, SETUP_CHECK_MS)
+        }
         var status = ""
         var statusError = false
         val lights = linkedMapOf<String, Map<String, Any?>>()
@@ -218,6 +251,15 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 })
             }
         }
+        /** The camera claim and the barcode scan this session holds. Guarded by [cameraLock]. */
+        @Volatile var camera: CameraClaim? = null
+        @Volatile var scan: BarcodeScan? = null
+        private var cameraThread: java.util.concurrent.ExecutorService? = null
+        /** Frames and camera closes reach the plugin here, apart from its other callbacks. */
+        @Synchronized fun cameraExecutor(): java.util.concurrent.ExecutorService =
+            cameraThread ?: Executors.newSingleThreadExecutor { task -> Thread(task, "plugin-$id-camera").apply { isDaemon = true } }
+                .also { cameraThread = it }
+        @Synchronized fun closeCameraThread() { cameraThread?.shutdownNow(); cameraThread = null }
         private var shizukuClient: PluginShizuku.Client? = null
         @Synchronized fun closeShizuku() { shizukuClient?.close(); shizukuClient = null }
         @Synchronized fun shizukuClient(): PluginShizuku.Client {
@@ -293,6 +335,78 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             override fun haUnsubscribe(key: String) {
                 check(alive.get() && "ha" in manifest.capabilities) { "SDK 1 ha access is required" }
                 if (haSubscriptions.remove(key)) emit("haUnsubscribe", mapOf("id" to id, "session" to token, "key" to key), alive)
+            }
+            override fun openCamera(options: Map<String, Any>, listener: PluginHost.CameraListener) {
+                check(alive.get() && "camera" in manifest.capabilities) { "SDK 1 camera access is required" }
+                val claim = CameraClaim(this@Session, PluginCameraRequest.parse(options), listener, cameraClaims.incrementAndGet())
+                // Opening again replaces this plugin's own claim. Another plugin's stands.
+                var replaced: CameraClaim? = null
+                val accepted = synchronized(cameraLock) {
+                    val owner = cameraOwner
+                    if (owner != null && owner !== this@Session) false else {
+                        replaced = camera
+                        camera = claim
+                        cameraOwner = this@Session
+                        PluginCameraFrames.sink = ::offerFrame
+                        true
+                    }
+                }
+                if (!accepted) { cameraClosed(this@Session, listener, "busy"); return }
+                main.post {
+                    replaced?.let { main.removeCallbacks(it.timeout) }
+                    if (!alive.get() || camera !== claim) return@post
+                    main.postDelayed(claim.timeout, claim.request.timeoutMs)
+                    // The app decides whether the camera may run and binds it.
+                    channel.invokeMethod("cameraOpen", mapOf(
+                        "id" to id, "session" to token, "claim" to claim.number,
+                        "width" to claim.request.width, "height" to claim.request.height, "facing" to claim.request.facing,
+                    ), object : MethodChannel.Result {
+                        override fun success(result: Any?) {
+                            val reason = result as? String ?: return
+                            worker.execute { endCamera(this@Session, claim, reason.takeIf { it in PLUGIN_CAMERA_REASONS } ?: "camera_failed", notifyApp = false) }
+                        }
+                        override fun error(code: String, message: String?, details: Any?) =
+                            worker.execute { endCamera(this@Session, claim, "camera_failed", notifyApp = true) }
+                        override fun notImplemented() =
+                            worker.execute { endCamera(this@Session, claim, "camera_failed", notifyApp = false) }
+                    })
+                }
+            }
+            override fun closeCamera() {
+                check(alive.get() && "camera" in manifest.capabilities) { "SDK 1 camera access is required" }
+                worker.execute { endCamera(this@Session, null, "closed", notifyApp = true) }
+            }
+            override fun scanBarcode(options: Map<String, Any>, callback: PluginHost.CommandCallback) {
+                check(alive.get() && "barcode" in manifest.capabilities) { "SDK 1 barcode access is required" }
+                val request = PluginBarcodeRequest.parse(options)
+                val current = BarcodeScan(this@Session, UUID.randomUUID().toString(), callback)
+                val started = synchronized(cameraLock) {
+                    if (scanOwner != null) false else { scanOwner = this@Session; scan = current; true }
+                }
+                if (!started) { answerScan(this@Session, callback, false, null, "busy"); return }
+                main.post {
+                    if (!alive.get() || scan !== current) return@post
+                    // A backstop: the app times the scan out itself.
+                    main.postDelayed(current.timeout, request.timeoutMs + 30_000)
+                    channel.invokeMethod("barcodeScan", mapOf("id" to id, "session" to token, "scan" to current.id) + request.toMap(),
+                        object : MethodChannel.Result {
+                            override fun success(result: Any?) {
+                                val value = result as? Map<*, *>
+                                if (value?.get("ok") == true && value["value"] is String) {
+                                    finishScan(current, true, mapOf("value" to value["value"], "format" to (value["format"] as? String ?: "unknown")), null)
+                                } else {
+                                    finishScan(current, false, null, (value?.get("error") as? String)?.takeIf { it in PLUGIN_SCAN_ERRORS } ?: "unavailable")
+                                }
+                            }
+                            override fun error(code: String, message: String?, details: Any?) = finishScan(current, false, null, "unavailable")
+                            override fun notImplemented() = finishScan(current, false, null, "unavailable")
+                        })
+                }
+            }
+            override fun cancelBarcodeScan() {
+                check(alive.get() && "barcode" in manifest.capabilities) { "SDK 1 barcode access is required" }
+                val current = synchronized(cameraLock) { scan } ?: return
+                emit("barcodeCancel", mapOf("id" to id, "session" to token, "scan" to current.id), alive)
             }
             override fun subscribe(event: String) {
                 check(alive.get() && "host.read" in manifest.capabilities) { "SDK 1 host.read access is required" }
@@ -398,6 +512,36 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                     emit("changed", snapshot())
                 } }
             }
+            override fun updateSettings(values: Map<String, Any>) {
+                check(alive.get()) { "Plugin session has ended" }
+                val partial = JSONObject(values)
+                // Each value is checked here, so a bad one throws in the plugin. Rules
+                // that depend on other settings wait for the merge with the saved ones.
+                manifest.checkValues(partial)
+                worker.execute { if (alive.get()) {
+                    val record = records.getJSONObject(id)
+                    try {
+                        val config = manifest.config(manifest.merged(record.optJSONObject("config") ?: JSONObject(), partial))
+                        record.put("config", JSONObject(config)); save()
+                        emit("changed", snapshot())
+                    } catch (error: IllegalArgumentException) {
+                        log("updateSettings: ${error.message}")
+                    }
+                } }
+            }
+            override fun setupResult(run: String, state: String, message: String): Boolean {
+                check(alive.get()) { "Plugin session has ended" }
+                return setup.result(run, state, message, SystemClock.elapsedRealtime()).also { if (it) notifySetup() }
+            }
+            override fun confirmSetup(run: String, title: String, message: String, confirmLabel: String): Boolean {
+                check(alive.get()) { "Plugin session has ended" }
+                return setup.confirm(run, title, message, confirmLabel, SystemClock.elapsedRealtime()).also { if (it) notifySetup() }
+            }
+            override fun setSettingChoices(key: String, ids: Array<String>, labels: Array<String>?) {
+                check(alive.get()) { "Plugin session has ended" }
+                setup.setChoices(key, ids, labels)
+                notifySetup()
+            }
             private fun publishEntity(type: String, key: String, name: String, metadata: Map<String, Any>, state: Any?) {
                 check(alive.get() && "entities" in manifest.capabilities) { "SDK 1 entities access is required" }
                 entities.publish(type, key, name, metadata, state)
@@ -448,6 +592,122 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         }
     }
 
+    /** One plugin holds the camera and one scans at a time, across every session. */
+    private val cameraLock = Any()
+    private var cameraOwner: Session? = null
+    private var scanOwner: Session? = null
+    private val cameraClaims = AtomicInteger()
+
+    /** A plugin's openCamera, numbered so a late close from the app cannot end a newer one. */
+    private inner class CameraClaim(val session: Session, val request: PluginCameraRequest, val listener: PluginHost.CameraListener, val number: Int) {
+        /** A frame is with the plugin. Frames that arrive meanwhile are skipped. */
+        val busy = AtomicBoolean(false)
+        @Volatile var lastFrameNs = 0L
+        val timeout = Runnable { worker.execute { endCamera(session, this, "timeout", notifyApp = true) } }
+    }
+
+    private inner class BarcodeScan(val session: Session, val id: String, val callback: PluginHost.CommandCallback) {
+        val timeout = Runnable { finishScan(this, false, null, "timeout") }
+    }
+
+    /**
+     * A motion session frame for the plugin holding the camera, on the
+     * analyzer thread. Paced to the claim's rate and copied, since the image
+     * goes back to the camera when this returns.
+     */
+    private fun offerFrame(image: androidx.camera.core.ImageProxy, front: Boolean) {
+        val claim = synchronized(cameraLock) { cameraOwner?.camera } ?: return
+        val session = claim.session
+        if (!session.alive.get()) return
+        val now = System.nanoTime()
+        if (now - claim.lastFrameNs < 1_000_000_000L / claim.request.fps) return
+        if (!claim.busy.compareAndSet(false, true)) return
+        claim.lastFrameNs = now
+        val frame = try {
+            me.jxl.kiosk.plugins.CameraFrame(image.width, image.height, image.imageInfo.rotationDegrees, front,
+                image.imageInfo.timestamp, claim.request.format, PluginCameraFrames.copy(image, claim.request.format == "nv21"))
+        } catch (error: Exception) {
+            claim.busy.set(false)
+            throw error
+        }
+        try {
+            session.cameraExecutor().execute {
+                try {
+                    if (session.alive.get() && session.camera === claim) claim.listener.onFrame(frame)
+                } catch (error: Throwable) {
+                    cameraFailed(session, error)
+                } finally {
+                    claim.busy.set(false)
+                }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            claim.busy.set(false)
+        }
+    }
+
+    /**
+     * Ends a session's camera claim, or only [claim] when it is still the
+     * current one. [notifyApp] tells the app to let the camera go, unless
+     * the app ended it.
+     */
+    private fun endCamera(session: Session, claim: CameraClaim?, reason: String, notifyApp: Boolean) {
+        val ended = synchronized(cameraLock) {
+            val current = session.camera
+            if (current == null || (claim != null && current !== claim)) null else {
+                session.camera = null
+                if (cameraOwner === session) {
+                    cameraOwner = null
+                    PluginCameraFrames.sink = null
+                }
+                current
+            }
+        } ?: return
+        main.removeCallbacks(ended.timeout)
+        if (notifyApp) emit("cameraClose", mapOf("id" to session.id, "session" to session.token, "claim" to ended.number))
+        if (session.alive.get()) cameraClosed(session, ended.listener, reason)
+    }
+
+    private fun cameraClosed(session: Session, listener: PluginHost.CameraListener, reason: String) {
+        try {
+            session.cameraExecutor().execute {
+                try { if (session.alive.get()) listener.onClosed(reason) } catch (error: Throwable) { cameraFailed(session, error) }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) { /* The session ended. */ }
+    }
+
+    /** A camera callback threw. The plugin is stopped like any failed callback. */
+    private fun cameraFailed(session: Session, error: Throwable) {
+        worker.execute {
+            if (session.alive.get() && sessions[session.id] === session) {
+                fail(session.id, error)
+                emit("changed", snapshot())
+            }
+        }
+    }
+
+    /** The scan is over. A session that ended hears nothing. */
+    private fun finishScan(scan: BarcodeScan, ok: Boolean, data: Any?, error: String?) {
+        val session = scan.session
+        val current = synchronized(cameraLock) {
+            if (session.scan !== scan) false else {
+                session.scan = null
+                if (scanOwner === session) scanOwner = null
+                true
+            }
+        }
+        if (!current) return
+        main.removeCallbacks(scan.timeout)
+        answerScan(session, scan.callback, ok, data, error)
+    }
+
+    private fun answerScan(session: Session, callback: PluginHost.CommandCallback, ok: Boolean, data: Any?, error: String?) {
+        worker.execute {
+            if (!session.alive.get() || sessions[session.id] !== session) return@execute
+            try { session.call { callback.onResult(ok, data ?: if (ok) null else mapOf("code" to error), error) } }
+            catch (failure: Throwable) { fail(session.id, failure); emit("changed", snapshot()) }
+        }
+    }
+
     /** Registered on the engine by KioskApplication. */
     internal val overlayViews = PluginOverlayViews(
         context.assets,
@@ -477,6 +737,8 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                     val value: Any? = when (call.method) {
                         "initialize" -> { initialize(); snapshot() }
                         "list" -> snapshot()
+                        "voiceSkinThumbnail" -> voiceSkinThumbnail(id(args))
+                        "icon" -> icon(id(args))
                         "shizukuState" -> shizuku.state()
                         "requestShizukuPermission" -> {
                             check(pluginsEnabled && "shizuku" in manifest(id(args)).capabilities) { "Enable Plugins and select a plugin that declares Shizuku access" }
@@ -516,6 +778,9 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                             packageFile(id)?.absolutePath
                         }
                         "execute" -> { execute(id(args), args); snapshot() }
+                        "setupRun" -> setupRun(id(args), args)
+                        "setupCancel" -> { setupCancel(id(args), args); null }
+                        "setupConfirm" -> { setupConfirm(id(args), args); null }
                         "entityCommand" -> {
                             val session = sessions[id(args)] ?: throw IllegalStateException("Enable the plugin first")
                             val key = args["key"] as? String ?: throw IllegalArgumentException("Missing entity key")
@@ -542,6 +807,16 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                                 val payload = args["payload"] as? Map<String, Any?> ?: emptyMap()
                                 try { session.call { session.plugin!!.onEvent("ks.$event", payload) } }
                                 catch (error: Throwable) { fail(session.id, error); emit("changed", snapshot()); throw error }
+                            }
+                            null
+                        }
+                        "cameraClosed" -> {
+                            // The app could not run the camera or had to stop it.
+                            val session = sessions[args["id"]]
+                            val number = (args["claim"] as? Number)?.toInt()
+                            val claim = session?.camera
+                            if (session != null && session.token == args["session"] && claim != null && claim.number == number) {
+                                endCamera(session, claim, (args["reason"] as? String)?.takeIf { it in PLUGIN_CAMERA_REASONS } ?: "camera_failed", notifyApp = false)
                             }
                             null
                         }
@@ -580,6 +855,23 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val hash = records.getJSONObject(id).getString("hash")
         require(hash.matches(Regex("[a-f0-9]{64}"))) { "Invalid installed package hash" }
         return File(root, hash)
+    }
+
+    /** An installed plugin's voice skin picture, or null when it names none. Running or not. */
+    private fun voiceSkinThumbnail(id: String): ByteArray? =
+        manifest(id).voiceSkinThumbnail?.let { picture(id, it, "voiceSkinThumbnail") }
+
+    /** An installed plugin's icon, or null when it names none. Running or not. */
+    private fun icon(id: String): ByteArray? = manifest(id).icon?.let { picture(id, it, "icon") }
+
+    /** A picture from an installed plugin's assets, checked against the digest it was installed with. */
+    private fun picture(id: String, name: String, field: String): ByteArray {
+        val file = PluginPackage.assetFile(directory(id), name)
+        require(file.length() <= MAX_THUMBNAIL_BYTES) { "$field is too large" }
+        val bytes = file.readBytes()
+        val expected = records.getJSONObject(id).optJSONObject("assetSha256")?.optString("assets/$name")
+        require(expected.isNullOrEmpty() || expected == PluginPackage.sha256(bytes)) { "$field changed after install" }
+        return bytes
     }
 
     private fun manifest(id: String) = PluginManifest(JSONObject(PluginPackage.installedManifest(directory(id)).readText()))
@@ -682,7 +974,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             // Revoke every host before waiting for stop callbacks from individual plugins.
             sessions.forEach { (id, session) ->
                 session.alive.set(false)
-                session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close()
+                session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
                 emit("hideWindow", mapOf("id" to id))
             }
             for (id in sessions.keys.toList()) {
@@ -715,8 +1007,14 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             }
             require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Plugin needs Android API ${manifest.minAndroidSdk}" }
             requireScreen(manifest)
+            manifest.voiceSkinThumbnail?.let {
+                require(PluginPackage.assetFile(staging, it).length() <= MAX_THUMBNAIL_BYTES) { "voiceSkinThumbnail must be at most 256 KB" }
+            }
+            manifest.icon?.let {
+                val file = PluginPackage.assetFile(staging, it)
+                require(file.length() <= MAX_THUMBNAIL_BYTES && PluginPackage.pngSize(file.readBytes()) == 256 to 256) { "icon must be a 256 by 256 PNG of at most 256 KB" }
+            }
             require(manifest.id !in restartRequired) { "This plugin did not stop cleanly. Restart Kiosk Satellite before replacing it." }
-            require(records.has(manifest.id) || records.length() < 8) { "At most 8 plugins can be installed" }
             val previous = records.optJSONObject(manifest.id)
             // Keep only settings still declared by the new version. Reject changed types.
             val previousConfig = previous?.optJSONObject("config") ?: JSONObject()
@@ -862,8 +1160,13 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
     private fun stopSession(id: String) {
         val session = sessions.remove(id) ?: return
         session.alive.set(false)
-        session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close()
+        session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
         session.subscriptions.clear()
+        endCamera(session, null, "closed", notifyApp = true)
+        session.scan?.let { scan ->
+            emit("barcodeCancel", mapOf("id" to id, "session" to session.token, "scan" to scan.id))
+            finishScan(scan, false, null, "canceled")
+        }
         emit("hostSessionClosed", mapOf("id" to id, "session" to session.token))
         emit("hideWindow", mapOf("id" to id))
         try { session.call { session.plugin?.stop() } }
@@ -871,7 +1174,10 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             restartRequired.add(id)
             throw error
         }
-        finally { session.executor.shutdownNow() }
+        finally {
+            session.executor.shutdownNow()
+            session.closeCameraThread()
+        }
     }
 
     private fun fail(id: String, error: Throwable) {
@@ -974,11 +1280,17 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         }
     }
 
+    /**
+     * Saves settings from an admin page. With patch, [args] holds only the
+     * settings that changed and the rest keep their saved values, so an edit
+     * never writes back a value the plugin changed in the meantime.
+     */
     private fun configure(id: String, args: Map<String, Any?>) {
         val values = args["values"] as? Map<*, *> ?: throw IllegalArgumentException("Missing settings")
         val manifest = manifest(id)
         val saved = records.getJSONObject(id).optJSONObject("config") ?: JSONObject()
-        val config = manifest.config(manifest.unmasked(JSONObject(values), saved))
+        val unmasked = manifest.unmasked(JSONObject(values), saved)
+        val config = manifest.config(if (args["patch"] == true) manifest.merged(saved, unmasked) else unmasked)
         sessions[id]?.let { session ->
             try { session.call { session.plugin!!.configure(Collections.unmodifiableMap(config)) } }
             catch (error: Throwable) { fail(id, error); throw error }
@@ -1001,6 +1313,60 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         require(session.manifest.hasCommand(command)) { "Unknown plugin command" }
         try { session.call { session.plugin!!.execute(command, emptyMap()) } }
         catch (error: Throwable) { fail(id, error); throw error }
+    }
+
+    /**
+     * Starts a settings button or a choices refresh. The plugin hears
+     * settings.button {id, run} or settings.choices {key, run} and answers
+     * through setupResult. A run still going on the same target is replaced.
+     */
+    private fun setupRun(id: String, args: Map<String, Any?>): Map<String, Any?> {
+        check(pluginsEnabled) { "Enable Plugins first" }
+        val session = sessions[id] ?: throw IllegalStateException("Enable the plugin first")
+        val manifest = session.manifest
+        val key = args["key"] as? String ?: throw IllegalArgumentException("Missing setup target")
+        val config = records.getJSONObject(id).optJSONObject("config") ?: JSONObject()
+        val (target, event, field) = when (args["target"]) {
+            "button" -> {
+                require(manifest.buttonVisible(key, config)) { "Unknown or hidden button" }
+                Triple("button:$key", "settings.button", "id")
+            }
+            "choices" -> {
+                require(key in manifest.choiceKeys && manifest.settingVisible(key, config)) { "Unknown or hidden choices setting" }
+                Triple("choices:$key", "settings.choices", "key")
+            }
+            else -> throw IllegalArgumentException("Unknown setup target")
+        }
+        val (run, replaced) = session.setup.start(target, args["origin"] as? String ?: "remote", SystemClock.elapsedRealtime())
+        session.notifySetup()
+        session.watchSetup()
+        replaced?.let { deliverSetup(session, "settings.cancel", mapOf("run" to it.run, "reason" to it.reason)) }
+        try { session.call { session.plugin!!.onEvent(event, mapOf(field to key, "run" to run.id)) } }
+        catch (error: Throwable) { fail(id, error); throw error }
+        return mapOf("run" to run.id)
+    }
+
+    private fun setupCancel(id: String, args: Map<String, Any?>) {
+        val session = sessions[id] ?: return
+        val run = args["run"] as? String ?: throw IllegalArgumentException("Missing run")
+        if (!session.setup.cancel(run)) return
+        session.notifySetup()
+        deliverSetup(session, "settings.cancel", mapOf("run" to run, "reason" to "canceled"))
+    }
+
+    private fun setupConfirm(id: String, args: Map<String, Any?>) {
+        val session = sessions[id] ?: return
+        val run = args["run"] as? String ?: throw IllegalArgumentException("Missing run")
+        if (!session.setup.answer(run, SystemClock.elapsedRealtime())) return
+        session.notifySetup()
+        deliverSetup(session, "settings.confirm", mapOf("run" to run, "accepted" to (args["accepted"] == true)))
+    }
+
+    /** Tells the plugin about its run. A plugin that throws is stopped like any failed callback. */
+    private fun deliverSetup(session: Session, event: String, payload: Map<String, Any?>) {
+        if (!session.alive.get() || sessions[session.id] !== session) return
+        try { session.call { session.plugin!!.onEvent(event, payload) } }
+        catch (error: Throwable) { fail(session.id, error); emit("changed", snapshot()) }
     }
 
     private fun windowEvent(id: String, args: Map<String, Any?>) {

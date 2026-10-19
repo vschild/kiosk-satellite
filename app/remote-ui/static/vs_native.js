@@ -3,6 +3,7 @@ import { t, voiceText, voiceVadOption } from './localization.js';
 import { api, cmd, state } from './core.js';
 import { pickRow, playerSpec } from './entity_picker.js';
 import { readOnlyRow } from './device.js';
+import { SUBPAGE_ICONS } from './icons.js';
 import { banner, messageBox, modalShell, showToast } from './widgets.js';
 import { vsSelectRow } from './vs.js';
 import { watchUpdates } from './live.js';
@@ -152,15 +153,34 @@ function settingValue(key) {
 function skinRow(row, current) {
   const title = row.querySelector('.name')?.textContent || voiceText('Skin');
   const desc = row.querySelector('.desc')?.textContent || '';
-  const skins = [...(row.querySelector('select')?.options || [])]
-    .map((o) => ({ id: o.value, name: o.textContent }));
+  // A plugin's skin reads as the plugin's name. One no longer installed
+  // says so in the kiosk's language.
+  const skinName = (id, label) => id.startsWith('plugin:') && label === 'Unavailable plugin skin'
+    ? voiceText('Unavailable plugin skin') : label;
+  let skins = [...(row.querySelector('select')?.options || [])]
+    .map((o) => ({ id: o.value, name: skinName(o.value, o.textContent) }));
   if (!skins.length) return;
+  const builtIn = skins.filter((k) => !k.id.startsWith('plugin:'));
   const nameOf = (id) => skins.find((k) => k.id === id)?.name || id;
+  // Plugins come and go while the page is open: the list is read again
+  // each time the picker opens. Built-in skins keep their localized names.
+  const refresh = async () => {
+    try {
+      const data = await api('/api/settings').then((r) => r.json());
+      const def = (data.settings || []).find((x) => x.key === 'voice.skin');
+      if (!Array.isArray(def?.options)) return;
+      skins = [...builtIn, ...def.options.filter((id) => `${id}`.startsWith('plugin:'))
+        .map((id) => ({ id, name: skinName(id, `${def.optionLabels?.[id] || id}`) }))];
+      current = `${def.value ?? current}`;
+      picker.lastElementChild.textContent = nameOf(current);
+    } catch (_) {}
+  };
   const picker = readOnlyRow(title, desc, nameOf(current), false);
   picker.dataset.key = 'voice.skin';
   picker.style.cursor = 'pointer';
   picker.tabIndex = 0;
   const open = async () => {
+    await refresh();
     const picked = await openSkinPicker(skins, current);
     if (!picked || picked === current) return;
     current = picked;
@@ -192,11 +212,33 @@ function openSkinPicker(skins, current) {
       tile.type = 'button';
       tile.style.cssText = 'display:flex; flex-direction:column; gap:6px; padding:0; border:0; background:none; color:inherit; text-align:start; cursor:pointer; font:inherit';
       const picked = skin.id === current;
-      const img = document.createElement('img');
-      img.src = `voice_skins/${skin.id}.webp`;
-      img.alt = skin.name;
-      img.loading = 'lazy';
-      img.style.cssText = `display:block; width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:12px; box-sizing:border-box; border:${picked ? '3px solid var(--primary)' : '1px solid var(--divider)'}`;
+      const frame = `display:block; width:100%; aspect-ratio:16/10; border-radius:12px; box-sizing:border-box; border:${picked ? '3px solid var(--primary)' : '1px solid var(--divider)'}`;
+      let img;
+      if (skin.id.startsWith('plugin:')) {
+        // A plugin's skin: the picture it ships, or the plugin mark.
+        img = document.createElement('div');
+        img.innerHTML = SUBPAGE_ICONS.Plugins;
+        img.style.cssText = `${frame}; display:flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--muted); overflow:hidden`;
+        const glyph = img.firstElementChild;
+        glyph.setAttribute('width', '40');
+        glyph.setAttribute('height', '40');
+        const box = img;
+        cmd('getPluginVoiceSkinThumbnail', { id: skin.id.slice('plugin:'.length) }, { timeoutMs: 15000 })
+          .then((r) => {
+            if (!r?.ok || !r.data?.data) return;
+            const picture = document.createElement('img');
+            picture.src = `data:${r.data.mime};base64,${r.data.data}`;
+            picture.alt = skin.name;
+            picture.style.cssText = 'display:block; width:100%; height:100%; object-fit:cover';
+            box.replaceChildren(picture);
+          }).catch(() => null);
+      } else {
+        img = document.createElement('img');
+        img.src = `voice_skins/${skin.id}.webp`;
+        img.alt = skin.name;
+        img.loading = 'lazy';
+        img.style.cssText = `${frame}; object-fit:cover`;
+      }
       const name = document.createElement('div');
       name.textContent = skin.name;
       name.style.cssText = 'font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis';

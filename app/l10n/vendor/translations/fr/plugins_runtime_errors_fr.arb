@@ -8,7 +8,6 @@
   "pluginErrorChecksum": "Le SHA-256 du paquet ne correspond pas",
   "pluginErrorDifferentRepository": "Cet identifiant de plugin appartient à un autre dépôt. Désinstallez-le avant de changer de source.",
   "pluginErrorRestartReplace": "Ce plugin ne s'est pas arrêté proprement. Redémarrez Kiosk Satellite avant de le remplacer.",
-  "pluginErrorPluginLimit": "8 plugins maximum peuvent être installés",
   "pluginErrorAlreadyInstalled": "Ce paquet est déjà installé",
   "pluginErrorLoadedIntegrity": "Le paquet précédemment chargé a échoué à sa vérification d'intégrité. Redémarrez Kiosk Satellite avant de le réinstaller.",
   "pluginErrorRemovePackage": "Impossible de supprimer le paquet inutilisé",

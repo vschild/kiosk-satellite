@@ -175,6 +175,47 @@ class PluginPackageTest {
         rejects { PluginManifest(manifest().put("capabilities", org.json.JSONArray(listOf("host.control", "noise")))) }
         assertTrue(PluginHostPolicy.validEvent("audio.noise"))
     }
+    @Test fun voiceSkinsDrawOverlaysAndTheTextIsAHostRead() {
+        fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
+        assertTrue("voice.skin" in PluginManifest(caps("overlay", "host.read", "voice.skin")).capabilities)
+        rejects { PluginManifest(caps("voice.skin")) }
+        rejects { PluginManifest(caps("overlay", "voice.skin")) }
+        rejects { PluginManifest(caps("host.read", "voice.skin")) }
+        assertTrue("voice.text" in PluginManifest(caps("host.read", "voice.text")).capabilities)
+        rejects { PluginManifest(caps("voice.text")) }
+        rejects { PluginManifest(caps("host.control", "voice.text")) }
+        for (event in listOf("voice.text", "voice.level", "voice.overlay", "voice.skin", "voice.appearance")) assertTrue(PluginHostPolicy.validEvent(event))
+    }
+    @Test fun cameraAndBarcodeStandOnTheirOwn() {
+        fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
+        assertEquals(setOf("camera"), PluginManifest(caps("camera")).capabilities)
+        assertEquals(setOf("barcode"), PluginManifest(caps("barcode")).capabilities)
+        assertFalse(PluginManifest(caps("camera", "barcode")).needsScreen)
+    }
+    @Test fun aVoiceSkinNamesItsPictureUnderAssets() {
+        fun skin(thumbnail: Any?) = manifest()
+            .put("capabilities", org.json.JSONArray(listOf("overlay", "host.read", "voice.skin")))
+            .put("voiceSkinThumbnail", thumbnail)
+        assertEquals("voice-skin.webp", PluginManifest(skin("voice-skin.webp")).voiceSkinThumbnail)
+        assertEquals("images/skin.PNG", PluginManifest(skin("images/skin.PNG")).voiceSkinThumbnail)
+        assertNull(PluginManifest(manifest()).voiceSkinThumbnail)
+        for (bad in listOf("../skin.webp", "skin.svg", "skin", "/skin.png", 7)) rejects { PluginManifest(skin(bad)) }
+        // Only a voice skin has a picture in the Skin picker.
+        rejects { PluginManifest(manifest().put("voiceSkinThumbnail", "voice-skin.webp")) }
+    }
+    @Test fun anIconIsAPngUnderAssets() {
+        assertEquals("icon.png", PluginManifest(manifest().put("icon", "icon.png")).icon)
+        assertEquals("images/Icon.PNG", PluginManifest(manifest().put("icon", "images/Icon.PNG")).icon)
+        assertNull(PluginManifest(manifest()).icon)
+        for (bad in listOf("../icon.png", "icon.webp", "icon", "/icon.png", 7)) rejects { PluginManifest(manifest().put("icon", bad)) }
+    }
+    @Test fun readsThePngHeader() {
+        fun png(width: Int, height: Int) = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13) + "IHDR".toByteArray() +
+            java.nio.ByteBuffer.allocate(8).putInt(width).putInt(height).array() + ByteArray(5)
+        assertEquals(256 to 256, PluginPackage.pngSize(png(256, 256)))
+        assertEquals(512 to 128, PluginPackage.pngSize(png(512, 128)))
+        assertNull(PluginPackage.pngSize("GIF89a not a png at all".toByteArray()))
+    }
     @Test fun overlaysAndScreensaversNeedAScreenUnlessThePluginGoesWithout() {
         fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
         assertTrue(PluginManifest(caps("overlay")).needsScreen)

@@ -12,6 +12,7 @@
   "voiceScaleHelp": "De grootte van de overlaytekst.",
   "voiceUpdateIntegration": "Update de Voice Satellite-integratie in Home Assistant om deze instellingen vanuit de kiosk te bedienen.",
   "voiceDashboardRequired": "Beschikbaar terwijl de kiosk je Home Assistant-dashboard toont.",
+  "voiceSkinUnavailablePlugin": "Vormgeving van plug-in niet beschikbaar",
   "voiceSkinDefault": "Standaardvormgeving",
   "voiceBackground": "Achtergrond",
   "voiceBackgroundHelp": "Hoeveel van het dashboard er doorheen komt.",

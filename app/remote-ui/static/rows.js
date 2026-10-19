@@ -1025,7 +1025,7 @@ export function settingRow(s) {
       ['alarm', t('alarmsNextWidget')]];
     const DEFAULTS = {
       clock: { color: '250,250,250', scale: 0, font: 'default',
-        font_weight: 'default', h24: false, date: false },
+        font_weight: 'default', h24: false, ampm: true, date: false },
       weather: { entity: '', name: '', label: '', color: '250,250,250',
         scale: 0, font: 'default', font_weight: 'default',
         feels_like: false, feels_like_only: false, location: true,
@@ -1172,10 +1172,19 @@ export function settingRow(s) {
         if (type === 'clock') {
           refs.h24 = cameraToggle(screensaverText('24-hour clock'),
             config.h24 === true, screensaverText('Show a 24-hour time instead of AM/PM.'));
+          // On unless switched off: entries saved before the switch
+          // existed carry no key. Only a 12-hour time has a period.
+          refs.ampm = cameraToggle(screensaverText('Show AM/PM'),
+            config.ampm !== false, screensaverText('Add AM or PM after the time.'));
+          const syncAmPm = () => {
+            refs.ampm.wrap.style.display = refs.h24.input.checked ? 'none' : '';
+          };
+          refs.h24.input.addEventListener('change', syncAmPm);
+          syncAmPm();
           refs.date = cameraToggle(screensaverText('Show date'),
             config.date === true, screensaverText('Add a short date under the clock.'));
           typeBlock.append(refs.color.wrap, refs.scale.wrap, refs.font.wrap,
-            refs.weight.wrap, refs.h24.wrap, refs.date.wrap);
+            refs.weight.wrap, refs.h24.wrap, refs.ampm.wrap, refs.date.wrap);
           return;
         }
         if (type === 'battery') {
@@ -1340,7 +1349,8 @@ export function settingRow(s) {
           let entryConfig;
           if (type === 'clock') {
             entryConfig = { color, scale, font, font_weight,
-              h24: refs.h24.input.checked, date: refs.date.input.checked };
+              h24: refs.h24.input.checked, ampm: refs.ampm.input.checked,
+              date: refs.date.input.checked };
           } else if (type === 'battery') {
             entryConfig = { color, scale, font, font_weight,
               percent: refs.percent.input.checked,

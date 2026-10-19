@@ -46,15 +46,18 @@ import '../managers/sendspin/music_assistant_api.dart';
 import '../managers/home_assistant/kiosk_mode.dart';
 import '../managers/gestures/gesture_mappings.dart';
 import '../managers/browser/browser_manager.dart';
+import '../managers/plugins/plugin_camera.dart';
+import 'package:mobile_scanner/mobile_scanner.dart' show CameraFacing;
 import '../managers/settings/definitions.dart' as defs;
 import 'app_launcher_overlay.dart';
-import 'ui_scale.dart' show UiScaleExempt;
+import 'ui_scale.dart' show UiScaleExempt, uiScaleFactor;
 import 'lockdown_shield.dart';
 import 'notification_overlay.dart';
 import 'plugin_overlay.dart';
 import 'offline_notice.dart';
 import 'dlna_media_overlay.dart';
 import 'camera_view_overlay.dart';
+import 'code_scanner.dart';
 import 'face_preview_overlay.dart';
 import 'fleet_settings.dart';
 import 'intercom_settings.dart';
@@ -485,6 +488,10 @@ class _KioskScreenState extends State<KioskScreen>
       _syncContentInsets();
       return;
     }
+    if (e.key == defs.uiScale.key) {
+      _syncContentInsets();
+      return;
+    }
     // Scroll lock rides the zoom path: applied live as page CSS, no rebuild.
     if (e.key == defs.disableScrolling.key) {
       await c.browser.runJs(_scrollLockJs);
@@ -705,6 +712,34 @@ class _KioskScreenState extends State<KioskScreen>
     }
   }
 
+  /// The scanner for a plugin's scanBarcode, above every route.
+  Future<Map<String, Object?>> _presentScan(
+    PluginScanRequest request,
+    Future<String> cancel,
+  ) async {
+    final plugin = c.plugins.installed.value
+        .where((p) => p['id'] == request.pluginId)
+        .firstOrNull;
+    final name = plugin?['name'] as String? ?? request.pluginId;
+    final facing = request.facing ?? c.settings.get(defs.cameraDevice);
+    final outcome = await Navigator.of(context, rootNavigator: true)
+        .push<CodeScanOutcome>(
+          MaterialPageRoute(
+            builder: (context) => CodeScanner(
+              title: request.title ?? l10n(context).pluginScanTitle,
+              help: request.message ?? l10n(context).pluginScanHelp,
+              source: l10n(context).pluginScanSource(name),
+              formats: codeScanFormats(request.formats),
+              facing: facing == 'back' ? CameraFacing.back : CameraFacing.front,
+              timeout: request.timeout,
+              cancel: cancel,
+              closeOnError: true,
+            ),
+          ),
+        );
+    return (outcome ?? const CodeScanOutcome.failed('canceled')).toJson();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -729,6 +764,8 @@ class _KioskScreenState extends State<KioskScreen>
     });
     _settingsSub = c.bus.on<SettingChanged>().listen(_onSettingChanged);
     _gestureSub = c.bus.on<KioskExitGesture>().listen(_onExitGesture);
+    // A plugin's barcode scan opens over whatever is showing.
+    c.plugins.camera?.presenter = _presentScan;
     // Dpad and keyboard navigation (issue #377), registered on both stages
     // of the key pipeline; see _onKey for why it takes two.
     HardwareKeyboard.instance.addHandler(_onKey);
@@ -892,10 +929,13 @@ class _KioskScreenState extends State<KioskScreen>
 
   /// The space plugins keep clear of their bars, in dp, as the page's CSS
   /// pixels: the Zoom level scales the page, so one CSS pixel spans that
-  /// many dp.
+  /// many dp. Plugins measure in their own dp, which the Scale UI factor
+  /// enlarges like their overlays.
   void _syncContentInsets() {
     final zoom = c.settings.get(defs.browserZoom).toDouble();
-    final dp = c.plugins.contentInsets.value;
+    final dp =
+        c.plugins.contentInsets.value *
+        uiScaleFactor(c.settings.get(defs.uiScale));
     unawaited(c.browser.setContentInsets(zoom > 0 ? dp / zoom : dp));
   }
 
@@ -1472,6 +1512,9 @@ class _KioskScreenState extends State<KioskScreen>
   @override
   void dispose() {
     BackgroundListening.onDownloadComplete = null;
+    if (c.plugins.camera?.presenter == _presentScan) {
+      c.plugins.camera?.presenter = null;
+    }
     c.jsApi.detach();
     _refreshingFailsafe?.cancel();
     HardwareKeyboard.instance.removeHandler(_onKey);
@@ -1754,16 +1797,20 @@ class _KioskScreenState extends State<KioskScreen>
                   // An announcement from Home Assistant: its own card, with
                   // the spoken text, in the same slot.
                   AnnouncementOverlay(container: c),
-                  // Plugin overlays that asked to be on top, in the voice
-                  // overlay's slot: over the screensaver, the menu and the
-                  // camera views, under a notification or call card, the
-                  // voice overlay itself and the lockdown shield. The rest
-                  // live in the kiosk plane.
-                  PluginNativeOverlays(plugins: c.plugins, onTop: true),
                   // The black timeout cover while a voice turn shows: the
                   // turn draws over it (issue #746). Outside a turn it
                   // sits above everything below.
                   ScreensaverBlankOverlay(container: c, underVoice: true),
+                  // A turn a plugin skin draws: double tap dismisses it.
+                  AssistPluginSkinTouch(container: c),
+                  // Plugin overlays that asked to be on top, in the voice
+                  // overlay's slot: over the screensaver, the menu and the
+                  // camera views, under a notification or call card, the
+                  // voice overlay itself and the lockdown shield. During a
+                  // turn they are over the black cover too, so a plugin
+                  // skin draws the turn there. The rest live in the kiosk
+                  // plane.
+                  PluginNativeOverlays(plugins: c.plugins, onTop: true),
                   // Native Voice Satellite: the assist overlay, in the same
                   // slot, over the screensaver and the camera views.
                   AssistOverlay(container: c),
@@ -1853,6 +1900,12 @@ class _KioskScreenState extends State<KioskScreen>
       // it the callback is simply never invoked, and app:// navigations
       // would fall through to Chromium as an unknown scheme.
       useShouldOverrideUrlLoading: true,
+      // The plugin honors CANCEL only for the main frame. An iframe pointed
+      // at ks:// or app:// (a Webpage dashboard, an iframe card) still runs
+      // the action in shouldOverrideUrlLoading, but without this Chromium
+      // goes on to load the link in the frame and shows
+      // ERR_UNKNOWN_URL_SCHEME there (issue #1044).
+      regexToCancelSubFramesLoading: r'(?i)^(ks|app):.*',
       // Long-press menus and text selection, when kiosk mode says so.
       disableContextMenu:
           c.kiosk.locked && c.settings.get(defs.kioskDisableContextMenus),

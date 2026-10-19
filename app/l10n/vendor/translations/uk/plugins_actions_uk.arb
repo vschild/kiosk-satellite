@@ -7,5 +7,8 @@
   "pluginAlsoAvailableWhileLockedIfTheKioskDrawerIs": "Також доступно при заблокованому екрані, якщо дозволено бічну панель кіоска.",
   "pluginExposeToHomeAssistant": "Експортувати до Home Assistant",
   "pluginAddsAButtonToTheKioskEsphomeDeviceRequires": "Додає кнопку до пристрою ESPHome кіоска. Потрібні ESPHome та нативні сутності.",
-  "pluginConfigureName": "Налаштувати {name}"
+  "pluginConfigureName": "Налаштувати {name}",
+  "pluginThePluginDidNotAnswerInTime": "Плагін не відповів вчасно.",
+  "pluginNoChoicesYetRefreshToLookForThem": "Варіантів поки немає. Оновіть, щоб знайти їх.",
+  "pluginThisChoiceIsNoLongerListed": "Цього варіанта більше немає в списку."
 }

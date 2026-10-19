@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+/// The Scale UI setting, a percent, as the factor [UiScaler] applies.
+double uiScaleFactor(num percent) =>
+    (percent.toDouble() / 100).clamp(0.5, 1.5).toDouble();
+
 /// Scales the app's own chrome (menu, settings, dialogs, overlays) by the
 /// Scale UI setting, without touching the WebViews (see [UiScaleExempt]).
 ///

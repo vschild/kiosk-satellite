@@ -45,7 +45,6 @@ void main() {
     },
   );
   const url = 'https://github.com/example/hello';
-  final ref = 'a' * 40;
   final bytes = utf8.encode('test package bytes');
   late List<Uri> requests;
   late Map<String, Object?> manifest;
@@ -95,11 +94,6 @@ void main() {
         if (request.url.path == '/repos/example/hello/releases/latest') {
           return http.Response(jsonEncode(release), 200);
         }
-        if (request.url.path ==
-            '/repos/example/hello/commits/refs/tags/v1.0.0') {
-          expect(request.headers['Accept'], 'application/vnd.github.sha');
-          return http.Response(ref, 200);
-        }
         if (request.url.path.endsWith('/kiosk-satellite-plugin.json')) {
           return http.Response(jsonEncode(manifest), 200);
         }
@@ -107,7 +101,7 @@ void main() {
           return http.Response(checksum, 200);
         }
         if (request.url.toString() ==
-            'https://raw.githubusercontent.com/example/hello/$ref/README.md') {
+            'https://raw.githubusercontent.com/example/hello/refs/tags/v1.0.0/README.md') {
           return http.Response(readme, 200);
         }
         if (request.url.toString() ==
@@ -171,15 +165,17 @@ void main() {
     },
   );
   test(
-    'discovers a stable release and pins README to its tag commit before downloading code',
+    'discovers a stable release and reads README by its tag before downloading code',
     () async {
       final preview = await repository.preview(url);
-      expect(requests, hasLength(5));
+      expect(requests, hasLength(4));
       expect(requests.first.path, '/repos/example/hello/releases/latest');
+      // One GitHub API request per review: the rest comes from release
+      // downloads and raw.githubusercontent.com, which have no hourly limit.
+      expect(requests.where((u) => u.host == 'api.github.com'), hasLength(1));
       expect(requests.any((u) => u.path.endsWith('.zip')), isFalse);
       expect(requests.any((u) => u.path.contains('/main/')), isFalse);
       expect(preview['readme'], readme);
-      expect(preview['ref'], ref);
       expect(preview['releaseTag'], 'v1.0.0');
       (preview['manifest'] as Map)['version'] = '9.9.9';
       release['tag_name'] = 'v9.9.9';
@@ -200,7 +196,6 @@ void main() {
       final source = jsonDecode(args['source'] as String);
       expect(source['repository'], url);
       expect(source['releaseTag'], 'v1.0.0');
-      expect(source['ref'], ref);
       expect(args['bytes'], bytes);
     },
   );

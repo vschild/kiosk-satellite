@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "No hay contenido multimedia en el origen seleccionado.",
   "screensaverImmichUnreachable": "No se pudo conectar con el servidor de Immich.",
   "screensaverRetryNotice": "{error} Se reintentará automáticamente.",
-  "screensaverVideosTooLarge": "Todos los videos de esta lista son demasiado grandes para que este dispositivo los reproduzca."
+  "screensaverVideosTooLarge": "Todos los videos de esta lista son demasiado grandes para que este dispositivo los reproduzca.",
+  "screensaverUrlNotSet": "No hay ninguna URL de imagen. Añade una en Configuración.",
+  "screensaverUrlLoadFailed": "No se pudo cargar la imagen."
 }

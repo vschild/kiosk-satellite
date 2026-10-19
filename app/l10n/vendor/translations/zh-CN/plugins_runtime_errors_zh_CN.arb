@@ -8,7 +8,6 @@
   "pluginErrorChecksum": "包的 SHA-256 不匹配",
   "pluginErrorDifferentRepository": "此插件 ID 属于其他仓库。更改来源前请先卸载。",
   "pluginErrorRestartReplace": "此插件未能正常停止。替换前请重启 Kiosk Satellite。",
-  "pluginErrorPluginLimit": "最多可安装 8 个插件",
   "pluginErrorAlreadyInstalled": "此包已安装",
   "pluginErrorLoadedIntegrity": "此前加载的包未通过完整性校验。重新安装前请重启 Kiosk Satellite。",
   "pluginErrorRemovePackage": "无法移除未使用的包",

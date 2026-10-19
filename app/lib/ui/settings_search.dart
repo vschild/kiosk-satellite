@@ -138,6 +138,12 @@ const List<SettingsSearchEntry> handBuiltSearchEntries = [
   ),
   SettingsSearchEntry(
     category: "Plugins",
+    title: "Browse plugins",
+    description: "Find plugins made by the community",
+    anchorId: "x:plugins:browse",
+  ),
+  SettingsSearchEntry(
+    category: "Plugins",
     title: "Add plugin",
     description: "Install from a GitHub repository",
     anchorId: "x:plugins:add",
@@ -843,6 +849,14 @@ List<SettingsSearchEntry> pluginSettingsSearchEntries(
         description: '${raw['description'] ?? ''}',
         subpage: '${plugin['id']}',
         anchorId: 'plugin:${plugin['id']}:setting:${raw['key']}',
+      ),
+    for (final raw in (plugin['buttons'] as List? ?? const []).whereType<Map>())
+      SettingsSearchEntry(
+        category: 'Plugins',
+        title: '${raw['title']}',
+        description: '${raw['description'] ?? ''}',
+        subpage: '${plugin['id']}',
+        anchorId: 'plugin:${plugin['id']}:button:${raw['id']}',
       ),
     for (final raw
         in (plugin['commands'] as List? ?? const []).whereType<Map>())

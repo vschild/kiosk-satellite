@@ -2831,6 +2831,17 @@ class UiStringsRu extends UiStrings {
   }
 
   @override
+  String get pluginScanTitle => 'Сканируйте код';
+
+  @override
+  String get pluginScanHelp => 'Держите код в рамке.';
+
+  @override
+  String pluginScanSource(String name) {
+    return 'Запрос от $name';
+  }
+
+  @override
   String get pluginActions => 'Действия';
 
   @override
@@ -2859,6 +2870,17 @@ class UiStringsRu extends UiStrings {
   String pluginConfigureName(String name) {
     return 'Настройка: $name';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime => 'Плагин не ответил вовремя.';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem =>
+      'Вариантов пока нет. Обновите, чтобы найти их.';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed =>
+      'Этого варианта больше нет в списке.';
 
   @override
   String get pluginPlugin => 'Плагин';
@@ -3035,6 +3057,109 @@ class UiStringsRu extends UiStrings {
       'Не удалось прочитать выбранный ZIP';
 
   @override
+  String get pluginBrowsePlugins => 'Обзор плагинов';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity =>
+      'Найдите плагины, созданные сообществом';
+
+  @override
+  String get pluginSearchPlugins => 'Поиск плагинов';
+
+  @override
+  String get pluginUpdate => 'Обновить';
+
+  @override
+  String get pluginInstalled => 'Установлен';
+
+  @override
+  String get pluginStars => 'Звёзды';
+
+  @override
+  String get pluginDownloads => 'Загрузки';
+
+  @override
+  String get pluginActiveInstalls => 'Активные установки';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch =>
+      'Нет плагинов, подходящих под запрос.';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet =>
+      'В Плагинах сообщества пока нет плагинов.';
+
+  @override
+  String get pluginSubmitYourPlugin => 'Отправить свой плагин';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins =>
+      'Добавьте свой плагин в Плагины сообщества.';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins =>
+      'Не удалось связаться с Плагинами сообщества. Проверьте подключение к интернету.';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins =>
+      'Не удалось загрузить Плагины сообщества. Попробуйте позже.';
+
+  @override
+  String get pluginTurnOn => 'Включить';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall =>
+      'Включите «Включить плагины», чтобы установить этот плагин.';
+
+  @override
+  String get pluginPreviousPage => 'Предыдущая страница';
+
+  @override
+  String get pluginNextPage => 'Следующая страница';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return 'Страница $page из $pages';
+  }
+
+  @override
+  String get pluginSortBy => 'Сортировать по';
+
+  @override
+  String get pluginSortMostStars => 'Больше всего звёзд';
+
+  @override
+  String get pluginSortRecentlyUpdated => 'Недавно обновлённые';
+
+  @override
+  String get pluginSortNewest => 'Новые';
+
+  @override
+  String get pluginSortName => 'Название';
+
+  @override
+  String get pluginSortMostDownloads => 'Больше всего загрузок';
+
+  @override
+  String get pluginPluginsPerPage => 'Плагинов на странице';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '$count на странице';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return 'от $author';
+  }
+
+  @override
+  String get pluginListedChip => 'Есть в Плагинах сообщества';
+
+  @override
+  String get pluginNotListedChip => 'Нет в Плагинах сообщества';
+
+  @override
   String get pluginCharts => 'Графики';
 
   @override
@@ -3209,9 +3334,6 @@ class UiStringsRu extends UiStrings {
       'Контрольная сумма выпуска должна совпадать с дайджестом SHA-256 ресурса GitHub';
 
   @override
-  String get pluginErrorTagRevision => 'GitHub не вернул ревизию тега выпуска';
-
-  @override
   String get pluginErrorTrustAuthor =>
       'Подтвердите, что вы доверяете автору плагина';
 
@@ -3285,9 +3407,6 @@ class UiStringsRu extends UiStrings {
   @override
   String get pluginErrorRestartReplace =>
       'Плагин не остановился корректно. Перезапустите Kiosk Satellite перед заменой.';
-
-  @override
-  String get pluginErrorPluginLimit => 'Можно установить не более 8 плагинов';
 
   @override
   String get pluginErrorAlreadyInstalled => 'Этот пакет уже установлен';
@@ -4026,6 +4145,13 @@ class UiStringsRu extends UiStrings {
   @override
   String get screensaverVideosTooLarge =>
       'Каждое видео в этом плейлисте слишком велико для воспроизведения на этом устройстве.';
+
+  @override
+  String get screensaverUrlNotSet =>
+      'URL изображения не задан. Добавьте его в настройках.';
+
+  @override
+  String get screensaverUrlLoadFailed => 'Не удалось загрузить изображение.';
 
   @override
   String get settingKioskAllowAlarmsTitle => 'Будильники';
@@ -7082,14 +7208,17 @@ class UiStringsRu extends UiStrings {
   String get settingClapStrictnessTitle => 'Определение хлопков';
 
   @override
-  String get settingClapStrictnessDescription =>
-      '«Строго» требует более громких и равномерно распределённых хлопков; попробуйте, если бытовой шум вызывает ложные срабатывания.';
+  String get settingClapDetectionDescription =>
+      '«Строго» требует более громких и равномерно распределённых хлопков. «Большая комната» даёт хлопкам время затихнуть в помещении с эхом.';
 
   @override
   String get gestureStrictnessStandard => 'Стандартно';
 
   @override
   String get gestureStrictnessStrict => 'Строго';
+
+  @override
+  String get gestureStrictnessLargeRoom => 'Большая комната';
 
   @override
   String get gestureOff => 'Жесты выключены';
@@ -8613,8 +8742,8 @@ class UiStringsRu extends UiStrings {
       'Кнопки громкости управляют плеером';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      'Кнопки громкости этого устройства меняют громкость отслеживаемого плеера вместо собственной. Только пока вид «Сейчас играет» на экране или пока плеер воспроизводит.';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      'Кнопки громкости этого устройства меняют громкость отслеживаемого плеера вместо собственной. Пока это устройство играет в группе, они меняют громкость группы. Только пока вид «Сейчас играет» на экране или пока плеер воспроизводит.';
 
   @override
   String get settingSendspinVolumeKeyStepTitle => 'Шаг кнопки громкости';
@@ -9960,6 +10089,13 @@ class UiStringsRu extends UiStrings {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => 'Показывать AM/PM';
+
+  @override
+  String get settingScreensaverClockAmPmDescription =>
+      'Добавлять AM или PM после времени.';
+
+  @override
   String get screensaverOverlayEntity => 'Сущность';
 
   @override
@@ -10304,6 +10440,9 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get screensaverDashboardSection => 'Заставка «Панель Home Assistant»';
+
+  @override
+  String get screensaverModeUrl => 'URL изображения';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Масштаб ряда';
@@ -11216,6 +11355,23 @@ class UiStringsRu extends UiStrings {
       'Папка, тайминг, перемешивание, переход, метаданные';
 
   @override
+  String get settingScreensaverUrlImageDescription =>
+      'Адрес изображения, которое устройство заново скачивает для каждого слайда.';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription =>
+      'Как долго показывается каждое фото до загрузки следующего.';
+
+  @override
+  String get screensaverMediaUrlPage => 'Заставка «URL изображения»';
+
+  @override
+  String get screensaverMediaUrlPageHint => 'URL, тайминг, переход, метаданные';
+
+  @override
+  String get screensaverMediaUrlMetadata => 'Метаданные «URL изображения»';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle => 'Прятать при движении';
 
   @override
@@ -12108,6 +12264,9 @@ class UiStringsRu extends UiStrings {
   @override
   String get voiceDashboardRequired =>
       'Доступно, пока киоск показывает панель Home Assistant.';
+
+  @override
+  String get voiceSkinUnavailablePlugin => 'Недоступный облик плагина';
 
   @override
   String get voiceSkinDefault => 'Как у облика';

@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "Identifiant ou version de plugin invalide",
   "pluginErrorChecksumFilename": "Somme de contrôle ou nom de fichier de version invalide",
   "pluginErrorGithubDigest": "La somme de contrôle de la version doit correspondre à l'empreinte SHA-256 de la ressource GitHub",
-  "pluginErrorTagRevision": "GitHub n'a pas renvoyé la révision de l'étiquette de version",
   "pluginErrorTrustAuthor": "Confirmez que vous faites confiance à l'auteur du plugin",
   "pluginErrorPreviewExpired": "Cet aperçu a expiré. Prévisualisez à nouveau le dépôt avant d'installer.",
   "pluginErrorReviewedChecksum": "Le SHA-256 du paquet ne correspond pas à la version examinée",

@@ -43,6 +43,40 @@ class AssistOverlay extends StatefulWidget {
   State<AssistOverlay> createState() => _AssistOverlayState();
 }
 
+/// Double tap dismisses a turn a plugin skin draws. It sits under the
+/// plugin overlays that draw it, so a touchable one takes its own touches,
+/// and over the screen under the turn, which a full screen turn keeps from
+/// being touched.
+class AssistPluginSkinTouch extends StatelessWidget {
+  const AssistPluginSkinTouch({super.key, required this.container});
+
+  final AppContainer container;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = container;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        c.voice.view,
+        c.plugins.installed,
+        c.plugins.enabled,
+      ]),
+      builder: (context, _) {
+        final view = c.voice.view.value;
+        if (!view.visible ||
+            view.docked ||
+            !c.plugins.voiceSkinRunning(c.settings.get(defs.voiceSkin))) {
+          return const SizedBox.shrink();
+        }
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onDoubleTap: c.voice.dismiss,
+        );
+      },
+    );
+  }
+}
+
 class _AssistOverlayState extends State<AssistOverlay>
     with SingleTickerProviderStateMixin {
   AppContainer get c => widget.container;
@@ -135,6 +169,8 @@ class _AssistOverlayState extends State<AssistOverlay>
     super.initState();
     _clock = ArtClock(this, running: false);
     c.voice.view.addListener(_onView);
+    c.plugins.installed.addListener(_onPlugins);
+    c.plugins.enabled.addListener(_onPlugins);
     _readDockPosition();
     _settingsSub = c.bus.on<SettingChanged>().listen((e) {
       if (!e.key.startsWith('voice.') || !mounted) return;
@@ -149,6 +185,8 @@ class _AssistOverlayState extends State<AssistOverlay>
   @override
   void dispose() {
     c.voice.view.removeListener(_onView);
+    c.plugins.installed.removeListener(_onPlugins);
+    c.plugins.enabled.removeListener(_onPlugins);
     _watchFrames(false);
     _frozenGen++;
     _frozen?.dispose();
@@ -158,6 +196,16 @@ class _AssistOverlayState extends State<AssistOverlay>
     _clock.dispose();
     _glide.dispose();
     super.dispose();
+  }
+
+  /// A plugin draws the turn: the Skin setting picks a plugin's voice skin
+  /// and that plugin runs. Otherwise the overlay falls back to a built-in
+  /// skin.
+  bool get _pluginSkin =>
+      c.plugins.voiceSkinRunning(c.settings.get(defs.voiceSkin));
+
+  void _onPlugins() {
+    if (mounted && _shown.visible) setState(() {});
   }
 
   void _onView() {
@@ -182,6 +230,8 @@ class _AssistOverlayState extends State<AssistOverlay>
 
   Future<void> _freezeBackdrop() async {
     final gen = ++_frozenGen;
+    // A plugin skin draws over the live screen.
+    if (_pluginSkin) return;
     final skin = assistSkinById(c.settings.get(defs.voiceSkin));
     final chosen = c.settings.get(defs.voiceBackgroundOpacity).toDouble();
     final opacity = chosen < 0 ? skin.light.opacity : chosen / 100;
@@ -285,6 +335,12 @@ class _AssistOverlayState extends State<AssistOverlay>
         },
         child: !_shown.visible
             ? const SizedBox.shrink()
+            // A plugin skin draws the turn in its own overlays, under this
+            // one, and touches reach them. Results still show here.
+            : _pluginSkin
+            ? _shown.docked
+                  ? const SizedBox.shrink()
+                  : _pluginContent(context, _shown)
             // Docked, touches reach the screen under it: only the caption
             // and the close button take them.
             : _shown.docked
@@ -453,6 +509,29 @@ class _AssistOverlayState extends State<AssistOverlay>
           if (primaryResult(view.results) case final result?)
             _panel(context, skin, dark, scale, result),
         ],
+        if (_lightbox case (final kind, final value))
+          Positioned.fill(child: _lightboxView(context, kind, value)),
+      ],
+    );
+  }
+
+  /// Under a plugin skin: only the results, which a plugin does not get.
+  Widget _pluginContent(BuildContext context, AssistView view) {
+    final settings = c.settings;
+    final theme = settings.get(defs.voiceTheme);
+    final dark = switch (theme) {
+      'dark' => true,
+      'light' => false,
+      _ => Theme.of(context).brightness == Brightness.dark,
+    };
+    final skin = assistSkins.first;
+    final scale = settings.get(defs.voiceTextScale).toDouble() / 100;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (view.phase != AssistPhase.announcement)
+          if (primaryResult(view.results) case final result?)
+            _panel(context, skin, dark, scale, result),
         if (_lightbox case (final kind, final value))
           Positioned.fill(child: _lightboxView(context, kind, value)),
       ],

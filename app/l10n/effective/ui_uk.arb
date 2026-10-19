@@ -10884,6 +10884,45 @@
       }
     }
   },
+  "pluginScanTitle": "Скануйте код",
+  "@pluginScanTitle": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Scanner heading when the plugin that opened the scanner gives none. A code is a barcode or a QR code.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanHelp": "Тримайте код у рамці.",
+  "@pluginScanHelp": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Help under the scanner heading when the plugin gives none.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "pluginScanSource": "Запит від {name}",
+  "@pluginScanSource": {
+    "context": "Kiosk screen > plugin barcode scanner",
+    "description": "Says which plugin opened the scanner. The placeholder is the plugin's name.",
+    "x-locations": {
+      "device": [
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Hello World"
+      }
+    }
+  },
   "pluginActions": "Дії",
   "@pluginActions": {
     "context": "Settings > Plugin Manager > a plugin > Actions",
@@ -10993,6 +11032,45 @@
       }
     },
     "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginThePluginDidNotAnswerInTime": "Плагін не відповів вчасно.",
+  "@pluginThePluginDidNotAnswerInTime": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginNoChoicesYetRefreshToLookForThem": "Варіантів поки немає. Оновіть, щоб знайти їх.",
+  "@pluginNoChoicesYetRefreshToLookForThem": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
+  },
+  "pluginThisChoiceIsNoLongerListed": "Цього варіанта більше немає в списку.",
+  "@pluginThisChoiceIsNoLongerListed": {
+    "context": "Settings > Plugin Manager > a plugin > Settings",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > a plugin > Settings"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > a plugin > Settings"
+      ]
+    }
   },
   "pluginPlugin": "Плагін",
   "@pluginPlugin": {
@@ -11658,6 +11736,411 @@
       ]
     }
   },
+  "pluginBrowsePlugins": "Огляд плагінів",
+  "@pluginBrowsePlugins": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginFindPluginsMadeByTheCommunity": "Знайдіть плагіни, створені спільнотою",
+  "@pluginFindPluginsMadeByTheCommunity": {
+    "context": "Settings > Plugin Manager",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager"
+      ]
+    }
+  },
+  "pluginSearchPlugins": "Пошук плагінів",
+  "@pluginSearchPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginUpdate": "Оновити",
+  "@pluginUpdate": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginInstalled": "Встановлено",
+  "@pluginInstalled": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginStars": "Зірки",
+  "@pluginStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginDownloads": "Завантаження",
+  "@pluginDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginActiveInstalls": "Активні встановлення",
+  "@pluginActiveInstalls": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNoPluginsMatchYourSearch": "Немає плагінів, що відповідають пошуку.",
+  "@pluginNoPluginsMatchYourSearch": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCommunityPluginsHasNoPluginsYet": "У Плагінах спільноти ще немає плагінів.",
+  "@pluginCommunityPluginsHasNoPluginsYet": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSubmitYourPlugin": "Надіслати свій плагін",
+  "@pluginSubmitYourPlugin": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginListYourPluginInCommunityPlugins": "Додайте свій плагін до Плагінів спільноти.",
+  "@pluginListYourPluginInCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotReachCommunityPlugins": "Не вдалося з'єднатися з Плагінами спільноти. Перевірте підключення до інтернету.",
+  "@pluginCouldNotReachCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCouldNotLoadCommunityPlugins": "Не вдалося завантажити Плагіни спільноти. Спробуйте пізніше.",
+  "@pluginCouldNotLoadCommunityPlugins": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginTurnOn": "Увімкнути",
+  "@pluginTurnOn": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginTurnOnEnablePluginsToInstall": "Увімкніть «Увімкнути плагіни», щоб встановити цей плагін.",
+  "@pluginTurnOnEnablePluginsToInstall": {
+    "context": "Remote admin > Plugin Manager > install link",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Plugin Manager > install link"
+      ]
+    }
+  },
+  "pluginPreviousPage": "Попередня сторінка",
+  "@pluginPreviousPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginNextPage": "Наступна сторінка",
+  "@pluginNextPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPageOfPages": "Сторінка {page} з {pages}",
+  "@pluginPageOfPages": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginSortBy": "Сортувати за",
+  "@pluginSortBy": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostStars": "Найбільше зірок",
+  "@pluginSortMostStars": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortRecentlyUpdated": "Нещодавно оновлені",
+  "@pluginSortRecentlyUpdated": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortNewest": "Найновіші",
+  "@pluginSortNewest": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortName": "Назва",
+  "@pluginSortName": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginSortMostDownloads": "Найбільше завантажень",
+  "@pluginSortMostDownloads": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "An order for the Browse plugins list, picked under Sort by.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginPluginsPerPage": "Плагінів на сторінці",
+  "@pluginPluginsPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Visible label, help or status in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    }
+  },
+  "pluginCountPerPage": "{count} на сторінці",
+  "@pluginCountPerPage": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "A page size for the Browse plugins list, such as 10 per page.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginByAuthor": "від {author}",
+  "@pluginByAuthor": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "Who made the plugin, under its name in the install review.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    },
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    },
+    "x-notes": "Keep placeholders unchanged. Names and technical values are supplied by the app."
+  },
+  "pluginListedChip": "Є в Плагінах спільноти",
+  "@pluginListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
+  "pluginNotListedChip": "Немає в Плагінах спільноти",
+  "@pluginNotListedChip": {
+    "context": "Settings > Plugin Manager > Add plugin",
+    "description": "A label in the install review that says whether the plugin is in the Community Plugins directory.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Add plugin"
+      ]
+    }
+  },
   "pluginCharts": "Графіки",
   "@pluginCharts": {
     "context": "Settings > Plugin Manager > a plugin > Charts and Readings",
@@ -12298,19 +12781,6 @@
       ]
     }
   },
-  "pluginErrorTagRevision": "GitHub не повернув ревізію тега релізу",
-  "@pluginErrorTagRevision": {
-    "context": "Settings > Plugin Manager > Add plugin, preview or install",
-    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager > Add plugin, preview or install"
-      ]
-    }
-  },
   "pluginErrorTrustAuthor": "Підтвердіть, що ви довіряєте автору плагіна",
   "@pluginErrorTrustAuthor": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -12577,19 +13047,6 @@
   },
   "pluginErrorRestartReplace": "Цей плагін не зупинився коректно. Перезапустіть Kiosk Satellite перед його заміною.",
   "@pluginErrorRestartReplace": {
-    "context": "Settings > Plugin Manager > Install, update or enable a plugin",
-    "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
-    "x-locations": {
-      "device": [
-        "Settings > Plugin Manager"
-      ],
-      "remoteAdmin": [
-        "Settings > Plugin Manager"
-      ]
-    }
-  },
-  "pluginErrorPluginLimit": "Можна встановити щонайбільше 8 плагінів",
-  "@pluginErrorPluginLimit": {
     "context": "Settings > Plugin Manager > Install, update or enable a plugin",
     "description": "Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.",
     "x-locations": {
@@ -15180,6 +15637,28 @@
   },
   "screensaverVideosTooLarge": "Усі відео в цьому списку завеликі для відтворення на цьому пристрої.",
   "@screensaverVideosTooLarge": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlNotSet": "URL-адресу зображення не задано. Додайте її у Налаштуваннях.",
+  "@screensaverUrlNotSet": {
+    "context": "Screensaver > local media or Immich > playback errors",
+    "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
+    "x-locations": {
+      "device": [
+        "Screensaver > local media or Immich > playback errors"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "screensaverUrlLoadFailed": "Не вдалося завантажити зображення.",
+  "@screensaverUrlLoadFailed": {
     "context": "Screensaver > local media or Immich > playback errors",
     "description": "Translate the visible message. Keep placeholders and any technical names unchanged.",
     "x-locations": {
@@ -26708,8 +27187,8 @@
       ]
     }
   },
-  "settingClapStrictnessDescription": "Суворий режим вимагає гучніших і рівномірніших оплесків; спробуйте його, якщо побутовий шум викликає хибні спрацьовування.",
-  "@settingClapStrictnessDescription": {
+  "settingClapDetectionDescription": "Суворий режим вимагає гучніших і рівномірніших оплесків. «Велике приміщення» дає оплескам час затихнути в приміщенні з луною.",
+  "@settingClapDetectionDescription": {
     "context": "Settings > Gestures",
     "description": "Help below this setting.",
     "x-locations": {
@@ -26738,6 +27217,19 @@
   "@gestureStrictnessStrict": {
     "context": "Settings > Gestures",
     "description": "Clap detection option.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Clapper > Clap detection"
+      ],
+      "remoteAdmin": [
+        "Gestures > Clapper > Clap detection"
+      ]
+    }
+  },
+  "gestureStrictnessLargeRoom": "Велике приміщення",
+  "@gestureStrictnessLargeRoom": {
+    "context": "Settings > Gestures",
+    "description": "Clap detection option, for big rooms where claps echo.",
     "x-locations": {
       "device": [
         "Settings > Gestures > Clapper > Clap detection"
@@ -32377,8 +32869,8 @@
       ]
     }
   },
-  "settingSendspinVolumeKeysDescription": "Кнопки гучності цього пристрою змінюють гучність плеєра, за яким слідують, замість власної. Лише поки на екрані режим «Зараз грає», або завжди, коли плеєр відтворює.",
-  "@settingSendspinVolumeKeysDescription": {
+  "settingSendspinVolumeKeysGroupDescription": "Кнопки гучності цього пристрою змінюють гучність плеєра, за яким слідують, замість власної. Поки цей пристрій грає у групі, вони змінюють гучність групи. Лише поки на екрані режим «Зараз грає», або завжди, коли плеєр відтворює.",
+  "@settingSendspinVolumeKeysGroupDescription": {
     "context": "Settings > Media Player",
     "description": "Help below this setting.",
     "x-locations": {
@@ -37494,6 +37986,40 @@
       }
     }
   },
+  "settingScreensaverClockAmPmTitle": "Показувати AM/PM",
+  "@settingScreensaverClockAmPmTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label. A switch shown while the 24-hour clock is off.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
+  "settingScreensaverClockAmPmDescription": "Додавати AM або PM після часу.",
+  "@settingScreensaverClockAmPmDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver",
+        "Settings > Screensaver > Weather Mood screensaver > Clock",
+        "Settings > Screensaver > Widgets > Small clock"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver",
+        "Screensaver > Weather Mood screensaver > Clock",
+        "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
   "screensaverOverlayEntity": "Сутність",
   "@screensaverOverlayEntity": {
     "context": "Settings > Screensaver > Widgets > Entity widget or At a Glance > Entities",
@@ -38798,6 +39324,21 @@
       ],
       "remoteAdmin": [
         "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "screensaverModeUrl": "URL-адреса зображення",
+  "@screensaverModeUrl": {
+    "context": "Settings:Screensaver",
+    "description": "Screensaver mode that shows an image fetched from a web address. Also the title of the address field.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Screensaver mode",
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Screensaver mode",
+        "Screensaver > Image URL screensaver"
       ]
     }
   },
@@ -42331,6 +42872,71 @@
       ]
     }
   },
+  "settingScreensaverUrlImageDescription": "Адреса зображення, яке пристрій завантажує заново для кожного слайда.",
+  "@settingScreensaverUrlImageDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "settingScreensaverUrlIntervalDescription": "Скільки часу кожне фото показується перед завантаженням наступного.",
+  "@settingScreensaverUrlIntervalDescription": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPage": "Заставка URL-адреси зображення",
+  "@screensaverMediaUrlPage": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlPageHint": "URL-адреса, тривалість, перехід, метадані",
+  "@screensaverMediaUrlPageHint": {
+    "context": "Settings:Screensaver:Image URL screensaver",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverMediaUrlMetadata": "Метадані URL-адреси зображення",
+  "@screensaverMediaUrlMetadata": {
+    "context": "Settings:Screensaver:Image URL screensaver:Image URL metadata",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Image URL screensaver > Image URL metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Image URL screensaver > Image URL metadata"
+      ]
+    }
+  },
   "settingScreensaverDismissOnMotionTitle": "Вихід за рухом",
   "@settingScreensaverDismissOnMotionTitle": {
     "context": "Settings > Screensaver > Motion Detection",
@@ -45716,6 +46322,11 @@
         "Voice Satellite > Appearance"
       ]
     }
+  },
+  "voiceSkinUnavailablePlugin": "Недоступне оформлення плагіна",
+  "@voiceSkinUnavailablePlugin": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "The Skin row's value when it picks a plugin that is no longer installed. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
   "voiceSkinDefault": "За оформленням",
   "@voiceSkinDefault": {

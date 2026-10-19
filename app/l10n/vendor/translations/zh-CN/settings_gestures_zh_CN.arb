@@ -1,9 +1,10 @@
 {
   "@@locale": "zh_CN",
   "settingClapStrictnessTitle": "拍手检测",
-  "settingClapStrictnessDescription": "严格模式要求拍手声音更大、间隔更均匀。家庭噪声造成误触发时可尝试此模式。",
+  "settingClapDetectionDescription": "严格模式要求拍手声音更大、间隔更均匀。大房间模式会给有回声的房间里的拍手声留出消散时间。",
   "gestureStrictnessStandard": "标准",
   "gestureStrictnessStrict": "严格",
+  "gestureStrictnessLargeRoom": "大房间",
   "gestureOff": "手势已关闭",
   "gestureOffHelp": "Kiosk 模式设置中的“禁用手势”已开启。",
   "gestureEmpty": "未配置手势",

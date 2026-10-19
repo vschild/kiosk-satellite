@@ -980,6 +980,11 @@ class DeviceDetails(
      * exists from Android 12, which also covers every Exynos with SBWC that
      * Samsung still updates. `adb shell setprop debug.ks.video_platform_view 1`
      * forces the path on any device, to exercise it without one.
+     *
+     * Google Pixels start there too (issue #1024). Their decoders write a
+     * 1080p stream into a 1088 row buffer and crop it, but Flutter draws the
+     * whole buffer into the texture, so the 8 padding rows show as a green
+     * line under the video. A SurfaceView applies the crop.
      */
     private fun platformVideoFirst(): Boolean {
         val forced = runCatching {
@@ -989,13 +994,16 @@ class DeviceDetails(
         }.getOrDefault("") == "1"
         val exynos = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             Build.SOC_MANUFACTURER.equals("Samsung", ignoreCase = true)
-        val first = forced || exynos
+        val pixel = Build.MANUFACTURER.equals("Google", ignoreCase = true) &&
+            Build.MODEL.startsWith("Pixel", ignoreCase = true)
+        val first = forced || exynos || pixel
         if (first) {
-            Log.i(
-                "DeviceDetails",
-                "videos play on a platform view (" +
-                    (if (forced) "forced" else "Exynos ${Build.SOC_MODEL}") + ")",
-            )
+            val reason = when {
+                forced -> "forced"
+                exynos -> "Exynos ${Build.SOC_MODEL}"
+                else -> Build.MODEL
+            }
+            Log.i("DeviceDetails", "videos play on a platform view ($reason)")
         }
         return first
     }

@@ -12,6 +12,7 @@
   "voiceScaleHelp": "El tamaño del texto del asistente en pantalla.",
   "voiceUpdateIntegration": "Actualiza la integración Voice Satellite en Home Assistant para controlar estos ajustes desde el kiosko.",
   "voiceDashboardRequired": "Disponible mientras el kiosko muestra tu panel de control de Home Assistant.",
+  "voiceSkinUnavailablePlugin": "Estilo de un plugin no disponible",
   "voiceSkinDefault": "Según el estilo",
   "voiceBackground": "Fondo",
   "voiceBackgroundHelp": "Cuánto se ve el panel de control a través del fondo.",

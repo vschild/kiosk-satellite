@@ -1,0 +1,8 @@
+{
+  "@@locale": "de",
+  "settingScreensaverUrlImageDescription": "Eine Bildadresse, die das Gerät für jede Folie neu abruft.",
+  "settingScreensaverUrlIntervalDescription": "Wie lange jedes Foto angezeigt wird, bevor das nächste abgerufen wird.",
+  "screensaverMediaUrlPage": "Bildschirmschoner: Bild-URL",
+  "screensaverMediaUrlPageHint": "URL, Anzeigedauer, Übergänge und Metadaten",
+  "screensaverMediaUrlMetadata": "Metadaten der Bild-URL"
+}

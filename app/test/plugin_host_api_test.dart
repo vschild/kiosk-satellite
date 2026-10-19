@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
@@ -8,6 +9,10 @@ import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/home_assistant/plugin_ha_socket.dart';
 import 'package:kiosk_satellite/managers/plugins/plugin_host_api.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
+import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
+import 'package:kiosk_satellite/managers/voice/assist_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late EventBus bus;
@@ -765,7 +770,12 @@ void main() {
       );
       final result = await read('getVoiceState');
       expect(result['ok'], true);
-      expect(result['data'], {'enabled': true, 'state': 'responding'});
+      expect(result['data'], {
+        'enabled': true,
+        'state': 'responding',
+        'skinSelected': false,
+        'overlay': 'hidden',
+      });
       expect(executed, ['voiceStatus']);
       subscribe('voice.state');
       bus.publish(const VoiceSatelliteStateChanged('listening'));
@@ -1053,6 +1063,236 @@ void main() {
     });
   });
 
+  group('Voice skins (issue #1027)', () {
+    late SettingsManager settings;
+    late ValueNotifier<AssistView> view;
+    late ValueNotifier<double> level;
+
+    const answering = AssistView(
+      phase: AssistPhase.speaking,
+      command: 'turn on the lights',
+      answer: 'Turned on the lights',
+      tools: ['Turn on'],
+    );
+
+    setUp(() async {
+      await api.dispose();
+      SharedPreferences.setMockInitialValues({});
+      settings = SettingsManager(bus, commands, log);
+      await settings.init();
+      view = ValueNotifier(AssistView.hidden);
+      level = ValueNotifier(0);
+      api = PluginHostApi(
+        commands,
+        bus,
+        (event) async => sent.add(event),
+        voice: PluginVoiceFeed(view: view, level: level, settings: settings),
+      );
+      api.open({
+        ...session,
+        'capabilities': ['host.read'],
+      });
+    });
+
+    Future<void> settle([int ms = 150]) =>
+        Future<void>.delayed(Duration(milliseconds: ms));
+
+    test('the conversation text needs its own capability', () async {
+      final plain = (await read('getHostApi'))['data'] as Map;
+      expect(plain['commands'], isNot(contains('getVoiceText')));
+      expect(plain['events'], isNot(contains('voice.text')));
+      expect((await read('getVoiceText'))['ok'], false);
+      subscribe('voice.text');
+      view.value = answering;
+      await settle();
+      expect(sent, isEmpty);
+
+      api.open({
+        ...session,
+        'capabilities': ['host.read', 'voice.text'],
+      });
+      final catalog = (await read('getHostApi'))['data'] as Map;
+      expect(catalog['capabilities'], ['host.read', 'voice.text']);
+      expect(catalog['commands'], contains('getVoiceText'));
+      expect(catalog['events'], contains('voice.text'));
+      expect((await read('getVoiceText'))['data'], {
+        'command': 'turn on the lights',
+        'answer': 'Turned on the lights',
+        'tools': ['Turn on'],
+        'streaming': false,
+        'announcement': false,
+      });
+
+      // Without host.read the capability opens nothing.
+      api.open({
+        ...session,
+        'capabilities': ['host.control', 'voice.text'],
+      });
+      expect((await read('getVoiceText'))['ok'], false);
+    });
+
+    test('the text follows the Conversation settings', () async {
+      api.open({
+        ...session,
+        'capabilities': ['host.read', 'voice.text'],
+      });
+      subscribe('voice.text');
+      view.value = answering;
+      await settle();
+      expect(sent.single['event'], 'voice.text');
+      expect(
+        sent.single['payload'],
+        containsPair('answer', 'Turned on the lights'),
+      );
+      sent.clear();
+
+      await settings.set(defs.voiceShowCommand, false);
+      await settings.set(defs.voiceShowTools, false);
+      await settle();
+      final payload = sent.single['payload'] as Map;
+      expect(payload['command'], '');
+      expect(payload['tools'], isEmpty);
+      expect(payload['answer'], 'Turned on the lights');
+      sent.clear();
+
+      await settings.set(defs.voiceShowAnswer, false);
+      expect((await read('getVoiceText'))['data'], {
+        'command': '',
+        'answer': '',
+        'tools': <String>[],
+        'streaming': false,
+        'announcement': false,
+      });
+
+      // Nothing new to say: no event.
+      view.value = answering.copyWith(command: 'something else');
+      await settle();
+      expect(sent.where((e) => e['event'] == 'voice.text'), hasLength(1));
+      expect((sent.last['payload'] as Map)['answer'], '');
+      sent.clear();
+      view.value = answering.copyWith(command: 'another thing');
+      await settle();
+      expect(sent, isEmpty);
+    });
+
+    test('the voice level follows the bar and goes out quickly', () async {
+      subscribe('voice.level');
+      view.value = const AssistView(phase: AssistPhase.listening);
+      level.value = 0.4;
+      await settle(70);
+      expect(sent.single['event'], 'voice.level');
+      expect((sent.single['payload'] as Map)['level'], 0.4);
+      sent.clear();
+
+      // Thinking, the bar rests, and so does the level.
+      view.value = const AssistView(phase: AssistPhase.thinking);
+      level.value = 0.8;
+      await settle(70);
+      expect((sent.single['payload'] as Map)['level'], 0);
+      sent.clear();
+
+      view.value = const AssistView(phase: AssistPhase.speaking);
+      level.value = 2;
+      await settle(70);
+      expect((sent.last['payload'] as Map)['level'], 1);
+      sent.clear();
+
+      view.value = AssistView.hidden;
+      await settle(70);
+      expect((sent.single['payload'] as Map)['level'], 0);
+    });
+
+    test('a plugin hears whether its skin is picked', () async {
+      register(
+        'voiceStatus',
+        (_) async => const CommandResult.ok({'enabled': true, 'state': 'idle'}),
+      );
+      expect((await read('getVoiceState'))['data'], {
+        'enabled': true,
+        'state': 'idle',
+        'skinSelected': false,
+        'overlay': 'hidden',
+      });
+      subscribe('voice.skin');
+      await settings.set(defs.voiceSkin, 'plugin:example');
+      await settle();
+      expect(sent.single['event'], 'voice.skin');
+      expect((sent.single['payload'] as Map)['selected'], true);
+      expect(
+        ((await read('getVoiceState'))['data'] as Map)['skinSelected'],
+        true,
+      );
+      sent.clear();
+      await settings.set(defs.voiceSkin, 'plugin:another');
+      await settle();
+      expect((sent.single['payload'] as Map)['selected'], false);
+    });
+
+    test('a skin follows the Appearance settings', () async {
+      expect((await read('getVoiceAppearance'))['data'], {
+        'theme': 'auto',
+        'background': null,
+        'textScale': 1.0,
+        'reactive': true,
+      });
+      subscribe('voice.appearance');
+      await settings.set(defs.voiceBackgroundOpacity, 40);
+      await settings.set(defs.voiceTextScale, 150);
+      await settings.set(defs.voiceTheme, 'dark');
+      await settle();
+      expect(sent.single['event'], 'voice.appearance');
+      expect(sent.single['payload'], containsPair('background', 0.4));
+      expect(sent.single['payload'], containsPair('textScale', 1.5));
+      expect(sent.single['payload'], containsPair('theme', 'dark'));
+      sent.clear();
+
+      // With the reactive bar off, the level holds at 0.
+      subscribe('voice.level');
+      view.value = const AssistView(phase: AssistPhase.listening);
+      level.value = 0.6;
+      await settle(70);
+      expect((sent.last['payload'] as Map)['level'], 0.6);
+      sent.clear();
+      await settings.set(defs.voiceReactiveBar, false);
+      await settle();
+      expect(
+        sent.firstWhere((e) => e['event'] == 'voice.appearance')['payload'],
+        containsPair('reactive', false),
+      );
+      expect(
+        (sent.firstWhere((e) => e['event'] == 'voice.level')['payload']
+            as Map)['level'],
+        0,
+      );
+      sent.clear();
+      level.value = 0.9;
+      await settle(70);
+      expect(sent, isEmpty);
+    });
+
+    test('a plugin hears when the overlay shows, idle or not', () async {
+      register(
+        'voiceStatus',
+        (_) async => const CommandResult.ok({'enabled': true, 'state': 'idle'}),
+      );
+      subscribe('voice.overlay');
+      // A preview: nothing listens or speaks, and the overlay shows.
+      view.value = answering.copyWith(lingering: true);
+      await settle();
+      expect(sent.single['event'], 'voice.overlay');
+      expect((sent.single['payload'] as Map)['overlay'], 'full');
+      expect(((await read('getVoiceState'))['data'] as Map)['overlay'], 'full');
+      sent.clear();
+      view.value = answering.copyWith(docked: true);
+      await settle();
+      expect((sent.single['payload'] as Map)['overlay'], 'docked');
+      sent.clear();
+      view.value = AssistView.hidden;
+      await settle();
+      expect((sent.single['payload'] as Map)['overlay'], 'hidden');
+    });
+  });
+
   test('native and Flutter event contracts match', () {
     final source = File(
       'android/app/src/main/kotlin/me/jxl/kiosk_satellite/plugins/PluginHostPolicy.kt',
@@ -1063,6 +1303,7 @@ void main() {
     expect(names, {
       ...PluginHostApi.eventNames,
       ...PluginHostApi.noiseEventNames,
+      ...PluginHostApi.voiceTextEventNames,
     });
   });
 }

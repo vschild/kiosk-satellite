@@ -5025,6 +5025,24 @@ abstract class UiStrings {
   /// **'Close {name}'**
   String pluginCloseWindow(String name);
 
+  /// Scanner heading when the plugin that opened the scanner gives none. A code is a barcode or a QR code.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a code'**
+  String get pluginScanTitle;
+
+  /// Help under the scanner heading when the plugin gives none.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the code inside the frame.'**
+  String get pluginScanHelp;
+
+  /// Says which plugin opened the scanner. The placeholder is the plugin's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by {name}'**
+  String pluginScanSource(String name);
+
   /// Visible label, help or status in this section.
   ///
   /// In en, this message translates to:
@@ -5072,6 +5090,24 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Configure {name}'**
   String pluginConfigureName(String name);
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'The plugin did not answer in time.'**
+  String get pluginThePluginDidNotAnswerInTime;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'No choices yet. Refresh to look for them.'**
+  String get pluginNoChoicesYetRefreshToLookForThem;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'This choice is no longer listed.'**
+  String get pluginThisChoiceIsNoLongerListed;
 
   /// Visible label, help or status in this section.
   ///
@@ -5371,6 +5407,186 @@ abstract class UiStrings {
   /// Visible label, help or status in this section.
   ///
   /// In en, this message translates to:
+  /// **'Browse plugins'**
+  String get pluginBrowsePlugins;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Find plugins made by the community'**
+  String get pluginFindPluginsMadeByTheCommunity;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Search plugins'**
+  String get pluginSearchPlugins;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get pluginUpdate;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginInstalled;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars'**
+  String get pluginStars;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get pluginDownloads;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Active installs'**
+  String get pluginActiveInstalls;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins match your search.'**
+  String get pluginNoPluginsMatchYourSearch;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Plugins has no plugins yet.'**
+  String get pluginCommunityPluginsHasNoPluginsYet;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit your plugin'**
+  String get pluginSubmitYourPlugin;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'List your plugin in Community Plugins.'**
+  String get pluginListYourPluginInCommunityPlugins;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach Community Plugins. Check the internet connection.'**
+  String get pluginCouldNotReachCommunityPlugins;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load Community Plugins. Try again later.'**
+  String get pluginCouldNotLoadCommunityPlugins;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get pluginTurnOn;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Enable Plugins to install this plugin.'**
+  String get pluginTurnOnEnablePluginsToInstall;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get pluginPreviousPage;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Next page'**
+  String get pluginNextPage;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {pages}'**
+  String pluginPageOfPages(String page, String pages);
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get pluginSortBy;
+
+  /// An order for the Browse plugins list, picked under Sort by.
+  ///
+  /// In en, this message translates to:
+  /// **'Most stars'**
+  String get pluginSortMostStars;
+
+  /// An order for the Browse plugins list, picked under Sort by.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently updated'**
+  String get pluginSortRecentlyUpdated;
+
+  /// An order for the Browse plugins list, picked under Sort by.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get pluginSortNewest;
+
+  /// An order for the Browse plugins list, picked under Sort by.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pluginSortName;
+
+  /// An order for the Browse plugins list, picked under Sort by.
+  ///
+  /// In en, this message translates to:
+  /// **'Most downloads'**
+  String get pluginSortMostDownloads;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins per page'**
+  String get pluginPluginsPerPage;
+
+  /// A page size for the Browse plugins list, such as 10 per page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} per page'**
+  String pluginCountPerPage(String count);
+
+  /// Who made the plugin, under its name in the install review.
+  ///
+  /// In en, this message translates to:
+  /// **'by {author}'**
+  String pluginByAuthor(String author);
+
+  /// A label in the install review that says whether the plugin is in the Community Plugins directory.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed in Community Plugins'**
+  String get pluginListedChip;
+
+  /// A label in the install review that says whether the plugin is in the Community Plugins directory.
+  ///
+  /// In en, this message translates to:
+  /// **'Not listed in Community Plugins'**
+  String get pluginNotListedChip;
+
+  /// Visible label, help or status in this section.
+  ///
+  /// In en, this message translates to:
   /// **'Charts'**
   String get pluginCharts;
 
@@ -5665,12 +5881,6 @@ abstract class UiStrings {
   /// Explain the failure. Keep technical identifiers, file names and product names unchanged.
   ///
   /// In en, this message translates to:
-  /// **'GitHub did not return the release tag revision'**
-  String get pluginErrorTagRevision;
-
-  /// Explain the failure. Keep technical identifiers, file names and product names unchanged.
-  ///
-  /// In en, this message translates to:
   /// **'Confirm that you trust the plugin author'**
   String get pluginErrorTrustAuthor;
 
@@ -5781,12 +5991,6 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'This plugin did not stop cleanly. Restart Kiosk Satellite before replacing it.'**
   String get pluginErrorRestartReplace;
-
-  /// Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.
-  ///
-  /// In en, this message translates to:
-  /// **'At most 8 plugins can be installed'**
-  String get pluginErrorPluginLimit;
 
   /// Explain the failure and recovery action. Keep plugin identifiers and diagnostic details unchanged.
   ///
@@ -7023,6 +7227,18 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Every video in this playlist is too large for this device to play.'**
   String get screensaverVideosTooLarge;
+
+  /// Translate the visible message. Keep placeholders and any technical names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'No image URL set. Add one in Settings.'**
+  String get screensaverUrlNotSet;
+
+  /// Translate the visible message. Keep placeholders and any technical names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the image.'**
+  String get screensaverUrlLoadFailed;
 
   /// Setting label.
   ///
@@ -12248,8 +12464,8 @@ abstract class UiStrings {
   /// Help below this setting.
   ///
   /// In en, this message translates to:
-  /// **'Strict needs louder, evenly spaced claps; try it if household noise false-triggers.'**
-  String get settingClapStrictnessDescription;
+  /// **'Strict needs louder, evenly spaced claps. Large room gives claps time to fade in an echoey room.'**
+  String get settingClapDetectionDescription;
 
   /// Clap detection option.
   ///
@@ -12262,6 +12478,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Strict'**
   String get gestureStrictnessStrict;
+
+  /// Clap detection option, for big rooms where claps echo.
+  ///
+  /// In en, this message translates to:
+  /// **'Large room'**
+  String get gestureStrictnessLargeRoom;
 
   /// Label or guidance in this section.
   ///
@@ -14864,8 +15086,8 @@ abstract class UiStrings {
   /// Help below this setting.
   ///
   /// In en, this message translates to:
-  /// **'This device\'s volume buttons change the followed player\'s volume instead of its own. Only while the Now Playing view is on screen, or whenever the player is playing.'**
-  String get settingSendspinVolumeKeysDescription;
+  /// **'This device\'s volume buttons change the followed player\'s volume instead of its own. While this device plays in a group they change the group\'s volume. Only while the Now Playing view is on screen or whenever the player is playing.'**
+  String get settingSendspinVolumeKeysGroupDescription;
 
   /// Setting label.
   ///
@@ -17189,6 +17411,18 @@ abstract class UiStrings {
   /// **'Use at most {count} characters'**
   String screensaverMaxCharacters(String count);
 
+  /// Setting label. A switch shown while the 24-hour clock is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Show AM/PM'**
+  String get settingScreensaverClockAmPmTitle;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Add AM or PM after the time.'**
+  String get settingScreensaverClockAmPmDescription;
+
   /// Label or guidance in this editor.
   ///
   /// In en, this message translates to:
@@ -17782,6 +18016,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Home Assistant Dashboard screensaver'**
   String get screensaverDashboardSection;
+
+  /// Screensaver mode that shows an image fetched from a web address. Also the title of the address field.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get screensaverModeUrl;
 
   /// Setting label.
   ///
@@ -19343,6 +19583,36 @@ abstract class UiStrings {
   /// **'Folder, timing, shuffle, transition, metadata'**
   String get screensaverMediaLocalPageHint;
 
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'An image address the device fetches again for every slide.'**
+  String get settingScreensaverUrlImageDescription;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'How long each photo shows before the next fetch.'**
+  String get settingScreensaverUrlIntervalDescription;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL screensaver'**
+  String get screensaverMediaUrlPage;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'URL, timing, transition, metadata'**
+  String get screensaverMediaUrlPageHint;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL metadata'**
+  String get screensaverMediaUrlMetadata;
+
   /// Setting label.
   ///
   /// In en, this message translates to:
@@ -20890,6 +21160,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Available while the kiosk is showing your Home Assistant dashboard.'**
   String get voiceDashboardRequired;
+
+  /// The Skin row's value when it picks a plugin that is no longer installed. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable plugin skin'**
+  String get voiceSkinUnavailablePlugin;
 
   /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
   ///

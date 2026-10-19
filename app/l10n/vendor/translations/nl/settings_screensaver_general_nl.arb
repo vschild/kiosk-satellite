@@ -55,5 +55,6 @@
   "screensaverModeDashboard": "Home Assistant-dashboard",
   "settingScreensaverDashboardViewTitle": "Dashboardweergave",
   "settingScreensaverDashboardViewDescription": "De Home Assistant-dashboardweergave die de schermbeveiliging toont.",
-  "screensaverDashboardSection": "Home Assistant-dashboard als schermbeveiliging"
+  "screensaverDashboardSection": "Home Assistant-dashboard als schermbeveiliging",
+  "screensaverModeUrl": "Afbeeldings-URL"
 }

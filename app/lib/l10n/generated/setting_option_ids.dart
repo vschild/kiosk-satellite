@@ -47,6 +47,7 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "media": "screensaverModeMedia",
     "local": "screensaverModeLocal",
     "gallery": "screensaverModeGallery",
+    "url": "screensaverModeUrl",
     "immich": "screensaverModeImmich",
     "website": "screensaverModeWebsite",
     "camera": "screensaverModeCamera",
@@ -259,7 +260,8 @@ const settingOptionMessageIds = <String, Map<String, String>>{
   },
   "gestures.clap_strictness": {
     "standard": "gestureStrictnessStandard",
-    "strict": "gestureStrictnessStrict"
+    "strict": "gestureStrictnessStrict",
+    "large_room": "gestureStrictnessLargeRoom"
   },
   "lockdown.exit_gesture": {
     "taps5": "kioskGestureTaps5",
@@ -415,6 +417,25 @@ const settingOptionMessageIds = <String, Map<String, String>>{
   "led.idle.style": {
     "solid": "settingLedIdleStyleOptionSolid",
     "breathe": "settingLedIdleStyleOptionBreathe"
+  },
+  "screensaver.url_transition": {
+    "none": "screensaverMediaTransitionNone",
+    "fade": "screensaverMediaTransitionFade",
+    "slide": "screensaverMediaTransitionSlide",
+    "zoom": "screensaverMediaTransitionZoom",
+    "kenburns": "screensaverMediaTransitionKenBurns",
+    "random": "screensaverMediaTransitionRandom"
+  },
+  "screensaver.url_fill": {
+    "off": "screensaverMediaFillOff",
+    "smart": "screensaverMediaFillSmart",
+    "always": "screensaverMediaFillAlways"
+  },
+  "screensaver.url_metadata_position": {
+    "top_left": "screensaverMediaTopLeft",
+    "top_right": "screensaverMediaTopRight",
+    "bottom_left": "screensaverMediaBottomLeft",
+    "bottom_right": "screensaverMediaBottomRight"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

@@ -327,6 +327,86 @@ class MotionManager extends Manager {
       _handTesting && _vision.hands && _settings.get(defs.cameraEnabled);
   bool get _wantPalms => (palmEnabled || _handTestWanted) && _screenOn;
 
+  /// The plugin holding the camera (the SDK's openCamera): the analysis
+  /// size and lens it asked for, and who hears when the camera goes. It
+  /// keeps the session up on its own, like the sensor leg, and frames go
+  /// to the plugin natively. [_streamPlugin] is what the running stream
+  /// was bound with.
+  PluginCameraClaim? _plugin;
+  PluginCameraClaim? _streamPlugin;
+  void Function(String reason)? _pluginLost;
+
+  /// The barcode scanner has the camera (see [holdForScanner]): no
+  /// session runs, whatever wants one.
+  bool _scannerHeld = false;
+  bool get scannerHeld => _scannerHeld;
+
+  /// Run the camera for a plugin, or update what it runs with. Returns
+  /// null when the claim stands, otherwise why it cannot: `disabled`
+  /// with the Camera settings off, `busy` while the barcode scanner has
+  /// the camera, `no_camera` without one. [lost] hears why a standing
+  /// claim ended, unless [releaseForPlugin] ended it.
+  String? claimForPlugin(
+    PluginCameraClaim claim,
+    void Function(String reason) lost,
+  ) {
+    if (Headless.active) return 'no_camera';
+    if (!_settings.get(defs.cameraEnabled)) return 'disabled';
+    if (_scannerHeld) return 'busy';
+    _plugin = claim;
+    _pluginLost = lost;
+    log.info(
+      name,
+      'plugin camera ${claim.width}x${claim.height}'
+      '${claim.facing == null ? '' : ' ${claim.facing}'}',
+    );
+    _sync();
+    return null;
+  }
+
+  /// The plugin let the camera go.
+  void releaseForPlugin() {
+    if (_plugin == null) return;
+    _plugin = null;
+    _pluginLost = null;
+    log.info(name, 'plugin camera released');
+    _sync();
+  }
+
+  /// End the plugin's claim and tell it why. The caller syncs.
+  void _losePlugin(String reason) {
+    final lost = _pluginLost;
+    if (_plugin == null) return;
+    _plugin = null;
+    _pluginLost = null;
+    log.info(name, 'plugin camera ended ($reason)');
+    lost?.call(reason);
+  }
+
+  /// Give the camera to the barcode scanner, which opens it through its
+  /// own CameraX binding. That binding unbinds every other use case in
+  /// the process, and a session bound while it runs would unbind the
+  /// scanner's in turn, so nothing binds until [releaseScanner]. A plugin
+  /// holding the camera loses it as `busy`. Returns once the native side
+  /// has let go of the camera.
+  Future<void> holdForScanner() async {
+    _scannerHeld = true;
+    _losePlugin('busy');
+    _stop();
+    try {
+      await NativeMotion.release();
+    } catch (e) {
+      log.debug(name, 'release failed: $e');
+    }
+  }
+
+  /// The scanner closed: the sessions that want the camera come back.
+  void releaseScanner() {
+    if (!_scannerHeld) return;
+    _scannerHeld = false;
+    _sync();
+  }
+
   StreamSubscription<void>? _camera;
   bool _screensaverActive = false;
   bool _screenOn = true;
@@ -595,6 +675,10 @@ class MotionManager extends Manager {
           e.key != defs.cameraSnapshotResolution.key) {
         return;
       }
+      if (e.key == defs.cameraEnabled.key &&
+          !_settings.get(defs.cameraEnabled)) {
+        _losePlugin('disabled');
+      }
       if (isGate &&
           (enabled ||
               _postponeEnabled ||
@@ -688,15 +772,18 @@ class MotionManager extends Manager {
   /// Whether the camera should be running right now: dismiss-on-motion or
   /// dismiss-on-face wants it during a screensaver session, either
   /// postpone leg between them (screen on), the hand leg whenever the
-  /// screen is on, and the sensor leg always.
+  /// screen is on, and the sensor leg and a plugin holding the camera
+  /// always. Nothing runs while the barcode scanner has the camera.
   bool get _shouldRun =>
-      (_rtspDemand && _rtspEnabled) ||
-      _sensorEnabled ||
-      _wantPalms ||
-      _previewHolding ||
-      (_screensaverActive
-          ? enabled || faceEnabled
-          : (_postponeEnabled || _postponeFaceEnabled) && _screenOn);
+      !_scannerHeld &&
+      ((_rtspDemand && _rtspEnabled) ||
+          _plugin != null ||
+          _sensorEnabled ||
+          _wantPalms ||
+          _previewHolding ||
+          (_screensaverActive
+              ? enabled || faceEnabled
+              : (_postponeEnabled || _postponeFaceEnabled) && _screenOn));
 
   void _sync() {
     if (_disposed) return;
@@ -707,7 +794,10 @@ class MotionManager extends Manager {
     }
     // A preview in progress keeps the session it is drawn from as it
     // is; the hold's end runs this again and settles it.
-    if (_previewHolding && _camera != null && _streamRtsp == _rtspDemand) {
+    if (_previewHolding &&
+        _camera != null &&
+        _streamRtsp == _rtspDemand &&
+        _streamPlugin == _plugin) {
       return;
     }
     // A session already up but asked for the wrong things restarts: the
@@ -717,7 +807,8 @@ class MotionManager extends Manager {
             _streamFaces != _wantFaces ||
             _streamPalms != _wantPalms ||
             _streamPreview != _wantPreview ||
-            _streamRtsp != _rtspDemand)) {
+            _streamRtsp != _rtspDemand ||
+            _streamPlugin != _plugin)) {
       log.info(
         name,
         'camera restarting (motion=$_wantMotion faces=$_wantFaces '
@@ -734,6 +825,7 @@ class MotionManager extends Manager {
     try {
       if (!await _ensurePermission()) {
         log.warn(name, 'camera permission not granted; motion detection idle');
+        _losePlugin('permission');
         return;
       }
       // State may have flipped while awaiting the permission check.
@@ -743,7 +835,10 @@ class MotionManager extends Manager {
           .get(defs.motionSensitivity)
           .toInt()
           .clamp(1, 100);
-      final camera = _settings.get(defs.cameraDevice);
+      // A plugin that asked for a lens gets it for as long as it holds
+      // the camera, and every leg rides along on that lens meanwhile.
+      final plugin = _plugin;
+      final String camera = plugin?.facing ?? _settings.get(defs.cameraDevice);
       final (snapW, snapH) = snapshotResolution(
         _settings.get(defs.cameraSnapshotResolution),
       );
@@ -763,6 +858,7 @@ class MotionManager extends Manager {
       _streamPalms = palms;
       _streamPreview = preview;
       _streamRtsp = _rtspDemand;
+      _streamPlugin = plugin;
       _boundBlind = !_screenOn;
       log.info(
         name,
@@ -771,6 +867,7 @@ class MotionManager extends Manager {
         '${faces ? ' faces>=${(faceMinWidth * 100).round()}%' : ''}'
         '${palms ? ' hands' : ''}'
         '${preview ? ' preview' : ''}'
+        '${plugin == null ? '' : ' plugin ${plugin.width}x${plugin.height}'}'
         '${motion ? '' : ' motion off'}'
         '${_boundBlind ? ', panel off: restart on wake unless frames flow' : ''})',
       );
@@ -789,6 +886,9 @@ class MotionManager extends Manager {
             paused: _voiceTurn,
             preview: preview,
             rtsp: _streamRtsp,
+            plugin: plugin == null
+                ? null
+                : (width: plugin.width, height: plugin.height),
           ).listen(
             (tick) {
               // Frames flowing again: the session is healthy, forget any
@@ -869,6 +969,9 @@ class MotionManager extends Manager {
                 return;
               }
               log.warn(name, 'camera error: $e');
+              // The plugin hears it and decides whether to open again;
+              // the other legs rebind on the backoff.
+              _losePlugin('camera_failed');
               _onCameraLost();
             },
           );
@@ -1000,6 +1103,10 @@ class MotionManager extends Manager {
     handTest.dispose();
   }
 }
+
+/// What a plugin holding the camera asked for: the analysis size and
+/// `front` or `back`, or null for the Camera settings' lens.
+typedef PluginCameraClaim = ({int width, int height, String? facing});
 
 /// One reading for the hand gesture tester: hands in view and, for the
 /// largest, the count and which digits are up (thumb, index, middle,

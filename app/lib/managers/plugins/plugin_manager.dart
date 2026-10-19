@@ -12,8 +12,10 @@ import '../../core/manager.dart';
 import '../../core/events.dart';
 import '../../ui/mdi_icon.dart';
 import 'fleet_plugin_host.dart';
+import 'plugin_directory.dart';
 import 'plugin_repository.dart';
 import '../home_assistant/plugin_ha_socket.dart';
+import 'plugin_camera.dart';
 import 'plugin_host_api.dart';
 
 class PluginWindow {
@@ -112,6 +114,15 @@ class PluginNativeOverlay {
   );
 }
 
+/// A refused setup run, whose text is the host's message as is, ready for
+/// pluginError.
+class PluginSetupError implements Exception {
+  const PluginSetupError(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
 /// Owns the Flutter surface of the Android plugin runtime.
 class PluginManager extends Manager implements FleetPluginHost {
   PluginManager(
@@ -119,9 +130,12 @@ class PluginManager extends Manager implements FleetPluginHost {
     super.commands,
     super.log, {
     PluginRepository? repository,
-  }) : repository = repository ?? PluginRepository();
+    PluginDirectory? directory,
+  }) : repository = repository ?? PluginRepository(),
+       directory = directory ?? PluginDirectory();
 
   final PluginRepository repository;
+  final PluginDirectory directory;
   List<Map<String, Object?>> _entities = [];
   final _runtimeEntities = <String, List<Map<String, Object?>>>{};
   static const maxZipBytes = PluginRepository.maxPackageBytes;
@@ -135,12 +149,74 @@ class PluginManager extends Manager implements FleetPluginHost {
     {},
   );
   final _runtimeSessions = <String, String>{};
+
+  /// Settings page buttons and plugin choices by plugin id: each run's
+  /// state and what the plugin listed. Session scoped like charts.
+  final setup = ValueNotifier<Map<String, Map<String, Object?>>>({});
   final screensavers = ValueNotifier<Map<String, Map<String, Object?>>>({});
   Map<String, String> get screensaverOptions => {
     for (final entry in screensavers.value.entries)
       entry.key:
           '${entry.value['title']} (${installed.value.where((p) => p['id'] == entry.value['pluginId']).firstOrNull?['name'] ?? entry.value['pluginId']})',
   };
+
+  /// Installed plugins that offer a voice skin, by the Skin setting's value.
+  Map<String, String> get voiceSkinOptions => {
+    for (final plugin in installed.value)
+      if ((plugin['capabilities'] as List? ?? const []).contains('voice.skin'))
+        'plugin:${plugin['id']}': '${plugin['name'] ?? plugin['id']}',
+  };
+
+  /// Plugin pictures by field, plugin id and package digest, so an update
+  /// shows its new one.
+  final _thumbnails = <String, Future<Uint8List?>>{};
+
+  /// The picture an installed plugin names for its voice skin, or null for
+  /// none. It need not be running.
+  Future<Uint8List?> voiceSkinThumbnail(String id) =>
+      _picture('voiceSkinThumbnail', id);
+
+  /// The icon an installed plugin names in its manifest, or null for none.
+  /// It need not be running.
+  Future<Uint8List?> pluginIcon(String id) => _picture('icon', id);
+
+  /// [field] is both the manifest field and the channel method.
+  Future<Uint8List?> _picture(String field, String id) {
+    final plugin = installed.value.where((p) => p['id'] == id).firstOrNull;
+    if (plugin == null || plugin[field] is! String) {
+      return Future.value(null);
+    }
+    final key = '$field:$id@${plugin['sha256']}';
+    return _thumbnails[key] ??= channel
+        .invokeMethod<Uint8List>(field, {'id': id})
+        .timeout(const Duration(seconds: 10))
+        .catchError((Object _) {
+          _thumbnails.remove(key);
+          return null;
+        });
+  }
+
+  static String _imageMime(Uint8List bytes) {
+    bool starts(List<int> magic) =>
+        bytes.length >= magic.length &&
+        [for (var i = 0; i < magic.length; i++) bytes[i]].join(',') ==
+            magic.join(',');
+    if (starts([0x89, 0x50, 0x4E, 0x47])) return 'image/png';
+    if (starts([0xFF, 0xD8, 0xFF])) return 'image/jpeg';
+    return 'image/webp';
+  }
+
+  /// Whether [skin] is a plugin's voice skin and that plugin runs, so it
+  /// draws the turn. Otherwise the overlay draws a built-in skin.
+  bool voiceSkinRunning(String skin) =>
+      enabled.value &&
+      installed.value.any(
+        (p) =>
+            skin == 'plugin:${p['id']}' &&
+            p['running'] == true &&
+            (p['capabilities'] as List? ?? const []).contains('voice.skin'),
+      );
+
   final windows = ValueNotifier<List<PluginWindow>>(const []);
   // Bottom to top across plugins: a new or replaced overlay goes on top.
   final overlays = ValueNotifier<List<PluginNativeOverlay>>(const []);
@@ -190,6 +266,13 @@ class PluginManager extends Manager implements FleetPluginHost {
   /// The Home Assistant connection plugins with the `ha` capability share.
   /// Set by the app container before [init].
   HaPluginSocket? haSocket;
+
+  /// The voice turn plugins follow. Set by the app container before [init].
+  PluginVoiceFeed? voice;
+
+  /// The device camera for the camera and barcode capabilities. Set by the
+  /// app container before [init].
+  PluginCamera? camera;
 
   List<Map<String, Object?>> get actions => [
     for (final plugin in installed.value)
@@ -243,6 +326,7 @@ class PluginManager extends Manager implements FleetPluginHost {
       charts,
       statusTiles,
       shizuku,
+      setup,
     ]) {
       listenable.addListener(() {
         if (!_disposed) bus.publish(const RemoteStatusChanged('plugins'));
@@ -271,11 +355,15 @@ class PluginManager extends Manager implements FleetPluginHost {
     _attachSub = bus.on<ActivityAttached>().listen((_) {
       if (!_disposed && overlays.value.isNotEmpty) overlayEpoch.value++;
     });
+    camera?.notifyClosed = (args) => unawaited(
+      channel.invokeMethod<void>('cameraClosed', args).catchError((_) {}),
+    );
     _hostReads = PluginHostApi(
       commands,
       bus,
       (event) => channel.invokeMethod<void>('hostEvent', event),
       ha: haSocket,
+      voice: voice,
     );
     channel.setMethodCallHandler((call) async {
       if (_disposed) return null;
@@ -289,6 +377,7 @@ class PluginManager extends Manager implements FleetPluginHost {
           _setEntities(data['id'] as String, const []);
           _setOverlays(data['id'] as String, const []);
           _setContentInsets(data['id'] as String, null);
+          _setSetup(data['id'] as String, null);
           _hostReads.open(call.arguments as Map);
         case 'hostSessionClosed':
           final data = call.arguments as Map;
@@ -300,8 +389,20 @@ class PluginManager extends Manager implements FleetPluginHost {
             _setEntities(data['id'] as String, const []);
             _setOverlays(data['id'] as String, const []);
             _setContentInsets(data['id'] as String, null);
+            _setSetup(data['id'] as String, null);
           }
           _hostReads.close(call.arguments as Map);
+        case 'cameraOpen':
+          return camera == null
+              ? 'camera_failed'
+              : await camera!.open(call.arguments as Map);
+        case 'cameraClose':
+          camera?.close(call.arguments as Map);
+        case 'barcodeScan':
+          return camera?.scan(call.arguments as Map) ??
+              {'ok': false, 'error': 'unavailable'};
+        case 'barcodeCancel':
+          camera?.cancelScan(call.arguments as Map);
         case 'hostSubscription':
           _hostReads.subscription(call.arguments as Map);
         case 'hostCommand':
@@ -356,6 +457,12 @@ class PluginManager extends Manager implements FleetPluginHost {
           if (_runtimeSessions[data['id']] == data['session'] &&
               data['session'] != null) {
             _setContentInsets(data['id'] as String, _insets(data['insets']));
+          }
+        case 'setup':
+          final data = call.arguments as Map;
+          if (_runtimeSessions[data['id']] == data['session'] &&
+              data['session'] != null) {
+            _setSetup(data['id'] as String, data['setup'] as Map?);
           }
         case 'overlays':
           final data = call.arguments as Map;
@@ -430,6 +537,26 @@ class PluginManager extends Manager implements FleetPluginHost {
       );
     }
 
+    register(
+      'getPluginVoiceSkinThumbnail',
+      'Read the picture a plugin voice skin shows in the Skin picker.',
+      (p) async {
+        final bytes = await voiceSkinThumbnail(p['id'] as String? ?? '');
+        if (bytes == null) return null;
+        return {'mime': _imageMime(bytes), 'data': base64Encode(bytes)};
+      },
+      const {'id': 'Installed plugin declaring the voice.skin capability'},
+    );
+    register(
+      'getPluginIcon',
+      'Read the icon an installed plugin names in its manifest.',
+      (p) async {
+        final bytes = await pluginIcon(p['id'] as String? ?? '');
+        if (bytes == null) return null;
+        return {'mime': _imageMime(bytes), 'data': base64Encode(bytes)};
+      },
+      const {'id': 'Installed plugin ID'},
+    );
     register(
       'getPluginShizukuState',
       'Read Shizuku availability and the permission granted to KS.',
@@ -555,6 +682,12 @@ class PluginManager extends Manager implements FleetPluginHost {
       const {'url': 'Public GitHub repository URL'},
     );
     register(
+      'getPluginDirectory',
+      'Read Community Plugins, the plugin directory, with how each listed plugin stands against the installed ones.',
+      (p) => directoryState(refresh: p['refresh'] == true),
+      const {'refresh': 'True to download the list again now'},
+    );
+    register(
       'checkPluginUpdate',
       'Check an installed plugin repository for an updated release without installing it.',
       (p) => checkUpdate(p['id'] as String? ?? ''),
@@ -608,7 +741,11 @@ class PluginManager extends Manager implements FleetPluginHost {
       'configurePlugin',
       'Save validated plugin settings.',
       (p) => update('configure', p),
-      const {'id': 'Plugin ID', 'values': 'Complete settings object'},
+      const {
+        'id': 'Plugin ID',
+        'values': 'Settings object, complete unless patch is set',
+        'patch': 'True to save only the settings in values',
+      },
     );
     register(
       'searchIcons',
@@ -631,6 +768,47 @@ class PluginManager extends Manager implements FleetPluginHost {
         'query': 'Words the icon name contains. Empty lists the first icons.',
         'names': 'Exact icon names to resolve instead of a search, at most 100',
         'limit': 'Most results to return, 60 unless set, at most 200',
+      },
+    );
+    register(
+      'getPluginSetup',
+      'Read the settings button runs and listed choices of a running plugin.',
+      (p) async => setup.value[p['id']] ?? const {'runs': {}, 'choices': {}},
+      const {'id': 'Plugin ID'},
+    );
+    register(
+      'runPluginSetup',
+      'Press a settings button or ask a plugin to refresh the choices of a setting. The plugin answers through the run.',
+      (p) => runSetup(
+        p['id'] as String? ?? '',
+        target: p['target'] as String? ?? '',
+        key: p['key'] as String? ?? '',
+        origin: 'remote',
+      ),
+      const {
+        'id': 'Plugin ID',
+        'target': 'button or choices',
+        'key': 'Button ID or setting key',
+      },
+    );
+    register(
+      'cancelPluginSetup',
+      'Cancel a running settings button or choices refresh.',
+      (p) => cancelSetup(p['id'] as String? ?? '', p['run'] as String? ?? ''),
+      const {'id': 'Plugin ID', 'run': 'Run ID'},
+    );
+    register(
+      'answerPluginSetup',
+      'Answer the question a plugin asked during a run.',
+      (p) => answerSetup(
+        p['id'] as String? ?? '',
+        p['run'] as String? ?? '',
+        accepted: p['accepted'] == true,
+      ),
+      const {
+        'id': 'Plugin ID',
+        'run': 'Run ID',
+        'accepted': 'True to go ahead',
       },
     );
     register(
@@ -663,7 +841,32 @@ class PluginManager extends Manager implements FleetPluginHost {
           'manifest': jsonEncode(preview['manifest']),
         })
         .timeout(const Duration(seconds: 10));
-    return {...preview, ...?compatibility};
+    final listing = await directory.lookup(preview['repository'] as String);
+    return {
+      ...preview,
+      ...?compatibility,
+      'listed': listing?.listed,
+      'icon': ?listing?.icon,
+    };
+  }
+
+  /// Community Plugins with each entry's install state, for Browse plugins.
+  Future<Map<String, Object?>> directoryState({bool refresh = false}) async {
+    final data = await directory.read(refresh: refresh);
+    try {
+      await this.refresh();
+    } catch (_) {}
+    final byId = {for (final p in installed.value) p['id']: p};
+    return {
+      ...data,
+      'plugins': [
+        for (final entry in data['plugins'] as List)
+          {
+            ...entry as Map<String, Object?>,
+            ...PluginDirectory.installStatus(entry, byId[entry['id']]),
+          },
+      ],
+    };
   }
 
   Future<Map<String, Object?>> checkUpdate(String id) async {
@@ -842,6 +1045,47 @@ class PluginManager extends Manager implements FleetPluginHost {
       if (!_disposed) status.value = _errorText(error);
       rethrow;
     }
+  }
+
+  /// Starts a settings button ([target] `button`) or a choices refresh
+  /// (`choices`) and returns the run's id.
+  Future<String> runSetup(
+    String id, {
+    required String target,
+    required String key,
+    String origin = 'device',
+  }) async {
+    final result = await _setupCall('setupRun', {
+      'id': id,
+      'target': target,
+      'key': key,
+      'origin': origin,
+    });
+    return '${(result as Map)['run']}';
+  }
+
+  Future<void> cancelSetup(String id, String run) =>
+      _setupCall('setupCancel', {'id': id, 'run': run});
+
+  Future<void> answerSetup(String id, String run, {required bool accepted}) =>
+      _setupCall('setupConfirm', {'id': id, 'run': run, 'accepted': accepted});
+
+  Future<Object?> _setupCall(String method, Map<String, Object?> args) async {
+    try {
+      return await channel
+          .invokeMethod<Object?>(method, args)
+          .timeout(const Duration(seconds: 10));
+    } catch (error) {
+      throw PluginSetupError(_errorText(error));
+    }
+  }
+
+  void _setSetup(String id, Map? value) {
+    final next = value == null ? null : jsonDecode(jsonEncode(value)) as Map;
+    if (jsonEncode(setup.value[id]) == jsonEncode(next)) return;
+    setup.value = {...setup.value}
+      ..remove(id)
+      ..addAll(next == null ? {} : {id: next.cast<String, Object?>()});
   }
 
   void _setScreensavers(String id, List value) {
@@ -1217,6 +1461,7 @@ class PluginManager extends Manager implements FleetPluginHost {
     readings.dispose();
     charts.dispose();
     statusTiles.dispose();
+    setup.dispose();
     screensavers.dispose();
     installed.dispose();
     windows.dispose();

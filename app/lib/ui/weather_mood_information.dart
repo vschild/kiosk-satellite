@@ -274,12 +274,12 @@ class _WeatherMoodInformationState extends State<WeatherMoodInformation> {
     final hours = use24h ? '$hour'.padLeft(2, '0') : '$hour';
     final showSeconds = s.get(defs.screensaverWeatherClockSeconds);
     final seconds = showSeconds ? ':${'${_now.second}'.padLeft(2, '0')}' : '';
-    final time =
-        '$hours:${'${_now.minute}'.padLeft(2, '0')}$seconds${use24h
-            ? ''
-            : _now.hour < 12
-            ? ' AM'
-            : ' PM'}';
+    final period = use24h || !s.get(defs.screensaverWeatherClockAmPm)
+        ? ''
+        : _now.hour < 12
+        ? ' AM'
+        : ' PM';
+    final time = '$hours:${'${_now.minute}'.padLeft(2, '0')}$seconds$period';
     final font = s.get(defs.screensaverWeatherClockFont);
     final scale =
         (s.get(defs.screensaverWeatherClockScale) / 100).clamp(.5, 3.0) *

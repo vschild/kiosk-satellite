@@ -857,5 +857,20 @@
         "Screensaver > Home Assistant Dashboard screensaver"
       ]
     }
+  },
+  "screensaverModeUrl": "Image URL",
+  "@screensaverModeUrl": {
+    "context": "Settings:Screensaver",
+    "description": "Screensaver mode that shows an image fetched from a web address. Also the title of the address field.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Screensaver mode",
+        "Settings > Screensaver > Image URL screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Screensaver mode",
+        "Screensaver > Image URL screensaver"
+      ]
+    }
   }
 }

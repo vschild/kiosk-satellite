@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "Ongeldige plug-in-ID of versie",
   "pluginErrorChecksumFilename": "Ongeldige releasecontrolesom of pakketbestandsnaam",
   "pluginErrorGithubDigest": "De releasecontrolesom moet overeenkomen met de SHA-256-digest van het GitHub-releasebestand",
-  "pluginErrorTagRevision": "GitHub heeft de revisie van de releasetag niet teruggestuurd",
   "pluginErrorTrustAuthor": "Bevestig dat je de auteur van de plug-in vertrouwt",
   "pluginErrorPreviewExpired": "Deze voorbeeldweergave is verlopen. Bekijk de repository opnieuw voordat je de plug-in installeert.",
   "pluginErrorReviewedChecksum": "De SHA-256 van het pakket komt niet overeen met de beoordeelde release",

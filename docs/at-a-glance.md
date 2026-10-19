@@ -33,7 +33,7 @@ The At a Glance row is available on every screensaver mode *except* the Camera S
 
 * **Black:** The row is centered and takes up the entire display.
 * **Clock:** The row sits just under the date; the clock itself shrinks slightly to accommodate it.
-* **Photo and Web Modes** (Home Assistant Media, Local Media, Photo Gallery, Immich, Website): The row is pinned near the bottom of the screen, layered over whatever the mode is displaying.
+* **Photo and Web Modes** (Home Assistant Media, Local Media, Photo Gallery, Image URL, Immich, Website): The row is pinned near the bottom of the screen, layered over whatever the mode is displaying.
 
 On the Immich screensaver, if the [metadata overlay](screensavers.md#immich-media) occupies a bottom corner, the status row intelligently narrows into two columns and wraps, staying clear of the corners rather than overlapping them.
 

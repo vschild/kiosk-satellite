@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "Недійсний ідентифікатор або версія плагіна",
   "pluginErrorChecksumFilename": "Недійсна контрольна сума релізу або назва файлу пакета",
   "pluginErrorGithubDigest": "Контрольна сума релізу має відповідати SHA-256 дайджесту ресурсу GitHub",
-  "pluginErrorTagRevision": "GitHub не повернув ревізію тега релізу",
   "pluginErrorTrustAuthor": "Підтвердіть, що ви довіряєте автору плагіна",
   "pluginErrorPreviewExpired": "Строк дії цього перегляду минув. Виконайте перегляд репозиторію знову перед встановленням.",
   "pluginErrorReviewedChecksum": "SHA-256 пакета не відповідає перевіреному релізу",

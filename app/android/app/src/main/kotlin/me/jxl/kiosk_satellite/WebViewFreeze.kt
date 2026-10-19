@@ -83,6 +83,22 @@ class WebViewFreeze(
         }
     }
 
+    companion object {
+        /**
+         * Whether [url] belongs to [prefix]. An origin prefix ends with the
+         * URL's authority, so `https://ha.example.net` does not take in
+         * `https://ha.example.net:8095`. That is Music Assistant on Home
+         * Assistant's host: the overlay showing it was hidden along with
+         * the dashboard frozen under it, leaving a black page. A bare
+         * scheme prefix (`http`) still matches every page.
+         */
+        fun matchesPrefix(url: String?, prefix: String): Boolean {
+            if (url == null || !url.startsWith(prefix)) return false
+            if (!prefix.contains("://")) return true
+            return url.length == prefix.length || url[prefix.length] in "/?#"
+        }
+    }
+
     /** Runs [action] on every WebView under the decor whose URL matches
      *  [prefix]; returns how many matched. */
     private fun forEachWebView(prefix: String, action: (WebView) -> Unit): Int {
@@ -92,7 +108,7 @@ class WebViewFreeze(
         while (stack.isNotEmpty()) {
             val view = stack.removeLast()
             if (view is WebView) {
-                if (view.url?.startsWith(prefix) == true) {
+                if (matchesPrefix(view.url, prefix)) {
                     action(view)
                     matched++
                 }

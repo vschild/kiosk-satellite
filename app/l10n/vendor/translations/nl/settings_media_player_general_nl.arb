@@ -9,7 +9,7 @@
   "settingSendspinEsphomeEntitiesTitle": "ESPHome-entiteiten beschikbaar maken",
   "settingSendspinEsphomeEntitiesDescription": "Knoppen voor afspelen, pauzeren, volgende en vorige voor de gevolgde speler in Home Assistant, met de status, titel, artiest en bron als sensoren.",
   "settingSendspinVolumeKeysTitle": "Volumeknoppen bedienen de speler",
-  "settingSendspinVolumeKeysDescription": "De volumeknoppen van dit apparaat wijzigen het volume van de gevolgde speler in plaats van het eigen apparaatvolume. Dit gebeurt alleen wanneer Speelt nu zichtbaar is of wanneer de speler muziek afspeelt.",
+  "settingSendspinVolumeKeysGroupDescription": "De volumeknoppen van dit apparaat wijzigen het volume van de gevolgde speler in plaats van het eigen apparaatvolume. Wanneer dit apparaat in een groep afspeelt, wijzigen ze het volume van de groep. Dit gebeurt alleen wanneer Speelt nu zichtbaar is of wanneer de speler muziek afspeelt.",
   "settingSendspinVolumeKeyStepTitle": "Stapgrootte van volumeknop",
   "settingSendspinVolumeKeyStepDescription": "De volumewijziging bij één druk op een volumeknop.",
   "mediaIntro": "De zwevende speler en Speelt nu verschijnen alleen wanneer de geselecteerde speler een nummer afspeelt of een gevulde wachtrij heeft. Als er niets wordt afgespeeld en de wachtrij leeg is, worden beide verborgen.",

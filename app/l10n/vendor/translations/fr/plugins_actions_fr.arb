@@ -7,5 +7,8 @@
   "pluginAlsoAvailableWhileLockedIfTheKioskDrawerIs": "Également disponible en mode verrouillé si le tiroir du kiosque est autorisé.",
   "pluginExposeToHomeAssistant": "Exposer à Home Assistant",
   "pluginAddsAButtonToTheKioskEsphomeDeviceRequires": "Ajoute un bouton à l'appareil ESPHome du kiosque. Nécessite ESPHome et les entités natives.",
-  "pluginConfigureName": "Configurer {name}"
+  "pluginConfigureName": "Configurer {name}",
+  "pluginThePluginDidNotAnswerInTime": "Le plugin n'a pas répondu à temps.",
+  "pluginNoChoicesYetRefreshToLookForThem": "Aucun choix pour l'instant. Actualisez pour en rechercher.",
+  "pluginThisChoiceIsNoLongerListed": "Ce choix ne figure plus dans la liste."
 }

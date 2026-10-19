@@ -63,5 +63,7 @@
   "screensaverBackgroundHint": "Шлях до файлу зображення або URL-адреса",
   "screensaverImageUrlError": "Введіть повну URL-адресу зображення",
   "screensaverRefreshError": "Введіть ціле число хвилин від 0 до 1440",
-  "screensaverMaxCharacters": "Використовуйте щонайбільше {count} символів"
+  "screensaverMaxCharacters": "Використовуйте щонайбільше {count} символів",
+  "settingScreensaverClockAmPmTitle": "Показувати AM/PM",
+  "settingScreensaverClockAmPmDescription": "Додавати AM або PM після часу."
 }

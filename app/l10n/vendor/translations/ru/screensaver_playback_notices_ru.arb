@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "В выбранном источнике нет медиа.",
   "screensaverImmichUnreachable": "Сервер Immich недоступен.",
   "screensaverRetryNotice": "{error} Повтор выполняется автоматически.",
-  "screensaverVideosTooLarge": "Каждое видео в этом плейлисте слишком велико для воспроизведения на этом устройстве."
+  "screensaverVideosTooLarge": "Каждое видео в этом плейлисте слишком велико для воспроизведения на этом устройстве.",
+  "screensaverUrlNotSet": "URL изображения не задан. Добавьте его в настройках.",
+  "screensaverUrlLoadFailed": "Не удалось загрузить изображение."
 }

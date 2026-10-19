@@ -20,6 +20,8 @@ class PluginManifest(val json: JSONObject) {
     val settings = json.optJSONArray("settings") ?: JSONArray()
     val commands = json.optJSONArray("commands") ?: JSONArray()
     val triggers = json.optJSONArray("triggers") ?: JSONArray()
+    /** Settings page buttons. Older apps ignore the key, so a plugin with buttons still installs there. */
+    val buttons = json.optJSONArray("buttons") ?: JSONArray()
     val capabilities = json.getJSONArray("capabilities").let { array ->
         (0 until array.length()).map { array.getString(it) }.toSet()
     }
@@ -28,6 +30,19 @@ class PluginManifest(val json: JSONObject) {
         require(value == null || value is Boolean) { "Invalid headless" }
         value == true
     }
+    /** The voice skin's picture in the Skin picker: an image under assets/, or null for the plugin mark. */
+    val voiceSkinThumbnail: String? = json.opt("voiceSkinThumbnail").let { value ->
+        if (value == null) return@let null
+        require(value is String && PluginPackage.validAssetPath(value) && value.lowercase().substringAfterLast('.') in setOf("png", "jpg", "jpeg", "webp")) { "Invalid voiceSkinThumbnail" }
+        require("voice.skin" in capabilities) { "voiceSkinThumbnail needs the voice.skin capability" }
+        value
+    }
+    /** The plugin's icon: a 256 by 256 PNG under assets/ that Community Plugins shows, or null for the plugin mark. */
+    val icon: String? = json.opt("icon").let { value ->
+        if (value == null) return@let null
+        require(value is String && PluginPackage.validAssetPath(value) && value.lowercase().endsWith(".png")) { "Invalid icon" }
+        value
+    }
     /** Overlays and screensavers are all a device without a screen would load such a plugin for, unless it says otherwise. */
     val needsScreen get() = !headless && ("overlay" in capabilities || "screensaver" in capabilities)
 
@@ -35,27 +50,33 @@ class PluginManifest(val json: JSONObject) {
         require(json.getInt("schemaVersion") == 1) { "Unsupported manifest schema" }
         require(apiVersion == 1) { "This plugin needs a different SDK version" }
         require(minAndroidSdk >= 24) { "Minimum Android SDK must be at least 24" }
-        require(capabilities.all { it in setOf("overlay", "native", "entities", "host.read", "host.control", "shizuku", "screensaver", "noise", "ha") }) { "Unsupported plugin capability" }
-        // The room's noise level is a host read, opted into on its own.
+        require(capabilities.all { it in setOf("overlay", "native", "entities", "host.read", "host.control", "shizuku", "screensaver", "noise", "ha", "voice.skin", "voice.text", "camera", "barcode") }) { "Unsupported plugin capability" }
+        // The room's noise level and the conversation's words are host reads, opted into on their own.
         require("noise" !in capabilities || "host.read" in capabilities) { "Unsupported plugin capability" }
+        require("voice.text" !in capabilities || "host.read" in capabilities) { "Unsupported plugin capability" }
+        // A voice skin draws overlays and follows the turn it draws.
+        require("voice.skin" !in capabilities || ("overlay" in capabilities && "host.read" in capabilities)) { "Unsupported plugin capability" }
         text(json, "description", 1000)
         text(json, "author", 120)
         text(json, "license", 120)
         require(settings.length() <= MAX_SETTINGS) { "Too many settings" }
         require(commands.length() <= 20) { "Too many commands" }
         require(triggers.length() <= 20) { "Too many triggers" }
+        require(buttons.length() <= MAX_BUTTONS) { "Too many buttons" }
         validateFields(settings, 0)
         for (i in 0 until settings.length()) {
             val setting = settings.getJSONObject(i)
             if (setting.has("group")) text(setting, "group", 80)
         }
+        validateButtons()
         require(!json.has("groups") || json.opt("groups") is JSONArray) { "Display groups must be an array" }
         val groups = json.optJSONArray("groups") ?: JSONArray()
         require(groups.length() <= 20) { "Too many display groups" }
         val groupNames = mutableSetOf<String>()
         val readingKeys = mutableSetOf<String>()
         val chartKeys = mutableSetOf<String>()
-        val settingGroups = (0 until settings.length()).map { settings.getJSONObject(it).optString("group", "Settings") }.toSet()
+        val settingGroups = (0 until settings.length()).map { settings.getJSONObject(it).optString("group", "Settings") }.toSet() +
+            (0 until buttons.length()).map { buttons.getJSONObject(it).optString("group", "Settings") }
         for (i in 0 until groups.length()) {
             val group = groups.getJSONObject(i)
             val title = text(group, "title", 80)
@@ -130,6 +151,33 @@ class PluginManifest(val json: JSONObject) {
         }
     }
 
+    /** Keys of the string settings whose choices the plugin publishes. */
+    val choiceKeys: Set<String> = (0 until settings.length()).map { settings.getJSONObject(it) }
+        .filter { it.has("choices") }.map { it.getString("key") }.toSet()
+
+    fun hasButton(id: String) = button(id) != null
+
+    /** Whether a button or a top-level setting shows with the saved [config]. */
+    fun buttonVisible(id: String, config: JSONObject) = button(id)?.let { visible(it, config, topLevel) } == true
+    fun settingVisible(key: String, config: JSONObject) = topLevel[key]?.let { visible(it, config, topLevel) } == true
+
+    /**
+     * The saved settings with [values] written over them. Keys left out keep
+     * their saved value, secrets included. The result still goes through [config].
+     */
+    fun merged(saved: JSONObject, values: JSONObject): JSONObject = JSONObject(saved.toString()).also { merged ->
+        for (key in values.keys()) merged.put(key, values.get(key))
+    }
+
+    /** Checks each value in [values] against its own setting, leaving out rules that depend on other settings. */
+    fun checkValues(values: JSONObject) {
+        val fields = topLevel
+        for (key in values.keys()) normalize(fields[key] ?: throw IllegalArgumentException("Unknown plugin setting"), values.get(key), enforce = false)
+    }
+
+    private val topLevel get() = (0 until settings.length()).associate { settings.getJSONObject(it).let { f -> f.getString("key") to f } }
+    private fun button(id: String) = (0 until buttons.length()).map { buttons.getJSONObject(it) }.firstOrNull { it.getString("id") == id }
+
     fun hasCommand(id: String) = (0 until commands.length()).any { commands.getJSONObject(it).getString("id") == id }
     fun hasTrigger(id: String) = (0 until triggers.length()).any { triggers.getJSONObject(it).getString("id") == id }
 
@@ -153,12 +201,40 @@ class PluginManifest(val json: JSONObject) {
                 require(depth > 0 && field.get("required") is Boolean && type in TEXT_TYPES) { "Invalid list setting" }
             }
             if (field.has("visibleWhen")) validateCondition(field.get("visibleWhen"), earlier)
+            // The plugin lists the choices at runtime. Older apps show a text field instead.
+            if (field.has("choices")) require(depth == 0 && type == "string" && field.get("choices") == "plugin") { "Invalid choices setting" }
             if (type == "list") validateList(field, depth)
             // Row fields may leave out their default. The type supplies one.
             normalize(field, if (depth == 0) field.get("default") else defaultOf(field), enforce = false)
             // A default in a published manifest is not a secret.
             require(type != "secret" || field.get("default") == "") { "Secret settings must default to an empty string" }
             earlier[key] = field
+        }
+    }
+
+    /**
+     * A button runs plugin code from the settings page. Its condition may name
+     * any top-level setting, since buttons sit apart from the settings list.
+     */
+    private fun validateButtons() {
+        val ids = mutableSetOf<String>()
+        for (i in 0 until buttons.length()) {
+            val button = buttons.get(i)
+            require(button is JSONObject) { "Invalid button" }
+            val id = text(button, "id", 64)
+            require(id.matches(Regex("[a-z][a-zA-Z0-9]*")) && ids.add(id)) { "Invalid or duplicate button ID" }
+            text(button, "title", 80)
+            text(button, "label", 40)
+            if (button.has("description")) text(button, "description", 400)
+            if (button.has("group")) text(button, "group", 80)
+            if (button.has("visibleWhen")) validateCondition(button.get("visibleWhen"), topLevel)
+            if (button.has("confirm")) {
+                val confirm = button.get("confirm")
+                require(confirm is JSONObject && confirm.keys().asSequence().all { it in setOf("title", "message", "confirmLabel") }) { "Invalid button confirmation" }
+                text(confirm, "title", 80)
+                text(confirm, "message", 1000)
+                text(confirm, "confirmLabel", 40)
+            }
         }
     }
 
@@ -321,6 +397,7 @@ class PluginManifest(val json: JSONObject) {
     companion object {
         /** Settings per plugin. Display groups keep a long list navigable. */
         const val MAX_SETTINGS = 50
+        const val MAX_BUTTONS = 20
         /** A list counts as one setting. These bound its rows. */
         const val MAX_LIST_FIELDS = 16
         const val MAX_LIST_ITEMS = 32

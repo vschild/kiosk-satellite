@@ -1,0 +1,8 @@
+{
+  "@@locale": "es",
+  "settingScreensaverUrlImageDescription": "Dirección de una imagen que el dispositivo vuelve a descargar en cada diapositiva.",
+  "settingScreensaverUrlIntervalDescription": "Tiempo que se muestra cada foto antes de descargar la siguiente.",
+  "screensaverMediaUrlPage": "Protector de pantalla: URL de imagen",
+  "screensaverMediaUrlPageHint": "URL, duración, transición y metadatos",
+  "screensaverMediaUrlMetadata": "Metadatos de la URL de imagen"
+}

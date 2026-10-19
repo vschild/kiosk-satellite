@@ -162,6 +162,8 @@ To display the RTSP video in Home Assistant, add the [Generic Camera integration
 
 Android gives one session camera access at a time. Motion detection, snapshots and RTSP share that session so taking a snapshot does not reopen the camera or reset exposure.
 
+Plugins with the `camera` capability receive frames from the same session. One plugin holds the camera at a time, and motion detection and the other camera features keep running while it does. A plugin with the `barcode` capability opens a full screen scanner that takes the camera for itself. Motion detection, face detection, hand gestures and RTSP pause while it is open, and snapshots fail. They resume when it closes. Both capabilities need **Enable camera** on. See [Camera and barcodes](https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/camera.md) in the plugin SDK.
+
 A few extremely low end devices cannot run motion analysis and JPEG capture in the same session. On those devices, motion wins, and snapshots will report the camera as busy while motion is running. If another app entirely is holding the camera open, captures will fail until that app lets go.
 
 ## Hardware Notes
@@ -176,6 +178,7 @@ The remote admin's Camera tab mirrors every setting available on the device and 
 ## Privacy
 
 * Motion analysis happens entirely locally on the device. Motion frames are never stored or transmitted; only the fact that motion occurred leaves the app.
+* A plugin with the `camera` capability receives camera frames and can do anything with them that its code does. Install only plugins you trust. The barcode scanner names the plugin that opened it.
 * Snapshots go to Home Assistant over ESPHome and to authorized remote admin clients. RTSP video is available only when enabled and requested by a viewer. Plain RTSP traffic is not encrypted, even with authentication enabled. Enable **Encrypt stream** to use RTSPS.
 * The **Enable webcam access** setting located under Web Content is completely unrelated. That setting governs whether the dashboard web page itself may use the camera, not this specific feature.
 

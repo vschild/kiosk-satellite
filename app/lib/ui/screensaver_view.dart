@@ -332,6 +332,10 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                       mode: view,
                     ),
                   ),
+                  'url' => _Dismissable(
+                    container: container,
+                    child: ImageUrlScreensaver(container: container),
+                  ),
                   'immich' => _Dismissable(
                     container: container,
                     child: ImmichScreensaver(container: container),
@@ -612,6 +616,7 @@ const slideEdgeTapDefs = <String, defs.SettingDef<bool>>{
   'media': defs.screensaverMediaEdgeTaps,
   'local': defs.screensaverLocalEdgeTaps,
   'gallery': defs.screensaverGalleryEdgeTaps,
+  'url': defs.screensaverUrlEdgeTaps,
   'immich': defs.screensaverImmichEdgeTaps,
 };
 
@@ -811,6 +816,8 @@ class _ClockScreensaverState extends State<ClockScreensaver>
     defs.screensaverClockFont.key,
     defs.screensaverClockFontWeight.key,
     defs.screensaverClockVertical.key,
+    defs.screensaverClock24h.key,
+    defs.screensaverClockAmPm.key,
     defs.screensaverClockColor.key,
     defs.screensaverClockBgColor.key,
     defs.screensaverFlipDigitColor.key,
@@ -974,7 +981,9 @@ class _ClockScreensaverState extends State<ClockScreensaver>
     final mm = _now.minute.toString().padLeft(2, '0');
     var t = '$hh:$mm';
     if (secs) t += ':${_now.second.toString().padLeft(2, '0')}';
-    if (!h24) t += _now.hour < 12 ? ' AM' : ' PM';
+    if (!h24 && s.get(defs.screensaverClockAmPm)) {
+      t += _now.hour < 12 ? ' AM' : ' PM';
+    }
     return t;
   }
 
@@ -1023,7 +1032,7 @@ class _ClockScreensaverState extends State<ClockScreensaver>
     unawaited(() async {
       try {
         final bytes = url
-            ? await _fetchBackground(value)
+            ? await fetchScreensaverImage(value, timeout: _bgFetchTimeout)
             : await File(value).readAsBytes();
         await _waitForPhotoScreen();
         if (!mounted || _bgKey != key) return;
@@ -1060,19 +1069,6 @@ class _ClockScreensaverState extends State<ClockScreensaver>
         });
       }
     }());
-  }
-
-  Future<Uint8List> _fetchBackground(String url) async {
-    final uri = Uri.parse(url.trim());
-    // No conditional caching: the point of a re-fetch is a new image
-    // under the same URL, and a proxy answering 304 would defeat it.
-    final response = await http
-        .get(uri, headers: const {'Cache-Control': 'no-cache'})
-        .timeout(_bgFetchTimeout);
-    if (response.statusCode != 200) {
-      throw HttpException('HTTP ${response.statusCode}', uri: uri);
-    }
-    return response.bodyBytes;
   }
 
   /// The background photo layers, or nothing when none is set. Fill the
@@ -1614,7 +1610,10 @@ class _ClockWidgetOverlayState extends State<ClockWidgetOverlay> {
     final hh = h24 ? h.toString().padLeft(2, '0') : h.toString();
     final mm = _now.minute.toString().padLeft(2, '0');
     var t = '$hh:$mm';
-    if (!h24) t += _now.hour < 12 ? ' AM' : ' PM';
+    // Entries saved before Show AM/PM existed carry no key and keep it.
+    if (!h24 && widget.spec.config['ampm'] != false) {
+      t += _now.hour < 12 ? ' AM' : ' PM';
+    }
     return t;
   }
 
@@ -3880,6 +3879,396 @@ class _LocalMediaScreensaverState extends State<LocalMediaScreensaver>
             slide: _image != null ? '$_index:$path' : null,
             details: () => localPhotoDetails(path),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One image fetched from [url], for the Clock background and the Image URL
+/// screensaver. No conditional caching: the point of a re-fetch is a new
+/// image under the same URL, and a proxy answering 304 would defeat it.
+/// The app makes the request itself, through the same certificate policy
+/// as every other client in the process.
+Future<Uint8List> fetchScreensaverImage(
+  String url, {
+  required Duration timeout,
+}) async {
+  final uri = Uri.parse(url.trim());
+  final response = await http
+      .get(uri, headers: const {'Cache-Control': 'no-cache'})
+      .timeout(timeout);
+  if (response.statusCode != 200) {
+    throw HttpException('HTTP ${response.statusCode}', uri: uri);
+  }
+  return response.bodyBytes;
+}
+
+/// One photo the Image URL screensaver fetched, numbered in fetch order so
+/// two answers from the same address still read as two slides.
+class _UrlSlide {
+  const _UrlSlide(this.serial, this.bytes);
+
+  final int serial;
+  final Uint8List bytes;
+}
+
+/// The Image URL screensaver (issue #1038): one address that answers with
+/// a new image on every request, fetched again for every slide. There is
+/// no playlist to read up front, so the next photo is fetched when the
+/// hold ends and the current one stays on screen until it has decoded: a
+/// slow or failing server never fades the screen to black. The last few
+/// photos stay in memory so Previous has something to go back to.
+class ImageUrlScreensaver extends StatefulWidget {
+  const ImageUrlScreensaver({
+    super.key,
+    required this.container,
+    this.retryDelay = const Duration(seconds: 30),
+  });
+
+  final AppContainer container;
+
+  /// How long a failed fetch waits before the next try.
+  final Duration retryDelay;
+
+  @override
+  State<ImageUrlScreensaver> createState() => _ImageUrlScreensaverState();
+}
+
+class _ImageUrlScreensaverState extends State<ImageUrlScreensaver>
+    with _PhotoScreenState<ImageUrlScreensaver> {
+  /// The photos Previous can step back through, the one on screen
+  /// included. Few, since each holds a whole encoded photo.
+  static const _historyLimit = 4;
+  static const _fetchTimeout = Duration(seconds: 30);
+
+  final _history = <_UrlSlide>[];
+
+  /// Where in [_history] the photo on screen sits.
+  int _position = -1;
+  int _serial = 0;
+  _UrlSlide? _slide;
+  PreparedPhoto? _photo;
+  PausableTimer? _timer;
+  Timer? _retry;
+  StreamSubscription<SettingChanged>? _urlSub;
+
+  /// Set when there is nothing to show yet: no URL, or a first fetch that
+  /// failed. A photo already on screen stays instead.
+  String? _problem;
+
+  /// The hand-off a step is waiting on, so a second press mid-fetch is
+  /// dropped rather than racing two photos onto the screen.
+  Future<void>? _stepping;
+
+  /// The address a fetch in flight asked for.
+  String? _fetching;
+
+  AppContainer get c => widget.container;
+
+  @override
+  void initState() {
+    super.initState();
+    _watchPhotoScreen(c);
+    _watchPhotoSettings(c, {
+      defs.screensaverUrlFill.key,
+      defs.screensaverUrlTransition.key,
+      defs.screensaverUrlInterval.key,
+    }, _refreshPhoto);
+    // A new address shows at once rather than after the current hold.
+    // A write that lands with the mode switch finds the first fetch
+    // already asking for it, and does not fetch twice.
+    _urlSub = c.bus.on<SettingChanged>().listen((e) {
+      if (e.key != defs.screensaverUrlImage.key) return;
+      if (_fetching == c.settings.get(defs.screensaverUrlImage).trim()) return;
+      unawaited(_reload());
+    });
+    c.screensaver.attachSlides(_step);
+    unawaited(_run(_fetchNext));
+  }
+
+  Future<void> _run(Future<void> Function() action) {
+    if (_stepping != null || !mounted) return Future<void>.value();
+    final pending = action();
+    _stepping = pending;
+    return pending.whenComplete(() => _stepping = null);
+  }
+
+  /// Next walks forward through photos Previous stepped back over, then
+  /// fetches a new one. Previous stops at the oldest photo kept.
+  Future<void> _step(int direction) {
+    if (direction < 0) {
+      if (_position <= 0) return Future<void>.value();
+      return _run(() => _showKept(_position - 1));
+    }
+    if (_position < _history.length - 1) {
+      return _run(() => _showKept(_position + 1));
+    }
+    return _run(_fetchNext);
+  }
+
+  void _advance() {
+    if (mounted) unawaited(_step(1));
+  }
+
+  Future<void> _reload() async {
+    await _stepping;
+    if (mounted) await _run(_fetchNext);
+  }
+
+  Future<void> _fetchNext() async {
+    _retry?.cancel();
+    _retry = null;
+    final url = c.settings.get(defs.screensaverUrlImage).trim();
+    if (url.isEmpty) {
+      _timer?.cancel();
+      setState(() => _problem = 'No image URL set. Add one in Settings.');
+      return;
+    }
+    await _waitForPhotoScreen();
+    if (!mounted) return;
+    final _UrlSlide slide;
+    try {
+      _fetching = url;
+      slide = _UrlSlide(
+        ++_serial,
+        await fetchScreensaverImage(url, timeout: _fetchTimeout),
+      );
+      if (!mounted || !await _present(slide)) return;
+    } catch (e) {
+      if (!mounted) return;
+      c.log.warn(
+        'screensaver',
+        'image URL fetch failed: $e; retrying in '
+            '${widget.retryDelay.inSeconds}s',
+      );
+      _timer?.cancel();
+      if (_slide == null) {
+        setState(
+          () => _problem = 'Could not load the image. Retrying automatically.',
+        );
+      }
+      _retry = Timer(widget.retryDelay, _advance);
+      return;
+    } finally {
+      _fetching = null;
+    }
+    _history.add(slide);
+    if (_history.length > _historyLimit) _history.removeAt(0);
+    _position = _history.length - 1;
+  }
+
+  Future<void> _showKept(int position) async {
+    try {
+      if (await _present(_history[position])) _position = position;
+    } catch (e) {
+      c.log.warn('screensaver', 'image URL photo failed: $e');
+    }
+  }
+
+  /// Decodes [slide] and hands off to it, restarting the hold. False when
+  /// the screensaver went away first.
+  Future<bool> _present(_UrlSlide slide) async {
+    final PreparedPhoto photo;
+    try {
+      photo = await _prepare(slide.bytes);
+    } on PhotoPreparationCancelled {
+      return false;
+    }
+    await _waitForPhotoScreen();
+    if (!mounted) {
+      photo.dispose();
+      return false;
+    }
+    _timer?.cancel();
+    _rolled = _randomPool[_rand.nextInt(_randomPool.length)];
+    final old = _photo;
+    c.screensaver.notifySlideChanged();
+    setState(() {
+      _problem = null;
+      _slide = slide;
+      _photo = photo;
+    });
+    _retirePhoto(old);
+    _timer = PausableTimer(_interval, _advance, paused: !_awake);
+    return true;
+  }
+
+  Future<PreparedPhoto> _prepare(Uint8List bytes) async {
+    await _waitForPhotoScreen();
+    if (!mounted) throw PhotoPreparationCancelled();
+    final mq = MediaQuery.of(context);
+    return PreparedPhoto.prepare(
+      bytes,
+      context: context,
+      frame: mq.size * mq.devicePixelRatio,
+      fill: _fill,
+      zoom: _zoom,
+      valid: () => mounted,
+      beforeDecode: _waitForPhotoScreen,
+    );
+  }
+
+  /// Decodes the photo on screen again for a new fill, transition or
+  /// size, without fetching.
+  Future<void> _refreshPhoto() async {
+    await _stepping;
+    final slide = _slide;
+    if (!mounted || slide == null) return;
+    await _run(() async {
+      try {
+        await _present(slide);
+      } catch (e) {
+        c.log.warn('screensaver', 'image URL photo failed: $e');
+      }
+    });
+  }
+
+  Duration get _interval => Duration(
+    seconds: c.settings.get(defs.screensaverUrlInterval).toInt().clamp(5, 3600),
+  );
+
+  String get _fill => PhotoFillOverride.resolve(
+    context,
+    c.settings.get(defs.screensaverUrlFill),
+  );
+
+  bool get _zoom => [
+    'kenburns',
+    'zoom',
+    'random',
+  ].contains(c.settings.get(defs.screensaverUrlTransition));
+
+  @override
+  void _photoScreenChanged(bool awake) {
+    if (awake) {
+      _timer?.resume();
+    } else {
+      _timer?.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    c.screensaver.detachSlides(_step);
+    _urlSub?.cancel();
+    _timer?.cancel();
+    _retry?.cancel();
+    _photo?.dispose();
+    super.dispose();
+  }
+
+  static final _rand = Random();
+
+  /// The transition Random rolled for the hand-off now on screen.
+  String _rolled = 'fade';
+
+  String get _transition {
+    final setting = c.settings.get(defs.screensaverUrlTransition);
+    return setting == 'random' ? _rolled : setting;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slide = _slide;
+    final photo = _photo;
+    if (slide == null || photo == null) {
+      return ColoredBox(
+        color: Colors.black,
+        child: _problem == null
+            ? const SizedBox.expand()
+            : Center(
+                child: Text(
+                  screensaverPlaybackNotice(context, _problem!),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white54, fontSize: 16),
+                ),
+              ),
+      );
+    }
+    final transition = _transition;
+    final key = ValueKey(slide.serial);
+    // Fill the screen follows the same rule as the other photo modes: a
+    // photo that keeps its frame gets itself, blurred and dimmed, as the
+    // backdrop instead of black bars.
+    final fill = _fill;
+    final size = MediaQuery.of(context).size;
+    final covers =
+        fill != 'off' &&
+        photoCovers(fill, photo.aspect, size.width / size.height);
+    Widget picture = Image(
+      image: photo.image,
+      fit: covers ? BoxFit.cover : BoxFit.contain,
+      gaplessPlayback: true,
+      errorBuilder: (_, _, _) => const SizedBox.expand(),
+    );
+    if (transition == 'kenburns') {
+      picture = _KenBurnsDrift(
+        index: slide.serial,
+        active: _awake,
+        duration: _interval + const Duration(seconds: 2),
+        child: SizedBox.expand(child: picture),
+      );
+    }
+    final inner = fill != 'off' && !covers
+        ? Stack(
+            fit: StackFit.expand,
+            children: [
+              RepaintBoundary(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(
+                        sigmaX: 40,
+                        sigmaY: 40,
+                        tileMode: ui.TileMode.clamp,
+                      ),
+                      child: Image(
+                        image: photo.background ?? photo.image,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        errorBuilder: (_, _, _) => const SizedBox.expand(),
+                      ),
+                    ),
+                    const ColoredBox(color: Color(0x99000000)),
+                  ],
+                ),
+              ),
+              picture,
+            ],
+          )
+        : SizedBox.expand(child: picture);
+    final Widget current = KeyedSubtree(key: key, child: inner);
+    final body = transition == 'none'
+        ? current
+        : ClipRect(
+            child: AnimatedSwitcher(
+              duration: _switchDuration(transition),
+              switchInCurve: Curves.easeInOutCubic,
+              switchOutCurve: Curves.easeInOutCubic,
+              layoutBuilder: (current, previous) => Stack(
+                fit: StackFit.expand,
+                children: [...previous, ?current],
+              ),
+              transitionBuilder: (child, animation) =>
+                  _handOff(transition, key, child, animation),
+              child: current,
+            ),
+          );
+    return ColoredBox(
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          body,
+          if (photoMetadataVisible(c.settings, 'url'))
+            _PhotoMetadata(
+              container: c,
+              mode: 'url',
+              slide: '${slide.serial}',
+              details: () => memoryPhotoDetails('${slide.serial}', slide.bytes),
+            ),
         ],
       ),
     );

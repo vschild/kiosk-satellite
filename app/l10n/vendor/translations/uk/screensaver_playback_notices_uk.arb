@@ -10,5 +10,7 @@
   "screensaverNoMediaSource": "Немає медіафайлів у вибраному джерелі.",
   "screensaverImmichUnreachable": "Не вдалося з'єднатися із сервером Immich.",
   "screensaverRetryNotice": "{error} Автоматичний повтор спроби.",
-  "screensaverVideosTooLarge": "Усі відео в цьому списку завеликі для відтворення на цьому пристрої."
+  "screensaverVideosTooLarge": "Усі відео в цьому списку завеликі для відтворення на цьому пристрої.",
+  "screensaverUrlNotSet": "URL-адресу зображення не задано. Додайте її у Налаштуваннях.",
+  "screensaverUrlLoadFailed": "Не вдалося завантажити зображення."
 }

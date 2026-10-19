@@ -831,7 +831,13 @@ class AnalyticsManager extends Manager {
     final s = _settings;
     if (s.get(defs.voiceRuntime) == 'native') {
       return s.get(defs.voiceEnabled)
-          ? (state: 'native', skin: s.get(defs.voiceSkin))
+          // A plugin's skin counts as 'plugin', without its id.
+          ? (
+              state: 'native',
+              skin: defs.isPluginVoiceSkin(s.get(defs.voiceSkin))
+                  ? 'plugin'
+                  : s.get(defs.voiceSkin),
+            )
           : (state: 'off', skin: '');
     }
     Map? page;

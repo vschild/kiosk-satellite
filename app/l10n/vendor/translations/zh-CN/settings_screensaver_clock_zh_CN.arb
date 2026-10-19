@@ -63,5 +63,7 @@
   "screensaverBackgroundHint": "设备上的图片路径或图片地址",
   "screensaverImageUrlError": "请输入完整的图片地址",
   "screensaverRefreshError": "请输入 0 至 1440 之间的整数分钟数",
-  "screensaverMaxCharacters": "最多使用 {count} 个字符"
+  "screensaverMaxCharacters": "最多使用 {count} 个字符",
+  "settingScreensaverClockAmPmTitle": "显示 AM/PM",
+  "settingScreensaverClockAmPmDescription": "在时间后显示 AM 或 PM。"
 }

@@ -9,7 +9,7 @@
   "settingSendspinEsphomeEntitiesTitle": "Exponer entidades ESPHome",
   "settingSendspinEsphomeEntitiesDescription": "Botones de reproducir, pausar, siguiente y anterior para el reproductor controlado en Home Assistant, con su estado, título, artista y origen como sensores.",
   "settingSendspinVolumeKeysTitle": "Controlar el reproductor con los botones de volumen",
-  "settingSendspinVolumeKeysDescription": "Los botones de volumen de este dispositivo cambian el volumen del reproductor controlado. Se aplican solo mientras se muestra Reproduciendo Ahora o siempre que el reproductor esté reproduciendo.",
+  "settingSendspinVolumeKeysGroupDescription": "Los botones de volumen de este dispositivo cambian el volumen del reproductor controlado. Cuando este dispositivo reproduce en un grupo, cambian el volumen del grupo. Se aplican solo mientras se muestra Reproduciendo Ahora o siempre que el reproductor esté reproduciendo.",
   "settingSendspinVolumeKeyStepTitle": "Incremento de los botones de volumen",
   "settingSendspinVolumeKeyStepDescription": "Cuánto cambia el volumen del reproductor con cada pulsación.",
   "mediaIntro": "El reproductor flotante y Reproduciendo Ahora solo aparecen cuando el reproductor elegido tiene una pista en reproducción o una cola cargada. Si no hay nada en reproducción ni en cola, no aparecen.",

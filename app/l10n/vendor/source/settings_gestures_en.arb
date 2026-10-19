@@ -13,8 +13,8 @@
       ]
     }
   },
-  "settingClapStrictnessDescription": "Strict needs louder, evenly spaced claps; try it if household noise false-triggers.",
-  "@settingClapStrictnessDescription": {
+  "settingClapDetectionDescription": "Strict needs louder, evenly spaced claps. Large room gives claps time to fade in an echoey room.",
+  "@settingClapDetectionDescription": {
     "context": "Settings > Gestures",
     "description": "Help below this setting.",
     "x-locations": {
@@ -43,6 +43,19 @@
   "@gestureStrictnessStrict": {
     "context": "Settings > Gestures",
     "description": "Clap detection option.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Clapper > Clap detection"
+      ],
+      "remoteAdmin": [
+        "Gestures > Clapper > Clap detection"
+      ]
+    }
+  },
+  "gestureStrictnessLargeRoom": "Large room",
+  "@gestureStrictnessLargeRoom": {
+    "context": "Settings > Gestures",
+    "description": "Clap detection option, for big rooms where claps echo.",
     "x-locations": {
       "device": [
         "Settings > Gestures > Clapper > Clap detection"

@@ -94,13 +94,20 @@ object Headless {
      * (`ro.biscuit.action_broadcast`). The button then needs no
      * accessibility service.
      */
-    val actionBroadcast: Boolean by lazy {
-        runCatching {
-            Class.forName("android.os.SystemProperties")
-                .getMethod("get", String::class.java, String::class.java)
-                .invoke(null, "ro.biscuit.action_broadcast", "") as String
-        }.getOrDefault("") == "1"
-    }
+    val actionBroadcast: Boolean by lazy { property("ro.biscuit.action_broadcast") == "1" }
+
+    /**
+     * The same ROM lets an app claim the volume buttons from BiscuitService
+     * (`ro.biscuit.volume_claim`): presses then arrive as a broadcast instead
+     * of changing the volume, so they can steer a player elsewhere.
+     */
+    val volumeClaim: Boolean by lazy { property("ro.biscuit.volume_claim") == "1" }
+
+    private fun property(name: String): String = runCatching {
+        Class.forName("android.os.SystemProperties")
+            .getMethod("get", String::class.java, String::class.java)
+            .invoke(null, name, "") as String
+    }.getOrDefault("")
 
     /** The engine's shell arguments. Impeller has no software backend, so
      *  it stays off for the Skia software renderer [useSoftwareRenderer]

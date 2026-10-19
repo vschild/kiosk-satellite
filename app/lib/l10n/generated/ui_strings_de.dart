@@ -2867,6 +2867,17 @@ class UiStringsDe extends UiStrings {
   }
 
   @override
+  String get pluginScanTitle => 'Code scannen';
+
+  @override
+  String get pluginScanHelp => 'Halte den Code in den Rahmen.';
+
+  @override
+  String pluginScanSource(String name) {
+    return 'Angefordert von $name';
+  }
+
+  @override
   String get pluginActions => 'Aktionen';
 
   @override
@@ -2894,6 +2905,18 @@ class UiStringsDe extends UiStrings {
   String pluginConfigureName(String name) {
     return '$name konfigurieren';
   }
+
+  @override
+  String get pluginThePluginDidNotAnswerInTime =>
+      'Das Plugin hat nicht rechtzeitig geantwortet.';
+
+  @override
+  String get pluginNoChoicesYetRefreshToLookForThem =>
+      'Noch keine Auswahl vorhanden. Aktualisiere, um danach zu suchen.';
+
+  @override
+  String get pluginThisChoiceIsNoLongerListed =>
+      'Diese Auswahl ist nicht mehr aufgeführt.';
 
   @override
   String get pluginPlugin => 'Plugin';
@@ -3069,6 +3092,109 @@ class UiStringsDe extends UiStrings {
   @override
   String get pluginCouldNotReadTheSelectedZip =>
       'Die ausgewählte ZIP-Datei konnte nicht gelesen werden';
+
+  @override
+  String get pluginBrowsePlugins => 'Plugins durchsuchen';
+
+  @override
+  String get pluginFindPluginsMadeByTheCommunity =>
+      'Von der Community erstellte Plugins finden';
+
+  @override
+  String get pluginSearchPlugins => 'Plugins suchen';
+
+  @override
+  String get pluginUpdate => 'Aktualisieren';
+
+  @override
+  String get pluginInstalled => 'Installiert';
+
+  @override
+  String get pluginStars => 'Sterne';
+
+  @override
+  String get pluginDownloads => 'Downloads';
+
+  @override
+  String get pluginActiveInstalls => 'Aktive Installationen';
+
+  @override
+  String get pluginNoPluginsMatchYourSearch =>
+      'Keine Plugins entsprechen deiner Suche.';
+
+  @override
+  String get pluginCommunityPluginsHasNoPluginsYet =>
+      'Community-Plugins enthält noch keine Plugins.';
+
+  @override
+  String get pluginSubmitYourPlugin => 'Plugin einreichen';
+
+  @override
+  String get pluginListYourPluginInCommunityPlugins =>
+      'Liste dein Plugin in Community-Plugins.';
+
+  @override
+  String get pluginCouldNotReachCommunityPlugins =>
+      'Community-Plugins ist nicht erreichbar. Prüfe die Internetverbindung.';
+
+  @override
+  String get pluginCouldNotLoadCommunityPlugins =>
+      'Community-Plugins konnte nicht geladen werden. Versuche es später erneut.';
+
+  @override
+  String get pluginTurnOn => 'Einschalten';
+
+  @override
+  String get pluginTurnOnEnablePluginsToInstall =>
+      'Schalte „Plugins aktivieren“ ein, um dieses Plugin zu installieren.';
+
+  @override
+  String get pluginPreviousPage => 'Vorherige Seite';
+
+  @override
+  String get pluginNextPage => 'Nächste Seite';
+
+  @override
+  String pluginPageOfPages(String page, String pages) {
+    return 'Seite $page von $pages';
+  }
+
+  @override
+  String get pluginSortBy => 'Sortieren nach';
+
+  @override
+  String get pluginSortMostStars => 'Meiste Sterne';
+
+  @override
+  String get pluginSortRecentlyUpdated => 'Kürzlich aktualisiert';
+
+  @override
+  String get pluginSortNewest => 'Neueste';
+
+  @override
+  String get pluginSortName => 'Name';
+
+  @override
+  String get pluginSortMostDownloads => 'Meiste Downloads';
+
+  @override
+  String get pluginPluginsPerPage => 'Plugins pro Seite';
+
+  @override
+  String pluginCountPerPage(String count) {
+    return '$count pro Seite';
+  }
+
+  @override
+  String pluginByAuthor(String author) {
+    return 'von $author';
+  }
+
+  @override
+  String get pluginListedChip => 'In Community-Plugins gelistet';
+
+  @override
+  String get pluginNotListedChip => 'Nicht in Community-Plugins gelistet';
 
   @override
   String get pluginCharts => 'Diagramme';
@@ -3248,10 +3374,6 @@ class UiStringsDe extends UiStrings {
       'Die Prüfsumme der Version muss mit dem SHA-256-Hash der Datei auf GitHub übereinstimmen';
 
   @override
-  String get pluginErrorTagRevision =>
-      'GitHub hat die Revision des Release-Tags nicht zurückgegeben';
-
-  @override
   String get pluginErrorTrustAuthor =>
       'Bitte bestätige, dass du dem Autor des Plugins vertraust';
 
@@ -3329,10 +3451,6 @@ class UiStringsDe extends UiStrings {
   @override
   String get pluginErrorRestartReplace =>
       'Dieses Plugin wurde nicht ordnungsgemäß beendet. Starte Kiosk Satellite neu, bevor du es ersetzt.';
-
-  @override
-  String get pluginErrorPluginLimit =>
-      'Es können maximal 8 Plugins installiert werden';
 
   @override
   String get pluginErrorAlreadyInstalled =>
@@ -4095,6 +4213,14 @@ class UiStringsDe extends UiStrings {
   @override
   String get screensaverVideosTooLarge =>
       'Alle Videos in dieser Liste sind zu groß, um auf diesem Gerät wiedergegeben zu werden.';
+
+  @override
+  String get screensaverUrlNotSet =>
+      'Es wurde keine Bild-URL festgelegt. Bitte füge eine in den Einstellungen hinzu.';
+
+  @override
+  String get screensaverUrlLoadFailed =>
+      'Das Bild konnte nicht geladen werden.';
 
   @override
   String get settingKioskAllowAlarmsTitle => 'Wecker';
@@ -7210,14 +7336,17 @@ class UiStringsDe extends UiStrings {
   String get settingClapStrictnessTitle => 'Klatscherkennung';
 
   @override
-  String get settingClapStrictnessDescription =>
-      'Der strikte Modus erfordert lautere und gleichmäßiger verteilte Klatscher. Probiere ihn aus, wenn Haushaltsgeräusche die Gesten versehentlich auslösen.';
+  String get settingClapDetectionDescription =>
+      'Der strikte Modus erfordert lautere und gleichmäßiger verteilte Klatscher. Großer Raum gibt Klatschern in einem halligen Raum Zeit zum Ausklingen.';
 
   @override
   String get gestureStrictnessStandard => 'Standard';
 
   @override
   String get gestureStrictnessStrict => 'Strikt';
+
+  @override
+  String get gestureStrictnessLargeRoom => 'Großer Raum';
 
   @override
   String get gestureOff => 'Gesten sind deaktiviert';
@@ -8757,8 +8886,8 @@ class UiStringsDe extends UiStrings {
       'Player mit den Lautstärketasten steuern';
 
   @override
-  String get settingSendspinVolumeKeysDescription =>
-      'Die Lautstärketasten dieses Geräts ändern die Lautstärke des gesteuerten Players. Dies gilt entweder nur, solange „Jetzt läuft“ angezeigt wird, oder immer während der Player Musik wiedergibt.';
+  String get settingSendspinVolumeKeysGroupDescription =>
+      'Die Lautstärketasten dieses Geräts ändern die Lautstärke des gesteuerten Players. Wenn dieses Gerät in einer Gruppe wiedergibt, ändern sie die Lautstärke der Gruppe. Dies gilt entweder nur, solange „Jetzt läuft“ angezeigt wird, oder immer während der Player Musik wiedergibt.';
 
   @override
   String get settingSendspinVolumeKeyStepTitle =>
@@ -10117,6 +10246,13 @@ class UiStringsDe extends UiStrings {
   }
 
   @override
+  String get settingScreensaverClockAmPmTitle => 'AM/PM anzeigen';
+
+  @override
+  String get settingScreensaverClockAmPmDescription =>
+      'Zeigt AM oder PM nach der Uhrzeit an.';
+
+  @override
   String get screensaverOverlayEntity => 'Entität';
 
   @override
@@ -10469,6 +10605,9 @@ class UiStringsDe extends UiStrings {
   @override
   String get screensaverDashboardSection =>
       'Bildschirmschoner: Home-Assistant-Dashboard';
+
+  @override
+  String get screensaverModeUrl => 'Bild-URL';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Skalierung der Leiste';
@@ -11403,6 +11542,24 @@ class UiStringsDe extends UiStrings {
       'Ordner, Anzeigedauer, Zufallswiedergabe, Übergänge und Metadaten';
 
   @override
+  String get settingScreensaverUrlImageDescription =>
+      'Eine Bildadresse, die das Gerät für jede Folie neu abruft.';
+
+  @override
+  String get settingScreensaverUrlIntervalDescription =>
+      'Wie lange jedes Foto angezeigt wird, bevor das nächste abgerufen wird.';
+
+  @override
+  String get screensaverMediaUrlPage => 'Bildschirmschoner: Bild-URL';
+
+  @override
+  String get screensaverMediaUrlPageHint =>
+      'URL, Anzeigedauer, Übergänge und Metadaten';
+
+  @override
+  String get screensaverMediaUrlMetadata => 'Metadaten der Bild-URL';
+
+  @override
   String get settingScreensaverDismissOnMotionTitle =>
       'Bei Bewegungserkennung schließen';
 
@@ -12310,6 +12467,10 @@ class UiStringsDe extends UiStrings {
   @override
   String get voiceDashboardRequired =>
       'Verfügbar, solange der Kiosk dein Home-Assistant-Dashboard anzeigt.';
+
+  @override
+  String get voiceSkinUnavailablePlugin =>
+      'Design eines Plugins nicht verfügbar';
 
   @override
   String get voiceSkinDefault => 'Wie im Design';

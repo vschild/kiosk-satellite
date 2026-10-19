@@ -549,5 +549,15 @@ const screensaverTextMessageIds = <String, String>{
   "Home Assistant Media metadata": "screensaverMediaHaMetadata",
   "Date and camera details over the photo.": "settingScreensaverMediaMetadataDescription",
   "Local Media metadata": "screensaverMediaLocalMetadata",
-  "External Motion Sensor": "screensaverDetectionExternalMotionHeading"
+  "External Motion Sensor": "screensaverDetectionExternalMotionHeading",
+  "Image URL": "screensaverModeUrl",
+  "An image address the device fetches again for every slide.": "settingScreensaverUrlImageDescription",
+  "How long each photo shows before the next fetch.": "settingScreensaverUrlIntervalDescription",
+  "Image URL screensaver": "screensaverMediaUrlPage",
+  "URL, timing, transition, metadata": "screensaverMediaUrlPageHint",
+  "Image URL metadata": "screensaverMediaUrlMetadata",
+  "Show AM/PM": "settingScreensaverClockAmPmTitle",
+  "Add AM or PM after the time.": "settingScreensaverClockAmPmDescription",
+  "No image URL set. Add one in Settings.": "screensaverUrlNotSet",
+  "Could not load the image.": "screensaverUrlLoadFailed"
 };

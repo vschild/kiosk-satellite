@@ -9,7 +9,7 @@
   "settingSendspinEsphomeEntitiesTitle": "ESPHome-Entitäten freigeben",
   "settingSendspinEsphomeEntitiesDescription": "Tasten für Wiedergabe, Pause, Weiter und Zurück für den gesteuerten Player in Home Assistant, dazu sein Status, Titel, Interpret und seine Quelle als Sensoren.",
   "settingSendspinVolumeKeysTitle": "Player mit den Lautstärketasten steuern",
-  "settingSendspinVolumeKeysDescription": "Die Lautstärketasten dieses Geräts ändern die Lautstärke des gesteuerten Players. Dies gilt entweder nur, solange „Jetzt läuft“ angezeigt wird, oder immer während der Player Musik wiedergibt.",
+  "settingSendspinVolumeKeysGroupDescription": "Die Lautstärketasten dieses Geräts ändern die Lautstärke des gesteuerten Players. Wenn dieses Gerät in einer Gruppe wiedergibt, ändern sie die Lautstärke der Gruppe. Dies gilt entweder nur, solange „Jetzt läuft“ angezeigt wird, oder immer während der Player Musik wiedergibt.",
   "settingSendspinVolumeKeyStepTitle": "Schrittweite der Lautstärketasten",
   "settingSendspinVolumeKeyStepDescription": "Wie stark sich die Lautstärke des Players pro Tastendruck verändert.",
   "mediaIntro": "Der schwebende Player und „Jetzt läuft“ erscheinen nur, wenn der ausgewählte Player aktuell einen Titel wiedergibt oder eine Warteschlange geladen hat. Wenn nichts wiedergegeben wird und keine Warteschlange vorhanden ist, werden sie nicht angezeigt.",

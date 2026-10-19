@@ -63,5 +63,7 @@
   "screensaverBackgroundHint": "Pfad zu einem Bild auf dem Gerät oder URL eines Bildes",
   "screensaverImageUrlError": "Bitte die vollständige URL eines Bildes eingeben",
   "screensaverRefreshError": "Bitte eine ganze Zahl zwischen 0 und 1440 Minuten eingeben",
-  "screensaverMaxCharacters": "Maximal {count} Zeichen verwenden"
+  "screensaverMaxCharacters": "Maximal {count} Zeichen verwenden",
+  "settingScreensaverClockAmPmTitle": "AM/PM anzeigen",
+  "settingScreensaverClockAmPmDescription": "Zeigt AM oder PM nach der Uhrzeit an."
 }

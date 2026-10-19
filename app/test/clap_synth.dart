@@ -45,6 +45,35 @@ List<double> reverbClap(Random rng, {double amp = 0.9}) => [
             : 0.35 * exp(-(i - sampleRate * 15 ~/ 1000) / (sampleRate * 0.08))),
 ];
 
+/// Claps in a big room with hard surfaces: each clap is a 15 ms burst plus a
+/// tail starting at [tailGain] of the burst and dying away over [rt60]
+/// seconds, the tails overlapping like they do in the room. A 2 s hall keeps
+/// the tail within 15 dB of the peak well past 250 ms, which is what made the
+/// decay check read every clap there as sustained sound.
+List<double> hallClapScene(
+  int count,
+  Random rng, {
+  double rt60 = 2.0,
+  double tailGain = 0.7,
+  int gapMs = 400,
+  double amp = 0.6,
+}) {
+  final warmup = sampleRate * 700 ~/ 1000;
+  final gap = sampleRate * gapMs ~/ 1000;
+  final out = ambience(700 + gapMs * count + 3000, rng, amp: 0.0005);
+  final tau = rt60 / 6.91 * sampleRate; // 60 dB down after rt60
+  final burst = sampleRate * 15 ~/ 1000;
+  for (var c = 0; c < count; c++) {
+    final start = warmup + c * gap;
+    for (var i = 0; start + i < out.length; i++) {
+      final env = i < burst ? 1.0 : tailGain * exp(-(i - burst) / tau);
+      if (env < 1e-4) break;
+      out[start + i] += (rng.nextDouble() * 2 - 1) * amp * env;
+    }
+  }
+  return out;
+}
+
 /// A low-frequency thud: a 200 Hz sine burst with a 5 ms attack ramp, loud
 /// but with almost no high-frequency content. Must not read as a clap.
 List<double> thud(int ms, {double amp = 0.5, double freq = 200}) {

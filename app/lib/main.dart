@@ -303,9 +303,7 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
       // the same altitude for the same reason: every route, dialog and
       // overlay scales, with the WebViews opting back out (UiScaleExempt).
       builder: (context, child) => UiScaler(
-        scale: (container.settings.get(defs.uiScale).toDouble() / 100)
-            .clamp(0.5, 1.5)
-            .toDouble(),
+        scale: uiScaleFactor(container.settings.get(defs.uiScale)),
         child: FocusTraversalGroup(policy: KsTraversalPolicy(), child: child!),
       ),
       navigatorObservers: [kioskRouteObserver],

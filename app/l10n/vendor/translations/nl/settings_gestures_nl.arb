@@ -1,9 +1,10 @@
 {
   "@@locale": "nl",
   "settingClapStrictnessTitle": "Klapdetectie",
-  "settingClapStrictnessDescription": "Strikt vereist luider en gelijkmatiger handgeklap. Probeer dit als omgevingsgeluiden gebaren ten onrechte activeren.",
+  "settingClapDetectionDescription": "Strikt vereist luider en gelijkmatiger handgeklap. Grote ruimte geeft handgeklap de tijd om weg te sterven in een galmende ruimte.",
   "gestureStrictnessStandard": "Standaard",
   "gestureStrictnessStrict": "Strikt",
+  "gestureStrictnessLargeRoom": "Grote ruimte",
   "gestureOff": "Gebaren zijn uitgeschakeld",
   "gestureOffHelp": "Gebaren uitschakelen is actief in de instellingen voor de kioskmodus.",
   "gestureEmpty": "Geen gebaren ingesteld",

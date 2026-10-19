@@ -1,0 +1,8 @@
+{
+  "@@locale": "nl",
+  "settingScreensaverUrlImageDescription": "Een afbeeldingsadres dat het apparaat voor elke dia opnieuw ophaalt.",
+  "settingScreensaverUrlIntervalDescription": "Hoelang elke foto wordt getoond voordat de volgende wordt opgehaald.",
+  "screensaverMediaUrlPage": "Afbeeldings-URL-schermbeveiliging",
+  "screensaverMediaUrlPageHint": "URL, timing, overgangen en metadata",
+  "screensaverMediaUrlMetadata": "Metadata van afbeeldings-URL"
+}

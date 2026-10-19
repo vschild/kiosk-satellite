@@ -73,6 +73,8 @@ export const SUBPAGE_ICONS = {
     + '<path d="M17 19v.5A1.5 1.5 0 0 1 15.5 21h-11A1.5 1.5 0 0 1 3 19.5V9.5'
     + 'A1.5 1.5 0 0 1 4.5 8H5"/><circle cx="11" cy="7.5" r="1.5"/>'
     + '<path d="m7 15 4-4 3 3 2-2 5 5"/>'),
+  'Image URL screensaver': svg('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+    + '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'),
   // The Immich mark, the five petals monochrome, the same rendition as
   // assets/svg/immich.svg on the device.
   'Immich Media screensaver': svg('<path d="M375.48,267.63c38.64,34.21,69.78,70.87,89.82,105.42c34.42-61.56,57.42-134.71,57.71-181.3c0-0.33,0-0.63,0-0.91c0-68.94-68.77-95.77-128.01-95.77s-128.01,26.83-128.01,95.77c0,0.94,0,2.2,0,3.72C300.01,209.24,339.15,235.47,375.48,267.63z'

@@ -15,7 +15,6 @@
   "pluginErrorIdVersion": "El ID o la versión del plugin no es válido",
   "pluginErrorChecksumFilename": "La suma de verificación de la versión o el nombre del paquete no es válido",
   "pluginErrorGithubDigest": "La suma de verificación de la versión debe coincidir con el SHA-256 del archivo en GitHub",
-  "pluginErrorTagRevision": "GitHub no devolvió la revisión de la etiqueta de la versión",
   "pluginErrorTrustAuthor": "Confirma que confías en el autor del plugin",
   "pluginErrorPreviewExpired": "Esta vista previa caducó. Vuelve a consultar la vista previa del repositorio antes de instalar.",
   "pluginErrorReviewedChecksum": "El SHA-256 del paquete no coincide con la versión revisada",

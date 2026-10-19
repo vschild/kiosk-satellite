@@ -1,0 +1,8 @@
+{
+  "@@locale": "uk",
+  "settingScreensaverUrlImageDescription": "Адреса зображення, яке пристрій завантажує заново для кожного слайда.",
+  "settingScreensaverUrlIntervalDescription": "Скільки часу кожне фото показується перед завантаженням наступного.",
+  "screensaverMediaUrlPage": "Заставка URL-адреси зображення",
+  "screensaverMediaUrlPageHint": "URL-адреса, тривалість, перехід, метадані",
+  "screensaverMediaUrlMetadata": "Метадані URL-адреси зображення"
+}

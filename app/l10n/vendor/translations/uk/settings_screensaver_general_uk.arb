@@ -55,5 +55,6 @@
   "screensaverModeDashboard": "Панель керування Home Assistant",
   "settingScreensaverDashboardViewTitle": "Вигляд панелі керування",
   "settingScreensaverDashboardViewDescription": "Вигляд панелі керування Home Assistant, який показує заставка.",
-  "screensaverDashboardSection": "Заставка панелі керування Home Assistant"
+  "screensaverDashboardSection": "Заставка панелі керування Home Assistant",
+  "screensaverModeUrl": "URL-адреса зображення"
 }

@@ -1,9 +1,10 @@
 {
   "@@locale": "de",
   "settingClapStrictnessTitle": "Klatscherkennung",
-  "settingClapStrictnessDescription": "Der strikte Modus erfordert lautere und gleichmäßiger verteilte Klatscher. Probiere ihn aus, wenn Haushaltsgeräusche die Gesten versehentlich auslösen.",
+  "settingClapDetectionDescription": "Der strikte Modus erfordert lautere und gleichmäßiger verteilte Klatscher. Großer Raum gibt Klatschern in einem halligen Raum Zeit zum Ausklingen.",
   "gestureStrictnessStandard": "Standard",
   "gestureStrictnessStrict": "Strikt",
+  "gestureStrictnessLargeRoom": "Großer Raum",
   "gestureOff": "Gesten sind deaktiviert",
   "gestureOffHelp": "Die Option „Gesten deaktivieren“ ist in den Kioskmodus-Einstellungen aktiviert.",
   "gestureEmpty": "Keine Gesten konfiguriert",
