@@ -5,5 +5,6 @@
   "launcherListFailed": "Не вдалося отримати список програм",
   "launcherListError": "Не вдалося отримати список програм: {error}",
   "launcherListingFailed": "помилка отримання списку",
-  "launcherEmpty": "Програм для запуску не знайдено."
+  "launcherEmpty": "Програм для запуску не знайдено.",
+  "launcherSearchApps": "Пошук застосунків"
 }

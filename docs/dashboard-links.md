@@ -24,13 +24,15 @@ A `ks://` link runs the same action a [gesture](gestures.md) can, with the same 
 | `ks://player` | Shows the floating [media player](sendspin.md) card. |
 | `ks://music-assistant` | Opens Music Assistant's web interface for the kiosk's player. Requires a Music Assistant server address. |
 | `ks://camera` | Shows the default [camera view](cameras.md). |
-| `ks://camera/<view id>` | Shows that camera view. The id is the one shown on the view's page under Camera streams. |
+| `ks://camera/<view name or id>` | Shows that camera view. The name ignores case, and a dash or underscore can stand in for a space, so `ks://camera/front-door` shows Front Door. The ID is under View ID when you edit the view in Camera streams and keeps working if the view is renamed. |
 | `ks://camera/close` | Closes whatever camera view is showing. |
 | `ks://intercom` | Opens the [intercom's](intercom.md) Call a kiosk sheet. |
 | `ks://intercom/<kiosk id>` | Calls that kiosk straight away. The id is the one under Intercom, Kiosks. |
 | `ks://screensaver` | Starts the screensaver. |
 | `ks://screensaver/stop` | Stops it. |
 | `ks://alarms` | Opens the full screen [alarm](alarms.md) list. |
+| `ks://calendar` | Opens the [calendar](calendar.md) on its default view. |
+| `ks://calendar/<view>` | Opens the calendar on `day`, `week`, `month` or `schedule`. |
 | `ks://hold` | Toggles hold mode, which pins the current view. |
 | `ks://ha-kiosk` | Toggles HA kiosk mode, the Home Assistant header and sidebar. |
 | `ks://android-settings` | Opens the Android Settings app with the kiosk running behind it. |

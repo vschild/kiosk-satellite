@@ -42,6 +42,7 @@ const Map<String, Object> subpageIcons = {
   'Adaptive brightness': Icons.brightness_auto_outlined,
   // Screensaver.
   'Weather Mood screensaver': Icons.cloud_outlined,
+  'Celestial screensaver': Icons.auto_awesome_outlined,
   'Clock screensaver': Icons.schedule_outlined,
   'Home Assistant Media screensaver': Icons.play_circle_outline,
   'Local Media screensaver': Icons.folder_outlined,

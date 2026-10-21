@@ -65,6 +65,10 @@ void main() {
   late Map<String, Object?> installerState;
   late Map<String, Object?> shizukuState;
   late List<String> answers;
+  late Map<String, Object?> pluginState;
+  // Community Plugins as getPluginDirectory answers; null fails the call.
+  Map<String, Object?>? pluginDirectory;
+  var directoryReads = 0;
 
   Future<void> build(
     Map<String, Object> initial, {
@@ -84,17 +88,33 @@ void main() {
         handler: (_) async => const CommandResult.ok(deviceInfo),
       ),
     );
+    pluginState = {
+      'enabled': true,
+      'plugins': [
+        {'id': 'a'},
+        {'id': 'b'},
+      ],
+    };
+    pluginDirectory = null;
+    directoryReads = 0;
     commands.register(
       Command(
         name: 'getPluginState',
         description: 'stub',
-        handler: (_) async => const CommandResult.ok({
-          'enabled': true,
-          'plugins': [
-            {'id': 'a'},
-            {'id': 'b'},
-          ],
-        }),
+        handler: (_) async => CommandResult.ok(pluginState),
+      ),
+    );
+    commands.register(
+      Command(
+        name: 'getPluginDirectory',
+        description: 'stub',
+        handler: (_) async {
+          directoryReads++;
+          final d = pluginDirectory;
+          return d == null
+              ? const CommandResult.fail('offline')
+              : CommandResult.ok(d);
+        },
       ),
     );
     wakeState = {
@@ -225,7 +245,9 @@ void main() {
       expect(basic['ram_gb'], 8.0);
       final usage = body['usage'] as Map;
       expect(usage['plugins'], 2);
-      expect(usage['plugin_ids'], ['a', 'b']);
+      // Installed from ZIP: counted, never named.
+      expect(usage['plugin_ids'], isEmpty);
+      expect(usage['plugins_from_zip'], 2);
       expect(usage['fleet_role'], 'none');
       expect(usage['wake_word_engine'], 'vsWakeWord');
       expect(usage['wake_word'], 'Ok Nova');
@@ -349,6 +371,44 @@ void main() {
       expect((await usage())['voice_satellite'], 'off');
     },
   );
+
+  test('the calendar reports counts and picks, never its calendars', () async {
+    await build({
+      'ks.voice.runtime': 'dashboard',
+      'ks.calendar.calendars':
+          '[{"entity":"calendar.sam_work","name":"Sam","color":"192,97,58",'
+          '"person":"person.sam"},'
+          '{"entity":"calendar.leo","name":"Leo","color":"1,2,3"},'
+          '{"entity":"calendar.old","name":"Old","color":"72,130,132",'
+          '"on":false}]',
+      'ks.calendar.hidden': '["calendar.leo"]',
+      'ks.calendar.weather_entity': 'weather.home',
+    });
+    commands.register(
+      Command(
+        name: 'calendarStatus',
+        description: 'stub',
+        handler: (_) async => const CommandResult.ok({'source': 'live'}),
+      ),
+    );
+    await UsageCounters.bump(settings, 'calendar_opens');
+    await UsageCounters.bump(settings, 'calendar_opens');
+    await pump();
+    final usage = bodyOf(sent.single)['usage'] as Map;
+    expect(usage['calendars'], 2);
+    expect(usage['calendars_off'], 1);
+    expect(usage['calendars_hidden'], 1);
+    expect(usage['calendar_people'], 1);
+    expect(usage['calendar_custom_colors'], 1);
+    expect(usage['calendar_weather'], isTrue);
+    expect(usage['calendar_default_view'], 'week');
+    expect(usage['calendar_source'], 'live');
+    expect(usage['calendar_opens'], '1-5');
+    final text = jsonEncode(usage);
+    for (final secret in ['sam_work', 'Sam', 'person.', 'weather.home']) {
+      expect(text, isNot(contains(secret)), reason: secret);
+    }
+  });
 
   test('the native satellite reports its settings as picks and counts, only '
       'while it is on', () async {
@@ -544,6 +604,162 @@ void main() {
     expect(dockEdge('0.1,0.9'), 'bottom_left');
     expect(dockEdge('0.5,0.5'), 'center');
     expect(dockEdge('nonsense'), 'bottom');
+  });
+
+  group('plugins', () {
+    Map<String, Object?> plugin(
+      String id, {
+      String version = '1.0.0',
+      String? repository,
+      bool enabled = true,
+      bool running = true,
+      String error = '',
+      List<String> capabilities = const [],
+      Map<String, Object?> actionOptions = const {},
+      bool fleet = false,
+    }) => {
+      'id': id,
+      'version': version,
+      'enabled': enabled,
+      'running': running,
+      'error': error,
+      'statusError': false,
+      'capabilities': capabilities,
+      'actionOptions': actionOptions,
+      if (repository != null) 'source': {'repository': repository},
+      if (fleet) 'fleetManaged': true,
+    };
+
+    Future<Map> usage() async {
+      sent.clear();
+      expect(await analytics.sendSnapshot(force: true), isTrue);
+      return bodyOf(sent.single)['usage'] as Map;
+    }
+
+    test(
+      'names only Community Plugins and counts the rest by source',
+      () async {
+        await build({}, firstDelay: const Duration(days: 1));
+        pluginState = {
+          'enabled': true,
+          'plugins': [
+            plugin(
+              'weather-radar',
+              version: '1.2.0',
+              repository: 'https://github.com/someone/weather-radar',
+              capabilities: ['screensaver', 'ha'],
+              actionOptions: {
+                'refresh': {'drawer': true, 'homeAssistant': true},
+              },
+            ),
+            plugin(
+              'my-secret-tool',
+              repository: 'https://github.com/me/my-secret-tool',
+              capabilities: ['shizuku'],
+              running: false,
+            ),
+            plugin(
+              'garage-hack',
+              error: 'Plugin stopped at start',
+              running: false,
+            ),
+            plugin('office-pack', fleet: true, enabled: false, running: false),
+          ],
+        };
+        pluginDirectory = {
+          'plugins': [
+            {
+              'id': 'weather-radar',
+              'installed': true,
+              'sameSource': true,
+              'updateAvailable': true,
+            },
+            {'id': 'clock-faces', 'installed': false},
+          ],
+        };
+        final u = await usage();
+        expect(u['plugins'], 4);
+        expect(u['plugin_ids'], ['weather-radar']);
+        expect(u['plugin_versions'], ['weather-radar@1.2.0']);
+        expect(u['plugins_update_available'], 1);
+        expect(u['plugins_from_directory'], 1);
+        expect(u['plugins_from_github'], 1);
+        expect(u['plugins_from_zip'], 1);
+        expect(u['plugins_from_fleet'], 1);
+        expect(u['plugins_source_unknown'], 0);
+        expect(u['plugins_on'], 3);
+        expect(u['plugins_running'], 1);
+        expect(u['plugins_errors'], 1);
+        // On, no error, not running: the private tool.
+        expect(u['plugins_stalled'], 1);
+        // Enabled plugins only: the fleet one is off.
+        expect(u['plugin_capabilities'], ['ha', 'screensaver', 'shizuku']);
+        expect(u['plugin_menu_actions'], 1);
+        expect(u['plugin_ha_actions'], 1);
+        final text = jsonEncode(u);
+        expect(text, isNot(contains('my-secret-tool')));
+        expect(text, isNot(contains('garage-hack')));
+        expect(text, isNot(contains('office-pack')));
+      },
+    );
+
+    test('an unreadable directory names nothing and says so', () async {
+      await build({}, firstDelay: const Duration(days: 1));
+      pluginState = {
+        'enabled': true,
+        'plugins': [
+          plugin('weather-radar', repository: 'https://github.com/x/y'),
+        ],
+      };
+      final u = await usage();
+      expect(u['plugin_ids'], isEmpty);
+      expect(u['plugins_source_unknown'], 1);
+      expect(u['plugins_from_github'], 0);
+    });
+
+    test(
+      'the directory is only read when a plugin came from a repository',
+      () async {
+        await build({}, firstDelay: const Duration(days: 1));
+        await usage();
+        expect(directoryReads, 0);
+        pluginState = {'enabled': false, 'plugins': <Object?>[]};
+        final u = await usage();
+        expect(u['plugins'], 0);
+        expect(u.containsKey('plugins_from_zip'), isFalse);
+        expect(directoryReads, 0);
+      },
+    );
+
+    test('a plugin screensaver reads as plugin, without its id', () async {
+      await build({
+        'ks.screensaver.enabled': true,
+        'ks.screensaver.mode': 'plugin:my-secret-tool:aquarium',
+      }, firstDelay: const Duration(days: 1));
+      final u = await usage();
+      expect(u['screensaver'], 'plugin');
+      expect(u['plugin_screensaver'], isTrue);
+      expect(jsonEncode(u), isNot(contains('aquarium')));
+    });
+
+    test(
+      'install activity reads as ranges and starts over once sent',
+      () async {
+        await build({}, firstDelay: const Duration(days: 1));
+        await UsageCounters.bump(settings, 'plugin_installs_directory');
+        await UsageCounters.bump(settings, 'plugin_install_failures');
+        for (var i = 0; i < 7; i++) {
+          await UsageCounters.bump(settings, 'plugin_updates');
+        }
+        var u = await usage();
+        expect(u['plugin_installs_directory'], '1-5');
+        expect(u['plugin_installs_zip'], '0');
+        expect(u['plugin_updates'], '6-20');
+        expect(u['plugin_install_failures'], '1-5');
+        u = await usage();
+        expect(u['plugin_updates'], '0');
+      },
+    );
   });
 
   test('alarms read as counts and picks, never as times or labels', () async {
@@ -817,6 +1033,9 @@ void main() {
       final v = entry.value;
       if (const {
         'plugin_ids',
+        'plugin_versions',
+        'plugin_capabilities',
+        'url_filter_scopes',
         'widgets',
         'gesture_triggers',
         'gesture_actions',

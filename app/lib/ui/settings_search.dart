@@ -162,6 +162,27 @@ const List<SettingsSearchEntry> handBuiltSearchEntries = [
     anchorId: "x:plugins:create",
   ),
   SettingsSearchEntry(
+    category: "Calendar",
+    title: "Open calendar",
+    description: "Show the calendar on this kiosk.",
+    anchorId: "x:calendar_open",
+  ),
+  SettingsSearchEntry(
+    category: "Calendar",
+    title: "Add a calendar",
+    description:
+        "Add the Home Assistant calendars to show in Settings > Calendar.",
+    anchorId: "x:calendar_add",
+  ),
+  SettingsSearchEntry(
+    category: "Calendar",
+    title: "Manage the calendar using Voice Satellite",
+    description:
+        "Needs the Kiosk Satellite calendar blueprint and an LLM conversation "
+        "agent in Home Assistant.",
+    anchorId: "x:calendar_voice",
+  ),
+  SettingsSearchEntry(
     category: "Alarms",
     title: "Manage alarms using Voice Satellite",
     description:
@@ -697,6 +718,7 @@ List<SettingsSearchEntry> buildSettingsSearchIndex(
   String Function(String)? pluginTextFor,
   String Function(String)? intercomTextFor,
   String Function(String)? alarmsTextFor,
+  String Function(String)? calendarTextFor,
   String Function(String)? mediaTextFor,
   String Function(String)? cameraStreamsTextFor,
   String Function(String)? cameraTextFor,
@@ -786,6 +808,8 @@ List<SettingsSearchEntry> buildSettingsSearchIndex(
         ? intercomTextFor
         : entry.category == 'Alarms'
         ? alarmsTextFor
+        : entry.category == 'Calendar'
+        ? calendarTextFor
         : entry.category == 'Sendspin'
         ? mediaTextFor
         : entry.category == 'Cameras'

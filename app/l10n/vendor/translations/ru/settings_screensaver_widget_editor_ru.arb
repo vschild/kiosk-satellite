@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "Название под значением.",
   "screensaverOverlayShowIcon": "Показывать значок",
   "screensaverOverlayShowIconHelp": "Значок рядом со значением.",
+  "screensaverOverlayVisibleStates": "Видимые состояния",
+  "screensaverOverlayVisibleStatesHelp": "Показывать виджет, только когда его значение совпадает с одним из этих, через запятую. Оставьте пустым, чтобы показывать всегда.",
   "screensaverOverlayFontSystem": "Системный",
   "screensaverOverlayFontSerif": "С засечками",
   "screensaverOverlayFontCondensed": "Узкий",

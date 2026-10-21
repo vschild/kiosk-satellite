@@ -330,6 +330,184 @@ class UiStringsDe extends UiStrings {
   String get launcherEmpty => 'Es wurden keine startbaren Apps gefunden.';
 
   @override
+  String get launcherSearchApps => 'Apps suchen';
+
+  @override
+  String get calendarTitle => 'Kalender';
+
+  @override
+  String get calendarViewDay => 'Tag';
+
+  @override
+  String get calendarViewWeek => 'Woche';
+
+  @override
+  String get calendarViewMonth => 'Monat';
+
+  @override
+  String get calendarViewSchedule => 'Terminliste';
+
+  @override
+  String get calendarToday => 'Heute';
+
+  @override
+  String get calendarTomorrow => 'Morgen';
+
+  @override
+  String get calendarPrevious => 'Zurück';
+
+  @override
+  String get calendarNext => 'Weiter';
+
+  @override
+  String get calendarAllDay => 'Ganztägig';
+
+  @override
+  String calendarMore(String count) {
+    return '+$count weitere';
+  }
+
+  @override
+  String get calendarUpNext => 'Als Nächstes';
+
+  @override
+  String calendarStartsIn(String duration) {
+    return 'in $duration';
+  }
+
+  @override
+  String get calendarHappeningNow => 'Jetzt';
+
+  @override
+  String get calendarLaterToday => 'Später heute';
+
+  @override
+  String get calendarNothingElseToday => 'Heute nichts mehr';
+
+  @override
+  String get calendarNothingPlanned => 'Nichts geplant';
+
+  @override
+  String get calendarNothingThisWeek => 'Diese Woche nichts geplant';
+
+  @override
+  String get calendarEmptyTitle => 'Noch keine Kalender';
+
+  @override
+  String get calendarEmptyHint =>
+      'Füge unter Einstellungen > Kalender die Home-Assistant-Kalender hinzu, die angezeigt werden sollen.';
+
+  @override
+  String calendarOffline(String time) {
+    return 'Home Assistant ist nicht erreichbar. Angezeigt werden die Termine von $time.';
+  }
+
+  @override
+  String calendarTimeRange(String start, String end) {
+    return '$start bis $end';
+  }
+
+  @override
+  String calendarPeopleTwo(String first, String second) {
+    return '$first und $second';
+  }
+
+  @override
+  String get calendarRepeatsDaily => 'Täglich';
+
+  @override
+  String get calendarRepeatsWeekly => 'Wöchentlich';
+
+  @override
+  String get calendarRepeatsMonthly => 'Monatlich';
+
+  @override
+  String get calendarRepeatsYearly => 'Jährlich';
+
+  @override
+  String get calendarRepeats => 'Wiederholt sich';
+
+  @override
+  String get calendarDone => 'Fertig';
+
+  @override
+  String get calendarCalendarsSection => 'Kalender';
+
+  @override
+  String get calendarAdd => 'Kalender hinzufügen';
+
+  @override
+  String get calendarAlreadyAdded => 'Dieser Kalender ist schon in der Liste.';
+
+  @override
+  String get calendarOpen => 'Kalender öffnen';
+
+  @override
+  String get calendarOpenHint => 'Zeigt den Kalender auf diesem Kiosk.';
+
+  @override
+  String get calendarEditName => 'Name';
+
+  @override
+  String get calendarEditColor => 'Farbe';
+
+  @override
+  String get calendarEditPerson => 'Person';
+
+  @override
+  String get calendarEditPersonHint =>
+      'Zeigt das Bild der Person auf den Kalender-Chips.';
+
+  @override
+  String get calendarEditPersonNone => 'Keine';
+
+  @override
+  String get calendarPickCalendar => 'Kalender auswählen';
+
+  @override
+  String get calendarPickPerson => 'Person auswählen';
+
+  @override
+  String get calendarColorTeal => 'Petrol';
+
+  @override
+  String get calendarColorRust => 'Rost';
+
+  @override
+  String get calendarColorBlue => 'Blau';
+
+  @override
+  String get calendarColorPlum => 'Pflaume';
+
+  @override
+  String get calendarColorOchre => 'Ocker';
+
+  @override
+  String get calendarColorSage => 'Salbei';
+
+  @override
+  String get calendarColorRose => 'Rosé';
+
+  @override
+  String get calendarColorSlate => 'Schiefer';
+
+  @override
+  String get calendarColorCustom => 'Eigene';
+
+  @override
+  String get calendarWidgetEvents => 'Angezeigte Termine';
+
+  @override
+  String get calendarVoiceSection => 'Kalender per Sprache';
+
+  @override
+  String get calendarVoiceManage => 'Kalender mit Voice Satellite verwalten';
+
+  @override
+  String get calendarVoiceHint =>
+      'Benötigt den Kiosk Satellite Kalender-Blueprint und einen LLM-Konversationsagenten in Home Assistant.';
+
+  @override
   String get cameraViewerTitle => 'Kameraansicht';
 
   @override
@@ -553,6 +731,9 @@ class UiStringsDe extends UiStrings {
 
   @override
   String get dashboardPickerBuildsOwn => 'Erstellt seine Ansichten selbst';
+
+  @override
+  String get dashboardPickerIngressPage => 'Ingress-Seite';
 
   @override
   String get dashboardPickerWholeHelp =>
@@ -1728,6 +1909,9 @@ class UiStringsDe extends UiStrings {
 
   @override
   String get gestureAndroidSettings => 'Android-Einstellungen öffnen';
+
+  @override
+  String get gestureOpenCalendar => 'Kalender öffnen';
 
   @override
   String get gestureService => 'Einen Dienst aufrufen';
@@ -4374,6 +4558,14 @@ class UiStringsDe extends UiStrings {
       'Zeit ohne Interaktion mit der anderen App, bevor zum Kiosk zurückgekehrt wird.';
 
   @override
+  String get settingLauncherAutoReturnMediaTitle =>
+      'Warten, während Medien laufen';
+
+  @override
+  String get settingLauncherAutoReturnMediaDescription =>
+      'Nicht zurückkehren, solange Video oder Musik läuft.';
+
+  @override
   String get launcherOverlayHeld =>
       'Kiosk Satellite kann wieder in den Vordergrund wechseln und Berührungen in der anderen App erkennen.';
 
@@ -4394,8 +4586,95 @@ class UiStringsDe extends UiStrings {
       'Android kann die Anwendung pausieren, während die andere App geöffnet ist. Wenn der Timer pausiert wird, kehrt der Kiosk nicht zurück. Der Dialog zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.';
 
   @override
+  String get launcherNotificationAccessHeld =>
+      'Der Kiosk kehrt nicht zurück, solange eine andere App Video oder Musik abspielt.';
+
+  @override
+  String get launcherNotificationAccessMissing =>
+      'Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück.';
+
+  @override
+  String get launcherNotificationAccessRemote =>
+      'Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück. Der Bildschirm zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.';
+
+  @override
   String get launcherPermissionsSearch =>
       'Die Berechtigungen, die für die Funktion „Automatisch zurückkehren“ benötigt werden.';
+
+  @override
+  String get settingCalendarDefaultViewTitle => 'Standardansicht';
+
+  @override
+  String get settingCalendarDefaultViewDescription =>
+      'Die Ansicht, mit der der Kalender öffnet.';
+
+  @override
+  String get settingCalendarWeekStartTitle => 'Woche beginnt am';
+
+  @override
+  String get settingCalendarWeekStartDescription =>
+      'Folgt der Gerätesprache, sofern nicht festgelegt.';
+
+  @override
+  String get settingCalendarWeatherEntityTitle => 'Wetter';
+
+  @override
+  String get settingCalendarWeatherEntityDescription =>
+      'Zeigt die Vorhersage für jeden Tag.';
+
+  @override
+  String get settingCalendarMenuTitle => 'Im Kiosk-Menü anzeigen';
+
+  @override
+  String get settingCalendarMenuDescription =>
+      'Fügt dem Kiosk-Menü den Eintrag „Kalender“ hinzu.';
+
+  @override
+  String get settingCalendarIdleCloseMinutesTitle =>
+      'Bei Inaktivität schließen';
+
+  @override
+  String get settingCalendarIdleCloseMinutesDescription =>
+      'Kehrt nach dieser Zeit ohne Berührung zum Dashboard zurück.';
+
+  @override
+  String get settingKioskAllowCalendarTitle => 'Kalender';
+
+  @override
+  String get settingKioskAllowCalendarDescription =>
+      'Den Familienkalender über das Kiosk-Menü öffnen.';
+
+  @override
+  String get calendarWeekStartLocale => 'Wie die Sprache';
+
+  @override
+  String get calendarWeekStartSunday => 'Sonntag';
+
+  @override
+  String get calendarWeekStartMonday => 'Montag';
+
+  @override
+  String get calendarWeekStartSaturday => 'Samstag';
+
+  @override
+  String get calendarIdleNever => 'Nie';
+
+  @override
+  String get calendarIdle1Minute => '1 Minute';
+
+  @override
+  String get calendarIdle2Minutes => '2 Minuten';
+
+  @override
+  String get settingsMenuCalendar => 'Kalender';
+
+  @override
+  String get settingsMenuCalendarSummary =>
+      'Familienkalender aus Home Assistant';
+
+  @override
+  String get fleetTheCalendarsHiddenWithTheirChips =>
+      'die mit ihren Chips ausgeblendeten Kalender';
 
   @override
   String get settingCameraEnabledTitle => 'Kamera aktivieren';
@@ -5248,6 +5527,9 @@ class UiStringsDe extends UiStrings {
 
   @override
   String get cameraStreamsEditView => 'Ansicht bearbeiten';
+
+  @override
+  String get cameraStreamsViewId => 'Ansichts-ID';
 
   @override
   String get cameraStreamsShowNames => 'Kameranamen anzeigen';
@@ -7237,6 +7519,10 @@ class UiStringsDe extends UiStrings {
       'Der Standortdienst ist in den Geräteeinstellungen deaktiviert, sodass der Empfänger keine Daten liefert.';
 
   @override
+  String get esphomeLocationApproximate =>
+      'Nur der ungefähre Standort ist erlaubt, der GPS-Empfänger braucht aber den genauen Standort.';
+
+  @override
   String get esphomeLocationGranted =>
       'Die Standortsensoren können den GPS-Empfänger auslesen.';
 
@@ -8344,6 +8630,17 @@ class UiStringsDe extends UiStrings {
   @override
   String get kioskAllowedHelp =>
       'Welche Schnellaktionen das Kiosk-Menü anbietet';
+
+  @override
+  String get settingKioskAllowedAppsTitle => 'Erlaubte Apps';
+
+  @override
+  String get settingKioskAllowedAppsDescription =>
+      'Die Launcher-Apps, die bei aktiviertem Kioskmodus angeboten werden.';
+
+  @override
+  String get kioskAllowedAppsEmpty =>
+      'Füge zuerst unter Einstellungen > App-Launcher Apps hinzu.';
 
   @override
   String get settingKioskEnabledTitle => 'Kioskmodus aktivieren';
@@ -9592,6 +9889,9 @@ class UiStringsDe extends UiStrings {
   String get settingsGroupMediaCameras => 'Medien und Kameras';
 
   @override
+  String get settingsGroupHousehold => 'Haushalt';
+
+  @override
   String get settingsGroupKiosk => 'Kiosk';
 
   @override
@@ -10022,6 +10322,418 @@ class UiStringsDe extends UiStrings {
   String get screensaverBlackSection => 'Bildschirmschoner: Schwarz';
 
   @override
+  String get settingScreensaverCelestialLocationTitle => 'Standort';
+
+  @override
+  String get settingScreensaverCelestialLocationDescription =>
+      'Von wo aus der Himmel gesehen wird.';
+
+  @override
+  String get settingScreensaverCelestialEntityTitle => 'Entität';
+
+  @override
+  String get settingScreensaverCelestialEntityDescription =>
+      'Eine Person, ein Geräte-Tracker oder eine Zone mit Standort.';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesTitle => 'Koordinaten';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesDescription =>
+      'Breiten- und Längengrad, etwa 40.71, -74.01.';
+
+  @override
+  String get settingScreensaverCelestialTerrainTitle => 'Landschaft';
+
+  @override
+  String get settingScreensaverCelestialTerrainDescription =>
+      'Das Gelände entlang des Horizonts.';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceTitle =>
+      'Auf den Himmel richten';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceDescription =>
+      'Halte das Gerät hoch und der Himmel auf dem Bildschirm dreht sich mit, damit du erkennst, was du gerade siehst. Benötigt einen Kompasssensor.';
+
+  @override
+  String get settingScreensaverCelestialDaytimeTitle => 'Taghimmel';
+
+  @override
+  String get settingScreensaverCelestialDaytimeDescription =>
+      'Den Himmel aufhellen und die Sterne ausblenden, solange die Sonne am Himmel steht. Ausschalten, um den ganzen Tag den Nachthimmel zu zeigen.';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayTitle => 'Milchstraße';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayDescription =>
+      'Das Leuchten unserer Galaxie am Nachthimmel zeigen.';
+
+  @override
+  String get settingScreensaverCelestialPlanetsTitle => 'Planeten';
+
+  @override
+  String get settingScreensaverCelestialPlanetsDescription =>
+      'Die Planeten dort zeigen, wo sie heute Nacht stehen.';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyTitle => 'Galaxien und Nebel';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyDescription =>
+      'Die Andromedagalaxie, den Orionnebel und andere Objekte zeigen, die ohne Teleskop sichtbar sind.';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionTitle =>
+      'Lichtverschmutzung';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionDescription =>
+      'Das Leuchten von Stadtlichtern nachbilden. Höhere Werte blenden die schwächeren Sterne und die Milchstraße aus.';
+
+  @override
+  String get settingScreensaverCelestialTwinkleTitle => 'Funkelnde Sterne';
+
+  @override
+  String get settingScreensaverCelestialTwinkleDescription =>
+      'Die Sterne funkeln lassen, am stärksten nahe am Horizont. Ausschalten, um Energie zu sparen.';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonTitle => 'Größerer Mond';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonDescription =>
+      'Den Mond in dreifacher und die Sonne in doppelter Größe zeichnen, damit die Mondphase gut zu erkennen ist.';
+
+  @override
+  String get settingScreensaverCelestialLinesTitle => 'Sternbildlinien';
+
+  @override
+  String get settingScreensaverCelestialLinesDescription =>
+      'Die Sterne jedes Sternbilds verbinden.';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesTitle =>
+      'Namen der Sternbilder';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesDescription =>
+      'Die Sternbilder benennen. Beim Hineinzoomen erscheinen mehr.';
+
+  @override
+  String get settingScreensaverCelestialNamesTitle =>
+      'Namen von Sternen und Planeten';
+
+  @override
+  String get settingScreensaverCelestialNamesDescription =>
+      'Die Sonne, den Mond, die Planeten, die hellsten Sterne und die Galaxien benennen. Beim Hineinzoomen bekommen mehr Sterne einen Namen.';
+
+  @override
+  String get settingScreensaverCelestialCompassTitle => 'Himmelsrichtungen';
+
+  @override
+  String get settingScreensaverCelestialCompassDescription =>
+      'Norden, Osten, Süden und Westen am Horizont markieren.';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleTitle => 'Beschriftungsgröße';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleDescription =>
+      'Skaliert die Beschriftungen am Himmel von 50 bis 200 Prozent.';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesTitle => 'Position';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesDescription =>
+      'Zeigt den Breiten- und Längengrad, von dem aus der Himmel gesehen wird.';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthTitle => 'Azimut';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthDescription =>
+      'Zeigt die Himmelsrichtung, in die die Bildschirmmitte zeigt.';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeTitle => 'Höhe';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeDescription =>
+      'Zeigt, wie hoch über dem Horizont die Bildschirmmitte liegt.';
+
+  @override
+  String get settingScreensaverCelestialControlFovTitle => 'Sichtfeld';
+
+  @override
+  String get settingScreensaverCelestialControlFovDescription =>
+      'Zeigt, wie viel vom Himmel der Bildschirm umfasst, in Grad.';
+
+  @override
+  String get settingScreensaverCelestialControlTimeTitle => 'Uhrzeit';
+
+  @override
+  String get settingScreensaverCelestialControlTimeDescription =>
+      'Zeigt die Uhrzeit des Himmels, nach einem Zeitraffer mit einer Jetzt-Taste.';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseTitle => 'Zeitraffer';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseDescription =>
+      'Beschleunigt die Zeit, damit sich der Himmel sichtbar dreht. Tippe, um die Geschwindigkeit zu ändern.';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyTitle =>
+      'Schalter für Auf den Himmel richten';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyDescription =>
+      'Schaltet Auf den Himmel richten ein und aus. Erscheint nur auf Geräten mit Kompass.';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseTitle => 'Mondphase';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseDescription =>
+      'Zeigt die Phase des Mondes und wie viel davon beleuchtet ist.';
+
+  @override
+  String get settingScreensaverCelestialControlScaleTitle =>
+      'Größe der Steuerelemente';
+
+  @override
+  String get settingScreensaverCelestialControlScaleDescription =>
+      'Skaliert die Steuerelemente von 50 bis 200 Prozent.';
+
+  @override
+  String get screensaverModeCelestial => 'Sternenhimmel';
+
+  @override
+  String get screensaverCelestialTerrainHills => 'Hügel';
+
+  @override
+  String get screensaverCelestialTerrainMountains => 'Berge';
+
+  @override
+  String get screensaverCelestialTerrainPlains => 'Ebene';
+
+  @override
+  String get screensaverCelestialTerrainNone => 'Keine';
+
+  @override
+  String get screensaverCelestialLocationGps => 'GPS';
+
+  @override
+  String get screensaverCelestialLocationHaHome => 'Zuhause in Home Assistant';
+
+  @override
+  String get screensaverCelestialLocationHaEntity => 'Home Assistant-Entität';
+
+  @override
+  String get screensaverCelestialLocationManual => 'Manuell';
+
+  @override
+  String get screensaverCelestialCurrentLocation => 'Aktueller Standort';
+
+  @override
+  String get screensaverCelestialNoGpsReceiver =>
+      'Dieses Gerät hat keinen GPS-Empfänger.';
+
+  @override
+  String get screensaverCelestialLocationPermission =>
+      'Standortberechtigung nicht erteilt.';
+
+  @override
+  String get screensaverCelestialNoGpsFix => 'Noch keine GPS-Position.';
+
+  @override
+  String get screensaverCelestialNoHomeZone =>
+      'Home Assistant hat keine Zuhause-Zone.';
+
+  @override
+  String get screensaverCelestialHaNotConnected =>
+      'Home Assistant ist nicht verbunden.';
+
+  @override
+  String get screensaverCelestialPickEntity =>
+      'Wähle eine Entität mit Standort.';
+
+  @override
+  String get screensaverCelestialEntityNoLocation =>
+      'Diese Entität hat keinen Standort.';
+
+  @override
+  String get screensaverCelestialPage => 'Bildschirmschoner Sternenhimmel';
+
+  @override
+  String get screensaverCelestialSummary =>
+      'Standort, Landschaft, Himmel, Beschriftungen, Steuerelemente';
+
+  @override
+  String get screensaverCelestialSkyGroup => 'Himmel';
+
+  @override
+  String get screensaverCelestialLabelsGroup => 'Beschriftungen';
+
+  @override
+  String get screensaverCelestialControlsGroup => 'Steuerelemente';
+
+  @override
+  String get screensaverCelestialLocationGrantMissing =>
+      'Ohne diese Berechtigung kann der GPS-Empfänger nicht ausgelesen werden und der Himmel hat keinen Standort.';
+
+  @override
+  String get screensaverCelestialLocationGrantReady =>
+      'Der Himmel kann dem GPS-Empfänger folgen.';
+
+  @override
+  String get screensaverCelestialCoordinatesInvalid =>
+      'Gib Breiten- und Längengrad ein, etwa 40.71, -74.01';
+
+  @override
+  String get screensaverCelestialNoLocation =>
+      'Wähle einen Standort unter Einstellungen > Bildschirmschoner > Sternenhimmel.';
+
+  @override
+  String get screensaverCelestialWaitingForGps =>
+      'Warte auf eine GPS-Position...';
+
+  @override
+  String get screensaverCelestialDoubleTapHint =>
+      'Zum Schließen doppelt tippen';
+
+  @override
+  String get screensaverCelestialCalibrate =>
+      'Bewege das Gerät in Form einer Acht, um den Kompass zu kalibrieren.';
+
+  @override
+  String get celestialSun => 'Sonne';
+
+  @override
+  String get celestialMoon => 'Mond';
+
+  @override
+  String get celestialMercury => 'Merkur';
+
+  @override
+  String get celestialVenus => 'Venus';
+
+  @override
+  String get celestialMars => 'Mars';
+
+  @override
+  String get celestialJupiter => 'Jupiter';
+
+  @override
+  String get celestialSaturn => 'Saturn';
+
+  @override
+  String get celestialUranus => 'Uranus';
+
+  @override
+  String get celestialNeptune => 'Neptun';
+
+  @override
+  String get celestialAndromedaGalaxy => 'Andromedagalaxie';
+
+  @override
+  String get celestialTriangulumGalaxy => 'Dreiecksgalaxie';
+
+  @override
+  String get celestialLargeMagellanicCloud => 'Große Magellansche Wolke';
+
+  @override
+  String get celestialSmallMagellanicCloud => 'Kleine Magellansche Wolke';
+
+  @override
+  String get celestialOrionNebula => 'Orionnebel';
+
+  @override
+  String get celestialLagoonNebula => 'Lagunennebel';
+
+  @override
+  String get celestialCarinaNebula => 'Carinanebel';
+
+  @override
+  String get celestialPleiades => 'Plejaden';
+
+  @override
+  String get celestialBeehiveCluster => 'Praesepe';
+
+  @override
+  String get celestialDoubleCluster => 'h und χ Persei';
+
+  @override
+  String get celestialOmegaCentauri => 'Omega Centauri';
+
+  @override
+  String get celestialTucanae47 => '47 Tucanae';
+
+  @override
+  String get celestialCompassNorth => 'N';
+
+  @override
+  String get celestialCompassEast => 'O';
+
+  @override
+  String get celestialCompassSouth => 'S';
+
+  @override
+  String get celestialCompassWest => 'W';
+
+  @override
+  String get celestialCompassNorthEast => 'NO';
+
+  @override
+  String get celestialCompassSouthEast => 'SO';
+
+  @override
+  String get celestialCompassSouthWest => 'SW';
+
+  @override
+  String get celestialCompassNorthWest => 'NW';
+
+  @override
+  String get celestialAzimuthShort => 'Az';
+
+  @override
+  String get celestialAltitudeShort => 'Höhe';
+
+  @override
+  String get celestialFovShort => 'FOV';
+
+  @override
+  String get celestialNow => 'Jetzt';
+
+  @override
+  String get celestialMoonNew => 'Neumond';
+
+  @override
+  String get celestialMoonWaxingCrescent => 'Zunehmende Sichel';
+
+  @override
+  String get celestialMoonFirstQuarter => 'Erstes Viertel';
+
+  @override
+  String get celestialMoonWaxingGibbous => 'Zunehmender Mond';
+
+  @override
+  String get celestialMoonFull => 'Vollmond';
+
+  @override
+  String get celestialMoonWaningGibbous => 'Abnehmender Mond';
+
+  @override
+  String get celestialMoonLastQuarter => 'Letztes Viertel';
+
+  @override
+  String get celestialMoonWaningCrescent => 'Abnehmende Sichel';
+
+  @override
   String get settingScreensaverClockStyleTitle => 'Stil';
 
   @override
@@ -10251,6 +10963,18 @@ class UiStringsDe extends UiStrings {
   @override
   String get settingScreensaverClockAmPmDescription =>
       'Zeigt AM oder PM nach der Uhrzeit an.';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesTitle =>
+      'Bildschirm nachts ausschalten nach';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesDescription =>
+      'Schaltet den Bildschirm aus, wenn der Nachtmodus die angegebene Zeit aktiv war, und wieder ein, sobald es im Raum heller wird. Bei 0 bleibt der Bildschirm eingeschaltet. Erfordert die Geräteadministrator-Berechtigung.';
+
+  @override
+  String get screensaverNightTurnOffWarning =>
+      'Wenn der Bildschirm vollständig ausgeschaltet wird, übernimmt das Energiemanagement des Tablets die Kontrolle. Viele Android-Geräte zeigen in diesem Zustand Probleme: WLAN wird in den Ruhezustand versetzt oder getrennt, Home-Assistant-Entitäten werden nicht verfügbar, der Kamerazugriff kann verloren gehen und manche Geräte beenden Anwendungen im Hintergrund. Manche Lichtsensoren liefern bei ausgeschaltetem Bildschirm außerdem keine Werte mehr, sodass sich der Bildschirm möglicherweise nicht von selbst wieder einschaltet, wenn es im Raum heller wird. Das Verhalten hängt vom Hersteller ab.\n\nDie zuverlässige Alternative ist „Stattdessen einen schwarzen Bildschirm verwenden“. Der Bildschirm wirkt genauso dunkel, während die Anwendung die Kontrolle behält.';
 
   @override
   String get screensaverOverlayEntity => 'Entität';
@@ -10603,11 +11327,29 @@ class UiStringsDe extends UiStrings {
       'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.';
 
   @override
+  String get settingScreensaverDashboardDoubleTapTitle =>
+      'Zum Schließen doppeltippen';
+
+  @override
+  String get settingScreensaverDashboardDoubleTapDescription =>
+      'Ein einfacher Tipp ermöglicht die Interaktion mit dem Dashboard, anstatt den Bildschirmschoner zu schließen.';
+
+  @override
   String get screensaverDashboardSection =>
       'Bildschirmschoner: Home-Assistant-Dashboard';
 
   @override
   String get screensaverModeUrl => 'Bild-URL';
+
+  @override
+  String get screensaverCalendarSection => 'Bildschirmschoner: Kalender';
+
+  @override
+  String get settingScreensaverCalendarViewTitle => 'Kalenderansicht';
+
+  @override
+  String get settingScreensaverCalendarViewDescription =>
+      'Die Kalenderansicht, mit der der Bildschirmschoner öffnet.';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Skalierung der Leiste';
@@ -12206,6 +12948,13 @@ class UiStringsDe extends UiStrings {
   @override
   String get screensaverOverlayShowIconHelp =>
       'Zeigt das Symbol neben dem Wert an.';
+
+  @override
+  String get screensaverOverlayVisibleStates => 'Sichtbare Zustände';
+
+  @override
+  String get screensaverOverlayVisibleStatesHelp =>
+      'Zeigt das Widget nur an, wenn sein Wert einem dieser Werte entspricht, durch Kommas getrennt. Leer lassen, um es immer anzuzeigen.';
 
   @override
   String get screensaverOverlayFontSystem => 'System';
@@ -13895,6 +14644,16 @@ class UiStringsDe extends UiStrings {
   String voiceModelNoLoad(String error) {
     return 'Das Modell lässt sich nicht laden: $error';
   }
+
+  @override
+  String get settingVoiceAmazonLocaleTitle => 'Sprache des Aktivierungsworts';
+
+  @override
+  String get settingVoiceAmazonLocaleDescription =>
+      'Die Sprache der Aktivierungswort-Modelle von Amazon. Die Auswahlfelder für Aktivierungswörter bieten die Aktivierungswörter dieser Sprache an.';
+
+  @override
+  String get voiceOptionAppLanguage => 'Sprache von Kiosk Satellite';
 
   @override
   String get settingDisableCacheTitle => 'Cache deaktivieren';

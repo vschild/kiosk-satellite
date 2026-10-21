@@ -5,5 +5,6 @@
   "launcherListFailed": "No se pudieron obtener las aplicaciones",
   "launcherListError": "No se pudieron obtener las aplicaciones: {error}",
   "launcherListingFailed": "no se pudo obtener la lista",
-  "launcherEmpty": "No se encontraron aplicaciones que se puedan abrir."
+  "launcherEmpty": "No se encontraron aplicaciones que se puedan abrir.",
+  "launcherSearchApps": "Buscar aplicaciones"
 }

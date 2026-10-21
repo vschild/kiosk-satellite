@@ -6,5 +6,7 @@
   "settingLauncherAutoReturnTitle": "Automatisch zurückkehren",
   "settingLauncherAutoReturnDescription": "Kehrt zum Kiosk zurück, wenn die andere App für eine gewisse Zeit nicht berührt wurde.",
   "settingLauncherAutoReturnSecondsTitle": "Zurückkehren nach (Sekunden)",
-  "settingLauncherAutoReturnSecondsDescription": "Zeit ohne Interaktion mit der anderen App, bevor zum Kiosk zurückgekehrt wird."
+  "settingLauncherAutoReturnSecondsDescription": "Zeit ohne Interaktion mit der anderen App, bevor zum Kiosk zurückgekehrt wird.",
+  "settingLauncherAutoReturnMediaTitle": "Warten, während Medien laufen",
+  "settingLauncherAutoReturnMediaDescription": "Nicht zurückkehren, solange Video oder Musik läuft."
 }

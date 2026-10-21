@@ -296,6 +296,26 @@ class KioskDrawer extends StatelessWidget {
                                     c.commands.execute('openAlarms', const {});
                                   },
                                 ),
+                              // The family calendar, the same way: the full
+                              // screen calendar, unless Show in the kiosk
+                              // menu is off, and Allowed Actions in the
+                              // restricted menu.
+                              if (c.settings.get(defs.calendarMenu) &&
+                                  (!restricted ||
+                                      c.settings.get(defs.kioskAllowCalendar)))
+                                _item(
+                                  divided: sep(),
+                                  context,
+                                  Icons.calendar_month_outlined,
+                                  l10n(context).calendarTitle,
+                                  () {
+                                    onClose();
+                                    c.commands.execute(
+                                      'openCalendar',
+                                      const {},
+                                    );
+                                  },
+                                ),
                               // Music Assistant's own web interface, over
                               // the dashboard on the same surface a tapped
                               // link gets — browsing, queueing and
@@ -400,11 +420,15 @@ class KioskDrawer extends StatelessWidget {
                               // actually whitelisted: an empty launcher is
                               // the placeholder every install starts with,
                               // and a menu entry that can only fail is
-                              // worse than no entry.
+                              // worse than no entry. The restricted menu
+                              // needs an app the locked kiosk allows.
                               if (!restricted ||
                                   c.settings.get(defs.kioskAllowApps))
                                 if (c.settings.get(defs.launcherEnabled) &&
-                                    c.launcher.apps.isNotEmpty)
+                                    (restricted
+                                            ? c.launcher.kioskApps
+                                            : c.launcher.apps)
+                                        .isNotEmpty)
                                   _item(
                                     divided: sep(),
                                     context,
@@ -412,7 +436,7 @@ class KioskDrawer extends StatelessWidget {
                                     l10n(context).drawerApps,
                                     () {
                                       onClose();
-                                      c.launcher.visible.value = true;
+                                      c.launcher.open(unlocked: !restricted);
                                     },
                                   ),
                               if (!restricted)

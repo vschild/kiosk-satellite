@@ -54,6 +54,7 @@ The action chooser groups options into three categories: Kiosk Satellite, Androi
 | Decline intercom call | Declines the [intercom](intercom.md) call ringing on this kiosk, the same as its Decline button. Does nothing unless a call is ringing. |
 | Stop the alarm | Stops the ringing [alarm](alarms.md) the way the Stop button does. It also ends a snooze or a sunrise, and a stopped sunrise skips its ring. Pairs well with claps or Show fingers to silence an alarm from bed. Does nothing when no alarm is going. |
 | Snooze the alarm | Snoozes the ringing [alarm](alarms.md) for the snooze length, the same as the Snooze button. Does nothing unless an alarm is ringing. |
+| Open the calendar | Opens the full screen [calendar](calendar.md) on its default view. Like the other actions, it works even with **Show in the kiosk menu** off. |
 | Start a voice command | Starts listening for a command, as if the wake word had been heard. Requires the native [Voice Satellite](voice-satellite.md). |
 | Stop the voice assistant | Dismisses a ringing timer, or ends the voice turn or the answer, the same as the stop word. |
 | Mute or unmute Voice Satellite | Mutes wake word detection, or unmutes it when muted, the same as the **VS Mute** switch in Home Assistant. |

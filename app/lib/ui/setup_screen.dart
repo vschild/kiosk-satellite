@@ -1070,7 +1070,11 @@ class _SetupScreenState extends State<SetupScreen> {
                       initialValue: _engine,
                       isExpanded: true,
                       items: [
-                        for (final engine in defs.voiceWakeWordEngine.options!)
+                        // Amazon's engine only where the Echo Dot image's
+                        // service answered (PryonCatalog hides it elsewhere).
+                        for (final engine in c.settings.optionsFor(
+                          defs.voiceWakeWordEngine,
+                        ))
                           DropdownMenuItem(
                             value: engine,
                             child: Text(

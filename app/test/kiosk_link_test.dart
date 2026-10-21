@@ -22,6 +22,12 @@ void main() {
         'type': 'android_settings',
       });
       expect(kioskLinkAction('ks://alarms'), {'type': 'alarms'});
+      expect(kioskLinkAction('ks://calendar'), {'type': 'calendar'});
+      expect(kioskLinkAction('ks://calendar/month'), {
+        'type': 'calendar',
+        'view': 'month',
+      });
+      expect(kioskLinkAction('ks://calendar/year'), isNull);
     });
 
     test('camera links pick a view, the default view or close', () {

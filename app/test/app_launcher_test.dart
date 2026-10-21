@@ -7,6 +7,7 @@ import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/launcher/app_launcher_manager.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
 import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -144,6 +145,71 @@ void main() {
     });
   });
 
+  group('the locked kiosk\'s apps (issue #1067)', () {
+    test('an upgrade allows every launcher app', () async {
+      await build({'ks.launcher.enabled': true, 'ks.launcher.apps': twoApps});
+      expect(settings.get(defs.kioskAllowedApps), '["com.a","com.b"]');
+      expect(launcher.kioskApps.map((a) => a.package), ['com.a', 'com.b']);
+    });
+
+    test('a new install allows none until picked', () async {
+      await build({});
+      expect(settings.get(defs.kioskAllowedApps), '[]');
+      await settings.setFromJson('launcher.apps', twoApps);
+      expect(launcher.kioskApps, isEmpty);
+    });
+
+    test('keep the launcher\'s order and drop packages it lacks', () async {
+      await build({
+        'ks.launcher.apps': twoApps,
+        'ks.kiosk.allowed_apps': '["com.gone","com.b","com.a"]',
+      });
+      expect(launcher.kioskApps.map((a) => a.package), ['com.a', 'com.b']);
+    });
+
+    test(
+      'show while kiosk mode is on, unless the full menu opened it',
+      () async {
+        await build({
+          'ks.launcher.enabled': true,
+          'ks.launcher.apps': twoApps,
+          'ks.kiosk.allowed_apps': '["com.b"]',
+        });
+        expect(launcher.shown, hasLength(2));
+        await settings.setFromJson('kiosk.enabled', true);
+        launcher.open();
+        expect(launcher.shown.map((a) => a.package), ['com.b']);
+        launcher.open(unlocked: true);
+        expect(launcher.shown, hasLength(2));
+        await launcher.commands.execute('showAppLauncher', const {});
+        expect(launcher.shown.map((a) => a.package), ['com.b']);
+      },
+    );
+
+    test('showAppLauncher refuses a locked kiosk with none allowed', () async {
+      await build({
+        'ks.launcher.enabled': true,
+        'ks.launcher.apps': twoApps,
+        'ks.kiosk.allowed_apps': '[]',
+        'ks.kiosk.enabled': true,
+      });
+      final result = await launcher.commands.execute(
+        'showAppLauncher',
+        const {},
+      );
+      expect(result.ok, isFalse);
+      expect(result.error, contains('kiosk mode'));
+      expect(launcher.visible.value, isFalse);
+      expect(executed, isEmpty);
+    });
+
+    test('decodeKioskAllowedApps tolerates garbage', () {
+      expect(decodeKioskAllowedApps('["com.a", 3, ""]'), {'com.a'});
+      expect(decodeKioskAllowedApps('not json'), isEmpty);
+      expect(decodeKioskAllowedApps('{"a":1}'), isEmpty);
+    });
+  });
+
   test('the whitelist reads live from settings', () async {
     await build({});
     expect(launcher.apps, isEmpty);
@@ -153,10 +219,14 @@ void main() {
 
   group('auto-return (issue #317)', () {
     const channel = MethodChannel('kiosk_satellite/background');
+    // Nothing plays: the clock runs on touches alone.
+    const sessions = MethodChannel('kiosk_satellite/media_sessions');
     late List<Map<String, Object?>> watchCalls;
 
     setUp(() {
       watchCalls = [];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(sessions, (call) async => false);
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
             if (call.method == 'watchTouches') {
@@ -169,7 +239,8 @@ void main() {
 
     tearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
+        ..setMockMethodCallHandler(channel, null)
+        ..setMockMethodCallHandler(sessions, null);
     });
 
     Future<void> armed() async {
@@ -295,6 +366,137 @@ void main() {
         async.elapse(const Duration(seconds: 31));
         async.flushMicrotasks();
         expect(executed, ['bringToFront']);
+      });
+    });
+  });
+
+  group('auto-return waits for media (issue #1055)', () {
+    const background = MethodChannel('kiosk_satellite/background');
+    const sessions = MethodChannel('kiosk_satellite/media_sessions');
+    late bool playing;
+    late int asked;
+
+    setUp(() {
+      playing = false;
+      asked = 0;
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(background, (call) async {
+        return call.method == 'watchTouches' ? true : null;
+      });
+      messenger.setMockMethodCallHandler(sessions, (call) async {
+        if (call.method == 'hasAccess') return true;
+        if (call.method == 'anyPlaying') {
+          asked++;
+          return playing;
+        }
+        return null;
+      });
+    });
+
+    tearDown(() {
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(background, null);
+      messenger.setMockMethodCallHandler(sessions, null);
+    });
+
+    Future<void> armed({bool wait = true}) async {
+      await build({
+        'ks.launcher.enabled': true,
+        'ks.launcher.apps': twoApps,
+        'ks.launcher.auto_return': true,
+        'ks.launcher.auto_return_seconds': 30,
+        'ks.launcher.auto_return_media': wait,
+      });
+      final binding = TestWidgetsFlutterBinding.instance;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      addTearDown(
+        () => binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed),
+      );
+    }
+
+    void launch(FakeAsync async) {
+      bus.publish(const AppLaunched(package: 'com.a'));
+      async.flushMicrotasks();
+      launcher.didChangeAppLifecycleState(AppLifecycleState.paused);
+      async.flushMicrotasks();
+    }
+
+    test('holds the return while media plays', () async {
+      await armed();
+      fakeAsync((async) {
+        playing = true;
+        launch(async);
+        async.elapse(const Duration(seconds: 31));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        async.elapse(const Duration(minutes: 10));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        expect(launcher.watchingTouches, isTrue);
+      });
+    });
+
+    test('runs the full idle time again once media stops', () async {
+      await armed();
+      fakeAsync((async) {
+        playing = true;
+        launch(async);
+        async.elapse(const Duration(seconds: 120));
+        async.flushMicrotasks();
+        playing = false;
+        // The next look sees it stopped and starts the clock over.
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 28));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        async.elapse(const Duration(seconds: 3));
+        async.flushMicrotasks();
+        expect(executed, ['bringToFront']);
+      });
+    });
+
+    test('returns on time when nothing plays', () async {
+      await armed();
+      fakeAsync((async) {
+        launch(async);
+        async.elapse(const Duration(seconds: 31));
+        async.flushMicrotasks();
+        expect(executed, ['bringToFront']);
+        expect(asked, 1);
+      });
+    });
+
+    test('ignores media with the switch off', () async {
+      await armed(wait: false);
+      fakeAsync((async) {
+        playing = true;
+        launch(async);
+        async.elapse(const Duration(seconds: 31));
+        async.flushMicrotasks();
+        expect(executed, ['bringToFront']);
+        expect(asked, 0);
+      });
+    });
+
+    test('coming back while held disarms the hold', () async {
+      await armed();
+      fakeAsync((async) {
+        playing = true;
+        launch(async);
+        async.elapse(const Duration(seconds: 60));
+        async.flushMicrotasks();
+        launcher.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        async.flushMicrotasks();
+        final before = asked;
+        playing = false;
+        async.elapse(const Duration(minutes: 5));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        expect(asked, before);
+        expect(launcher.watchingTouches, isFalse);
       });
     });
   });

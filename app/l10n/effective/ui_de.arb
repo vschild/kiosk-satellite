@@ -1215,6 +1215,694 @@
       ]
     }
   },
+  "launcherSearchApps": "Apps suchen",
+  "@launcherSearchApps": {
+    "context": "Settings > App Launcher > Apps",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Apps"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Apps"
+      ]
+    }
+  },
+  "calendarTitle": "Kalender",
+  "@calendarTitle": {
+    "context": "Calendar",
+    "description": "Name of the calendar feature: the kiosk menu entry and the calendar's eyebrow.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarViewDay": "Tag",
+  "@calendarViewDay": {
+    "context": "Calendar views",
+    "description": "View switcher segment and Default view choice: one day.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "calendarViewWeek": "Woche",
+  "@calendarViewWeek": {
+    "context": "Calendar views",
+    "description": "View switcher segment and Default view choice: one week.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "calendarViewMonth": "Monat",
+  "@calendarViewMonth": {
+    "context": "Calendar views",
+    "description": "View switcher segment and Default view choice: one month.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "calendarViewSchedule": "Terminliste",
+  "@calendarViewSchedule": {
+    "context": "Calendar views",
+    "description": "View switcher segment and Default view choice: a list of the coming days.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "calendarToday": "Heute",
+  "@calendarToday": {
+    "context": "Calendar",
+    "description": "Button that jumps back to today, and the label over today's events.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarTomorrow": "Morgen",
+  "@calendarTomorrow": {
+    "context": "Calendar",
+    "description": "Label over tomorrow's events in the Schedule view.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarPrevious": "Zurück",
+  "@calendarPrevious": {
+    "context": "Calendar",
+    "description": "Tooltip of the arrow that goes back one day, week or month.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarNext": "Weiter",
+  "@calendarNext": {
+    "context": "Calendar",
+    "description": "Tooltip of the arrow that goes ahead one day, week or month.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarAllDay": "Ganztägig",
+  "@calendarAllDay": {
+    "context": "Calendar",
+    "description": "An event without a time, and the Day view's row for those events.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarMore": "+{count} weitere",
+  "@calendarMore": {
+    "context": "Calendar month",
+    "description": "A month day with more events than fit. {count} is how many are left out.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "How many events are left out."
+      }
+    }
+  },
+  "calendarUpNext": "Als Nächstes",
+  "@calendarUpNext": {
+    "context": "Calendar",
+    "description": "Heading of the next event today, in the Schedule view and the screensaver widget.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Screensaver > Widgets"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets"
+      ]
+    }
+  },
+  "calendarStartsIn": "in {duration}",
+  "@calendarStartsIn": {
+    "context": "Calendar",
+    "description": "How soon the next event starts. {duration} reads like 50 min or 2 h 10 min.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "description": "A span like 50 min."
+      }
+    }
+  },
+  "calendarHappeningNow": "Jetzt",
+  "@calendarHappeningNow": {
+    "context": "Calendar",
+    "description": "The next event has already started.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarLaterToday": "Später heute",
+  "@calendarLaterToday": {
+    "context": "Calendar",
+    "description": "Heading of the rest of today's events in the Schedule view.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarNothingElseToday": "Heute nichts mehr",
+  "@calendarNothingElseToday": {
+    "context": "Calendar",
+    "description": "Today has no more events.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarNothingPlanned": "Nichts geplant",
+  "@calendarNothingPlanned": {
+    "context": "Calendar",
+    "description": "A day or a span without events.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarNothingThisWeek": "Diese Woche nichts geplant",
+  "@calendarNothingThisWeek": {
+    "context": "Calendar",
+    "description": "A week without events in the Week view.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEmptyTitle": "Noch keine Kalender",
+  "@calendarEmptyTitle": {
+    "context": "Calendar",
+    "description": "Shown when no calendar is added.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar",
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarEmptyHint": "Füge unter Einstellungen > Kalender die Home-Assistant-Kalender hinzu, die angezeigt werden sollen.",
+  "@calendarEmptyHint": {
+    "context": "Calendar",
+    "description": "Under No calendars yet in the calendar itself.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarOffline": "Home Assistant ist nicht erreichbar. Angezeigt werden die Termine von {time}.",
+  "@calendarOffline": {
+    "context": "Calendar",
+    "description": "Banner while the calendar cannot reach Home Assistant. {time} is when the events were last updated.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "description": "A time like 10:42 AM."
+      }
+    }
+  },
+  "calendarTimeRange": "{start} bis {end}",
+  "@calendarTimeRange": {
+    "context": "Calendar",
+    "description": "An event's start and end time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "start": {
+        "type": "String",
+        "description": "A start time like 4:00 PM."
+      },
+      "end": {
+        "type": "String",
+        "description": "An end time like 5:30 PM."
+      }
+    }
+  },
+  "calendarPeopleTwo": "{first} und {second}",
+  "@calendarPeopleTwo": {
+    "context": "Calendar",
+    "description": "Two calendars sharing an event, or the last two of several.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "first": {
+        "type": "String",
+        "description": "A calendar name."
+      },
+      "second": {
+        "type": "String",
+        "description": "A calendar name."
+      }
+    }
+  },
+  "calendarRepeatsDaily": "Täglich",
+  "@calendarRepeatsDaily": {
+    "context": "Calendar event",
+    "description": "How a repeating event repeats.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatsWeekly": "Wöchentlich",
+  "@calendarRepeatsWeekly": {
+    "context": "Calendar event",
+    "description": "How a repeating event repeats.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatsMonthly": "Monatlich",
+  "@calendarRepeatsMonthly": {
+    "context": "Calendar event",
+    "description": "How a repeating event repeats.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatsYearly": "Jährlich",
+  "@calendarRepeatsYearly": {
+    "context": "Calendar event",
+    "description": "How a repeating event repeats.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeats": "Wiederholt sich",
+  "@calendarRepeats": {
+    "context": "Calendar event",
+    "description": "A repeating event whose rule has no simple name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarDone": "Fertig",
+  "@calendarDone": {
+    "context": "Calendar event",
+    "description": "Closes an event's details.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarCalendarsSection": "Kalender",
+  "@calendarCalendarsSection": {
+    "context": "Settings > Calendar",
+    "description": "Heading of the list of calendars the kiosk shows.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarAdd": "Kalender hinzufügen",
+  "@calendarAdd": {
+    "context": "Settings > Calendar",
+    "description": "Button that picks a Home Assistant calendar to show.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarAlreadyAdded": "Dieser Kalender ist schon in der Liste.",
+  "@calendarAlreadyAdded": {
+    "context": "Settings > Calendar",
+    "description": "Toast when the picked calendar was added before.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarOpen": "Kalender öffnen",
+  "@calendarOpen": {
+    "context": "Settings > Calendar",
+    "description": "Row that shows the calendar on this kiosk.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ]
+    }
+  },
+  "calendarOpenHint": "Zeigt den Kalender auf diesem Kiosk.",
+  "@calendarOpenHint": {
+    "context": "Settings > Calendar",
+    "description": "Under Open calendar.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ]
+    }
+  },
+  "calendarEditName": "Name",
+  "@calendarEditName": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "Field for the name on the calendar's chip.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarEditColor": "Farbe",
+  "@calendarEditColor": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "Heading of the calendar's color choices.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarEditPerson": "Person",
+  "@calendarEditPerson": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "Field for the Home Assistant person the calendar belongs to.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarEditPersonHint": "Zeigt das Bild der Person auf den Kalender-Chips.",
+  "@calendarEditPersonHint": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "Under Person.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarEditPersonNone": "Keine",
+  "@calendarEditPersonNone": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "No person picked.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarPickCalendar": "Kalender auswählen",
+  "@calendarPickCalendar": {
+    "context": "Settings > Calendar",
+    "description": "Title of the calendar picker.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarPickPerson": "Person auswählen",
+  "@calendarPickPerson": {
+    "context": "Settings > Calendar > a calendar",
+    "description": "Title of the person picker.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorTeal": "Petrol",
+  "@calendarColorTeal": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorRust": "Rost",
+  "@calendarColorRust": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorBlue": "Blau",
+  "@calendarColorBlue": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorPlum": "Pflaume",
+  "@calendarColorPlum": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorOchre": "Ocker",
+  "@calendarColorOchre": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorSage": "Salbei",
+  "@calendarColorSage": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorRose": "Rosé",
+  "@calendarColorRose": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorSlate": "Schiefer",
+  "@calendarColorSlate": {
+    "context": "Calendar colors",
+    "description": "A calendar color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarColorCustom": "Eigene",
+  "@calendarColorCustom": {
+    "context": "Calendar colors",
+    "description": "Picks any other color.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarWidgetEvents": "Angezeigte Termine",
+  "@calendarWidgetEvents": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "How many coming events the Up next widget lists.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarVoiceSection": "Kalender per Sprache",
+  "@calendarVoiceSection": {
+    "context": "Settings > Calendar",
+    "description": "Heading of the group about managing the calendar by voice.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarVoiceManage": "Kalender mit Voice Satellite verwalten",
+  "@calendarVoiceManage": {
+    "context": "Settings > Calendar",
+    "description": "Row that opens the guide to adding and changing calendar events by voice. Keep Voice Satellite unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarVoiceHint": "Benötigt den Kiosk Satellite Kalender-Blueprint und einen LLM-Konversationsagenten in Home Assistant.",
+  "@calendarVoiceHint": {
+    "context": "Settings > Calendar",
+    "description": "Description under that row. Keep Kiosk Satellite and Home Assistant unchanged. A blueprint is a Home Assistant template for a script.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
   "cameraViewerTitle": "Kameraansicht",
   "@cameraViewerTitle": {
     "context": "Live camera view and camera screensaver",
@@ -1887,6 +2575,30 @@
   "@dashboardPickerBuildsOwn": {
     "context": "Dashboard picker",
     "description": "Second line of a dashboard Home Assistant generates on the fly (a strategy dashboard).",
+    "x-locations": {
+      "device": [
+        "Settings > Home Assistant > Dashboard",
+        "Settings > Home Assistant > Dashboard View Rotation",
+        "Settings > Screensaver > Home Assistant Dashboard",
+        "Settings > Sendspin > Now Playing",
+        "Settings > Gestures",
+        "Setup > Dashboard"
+      ],
+      "remoteAdmin": [
+        "Home Assistant > Dashboard",
+        "Home Assistant > Dashboard View Rotation",
+        "Screensaver > Home Assistant Dashboard",
+        "Sendspin > Now Playing",
+        "Gestures",
+        "Overview > Go to view",
+        "Setup > Dashboard"
+      ]
+    }
+  },
+  "dashboardPickerIngressPage": "Ingress-Seite",
+  "@dashboardPickerIngressPage": {
+    "context": "Dashboard picker",
+    "description": "Second line of an app from the Home Assistant sidebar, such as Music Assistant, whose web page Home Assistant shows through ingress.",
     "x-locations": {
       "device": [
         "Settings > Home Assistant > Dashboard",
@@ -6612,6 +7324,19 @@
   },
   "gestureAndroidSettings": "Android-Einstellungen öffnen",
   "@gestureAndroidSettings": {
+    "context": "Settings > Gestures > Add gesture > Choose an action",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Add gesture > Choose an action"
+      ],
+      "remoteAdmin": [
+        "Gestures > Add gesture > Choose an action"
+      ]
+    }
+  },
+  "gestureOpenCalendar": "Kalender öffnen",
+  "@gestureOpenCalendar": {
     "context": "Settings > Gestures > Add gesture > Choose an action",
     "description": "Label or guidance in this section.",
     "x-locations": {
@@ -16224,6 +16949,32 @@
       ]
     }
   },
+  "settingLauncherAutoReturnMediaTitle": "Warten, während Medien laufen",
+  "@settingLauncherAutoReturnMediaTitle": {
+    "context": "Settings > App Launcher",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Wait while media plays"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Wait while media plays"
+      ]
+    }
+  },
+  "settingLauncherAutoReturnMediaDescription": "Nicht zurückkehren, solange Video oder Musik läuft.",
+  "@settingLauncherAutoReturnMediaDescription": {
+    "context": "Settings > App Launcher",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Wait while media plays"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Wait while media plays"
+      ]
+    }
+  },
   "launcherOverlayHeld": "Kiosk Satellite kann wieder in den Vordergrund wechseln und Berührungen in der anderen App erkennen.",
   "@launcherOverlayHeld": {
     "context": "Settings > App Launcher > Required system permissions",
@@ -16289,6 +17040,45 @@
       ]
     }
   },
+  "launcherNotificationAccessHeld": "Der Kiosk kehrt nicht zurück, solange eine andere App Video oder Musik abspielt.",
+  "@launcherNotificationAccessHeld": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
+  "launcherNotificationAccessMissing": "Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück.",
+  "@launcherNotificationAccessMissing": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
+  "launcherNotificationAccessRemote": "Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück. Der Bildschirm zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.",
+  "@launcherNotificationAccessRemote": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
   "launcherPermissionsSearch": "Die Berechtigungen, die für die Funktion „Automatisch zurückkehren“ benötigt werden.",
   "@launcherPermissionsSearch": {
     "context": "Settings > Search > App Launcher > Required system permissions",
@@ -16299,6 +17089,292 @@
       ],
       "remoteAdmin": [
         "Settings search > App Launcher > Required system permissions"
+      ]
+    }
+  },
+  "settingCalendarDefaultViewTitle": "Standardansicht",
+  "@settingCalendarDefaultViewTitle": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "settingCalendarDefaultViewDescription": "Die Ansicht, mit der der Kalender öffnet.",
+  "@settingCalendarDefaultViewDescription": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Default view"
+      ],
+      "remoteAdmin": [
+        "Calendar > Default view"
+      ]
+    }
+  },
+  "settingCalendarWeekStartTitle": "Woche beginnt am",
+  "@settingCalendarWeekStartTitle": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Week starts on"
+      ],
+      "remoteAdmin": [
+        "Calendar > Week starts on"
+      ]
+    }
+  },
+  "settingCalendarWeekStartDescription": "Folgt der Gerätesprache, sofern nicht festgelegt.",
+  "@settingCalendarWeekStartDescription": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Week starts on"
+      ],
+      "remoteAdmin": [
+        "Calendar > Week starts on"
+      ]
+    }
+  },
+  "settingCalendarWeatherEntityTitle": "Wetter",
+  "@settingCalendarWeatherEntityTitle": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Weather"
+      ],
+      "remoteAdmin": [
+        "Calendar > Weather"
+      ]
+    }
+  },
+  "settingCalendarWeatherEntityDescription": "Zeigt die Vorhersage für jeden Tag.",
+  "@settingCalendarWeatherEntityDescription": {
+    "context": "Settings > Calendar > Display",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Weather"
+      ],
+      "remoteAdmin": [
+        "Calendar > Weather"
+      ]
+    }
+  },
+  "settingCalendarMenuTitle": "Im Kiosk-Menü anzeigen",
+  "@settingCalendarMenuTitle": {
+    "context": "Settings > Calendar > Kiosk",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Show in the kiosk menu"
+      ],
+      "remoteAdmin": [
+        "Calendar > Show in the kiosk menu"
+      ]
+    }
+  },
+  "settingCalendarMenuDescription": "Fügt dem Kiosk-Menü den Eintrag „Kalender“ hinzu.",
+  "@settingCalendarMenuDescription": {
+    "context": "Settings > Calendar > Kiosk",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Show in the kiosk menu"
+      ],
+      "remoteAdmin": [
+        "Calendar > Show in the kiosk menu"
+      ]
+    }
+  },
+  "settingCalendarIdleCloseMinutesTitle": "Bei Inaktivität schließen",
+  "@settingCalendarIdleCloseMinutesTitle": {
+    "context": "Settings > Calendar > Kiosk",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Close when idle"
+      ],
+      "remoteAdmin": [
+        "Calendar > Close when idle"
+      ]
+    }
+  },
+  "settingCalendarIdleCloseMinutesDescription": "Kehrt nach dieser Zeit ohne Berührung zum Dashboard zurück.",
+  "@settingCalendarIdleCloseMinutesDescription": {
+    "context": "Settings > Calendar > Kiosk",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Close when idle"
+      ],
+      "remoteAdmin": [
+        "Calendar > Close when idle"
+      ]
+    }
+  },
+  "settingKioskAllowCalendarTitle": "Kalender",
+  "@settingKioskAllowCalendarTitle": {
+    "context": "Settings > Kiosk Mode > Allowed Actions",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk Mode > Allowed Actions > Calendar"
+      ],
+      "remoteAdmin": [
+        "Kiosk Mode > Allowed Actions > Calendar"
+      ]
+    }
+  },
+  "settingKioskAllowCalendarDescription": "Den Familienkalender über das Kiosk-Menü öffnen.",
+  "@settingKioskAllowCalendarDescription": {
+    "context": "Settings > Kiosk Mode > Allowed Actions",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk Mode > Allowed Actions > Calendar"
+      ],
+      "remoteAdmin": [
+        "Kiosk Mode > Allowed Actions > Calendar"
+      ]
+    }
+  },
+  "calendarWeekStartLocale": "Wie die Sprache",
+  "@calendarWeekStartLocale": {
+    "context": "Settings > Calendar",
+    "description": "Week starts on: the device language's first day.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarWeekStartSunday": "Sonntag",
+  "@calendarWeekStartSunday": {
+    "context": "Settings > Calendar",
+    "description": "Week starts on Sunday.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarWeekStartMonday": "Montag",
+  "@calendarWeekStartMonday": {
+    "context": "Settings > Calendar",
+    "description": "Week starts on Monday.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarWeekStartSaturday": "Samstag",
+  "@calendarWeekStartSaturday": {
+    "context": "Settings > Calendar",
+    "description": "Week starts on Saturday.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarIdleNever": "Nie",
+  "@calendarIdleNever": {
+    "context": "Settings > Calendar",
+    "description": "Close when idle: the calendar stays open.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarIdle1Minute": "1 Minute",
+  "@calendarIdle1Minute": {
+    "context": "Settings > Calendar",
+    "description": "Close when idle after one minute.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarIdle2Minutes": "2 Minuten",
+  "@calendarIdle2Minutes": {
+    "context": "Settings > Calendar",
+    "description": "Close when idle after two minutes.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "settingsMenuCalendar": "Kalender",
+  "@settingsMenuCalendar": {
+    "context": "Settings menu",
+    "description": "Settings page name.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "settingsMenuCalendarSummary": "Familienkalender aus Home Assistant",
+  "@settingsMenuCalendarSummary": {
+    "context": "Settings menu",
+    "description": "Under Calendar in the settings menu.",
+    "x-locations": {
+      "device": [
+        "Settings"
+      ],
+      "remoteAdmin": [
+        "Sidebar"
+      ]
+    }
+  },
+  "fleetTheCalendarsHiddenWithTheirChips": "die mit ihren Chips ausgeblendeten Kalender",
+  "@fleetTheCalendarsHiddenWithTheirChips": {
+    "context": "Fleet Management > Sync",
+    "description": "What stays per kiosk when the Calendar category syncs.",
+    "x-locations": {
+      "device": [
+        "Settings > Fleet Management"
+      ],
+      "remoteAdmin": [
+        "Fleet Management"
       ]
     }
   },
@@ -19521,6 +20597,19 @@
   },
   "cameraStreamsEditView": "Ansicht bearbeiten",
   "@cameraStreamsEditView": {
+    "context": "Settings > Camera Streams > Views",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera Streams > Views"
+      ],
+      "remoteAdmin": [
+        "Camera Streams > Views"
+      ]
+    }
+  },
+  "cameraStreamsViewId": "Ansichts-ID",
+  "@cameraStreamsViewId": {
     "context": "Settings > Camera Streams > Views",
     "description": "Label or guidance in this section.",
     "x-locations": {
@@ -26820,6 +27909,21 @@
       ]
     }
   },
+  "esphomeLocationApproximate": "Nur der ungefähre Standort ist erlaubt, der GPS-Empfänger braucht aber den genauen Standort.",
+  "@esphomeLocationApproximate": {
+    "context": "Settings > ESPHome > GPS Sensor and Screensaver > Celestial screensaver > Required system permissions",
+    "description": "Location permission row when only approximate location is allowed (Android 12 and later). The GPS receiver needs precise location.",
+    "x-locations": {
+      "device": [
+        "Settings > ESPHome > GPS Sensor > Required system permissions",
+        "Settings > Screensaver > Celestial screensaver > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "ESPHome > GPS Sensor > Required system permissions",
+        "Screensaver > Celestial screensaver > Required system permissions"
+      ]
+    }
+  },
   "esphomeLocationGranted": "Die Standortsensoren können den GPS-Empfänger auslesen.",
   "@esphomeLocationGranted": {
     "context": "Settings > ESPHome > Bluetooth Proxy and GPS Sensor > Required system permissions",
@@ -30942,6 +32046,45 @@
       ],
       "remoteAdmin": [
         "Kiosk Mode > Allowed Actions"
+      ]
+    }
+  },
+  "settingKioskAllowedAppsTitle": "Erlaubte Apps",
+  "@settingKioskAllowedAppsTitle": {
+    "context": "Settings > Kiosk Mode > Allowed Actions",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk Mode > Allowed Actions > Allowed Apps"
+      ],
+      "remoteAdmin": [
+        "Kiosk Mode > Allowed Actions > Allowed Apps"
+      ]
+    }
+  },
+  "settingKioskAllowedAppsDescription": "Die Launcher-Apps, die bei aktiviertem Kioskmodus angeboten werden.",
+  "@settingKioskAllowedAppsDescription": {
+    "context": "Settings > Kiosk Mode > Allowed Actions",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk Mode > Allowed Actions > Allowed Apps"
+      ],
+      "remoteAdmin": [
+        "Kiosk Mode > Allowed Actions > Allowed Apps"
+      ]
+    }
+  },
+  "kioskAllowedAppsEmpty": "Füge zuerst unter Einstellungen > App-Launcher Apps hinzu.",
+  "@kioskAllowedAppsEmpty": {
+    "context": "Settings > Kiosk Mode > Allowed Actions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk Mode > Allowed Actions > Allowed Apps"
+      ],
+      "remoteAdmin": [
+        "Kiosk Mode > Allowed Actions > Allowed Apps"
       ]
     }
   },
@@ -35522,6 +36665,19 @@
       ]
     }
   },
+  "settingsGroupHousehold": "Haushalt",
+  "@settingsGroupHousehold": {
+    "context": "Settings:Menu",
+    "description": "Settings menu group heading over Intercom, Alarms and Calendar.",
+    "x-locations": {
+      "device": [
+        "Settings > menu"
+      ],
+      "remoteAdmin": [
+        "Sidebar menu"
+      ]
+    }
+  },
   "settingsGroupKiosk": "Kiosk",
   "@settingsGroupKiosk": {
     "context": "Settings:Menu",
@@ -37144,6 +38300,1232 @@
       ]
     }
   },
+  "settingScreensaverCelestialLocationTitle": "Standort",
+  "@settingScreensaverCelestialLocationTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLocationDescription": "Von wo aus der Himmel gesehen wird.",
+  "@settingScreensaverCelestialLocationDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialEntityTitle": "Entität",
+  "@settingScreensaverCelestialEntityTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialEntityDescription": "Eine Person, ein Geräte-Tracker oder eine Zone mit Standort.",
+  "@settingScreensaverCelestialEntityDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialCoordinatesTitle": "Koordinaten",
+  "@settingScreensaverCelestialCoordinatesTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialCoordinatesDescription": "Breiten- und Längengrad, etwa 40.71, -74.01.",
+  "@settingScreensaverCelestialCoordinatesDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialTerrainTitle": "Landschaft",
+  "@settingScreensaverCelestialTerrainTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialTerrainDescription": "Das Gelände entlang des Horizonts.",
+  "@settingScreensaverCelestialTerrainDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialFollowDeviceTitle": "Auf den Himmel richten",
+  "@settingScreensaverCelestialFollowDeviceTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialFollowDeviceDescription": "Halte das Gerät hoch und der Himmel auf dem Bildschirm dreht sich mit, damit du erkennst, was du gerade siehst. Benötigt einen Kompasssensor.",
+  "@settingScreensaverCelestialFollowDeviceDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCelestialDaytimeTitle": "Taghimmel",
+  "@settingScreensaverCelestialDaytimeTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialDaytimeDescription": "Den Himmel aufhellen und die Sterne ausblenden, solange die Sonne am Himmel steht. Ausschalten, um den ganzen Tag den Nachthimmel zu zeigen.",
+  "@settingScreensaverCelestialDaytimeDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialMilkyWayTitle": "Milchstraße",
+  "@settingScreensaverCelestialMilkyWayTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialMilkyWayDescription": "Das Leuchten unserer Galaxie am Nachthimmel zeigen.",
+  "@settingScreensaverCelestialMilkyWayDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialPlanetsTitle": "Planeten",
+  "@settingScreensaverCelestialPlanetsTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialPlanetsDescription": "Die Planeten dort zeigen, wo sie heute Nacht stehen.",
+  "@settingScreensaverCelestialPlanetsDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialDeepSkyTitle": "Galaxien und Nebel",
+  "@settingScreensaverCelestialDeepSkyTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialDeepSkyDescription": "Die Andromedagalaxie, den Orionnebel und andere Objekte zeigen, die ohne Teleskop sichtbar sind.",
+  "@settingScreensaverCelestialDeepSkyDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLightPollutionTitle": "Lichtverschmutzung",
+  "@settingScreensaverCelestialLightPollutionTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLightPollutionDescription": "Das Leuchten von Stadtlichtern nachbilden. Höhere Werte blenden die schwächeren Sterne und die Milchstraße aus.",
+  "@settingScreensaverCelestialLightPollutionDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialTwinkleTitle": "Funkelnde Sterne",
+  "@settingScreensaverCelestialTwinkleTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialTwinkleDescription": "Die Sterne funkeln lassen, am stärksten nahe am Horizont. Ausschalten, um Energie zu sparen.",
+  "@settingScreensaverCelestialTwinkleDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLargeMoonTitle": "Größerer Mond",
+  "@settingScreensaverCelestialLargeMoonTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLargeMoonDescription": "Den Mond in dreifacher und die Sonne in doppelter Größe zeichnen, damit die Mondphase gut zu erkennen ist.",
+  "@settingScreensaverCelestialLargeMoonDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Sky",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Sky"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Sky"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLinesTitle": "Sternbildlinien",
+  "@settingScreensaverCelestialLinesTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLinesDescription": "Die Sterne jedes Sternbilds verbinden.",
+  "@settingScreensaverCelestialLinesDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialConstellationNamesTitle": "Namen der Sternbilder",
+  "@settingScreensaverCelestialConstellationNamesTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialConstellationNamesDescription": "Die Sternbilder benennen. Beim Hineinzoomen erscheinen mehr.",
+  "@settingScreensaverCelestialConstellationNamesDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialNamesTitle": "Namen von Sternen und Planeten",
+  "@settingScreensaverCelestialNamesTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialNamesDescription": "Die Sonne, den Mond, die Planeten, die hellsten Sterne und die Galaxien benennen. Beim Hineinzoomen bekommen mehr Sterne einen Namen.",
+  "@settingScreensaverCelestialNamesDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialCompassTitle": "Himmelsrichtungen",
+  "@settingScreensaverCelestialCompassTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialCompassDescription": "Norden, Osten, Süden und Westen am Horizont markieren.",
+  "@settingScreensaverCelestialCompassDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLabelScaleTitle": "Beschriftungsgröße",
+  "@settingScreensaverCelestialLabelScaleTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialLabelScaleDescription": "Skaliert die Beschriftungen am Himmel von 50 bis 200 Prozent.",
+  "@settingScreensaverCelestialLabelScaleDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Labels",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Labels"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Labels"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlCoordinatesTitle": "Position",
+  "@settingScreensaverCelestialControlCoordinatesTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlCoordinatesDescription": "Zeigt den Breiten- und Längengrad, von dem aus der Himmel gesehen wird.",
+  "@settingScreensaverCelestialControlCoordinatesDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlAzimuthTitle": "Azimut",
+  "@settingScreensaverCelestialControlAzimuthTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlAzimuthDescription": "Zeigt die Himmelsrichtung, in die die Bildschirmmitte zeigt.",
+  "@settingScreensaverCelestialControlAzimuthDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlAltitudeTitle": "Höhe",
+  "@settingScreensaverCelestialControlAltitudeTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlAltitudeDescription": "Zeigt, wie hoch über dem Horizont die Bildschirmmitte liegt.",
+  "@settingScreensaverCelestialControlAltitudeDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlFovTitle": "Sichtfeld",
+  "@settingScreensaverCelestialControlFovTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlFovDescription": "Zeigt, wie viel vom Himmel der Bildschirm umfasst, in Grad.",
+  "@settingScreensaverCelestialControlFovDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlTimeTitle": "Uhrzeit",
+  "@settingScreensaverCelestialControlTimeTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlTimeDescription": "Zeigt die Uhrzeit des Himmels, nach einem Zeitraffer mit einer Jetzt-Taste.",
+  "@settingScreensaverCelestialControlTimeDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlTimelapseTitle": "Zeitraffer",
+  "@settingScreensaverCelestialControlTimelapseTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlTimelapseDescription": "Beschleunigt die Zeit, damit sich der Himmel sichtbar dreht. Tippe, um die Geschwindigkeit zu ändern.",
+  "@settingScreensaverCelestialControlTimelapseDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlPointAtSkyTitle": "Schalter für Auf den Himmel richten",
+  "@settingScreensaverCelestialControlPointAtSkyTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlPointAtSkyDescription": "Schaltet Auf den Himmel richten ein und aus. Erscheint nur auf Geräten mit Kompass.",
+  "@settingScreensaverCelestialControlPointAtSkyDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlMoonPhaseTitle": "Mondphase",
+  "@settingScreensaverCelestialControlMoonPhaseTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlMoonPhaseDescription": "Zeigt die Phase des Mondes und wie viel davon beleuchtet ist.",
+  "@settingScreensaverCelestialControlMoonPhaseDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlScaleTitle": "Größe der Steuerelemente",
+  "@settingScreensaverCelestialControlScaleTitle": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "settingScreensaverCelestialControlScaleDescription": "Skaliert die Steuerelemente von 50 bis 200 Prozent.",
+  "@settingScreensaverCelestialControlScaleDescription": {
+    "context": "Settings:Screensaver:Celestial screensaver:Controls",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver > Controls"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver > Controls"
+      ]
+    }
+  },
+  "screensaverModeCelestial": "Sternenhimmel",
+  "@screensaverModeCelestial": {
+    "context": "Settings:Screensaver",
+    "description": "Screensaver mode choice.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialTerrainHills": "Hügel",
+  "@screensaverCelestialTerrainHills": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Landscape choice.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialTerrainMountains": "Berge",
+  "@screensaverCelestialTerrainMountains": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Landscape choice.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialTerrainPlains": "Ebene",
+  "@screensaverCelestialTerrainPlains": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Landscape choice.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialTerrainNone": "Keine",
+  "@screensaverCelestialTerrainNone": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Landscape choice: no ground at all, so the whole screen shows the sky.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationGps": "GPS",
+  "@screensaverCelestialLocationGps": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location source choice.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationHaHome": "Zuhause in Home Assistant",
+  "@screensaverCelestialLocationHaHome": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location source choice: the home zone in Home Assistant.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationHaEntity": "Home Assistant-Entität",
+  "@screensaverCelestialLocationHaEntity": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location source choice: a person, device tracker or zone.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationManual": "Manuell",
+  "@screensaverCelestialLocationManual": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location source choice: coordinates typed in.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialCurrentLocation": "Aktueller Standort",
+  "@screensaverCelestialCurrentLocation": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Status row title under the location source.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialNoGpsReceiver": "Dieses Gerät hat keinen GPS-Empfänger.",
+  "@screensaverCelestialNoGpsReceiver": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status when the GPS source is chosen.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationPermission": "Standortberechtigung nicht erteilt.",
+  "@screensaverCelestialLocationPermission": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status when the GPS source is chosen.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialNoGpsFix": "Noch keine GPS-Position.",
+  "@screensaverCelestialNoGpsFix": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status when the GPS source is chosen.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialNoHomeZone": "Home Assistant hat keine Zuhause-Zone.",
+  "@screensaverCelestialNoHomeZone": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status for the Home Assistant home source.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialHaNotConnected": "Home Assistant ist nicht verbunden.",
+  "@screensaverCelestialHaNotConnected": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status for the Home Assistant sources.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialPickEntity": "Wähle eine Entität mit Standort.",
+  "@screensaverCelestialPickEntity": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status for the Home Assistant entity source.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialEntityNoLocation": "Diese Entität hat keinen Standort.",
+  "@screensaverCelestialEntityNoLocation": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location status for the Home Assistant entity source.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialPage": "Bildschirmschoner Sternenhimmel",
+  "@screensaverCelestialPage": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Settings page and section title.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialSummary": "Standort, Landschaft, Himmel, Beschriftungen, Steuerelemente",
+  "@screensaverCelestialSummary": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Summary under the page entry.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialSkyGroup": "Himmel",
+  "@screensaverCelestialSkyGroup": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Group heading.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLabelsGroup": "Beschriftungen",
+  "@screensaverCelestialLabelsGroup": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Group heading.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialControlsGroup": "Steuerelemente",
+  "@screensaverCelestialControlsGroup": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Group heading: switches for the chips a touch brings up over the sky.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationGrantMissing": "Ohne diese Berechtigung kann der GPS-Empfänger nicht ausgelesen werden und der Himmel hat keinen Standort.",
+  "@screensaverCelestialLocationGrantMissing": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location permission row under Required system permissions, shown while the GPS source has no location grant.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialLocationGrantReady": "Der Himmel kann dem GPS-Empfänger folgen.",
+  "@screensaverCelestialLocationGrantReady": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Location permission row under Required system permissions, shown once the location grant is given.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialCoordinatesInvalid": "Gib Breiten- und Längengrad ein, etwa 40.71, -74.01",
+  "@screensaverCelestialCoordinatesInvalid": {
+    "context": "Settings:Screensaver:Celestial screensaver",
+    "description": "Error under the coordinates field.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Celestial screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Celestial screensaver"
+      ]
+    }
+  },
+  "screensaverCelestialNoLocation": "Wähle einen Standort unter Einstellungen > Bildschirmschoner > Sternenhimmel.",
+  "@screensaverCelestialNoLocation": {
+    "context": "Screensaver:Celestial",
+    "description": "Prompt shown on a black screen when the location source has no position."
+  },
+  "screensaverCelestialWaitingForGps": "Warte auf eine GPS-Position...",
+  "@screensaverCelestialWaitingForGps": {
+    "context": "Screensaver:Celestial",
+    "description": "Shown on a black screen while the GPS source looks for its first position."
+  },
+  "screensaverCelestialDoubleTapHint": "Zum Schließen doppelt tippen",
+  "@screensaverCelestialDoubleTapHint": {
+    "context": "Screensaver:Celestial",
+    "description": "Hint shown after a single tap on the sky."
+  },
+  "screensaverCelestialCalibrate": "Bewege das Gerät in Form einer Acht, um den Kompass zu kalibrieren.",
+  "@screensaverCelestialCalibrate": {
+    "context": "Screensaver:Celestial",
+    "description": "Note over the sky while the compass is not calibrated."
+  },
+  "celestialSun": "Sonne",
+  "@celestialSun": {
+    "context": "Screensaver:Celestial",
+    "description": "Label on the sky."
+  },
+  "celestialMoon": "Mond",
+  "@celestialMoon": {
+    "context": "Screensaver:Celestial",
+    "description": "Label on the sky."
+  },
+  "celestialMercury": "Merkur",
+  "@celestialMercury": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialVenus": "Venus",
+  "@celestialVenus": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialMars": "Mars",
+  "@celestialMars": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialJupiter": "Jupiter",
+  "@celestialJupiter": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialSaturn": "Saturn",
+  "@celestialSaturn": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialUranus": "Uranus",
+  "@celestialUranus": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialNeptune": "Neptun",
+  "@celestialNeptune": {
+    "context": "Screensaver:Celestial",
+    "description": "Planet label on the sky."
+  },
+  "celestialAndromedaGalaxy": "Andromedagalaxie",
+  "@celestialAndromedaGalaxy": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialTriangulumGalaxy": "Dreiecksgalaxie",
+  "@celestialTriangulumGalaxy": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialLargeMagellanicCloud": "Große Magellansche Wolke",
+  "@celestialLargeMagellanicCloud": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialSmallMagellanicCloud": "Kleine Magellansche Wolke",
+  "@celestialSmallMagellanicCloud": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialOrionNebula": "Orionnebel",
+  "@celestialOrionNebula": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialLagoonNebula": "Lagunennebel",
+  "@celestialLagoonNebula": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialCarinaNebula": "Carinanebel",
+  "@celestialCarinaNebula": {
+    "context": "Screensaver:Celestial",
+    "description": "Deep-sky object label on the sky."
+  },
+  "celestialPleiades": "Plejaden",
+  "@celestialPleiades": {
+    "context": "Screensaver:Celestial",
+    "description": "Star cluster label on the sky."
+  },
+  "celestialBeehiveCluster": "Praesepe",
+  "@celestialBeehiveCluster": {
+    "context": "Screensaver:Celestial",
+    "description": "Star cluster label on the sky."
+  },
+  "celestialDoubleCluster": "h und χ Persei",
+  "@celestialDoubleCluster": {
+    "context": "Screensaver:Celestial",
+    "description": "Star cluster label on the sky."
+  },
+  "celestialOmegaCentauri": "Omega Centauri",
+  "@celestialOmegaCentauri": {
+    "context": "Screensaver:Celestial",
+    "description": "Star cluster label on the sky."
+  },
+  "celestialTucanae47": "47 Tucanae",
+  "@celestialTucanae47": {
+    "context": "Screensaver:Celestial",
+    "description": "Star cluster label on the sky."
+  },
+  "celestialCompassNorth": "N",
+  "@celestialCompassNorth": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass point on the horizon: north, one or two letters."
+  },
+  "celestialCompassEast": "O",
+  "@celestialCompassEast": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass point on the horizon: east, one or two letters."
+  },
+  "celestialCompassSouth": "S",
+  "@celestialCompassSouth": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass point on the horizon: south, one or two letters."
+  },
+  "celestialCompassWest": "W",
+  "@celestialCompassWest": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass point on the horizon: west, one or two letters."
+  },
+  "celestialCompassNorthEast": "NO",
+  "@celestialCompassNorthEast": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass direction in the Azimuth chip: northeast, short like N or E."
+  },
+  "celestialCompassSouthEast": "SO",
+  "@celestialCompassSouthEast": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass direction in the Azimuth chip: southeast, short like N or E."
+  },
+  "celestialCompassSouthWest": "SW",
+  "@celestialCompassSouthWest": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass direction in the Azimuth chip: southwest, short like N or E."
+  },
+  "celestialCompassNorthWest": "NW",
+  "@celestialCompassNorthWest": {
+    "context": "Screensaver:Celestial",
+    "description": "Compass direction in the Azimuth chip: northwest, short like N or E."
+  },
+  "celestialAzimuthShort": "Az",
+  "@celestialAzimuthShort": {
+    "context": "Screensaver:Celestial",
+    "description": "Short label before the azimuth in the bar over the sky, like astronomy programs use. Keep it to a few letters."
+  },
+  "celestialAltitudeShort": "Höhe",
+  "@celestialAltitudeShort": {
+    "context": "Screensaver:Celestial",
+    "description": "Short label before the altitude in the bar over the sky, like astronomy programs use. Keep it to a few letters."
+  },
+  "celestialFovShort": "FOV",
+  "@celestialFovShort": {
+    "context": "Screensaver:Celestial",
+    "description": "Short label before the field of view in the bar over the sky, like astronomy programs use. Keep it to a few letters."
+  },
+  "celestialNow": "Jetzt",
+  "@celestialNow": {
+    "context": "Screensaver:Celestial",
+    "description": "Button in the bar over the sky that brings the sky back to the current time after a timelapse."
+  },
+  "celestialMoonNew": "Neumond",
+  "@celestialMoonNew": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonWaxingCrescent": "Zunehmende Sichel",
+  "@celestialMoonWaxingCrescent": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonFirstQuarter": "Erstes Viertel",
+  "@celestialMoonFirstQuarter": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonWaxingGibbous": "Zunehmender Mond",
+  "@celestialMoonWaxingGibbous": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonFull": "Vollmond",
+  "@celestialMoonFull": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonWaningGibbous": "Abnehmender Mond",
+  "@celestialMoonWaningGibbous": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonLastQuarter": "Letztes Viertel",
+  "@celestialMoonLastQuarter": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
+  "celestialMoonWaningCrescent": "Abnehmende Sichel",
+  "@celestialMoonWaningCrescent": {
+    "context": "Screensaver:Celestial",
+    "description": "Moon phase in the Moon phase chip, followed by the lit percentage."
+  },
   "settingScreensaverClockStyleTitle": "Stil",
   "@settingScreensaverClockStyleTitle": {
     "context": "Settings:Screensaver:Clock screensaver",
@@ -38017,6 +40399,45 @@
         "Screensaver > Clock screensaver",
         "Screensaver > Weather Mood screensaver > Clock",
         "Screensaver > Widgets > Small clock"
+      ]
+    }
+  },
+  "settingScreensaverClockNightTurnOffMinutesTitle": "Bildschirm nachts ausschalten nach",
+  "@settingScreensaverClockNightTurnOffMinutesTitle": {
+    "context": "Settings:Screensaver:Clock screensaver:Night mode",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverClockNightTurnOffMinutesDescription": "Schaltet den Bildschirm aus, wenn der Nachtmodus die angegebene Zeit aktiv war, und wieder ein, sobald es im Raum heller wird. Bei 0 bleibt der Bildschirm eingeschaltet. Erfordert die Geräteadministrator-Berechtigung.",
+  "@settingScreensaverClockNightTurnOffMinutesDescription": {
+    "context": "Settings:Screensaver:Clock screensaver:Night mode",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "screensaverNightTurnOffWarning": "Wenn der Bildschirm vollständig ausgeschaltet wird, übernimmt das Energiemanagement des Tablets die Kontrolle. Viele Android-Geräte zeigen in diesem Zustand Probleme: WLAN wird in den Ruhezustand versetzt oder getrennt, Home-Assistant-Entitäten werden nicht verfügbar, der Kamerazugriff kann verloren gehen und manche Geräte beenden Anwendungen im Hintergrund. Manche Lichtsensoren liefern bei ausgeschaltetem Bildschirm außerdem keine Werte mehr, sodass sich der Bildschirm möglicherweise nicht von selbst wieder einschaltet, wenn es im Raum heller wird. Das Verhalten hängt vom Hersteller ab.\n\nDie zuverlässige Alternative ist „Stattdessen einen schwarzen Bildschirm verwenden“. Der Bildschirm wirkt genauso dunkel, während die Anwendung die Kontrolle behält.",
+  "@screensaverNightTurnOffWarning": {
+    "context": "Settings:Screensaver:Clock screensaver:Night mode",
+    "description": "Warning before Night mode is allowed to power the screen off.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
       ]
     }
   },
@@ -39314,6 +41735,32 @@
       ]
     }
   },
+  "settingScreensaverDashboardDoubleTapTitle": "Zum Schließen doppeltippen",
+  "@settingScreensaverDashboardDoubleTapTitle": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardDoubleTapDescription": "Ein einfacher Tipp ermöglicht die Interaktion mit dem Dashboard, anstatt den Bildschirmschoner zu schließen.",
+  "@settingScreensaverDashboardDoubleTapDescription": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
   "screensaverDashboardSection": "Bildschirmschoner: Home-Assistant-Dashboard",
   "@screensaverDashboardSection": {
     "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
@@ -39339,6 +41786,45 @@
       "remoteAdmin": [
         "Screensaver > Screensaver mode",
         "Screensaver > Image URL screensaver"
+      ]
+    }
+  },
+  "screensaverCalendarSection": "Bildschirmschoner: Kalender",
+  "@screensaverCalendarSection": {
+    "context": "Settings:Screensaver:Calendar screensaver",
+    "description": "Heading of the group for the Calendar screensaver mode.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Calendar screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Calendar screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCalendarViewTitle": "Kalenderansicht",
+  "@settingScreensaverCalendarViewTitle": {
+    "context": "Settings:Screensaver:Calendar screensaver",
+    "description": "Setting label: which calendar view (Day, Week, Month or Schedule) the screensaver opens on.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Calendar screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Calendar screensaver"
+      ]
+    }
+  },
+  "settingScreensaverCalendarViewDescription": "Die Kalenderansicht, mit der der Bildschirmschoner öffnet.",
+  "@settingScreensaverCalendarViewDescription": {
+    "context": "Settings:Screensaver:Calendar screensaver",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Calendar screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Calendar screensaver"
       ]
     }
   },
@@ -45370,6 +47856,32 @@
       ]
     }
   },
+  "screensaverOverlayVisibleStates": "Sichtbare Zustände",
+  "@screensaverOverlayVisibleStates": {
+    "context": "Settings > Screensaver > Widgets > Add widget or select a widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Add widget or select a widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Add widget or select a widget"
+      ]
+    }
+  },
+  "screensaverOverlayVisibleStatesHelp": "Zeigt das Widget nur an, wenn sein Wert einem dieser Werte entspricht, durch Kommas getrennt. Leer lassen, um es immer anzuzeigen.",
+  "@screensaverOverlayVisibleStatesHelp": {
+    "context": "Settings > Screensaver > Widgets > Add widget or select a widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Add widget or select a widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Add widget or select a widget"
+      ]
+    }
+  },
   "screensaverOverlayFontSystem": "System",
   "@screensaverOverlayFontSystem": {
     "context": "Settings > Screensaver > Widgets > Add widget or select a widget",
@@ -49526,6 +52038,45 @@
       "error": {
         "type": "String"
       }
+    }
+  },
+  "settingVoiceAmazonLocaleTitle": "Sprache des Aktivierungsworts",
+  "@settingVoiceAmazonLocaleTitle": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Wake Word"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Wake Word"
+      ]
+    }
+  },
+  "settingVoiceAmazonLocaleDescription": "Die Sprache der Aktivierungswort-Modelle von Amazon. Die Auswahlfelder für Aktivierungswörter bieten die Aktivierungswörter dieser Sprache an.",
+  "@settingVoiceAmazonLocaleDescription": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Wake Word"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Wake Word"
+      ]
+    }
+  },
+  "voiceOptionAppLanguage": "Sprache von Kiosk Satellite",
+  "@voiceOptionAppLanguage": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Wake Word"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Wake Word"
+      ]
     }
   },
   "settingDisableCacheTitle": "Cache deaktivieren",

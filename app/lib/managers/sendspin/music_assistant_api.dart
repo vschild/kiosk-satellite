@@ -722,6 +722,7 @@ class MaSession {
           completer.completeError(
             MusicAssistantError(
               '${message['details'] ?? message['error_code']}',
+              code: message['error_code'],
             ),
           );
         } else {
@@ -799,9 +800,13 @@ class MusicAssistantResult {
 }
 
 class MusicAssistantError implements Exception {
-  const MusicAssistantError(this.message);
+  const MusicAssistantError(this.message, {this.code});
 
   final String message;
+
+  /// Music Assistant's error_code when the server refused the command,
+  /// null when the connection failed.
+  final Object? code;
 
   @override
   String toString() => message;

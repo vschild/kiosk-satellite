@@ -22,6 +22,7 @@
   "gestureLaunchApp": "Открыть другое приложение",
   "gestureDeepLink": "Открыть диплинк",
   "gestureAndroidSettings": "Открыть настройки Android",
+  "gestureOpenCalendar": "Открыть календарь",
   "gestureService": "Вызвать службу",
   "gestureScript": "Запустить сценарий",
   "gestureAutomation": "Запустить автоматизацию",

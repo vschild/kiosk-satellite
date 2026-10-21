@@ -304,6 +304,14 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingScreensaverDashboardViewTitle",
     "description": "settingScreensaverDashboardViewDescription",
   },
+  "screensaver.dashboard_double_tap": {
+    "title": "settingScreensaverDashboardDoubleTapTitle",
+    "description": "settingScreensaverDashboardDoubleTapDescription",
+  },
+  "screensaver.calendar_view": {
+    "title": "settingScreensaverCalendarViewTitle",
+    "description": "settingScreensaverCalendarViewDescription",
+  },
   "screensaver.black_hide_extras": {
     "title": "settingScreensaverBlackHideExtrasTitle",
     "description": "settingScreensaverBlackHideExtrasDescription",
@@ -1332,6 +1340,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingKioskAllowAppsTitle",
     "description": "settingKioskAllowAppsDescription",
   },
+  "kiosk.allowed_apps": {
+    "title": "settingKioskAllowedAppsTitle",
+    "description": "settingKioskAllowedAppsDescription",
+  },
   "home.enabled": {
     "title": "settingHomeLauncherEnabledTitle",
     "description": "settingHomeLauncherEnabledDescription",
@@ -1355,6 +1367,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "launcher.auto_return_seconds": {
     "title": "settingLauncherAutoReturnSecondsTitle",
     "description": "settingLauncherAutoReturnSecondsDescription",
+  },
+  "launcher.auto_return_media": {
+    "title": "settingLauncherAutoReturnMediaTitle",
+    "description": "settingLauncherAutoReturnMediaDescription",
   },
   "gestures.clap_strictness": {
     "title": "settingClapStrictnessTitle",
@@ -2255,5 +2271,145 @@ const settingMessageIds = <String, Map<String, String>>{
   "screensaver.weather_clock_ampm": {
     "title": "settingScreensaverClockAmPmTitle",
     "description": "settingScreensaverClockAmPmDescription",
+  },
+  "calendar.default_view": {
+    "title": "settingCalendarDefaultViewTitle",
+    "description": "settingCalendarDefaultViewDescription",
+  },
+  "calendar.week_start": {
+    "title": "settingCalendarWeekStartTitle",
+    "description": "settingCalendarWeekStartDescription",
+  },
+  "calendar.weather_entity": {
+    "title": "settingCalendarWeatherEntityTitle",
+    "description": "settingCalendarWeatherEntityDescription",
+  },
+  "calendar.menu": {
+    "title": "settingCalendarMenuTitle",
+    "description": "settingCalendarMenuDescription",
+  },
+  "calendar.idle_close_minutes": {
+    "title": "settingCalendarIdleCloseMinutesTitle",
+    "description": "settingCalendarIdleCloseMinutesDescription",
+  },
+  "kiosk.allow_calendar": {
+    "title": "settingKioskAllowCalendarTitle",
+    "description": "settingKioskAllowCalendarDescription",
+  },
+  "screensaver.celestial_coordinates": {
+    "title": "settingScreensaverCelestialCoordinatesTitle",
+    "description": "settingScreensaverCelestialCoordinatesDescription",
+  },
+  "screensaver.celestial_terrain": {
+    "title": "settingScreensaverCelestialTerrainTitle",
+    "description": "settingScreensaverCelestialTerrainDescription",
+  },
+  "screensaver.celestial_daytime": {
+    "title": "settingScreensaverCelestialDaytimeTitle",
+    "description": "settingScreensaverCelestialDaytimeDescription",
+  },
+  "screensaver.celestial_milky_way": {
+    "title": "settingScreensaverCelestialMilkyWayTitle",
+    "description": "settingScreensaverCelestialMilkyWayDescription",
+  },
+  "screensaver.celestial_planets": {
+    "title": "settingScreensaverCelestialPlanetsTitle",
+    "description": "settingScreensaverCelestialPlanetsDescription",
+  },
+  "screensaver.celestial_deep_sky": {
+    "title": "settingScreensaverCelestialDeepSkyTitle",
+    "description": "settingScreensaverCelestialDeepSkyDescription",
+  },
+  "screensaver.celestial_twinkle": {
+    "title": "settingScreensaverCelestialTwinkleTitle",
+    "description": "settingScreensaverCelestialTwinkleDescription",
+  },
+  "screensaver.celestial_large_moon": {
+    "title": "settingScreensaverCelestialLargeMoonTitle",
+    "description": "settingScreensaverCelestialLargeMoonDescription",
+  },
+  "screensaver.celestial_lines": {
+    "title": "settingScreensaverCelestialLinesTitle",
+    "description": "settingScreensaverCelestialLinesDescription",
+  },
+  "screensaver.celestial_constellation_names": {
+    "title": "settingScreensaverCelestialConstellationNamesTitle",
+    "description": "settingScreensaverCelestialConstellationNamesDescription",
+  },
+  "screensaver.celestial_names": {
+    "title": "settingScreensaverCelestialNamesTitle",
+    "description": "settingScreensaverCelestialNamesDescription",
+  },
+  "screensaver.celestial_compass": {
+    "title": "settingScreensaverCelestialCompassTitle",
+    "description": "settingScreensaverCelestialCompassDescription",
+  },
+  "screensaver.celestial_location": {
+    "title": "settingScreensaverCelestialLocationTitle",
+    "description": "settingScreensaverCelestialLocationDescription",
+  },
+  "screensaver.celestial_entity": {
+    "title": "settingScreensaverCelestialEntityTitle",
+    "description": "settingScreensaverCelestialEntityDescription",
+  },
+  "screensaver.celestial_light_pollution": {
+    "title": "settingScreensaverCelestialLightPollutionTitle",
+    "description": "settingScreensaverCelestialLightPollutionDescription",
+  },
+  "screensaver.celestial_follow_device": {
+    "title": "settingScreensaverCelestialFollowDeviceTitle",
+    "description": "settingScreensaverCelestialFollowDeviceDescription",
+  },
+  "screensaver.celestial_control_coordinates": {
+    "title": "settingScreensaverCelestialControlCoordinatesTitle",
+    "description": "settingScreensaverCelestialControlCoordinatesDescription",
+  },
+  "screensaver.celestial_control_azimuth": {
+    "title": "settingScreensaverCelestialControlAzimuthTitle",
+    "description": "settingScreensaverCelestialControlAzimuthDescription",
+  },
+  "screensaver.celestial_control_altitude": {
+    "title": "settingScreensaverCelestialControlAltitudeTitle",
+    "description": "settingScreensaverCelestialControlAltitudeDescription",
+  },
+  "screensaver.celestial_control_time": {
+    "title": "settingScreensaverCelestialControlTimeTitle",
+    "description": "settingScreensaverCelestialControlTimeDescription",
+  },
+  "screensaver.celestial_control_timelapse": {
+    "title": "settingScreensaverCelestialControlTimelapseTitle",
+    "description": "settingScreensaverCelestialControlTimelapseDescription",
+  },
+  "screensaver.celestial_control_point_at_sky": {
+    "title": "settingScreensaverCelestialControlPointAtSkyTitle",
+    "description": "settingScreensaverCelestialControlPointAtSkyDescription",
+  },
+  "screensaver.celestial_control_moon_phase": {
+    "title": "settingScreensaverCelestialControlMoonPhaseTitle",
+    "description": "settingScreensaverCelestialControlMoonPhaseDescription",
+  },
+  "screensaver.celestial_control_fov": {
+    "title": "settingScreensaverCelestialControlFovTitle",
+    "description": "settingScreensaverCelestialControlFovDescription",
+  },
+  "screensaver.celestial_label_scale": {
+    "title": "settingScreensaverCelestialLabelScaleTitle",
+    "description": "settingScreensaverCelestialLabelScaleDescription",
+  },
+  "screensaver.celestial_control_scale": {
+    "title": "settingScreensaverCelestialControlScaleTitle",
+    "description": "settingScreensaverCelestialControlScaleDescription",
+  },
+  "screensaver.clock_night_turn_off_minutes": {
+    "title": "settingScreensaverClockNightTurnOffMinutesTitle",
+    "description": "settingScreensaverClockNightTurnOffMinutesDescription",
+  },
+  "screensaver.clock_night_turn_off_black": {
+    "title": "settingScreensaverScreenOffBlackTitle",
+    "description": "settingScreensaverScreenOffBlackDescription",
+  },
+  "voice.amazon_locale": {
+    "title": "settingVoiceAmazonLocaleTitle",
+    "description": "settingVoiceAmazonLocaleDescription",
   },
 };

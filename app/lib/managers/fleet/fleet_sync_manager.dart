@@ -2153,9 +2153,12 @@ class FleetSyncManager extends Manager {
     };
     return [
       for (final d in defs.allSettings)
+        // A setting that follows another one travels with it, so excluding
+        // it alone would do nothing.
         if (!d.perDevice &&
             !defs.fleetCredentialKeys.contains(d.key) &&
             !defs.fleetDashboardKeys.contains(d.key) &&
+            !defs.fleetFollowsKey.containsKey(d.key) &&
             titles.containsKey(defs.fleetCategoryOf(d)))
           {
             'key': d.key,

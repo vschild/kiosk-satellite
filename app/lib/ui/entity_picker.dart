@@ -304,6 +304,28 @@ Future<PickList?> _loadPillPlayers(CommandRegistry commands) async {
   );
 }
 
+/// The device's launchable apps from `installedApps`, alphabetical, for
+/// the app launcher's picks (issue #1067). The caller lists them first, so
+/// a failure can say why.
+PickSpec appSpec(BuildContext context, List<Map> apps) => PickSpec(
+  key: 'apps',
+  loader: () async => PickList([
+    for (final app in apps)
+      PickItem(
+        id: '${app['package']}',
+        name: '${app['label']}',
+        sub: '${app['package']}',
+        subMono: true,
+        icon: 'mdi:application-outline',
+      ),
+  ]),
+  searchHint: launcherText(context, 'Search apps'),
+  noGroup: '',
+  byGroupName: false,
+  chips: false,
+  headings: false,
+);
+
 /// A fixed list of players, this device's own.
 PickSpec fixedPlayerSpec(
   BuildContext context, {

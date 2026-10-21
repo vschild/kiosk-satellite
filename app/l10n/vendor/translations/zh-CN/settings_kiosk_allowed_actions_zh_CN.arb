@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "应用",
   "settingKioskAllowAppsDescription": "打开应用启动器。开启“禁用主页键”时，启动其他应用会解除 Kiosk 的屏幕固定，直到返回。",
   "kioskAllowedActions": "允许的操作",
-  "kioskAllowedHelp": "Kiosk 菜单提供哪些快捷操作"
+  "kioskAllowedHelp": "Kiosk 菜单提供哪些快捷操作",
+  "settingKioskAllowedAppsTitle": "允许的应用",
+  "settingKioskAllowedAppsDescription": "Kiosk 模式开启时提供的启动器应用。",
+  "kioskAllowedAppsEmpty": "请先在“设置 > 应用启动器”中添加应用。"
 }

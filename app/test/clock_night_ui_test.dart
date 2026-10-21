@@ -93,6 +93,74 @@ void main() {
       expect(find.text('Hide widgets and At a Glance'), findsOneWidget);
     });
 
+    testWidgets('moving the night slider off 0 warns first', (tester) async {
+      final container = await open(tester, {
+        'ks.screensaver.clock_night': true,
+      });
+      await tab(tester, 'Screensaver');
+      await tab(tester, 'Clock screensaver');
+      expect(find.text('Turn screen off at night after'), findsOneWidget);
+      expect(find.text('Use a black screen instead'), findsNothing);
+      final slider = find.descendant(
+        of: find.ancestor(
+          of: find.text('Turn screen off at night after'),
+          matching: find.byType(Column),
+        ),
+        matching: find.byType(Slider),
+      );
+      Future<void> drag() async {
+        await tester.drag(slider.first, const Offset(120, 0));
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      await drag();
+      expect(find.text('WARNING: Please Read!'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        container.settings.get(defs.screensaverClockNightTurnOffMinutes),
+        0,
+      );
+      await drag();
+      await tester.tap(find.text('Turn screen off anyway'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        container.settings.get(defs.screensaverClockNightTurnOffMinutes),
+        greaterThan(0),
+      );
+      expect(find.text('Use a black screen instead'), findsOneWidget);
+    });
+
+    testWidgets('powering off at night lists the Device admin grant', (
+      tester,
+    ) async {
+      const channel = MethodChannel('kiosk_satellite/background');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => call.method == 'isScreenOffAvailable' ? false : null,
+      );
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final container = await open(tester, {
+        'ks.screensaver.clock_night': true,
+        'ks.screensaver.clock_night_turn_off_minutes': 10,
+      });
+      await tab(tester, 'Screensaver');
+      await tab(tester, 'Clock screensaver');
+      expect(find.text('Required system permissions'), findsOneWidget);
+      expect(
+        find.text('Not granted, so the screen cannot turn off.'),
+        findsOneWidget,
+      );
+      await container.settings.set(
+        defs.screensaverClockNightTurnOffBlack,
+        true,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Required system permissions'), findsNothing);
+    });
+
     testWidgets('off, the group is just the switch', (tester) async {
       await open(tester, {});
       await tab(tester, 'Screensaver');

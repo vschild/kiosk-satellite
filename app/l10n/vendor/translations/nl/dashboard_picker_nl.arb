@@ -8,6 +8,7 @@
   "dashboardPickerSubview": "Subweergave",
   "dashboardPickerWhole": "Volledig dashboard",
   "dashboardPickerBuildsOwn": "Maakt eigen weergaven",
+  "dashboardPickerIngressPage": "Ingress-pagina",
   "dashboardPickerWholeHelp": "Dit dashboard maakt zijn eigen weergaven, dus de kiosk opent het in zijn geheel.",
   "dashboardPickerViewCount": "{count} weergaven",
   "dashboardPickerOneView": "1 weergave",

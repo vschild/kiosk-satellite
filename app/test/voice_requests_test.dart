@@ -151,6 +151,7 @@ void main() {
       final socket = await follow(admin: true);
       expect(socket.handlers.keys, {
         'kiosk_satellite_alarm',
+        'kiosk_satellite_calendar',
         'kiosk_satellite_intercom',
       });
     });

@@ -6,5 +6,7 @@
   "settingLauncherAutoReturnTitle": "Volver automáticamente",
   "settingLauncherAutoReturnDescription": "Vuelve al kiosko cuando la otra aplicación lleva un tiempo sin recibir toques.",
   "settingLauncherAutoReturnSecondsTitle": "Volver después de (segundos)",
-  "settingLauncherAutoReturnSecondsDescription": "Tiempo sin tocar la otra aplicación antes de volver al kiosko."
+  "settingLauncherAutoReturnSecondsDescription": "Tiempo sin tocar la otra aplicación antes de volver al kiosko.",
+  "settingLauncherAutoReturnMediaTitle": "Esperar mientras se reproduce contenido",
+  "settingLauncherAutoReturnMediaDescription": "No vuelve mientras se reproduce video o música."
 }

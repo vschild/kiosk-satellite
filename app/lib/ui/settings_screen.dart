@@ -1,4 +1,5 @@
 import 'alarms_overlay.dart' show AlarmsManageCard;
+import 'calendar_settings.dart';
 import '../l10n/fleet_messages.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -22,7 +23,8 @@ import '../core/logging.dart';
 import '../managers/btproxy/ble_identity.dart' show rssiTier, sortNearbyJson;
 import '../managers/camera/models.dart'
     show decodeCameraViewIds, encodeCameraViewIds;
-import '../managers/launcher/app_launcher_manager.dart' show decodeLauncherApps;
+import '../managers/launcher/app_launcher_manager.dart'
+    show LauncherApp, decodeKioskAllowedApps, decodeLauncherApps;
 import '../managers/screensaver/immich_manager.dart'
     show ImmichNamed, decodeImmichNamed;
 import '../managers/notifications/notification_sounds.dart';
@@ -47,6 +49,7 @@ import '../managers/voice/realtime/openai_realtime_backend.dart';
 import '../managers/wake_word/background_listening.dart';
 import '../managers/wake_word/system_permissions.dart';
 import 'color_picker.dart';
+import 'celestial_settings.dart';
 import 'weather_mood_settings.dart';
 import 'date_picker.dart';
 import 'gesture_settings.dart';
@@ -170,6 +173,7 @@ List<Widget> _sectionedCards(
         final heading = current;
         out.add(
           (def.category == 'ESPHome' ||
+                  def.category == 'Kiosk' ||
                   def.category == 'Device' ||
                   def.category == 'Home Assistant' ||
                   def.category == 'Screen & Audio' ||
@@ -212,6 +216,8 @@ const _analyticsIntro =
 const _analyticsDocsUrl = 'https://kiosksatellite.com/docs/analytics/';
 const _voiceAlarmsDocsUrl =
     'https://kiosksatellite.com/docs/alarms/#setting-alarms-by-voice';
+const _voiceCalendarDocsUrl =
+    'https://kiosksatellite.com/docs/calendar/#managing-the-calendar-by-voice';
 
 // The Updates page closes with a link to the custom repository guide: the
 // folder layout, the releases file and the APK names live in the docs, not
@@ -271,8 +277,6 @@ const _categories = <(String, String, Object, String)>[
     Icons.cast_outlined,
     'Play images, videos and audio remotely',
   ),
-  ('Intercom', 'Intercom', Icons.speaker_phone_outlined, 'Talk between kiosks'),
-  ('Alarms', 'Alarms', Icons.alarm, 'Set alarms, tone, snooze, sunrise'),
   (
     'Camera',
     'Camera',
@@ -284,6 +288,14 @@ const _categories = <(String, String, Object, String)>[
     'Camera Streams',
     Icons.videocam_outlined,
     'Go2RTC and Home Assistant cameras',
+  ),
+  ('Intercom', 'Intercom', Icons.speaker_phone_outlined, 'Talk between kiosks'),
+  ('Alarms', 'Alarms', Icons.alarm, 'Set alarms, tone, snooze, sunrise'),
+  (
+    'Calendar',
+    'Calendar',
+    Icons.calendar_month_outlined,
+    'Family calendars from Home Assistant',
   ),
   (
     'Kiosk',
@@ -340,6 +352,7 @@ const _railGroups = <String, String>{
   'Home Assistant': 'Home Assistant',
   'Screen & Audio': 'Display',
   'Sendspin': 'Media & Cameras',
+  'Intercom': 'Household',
   'Kiosk': 'Kiosk',
   'Device': 'System',
 };
@@ -526,6 +539,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         pluginTextFor: (text) => pluginText(context, text),
         intercomTextFor: (text) => intercomText(context, text),
         alarmsTextFor: (text) => settingsPageText(context, 'Alarms', text),
+        calendarTextFor: (text) => settingsPageText(context, 'Calendar', text),
         mediaTextFor: (text) => mediaText(context, text),
         cameraStreamsTextFor: (text) => cameraStreamsText(context, text),
         cameraTextFor: (text) => cameraText(context, text),
@@ -2398,7 +2412,44 @@ class _CategoryContentState extends State<_CategoryContent> {
               after: _rowExtras(container),
             ),
           )
-        else if (widget.category == 'Alarms') ...[
+        else if (widget.category == 'Calendar') ...[
+          // Open calendar, then the calendars themselves (hand-built, the
+          // Alarms list's twin), then Display and Kiosk from the
+          // definitions, then Voice Calendar. Mirrored on the remote's
+          // Calendar page.
+          CalendarOpenCard(container: container),
+          SectionHeading(l10n(context).calendarCalendarsSection),
+          CalendarSourcesCard(container: container),
+          ..._sectionedCards(
+            container,
+            _inlineDefsFor('Calendar'),
+            () => setState(() {}),
+            replace: _rowReplacements(container),
+            after: _rowExtras(container),
+          ),
+          // The calendar by voice lives in Home Assistant (the blueprint),
+          // so this group only points at the guide, as Voice Alarms does.
+          SectionHeading(l10n(context).calendarVoiceSection),
+          SettingsCard(
+            children: [
+              SearchLandingTarget(
+                id: 'x:calendar_voice',
+                child: SettingsRow(
+                  leading: const Icon(Icons.record_voice_over_outlined),
+                  title: Text(l10n(context).calendarVoiceManage),
+                  subtitle: Text(l10n(context).calendarVoiceHint),
+                  trailing: const Icon(Icons.open_in_new),
+                  onTap: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    container.commands.execute('showLinkPage', {
+                      'url': _voiceCalendarDocsUrl,
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ] else if (widget.category == 'Alarms') ...[
           // Show in the kiosk menu on its own untitled card, then the list
           // itself (the full screen overlay, opened from here), then the
           // defaults, then Voice Alarms. Mirrored on the remote's Alarms
@@ -3091,6 +3142,13 @@ class _CategoryContentState extends State<_CategoryContent> {
           voiceDef: announcementsTtsVoice,
         ),
     },
+    // The forecast's weather entity is picked, never typed. Mirrored on
+    // the remote (rows.js).
+    if (widget.category == 'Calendar')
+      calendarWeatherEntity.key: SearchLandingTarget(
+        id: calendarWeatherEntity.key,
+        child: CalendarWeatherRow(container: container),
+      ),
     if (widget.category == 'Alarms') ...{
       alarmsTtsEngine.key: AnnouncementTtsEngineRow(
         container: container,
@@ -3187,6 +3245,26 @@ class _CategoryContentState extends State<_CategoryContent> {
     if (widget.category == 'ESPHome' &&
         !container.location.locationKnownUnsupported)
       locationEnabled.key: _LocationStatusRow(container: container),
+    // Where the Celestial sky's location source places it, or why it
+    // cannot: under the Location select for the GPS and the home zone,
+    // under the picker for an entity. Manual shows its own field.
+    // Mirrored on the remote (settings.js).
+    if (widget.category == 'Screensaver' &&
+        const {
+          'gps',
+          'ha_home',
+        }.contains(container.settings.get(screensaverCelestialLocation)))
+      screensaverCelestialLocation.key: CelestialLocationStatusRow(
+        key: ValueKey(container.settings.get(screensaverCelestialLocation)),
+        container: container,
+        source: container.settings.get(screensaverCelestialLocation),
+      ),
+    if (widget.category == 'Screensaver' &&
+        container.settings.get(screensaverCelestialLocation) == 'ha_entity')
+      screensaverCelestialEntity.key: CelestialLocationStatusRow(
+        container: container,
+        source: 'ha_entity',
+      ),
     // What the device's person sensor is reporting, live, under Dismiss
     // on person: someone in view or not and the age of the last heartbeat,
     // or why nothing is being read. Mirrored on the remote (settings.js,
@@ -3586,6 +3664,58 @@ class _CategoryContentState extends State<_CategoryContent> {
       ];
     }
 
+    if (widget.category == 'Screensaver' &&
+        subpage == 'Clock screensaver' &&
+        _nightPowersOff(container)) {
+      // Turn screen off at night powers the panel down through the Device
+      // admin grant, so the page closes with it while that is the way.
+      // Mirrored on the remote (settings.js, updateClockNightAdminRows).
+      return [
+        ...sectioned([
+          for (final def in _defsFor(widget.category))
+            if (def.subpage == subpage) def,
+        ]),
+        SectionHeading(screensaverText(context, 'Required system permissions')),
+        SettingsCard(
+          children: [_NightScreenOffAdminTile(container: container)],
+        ),
+      ];
+    }
+
+    if (widget.category == 'Screensaver' &&
+        subpage == 'Celestial screensaver' &&
+        container.settings.visible(screensaverCelestialLocation) &&
+        container.settings.get(screensaverCelestialLocation) == 'gps') {
+      // The GPS source reads the receiver, so the location grant follows
+      // the group holding the Location select rather than waiting at the
+      // end of the long page. Mirrored on the remote (settings.js,
+      // updateCelestialPermissionRows).
+      final defs = [
+        for (final def in _defsFor(widget.category))
+          if (def.subpage == subpage) def,
+      ];
+      final first = defs.first.section;
+      return [
+        ...sectioned([
+          for (final def in defs)
+            if (def.section == first) def,
+        ]),
+        SectionHeading(screensaverText(context, 'Required system permissions')),
+        SearchLandingTarget(
+          id: 'x:celestial_location_permissions',
+          child: SettingsCard(
+            children: [
+              _LocationPermissionsTile(container: container, celestial: true),
+            ],
+          ),
+        ),
+        ...sectioned([
+          for (final def in defs)
+            if (def.section != first) def,
+        ]),
+      ];
+    }
+
     if (widget.category == 'Screensaver' && subpage == 'Person Detection') {
       // The device's own person sensor (discussion #353, today the Meta
       // Portal's): the two switches with the live Occupancy row, then the
@@ -3879,6 +4009,15 @@ class _CategoryContentState extends State<_CategoryContent> {
                     def: voiceWakeWordEngine,
                     onChanged: changed,
                   ),
+                  // Amazon's engine: which language its models listen in,
+                  // which the wake word selects below follow.
+                  if (container.settings.visible(voiceAmazonLocale) &&
+                      !deviceHiddenKeys.contains(voiceAmazonLocale.key))
+                    SettingTile(
+                      container: container,
+                      def: voiceAmazonLocale,
+                      onChanged: changed,
+                    ),
                   VoiceHaSelects(container: container, rows: voiceWakeWordRows),
                   for (final def in native.skip(1))
                     SettingTile(
@@ -4699,7 +4838,7 @@ class _LauncherPermissionsTileState extends State<_LauncherPermissionsTile>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Both grants are given on OS screens that report nothing back.
+    // The grants are given on OS screens that report nothing back.
     if (_returned.returned(state)) _refresh();
   }
 
@@ -4776,6 +4915,29 @@ class _LauncherPermissionsTileState extends State<_LauncherPermissionsTile>
           ),
           onGrant: BackgroundListening.requestBatteryUnrestricted,
         ),
+        // Wait while media plays reads other apps' media sessions
+        // (issue #1055), which Android shows to no one without this.
+        if (widget.container.settings.get(launcherAutoReturnMedia))
+          _row(
+            granted: _perms?.notificationAccess,
+            missingIcon: Icons.notifications_off_outlined,
+            title: launcherText(context, 'Notification access'),
+            held: launcherText(
+              context,
+              'The kiosk stays away while video or music plays in another '
+              'app.',
+            ),
+            missing: launcherText(
+              context,
+              'Without this the kiosk cannot tell when video or music is '
+              'playing and comes back anyway.',
+            ),
+            onGrant: () async {
+              await widget.container.commands.execute('requestOsPermissions', {
+                'which': ['notificationAccess'],
+              });
+            },
+          ),
       ]),
     );
   }
@@ -4909,25 +5071,27 @@ class _OverlayGrantRowState extends State<_OverlayGrantRow> {
 /// schedule entry's own (mirrored in the remote UI): what a dark panel does
 /// to Wi-Fi, the camera and the app itself is the manufacturer's call, not
 /// the app's (issue #184 and kin), and the Black screensaver avoids the
-/// whole regime. True when the person chose to go ahead.
-Future<bool> confirmScreenOff(BuildContext context) async {
+/// whole regime. True when the person chose to go ahead. Night mode's Turn
+/// screen off at night passes [message], its own version of the risk.
+Future<bool> confirmScreenOff(BuildContext context, {String? message}) async {
   final go = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(screensaverText(context, 'WARNING: Please Read!')),
       content: Text(
-        screensaverText(
-          context,
-          'Once the display truly powers off, the tablet\'s own '
-          'power management takes over, and many Android models '
-          'misbehave in that state: Wi-Fi naps or drops, the '
-          'Home Assistant entities go unavailable, the camera '
-          'can be revoked, and some models kill background apps '
-          'outright. What happens depends on the manufacturer.\n\n'
-          'The reliable alternative is the Black screensaver '
-          'with this setting left at 0: the panel looks just as '
-          'dark, and the app keeps full control.',
-        ),
+        message ??
+            screensaverText(
+              context,
+              'Once the display truly powers off, the tablet\'s own '
+              'power management takes over, and many Android models '
+              'misbehave in that state: Wi-Fi naps or drops, the '
+              'Home Assistant entities go unavailable, the camera '
+              'can be revoked, and some models kill background apps '
+              'outright. What happens depends on the manufacturer.\n\n'
+              'The reliable alternative is the Black screensaver '
+              'with this setting left at 0: the panel looks just as '
+              'dark, and the app keeps full control.',
+            ),
       ),
       actions: [
         TextButton(
@@ -4942,6 +5106,112 @@ Future<bool> confirmScreenOff(BuildContext context) async {
     ),
   );
   return go == true;
+}
+
+const _nightTurnOffWarning =
+    'When the display really powers off, the tablet\'s own power management '
+    'takes over. Many Android models misbehave in that state: Wi-Fi naps or '
+    'drops, Home Assistant entities go unavailable, the camera can be revoked '
+    'and some models kill background apps. Some light sensors also stop '
+    'reporting with the display off, so the screen may not turn back on by '
+    'itself when the room brightens. What happens depends on the '
+    'manufacturer.\n\n'
+    'The reliable alternative is Use a black screen instead. The panel looks '
+    'just as dark and the app keeps full control.';
+
+/// Whether Turn screen off at night is set to really power the panel off,
+/// the one way it needs the Device admin grant.
+bool _nightPowersOff(AppContainer container) {
+  final settings = container.settings;
+  return settings.visible(screensaverClockNightTurnOffMinutes) &&
+      settings.get(screensaverClockNightTurnOffMinutes) > 0 &&
+      !settings.get(screensaverClockNightTurnOffBlack);
+}
+
+/// The Clock screensaver's Required system permissions group while Turn
+/// screen off at night powers the panel off: the Device admin grant, in the
+/// standard permission row shape. Mirrored in the remote UI.
+class _NightScreenOffAdminTile extends StatefulWidget {
+  const _NightScreenOffAdminTile({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_NightScreenOffAdminTile> createState() =>
+      _NightScreenOffAdminTileState();
+}
+
+class _NightScreenOffAdminTileState extends State<_NightScreenOffAdminTile>
+    with WidgetsBindingObserver {
+  bool? _granted;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  final _returned = ReturnWatch();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The grant is given on Android's own screen, which reports nothing on
+    // the way back; returning here is the moment to look again.
+    if (_returned.returned(state)) _refresh();
+  }
+
+  Future<void> _refresh() async {
+    bool? granted;
+    try {
+      granted = await BackgroundListening.isScreenOffAvailable();
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _granted = granted);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final granted = _granted;
+    return SettingsRow(
+      leading: Icon(
+        granted == true
+            ? Icons.check_circle_outline
+            : Icons.admin_panel_settings_outlined,
+        color: granted == true ? null : theme.colorScheme.error,
+      ),
+      title: Text(screensaverText(context, 'Device admin')),
+      subtitle: Text(
+        granted == true
+            ? deviceText(context, 'Allows the app to turn the screen off.')
+            : screensaverText(
+                context,
+                'Not granted, so the screen cannot turn off.',
+              ),
+      ),
+      trailing: granted != false
+          ? null
+          : TextButton(
+              onPressed: () async {
+                await widget.container.commands.execute(
+                  'requestOsPermissions',
+                  {
+                    'which': ['deviceAdmin'],
+                  },
+                );
+                await _refresh();
+              },
+              child: Text(screensaverText(context, 'Enable')),
+            ),
+    );
+  }
 }
 
 /// The device-admin grant, surfaced right under "Turn screen off after"
@@ -5611,6 +5881,7 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
     'battery' => Icons.battery_full,
     'entity' => Icons.sensors,
     'alarm' => Icons.alarm,
+    'calendar' => Icons.calendar_month_outlined,
     _ => Icons.widgets_outlined,
   };
 
@@ -5629,7 +5900,7 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
       context,
       'Hidden in the Camera Streams screensaver mode.',
     ),
-    'entity' || 'alarm' => screensaverText(
+    'entity' || 'alarm' || 'calendar' => screensaverText(
       context,
       'Hidden in the Camera Streams screensaver mode.',
     ),
@@ -5657,6 +5928,10 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
     // The weather location override, or the entity widget's custom name;
     // a controller so edits survive the dialog's rebuilds.
     final labelCtrl = TextEditingController(text: '${config['label'] ?? ''}');
+    // The entity widget's visible states (issue #1066).
+    final statesCtrl = TextEditingController(
+      text: '${config['show_states'] ?? ''}',
+    );
 
     final route = DialogRoute<bool>(
       context: context,
@@ -5869,6 +6144,7 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
                           // from its own defaults.
                           config = {...screensaverWidgetDefaults(type)};
                           labelCtrl.text = '${config['label'] ?? ''}';
+                          statesCtrl.text = '';
                         }),
                       ),
                     ),
@@ -5960,6 +6236,26 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
                         'visibility',
                       ),
                     ],
+                    if (type == 'calendar') ...[
+                      colorRow(),
+                      scaleRow(),
+                      fontRow(),
+                      fontWeightRow(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n(context).calendarWidgetEvents),
+                        trailing: DropdownButton<int>(
+                          value: ((config['count'] as num?)?.toInt() ?? 3)
+                              .clamp(1, 5),
+                          items: [
+                            for (var n = 1; n <= 5; n++)
+                              DropdownMenuItem(value: n, child: Text('$n')),
+                          ],
+                          onChanged: (n) =>
+                              setDialogState(() => config['count'] = n ?? 3),
+                        ),
+                      ),
+                    ],
                     if (type == 'battery') ...[
                       colorRow(),
                       scaleRow(),
@@ -6041,6 +6337,22 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
                                 },
                         ),
                       ),
+                      // Compared with the displayed value above, so the
+                      // list follows whatever that shows.
+                      LabeledField(
+                        label: screensaverText(context, 'Visible states'),
+                        child: TextField(
+                          controller: statesCtrl,
+                          decoration: InputDecoration(
+                            helperText: screensaverText(
+                              context,
+                              'Show the widget only when its value is one of these, separated by commas. Leave empty to always show it.',
+                            ),
+                            helperMaxLines: 3,
+                          ),
+                          onChanged: (v) => config['show_states'] = v.trim(),
+                        ),
+                      ),
                       colorRow(),
                       scaleRow(),
                       fontRow(),
@@ -6085,6 +6397,7 @@ class _WidgetsEditorState extends State<_WidgetsEditor> {
     final submitted = await Navigator.of(context).push(route);
     await route.completed;
     labelCtrl.dispose();
+    statesCtrl.dispose();
     if (submitted != true) return;
     await _save([
       // The corner dropdown only offers free corners, but drop any claimant
@@ -9550,7 +9863,11 @@ class _DevicePermissionsTileState extends State<_DevicePermissionsTile>
         // the position, and only while switched on (issue #363).
         _row(
           granted: perms?.location,
-          needed: settings.get(btproxyEnabled) || settings.get(locationEnabled),
+          needed:
+              settings.get(btproxyEnabled) ||
+              settings.get(locationEnabled) ||
+              (settings.get(screensaverMode) == 'celestial' &&
+                  settings.get(screensaverCelestialLocation) == 'gps'),
           missingIcon: Icons.location_off_outlined,
           title: devicePermissionDescriptions['location']!.title,
           held: devicePermissionDescriptions['location']!.description,
@@ -9843,11 +10160,18 @@ class _RealMacStatusRowState extends State<_RealMacStatusRow> {
 /// which is what the receiver needs before it reads anything. Grant runs
 /// the dialog, then the OS location settings screen when the switch is
 /// what is off, and nudges the location manager so a stream refused for
-/// the missing grant comes up at once.
+/// the missing grant comes up at once. The Celestial screensaver's GPS
+/// source shows the same row with its own lines.
 class _LocationPermissionsTile extends StatefulWidget {
-  const _LocationPermissionsTile({required this.container});
+  const _LocationPermissionsTile({
+    required this.container,
+    this.celestial = false,
+  });
 
   final AppContainer container;
+
+  /// Worded for the Celestial sky instead of the location sensors.
+  final bool celestial;
 
   @override
   State<_LocationPermissionsTile> createState() =>
@@ -9913,18 +10237,32 @@ class _LocationPermissionsTileState extends State<_LocationPermissionsTile>
       ),
       title: Text(esphomeText(context, 'Location')),
       subtitle: Text(
-        perms == null || !perms.location
+        perms != null && !perms.location && perms.locationApproximate
             ? esphomeText(
                 context,
-                'Without this the GPS receiver cannot be read and the '
-                'location sensors stay unknown.',
+                'Only approximate location is allowed, and the GPS receiver '
+                'needs precise location.',
               )
+            : perms == null || !perms.location
+            ? widget.celestial
+                  ? screensaverText(
+                      context,
+                      'Without this the GPS receiver cannot be read and the '
+                      'sky has no location.',
+                    )
+                  : esphomeText(
+                      context,
+                      'Without this the GPS receiver cannot be read and the '
+                      'location sensors stay unknown.',
+                    )
             : !perms.locationServicesOn
             ? esphomeText(
                 context,
                 'Location is off in the device settings, so the receiver '
                 'delivers nothing.',
               )
+            : widget.celestial
+            ? screensaverText(context, 'The sky can follow the GPS receiver.')
             : esphomeText(
                 context,
                 'The location sensors can read the GPS receiver.',
@@ -10542,6 +10880,23 @@ class _SliderTileState extends State<_SliderTile> {
                   if (mounted) setState(() {});
                   return;
                 }
+              } else if (def.key == screensaverClockNightTurnOffMinutes.key &&
+                  // Night mode's own, with the light sensor added: the room
+                  // brightening is what turns the screen back on.
+                  (widget.container.settings.get(def) as num) == 0 &&
+                  parsed > 0 &&
+                  !widget.container.settings.get(
+                    screensaverClockNightTurnOffBlack,
+                  )) {
+                final go = await confirmScreenOff(
+                  context,
+                  message: screensaverText(context, _nightTurnOffWarning),
+                );
+                if (!go) {
+                  // The slider snaps back to the stored 0.
+                  if (mounted) setState(() {});
+                  return;
+                }
               }
               // A value the definition turns down (an end of a range
               // crossing the other end) snaps back and says why, where a
@@ -10930,6 +11285,9 @@ class SettingTile extends StatelessWidget {
         if (def.key == screensaverWeatherEntity.key) {
           return WeatherMoodEntityRow(container: c);
         }
+        if (def.key == screensaverCelestialEntity.key) {
+          return CelestialEntityRow(container: c);
+        }
         // Adaptive brightness's light sensor entity (issue #911), picked
         // with the entity search the plugins' entity fields use.
         if (def.key == adaptiveLightEntity.key) {
@@ -11009,6 +11367,54 @@ class SettingTile extends StatelessWidget {
             ),
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _pickLauncherApps(context),
+          );
+        }
+        // The launcher's apps a locked kiosk offers (issue #1067): a switch
+        // per launcher app, in the launcher's order. Mirrored on the remote
+        // (rows.js).
+        if (def.key == kioskAllowedApps.key) {
+          final apps = c.settings.get(launcherEnabled)
+              ? decodeLauncherApps(c.settings.get(launcherApps))
+              : const <LauncherApp>[];
+          if (apps.isEmpty) {
+            return ListTile(
+              title: Text(def.localizedTitle(context)),
+              subtitle: Text(
+                kioskText(
+                  context,
+                  'Add apps in Settings > App Launcher first.',
+                ),
+              ),
+              enabled: false,
+            );
+          }
+          final allowed = decodeKioskAllowedApps(value as String);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final app in apps)
+                SwitchListTile(
+                  title: Text(app.label),
+                  subtitle: Text(
+                    app.package,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  value: allowed.contains(app.package),
+                  onChanged: (on) async {
+                    final next = {...allowed};
+                    on ? next.add(app.package) : next.remove(app.package);
+                    await c.settings.setFromJson(
+                      def.key,
+                      jsonEncode([
+                        for (final a in apps)
+                          if (next.contains(a.package)) a.package,
+                      ]),
+                    );
+                    onChanged();
+                  },
+                ),
+            ],
           );
         }
         // The Immich albums and the people and tag filters: names ticked
@@ -11151,10 +11557,12 @@ class SettingTile extends StatelessWidget {
     onChanged();
   }
 
+  /// The launcher's apps through the shared picker, in the order they are
+  /// picked and arranged there (issue #1067).
   Future<void> _pickLauncherApps(BuildContext context) async {
     final result = await c.commands.execute('installedApps', const {});
     if (!context.mounted) return;
-    if (!result.ok) {
+    if (!result.ok || result.data is! List) {
       showToast(
         context,
         title: launcherText(context, 'Could not list the apps'),
@@ -11165,67 +11573,26 @@ class SettingTile extends StatelessWidget {
       );
       return;
     }
-    final apps = (result.data as List).cast<Map>();
-    final selected = {
-      for (final app in decodeLauncherApps(c.settings.get(launcherApps)))
-        app.package,
-    };
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(launcherText(context, 'Apps')),
-          content: SizedBox(
-            width: 420,
-            child: apps.isEmpty
-                ? Text(launcherText(context, 'No launchable apps found.'))
-                : EdgeFade(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        for (final app in apps)
-                          CheckboxListTile(
-                            value: selected.contains('${app['package']}'),
-                            title: Text('${app['label']}'),
-                            subtitle: Text(
-                              '${app['package']}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            onChanged: (on) => setState(() {
-                              if (on == true) {
-                                selected.add('${app['package']}');
-                              } else {
-                                selected.remove('${app['package']}');
-                              }
-                            }),
-                          ),
-                      ],
-                    ),
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(launcherText(context, 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(launcherText(context, 'Save')),
-            ),
-          ],
-        ),
-      ),
+    final spec = appSpec(context, (result.data as List).cast<Map>());
+    final ids = await showItemMultiPicker(
+      context,
+      title: launcherText(context, 'Apps'),
+      spec: spec,
+      selected: [
+        for (final app in decodeLauncherApps(c.settings.get(launcherApps)))
+          app.package,
+      ],
     );
-    if (saved != true) return;
+    final list = PickCatalog.of(spec.key).value;
+    if (ids == null || list == null) return;
     // Rebuilt from the device's list, so labels refresh and uninstalled
     // leftovers drop out on every save.
     await c.settings.setFromJson(
       launcherApps.key,
       jsonEncode([
-        for (final app in apps)
-          if (selected.contains('${app['package']}'))
-            {'package': '${app['package']}', 'label': '${app['label']}'},
+        for (final id in ids)
+          if (list.find(id) case final app?)
+            {'package': app.id, 'label': app.name},
       ]),
     );
     onChanged();

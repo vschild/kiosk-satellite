@@ -22,6 +22,7 @@
   "gestureLaunchApp": "Eine andere App öffnen",
   "gestureDeepLink": "Einen Deep Link öffnen",
   "gestureAndroidSettings": "Android-Einstellungen öffnen",
+  "gestureOpenCalendar": "Kalender öffnen",
   "gestureService": "Einen Dienst aufrufen",
   "gestureScript": "Ein Skript ausführen",
   "gestureAutomation": "Eine Automatisierung auslösen",

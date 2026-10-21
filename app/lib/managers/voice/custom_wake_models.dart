@@ -78,6 +78,13 @@ class CustomWakeModels {
 
   static const _extensions = {'.json', '.tflite', '.onnx'};
 
+  /// The engines that take custom models: Amazon's listens only with the
+  /// models the Echo Dot image has.
+  static final _engines = [
+    for (final e in WakeWordEngineType.values)
+      if (e != WakeWordEngineType.pryon) e,
+  ];
+
   /// The models on the kiosk, complete ones only.
   List<CustomWakeWord> get models => _models;
   List<CustomWakeWord> _models = const [];
@@ -103,7 +110,7 @@ class CustomWakeModels {
   Future<void> _reload({bool notify = true}) async {
     final found = <CustomWakeWord>[];
     _files.clear();
-    for (final engine in WakeWordEngineType.values) {
+    for (final engine in _engines) {
       final folder = engineFolder(engine);
       final dir = await _dir(folder);
       final names = <String, int>{
@@ -124,6 +131,7 @@ class CustomWakeModels {
                 : names.containsKey('$stem.tflite')
                 ? '$stem.tflite'
                 : null,
+          WakeWordEngineType.pryon => null,
         };
         // Half a model: a fleet transfer still arriving, or a pair missing
         // its other file. Not offered until it is whole.
@@ -466,7 +474,7 @@ class CustomWakeModels {
   }
 
   static WakeWordEngineType? _engineOf(String folder) {
-    for (final e in WakeWordEngineType.values) {
+    for (final e in _engines) {
       if (engineFolder(e) == folder) return e;
     }
     return null;
@@ -478,7 +486,7 @@ class CustomWakeModels {
   /// with a follower's.
   Future<Map<String, String>> manifest() async {
     final out = <String, String>{};
-    for (final engine in WakeWordEngineType.values) {
+    for (final engine in _engines) {
       final folder = engineFolder(engine);
       final dir = await _dir(folder);
       await for (final f in dir.list()) {

@@ -280,6 +280,26 @@ class CameraConfiguration {
     return null;
   }
 
+  /// The view [key] names: its id, or its name for a hand-written
+  /// `ks://camera/<name>` link (issue #1058). An empty key is the default
+  /// view. Names are unique ignoring case. Failing an exact name, spaces,
+  /// dashes and underscores count as the same separator, so "front-door"
+  /// reaches "Front Door". An id wins over a name that happens to match it.
+  CameraViewConfig? findView(String key) {
+    if (key.isEmpty) return defaultView;
+    final byId = views.where((view) => view.id == key).firstOrNull;
+    if (byId != null) return byId;
+    final name = key.trim().toLowerCase();
+    final byName = views
+        .where((view) => view.name.trim().toLowerCase() == name)
+        .firstOrNull;
+    if (byName != null) return byName;
+    String slug(String value) =>
+        value.trim().toLowerCase().replaceAll(RegExp(r'[\s_-]+'), '-');
+    final wanted = slug(key);
+    return views.where((view) => slug(view.name) == wanted).firstOrNull;
+  }
+
   /// This configuration with the default view guaranteed present, first in
   /// the list. Every load goes through here, so nothing downstream has to
   /// wonder whether it exists.

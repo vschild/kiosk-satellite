@@ -321,6 +321,182 @@ class UiStringsZh extends UiStrings {
   String get launcherEmpty => '未找到可启动的应用。';
 
   @override
+  String get launcherSearchApps => '搜索应用';
+
+  @override
+  String get calendarTitle => '日历';
+
+  @override
+  String get calendarViewDay => '日';
+
+  @override
+  String get calendarViewWeek => '周';
+
+  @override
+  String get calendarViewMonth => '月';
+
+  @override
+  String get calendarViewSchedule => '日程';
+
+  @override
+  String get calendarToday => '今天';
+
+  @override
+  String get calendarTomorrow => '明天';
+
+  @override
+  String get calendarPrevious => '上一页';
+
+  @override
+  String get calendarNext => '下一页';
+
+  @override
+  String get calendarAllDay => '全天';
+
+  @override
+  String calendarMore(String count) {
+    return '还有 $count 项';
+  }
+
+  @override
+  String get calendarUpNext => '接下来';
+
+  @override
+  String calendarStartsIn(String duration) {
+    return '$duration后';
+  }
+
+  @override
+  String get calendarHappeningNow => '现在';
+
+  @override
+  String get calendarLaterToday => '今天稍后';
+
+  @override
+  String get calendarNothingElseToday => '今天没有更多安排';
+
+  @override
+  String get calendarNothingPlanned => '暂无安排';
+
+  @override
+  String get calendarNothingThisWeek => '本周暂无安排';
+
+  @override
+  String get calendarEmptyTitle => '还没有日历';
+
+  @override
+  String get calendarEmptyHint => '在“设置 > 日历”中添加要显示的 Home Assistant 日历。';
+
+  @override
+  String calendarOffline(String time) {
+    return '无法连接 Home Assistant。显示的是 $time 的日程。';
+  }
+
+  @override
+  String calendarTimeRange(String start, String end) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String calendarPeopleTwo(String first, String second) {
+    return '$first和$second';
+  }
+
+  @override
+  String get calendarRepeatsDaily => '每天';
+
+  @override
+  String get calendarRepeatsWeekly => '每周';
+
+  @override
+  String get calendarRepeatsMonthly => '每月';
+
+  @override
+  String get calendarRepeatsYearly => '每年';
+
+  @override
+  String get calendarRepeats => '重复';
+
+  @override
+  String get calendarDone => '完成';
+
+  @override
+  String get calendarCalendarsSection => '日历';
+
+  @override
+  String get calendarAdd => '添加日历';
+
+  @override
+  String get calendarAlreadyAdded => '该日历已在列表中。';
+
+  @override
+  String get calendarOpen => '打开日历';
+
+  @override
+  String get calendarOpenHint => '在此 Kiosk 上显示日历。';
+
+  @override
+  String get calendarEditName => '名称';
+
+  @override
+  String get calendarEditColor => '颜色';
+
+  @override
+  String get calendarEditPerson => '人员';
+
+  @override
+  String get calendarEditPersonHint => '在日历标签上显示其照片。';
+
+  @override
+  String get calendarEditPersonNone => '无';
+
+  @override
+  String get calendarPickCalendar => '选择日历';
+
+  @override
+  String get calendarPickPerson => '选择人员';
+
+  @override
+  String get calendarColorTeal => '青色';
+
+  @override
+  String get calendarColorRust => '铁锈红';
+
+  @override
+  String get calendarColorBlue => '蓝色';
+
+  @override
+  String get calendarColorPlum => '梅紫';
+
+  @override
+  String get calendarColorOchre => '赭色';
+
+  @override
+  String get calendarColorSage => '灰绿';
+
+  @override
+  String get calendarColorRose => '玫瑰色';
+
+  @override
+  String get calendarColorSlate => '石板灰';
+
+  @override
+  String get calendarColorCustom => '自定义';
+
+  @override
+  String get calendarWidgetEvents => '显示的日程数';
+
+  @override
+  String get calendarVoiceSection => '语音日历';
+
+  @override
+  String get calendarVoiceManage => '通过 Voice Satellite 管理日历';
+
+  @override
+  String get calendarVoiceHint =>
+      '需要在 Home Assistant 中配置 Kiosk Satellite 日历蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
   String get cameraViewerTitle => '摄像头画面';
 
   @override
@@ -541,6 +717,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get dashboardPickerBuildsOwn => '自动生成页面';
+
+  @override
+  String get dashboardPickerIngressPage => 'Ingress 页面';
 
   @override
   String get dashboardPickerWholeHelp => '此仪表盘会自动生成页面，因此 Kiosk 会打开整个仪表盘。';
@@ -1657,6 +1836,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get gestureAndroidSettings => '打开 Android 设置';
+
+  @override
+  String get gestureOpenCalendar => '打开日历';
 
   @override
   String get gestureService => '调用服务';
@@ -4129,6 +4311,12 @@ class UiStringsZh extends UiStrings {
       '在其他应用中连续多久没有触屏操作后，自动返回 Kiosk。';
 
   @override
+  String get settingLauncherAutoReturnMediaTitle => '媒体播放时等待';
+
+  @override
+  String get settingLauncherAutoReturnMediaDescription => '正在播放视频或音乐时不自动返回。';
+
+  @override
   String get launcherOverlayHeld => 'Kiosk Satellite 可以自动返回前台，并检测其他应用中的触屏操作。';
 
   @override
@@ -4147,7 +4335,84 @@ class UiStringsZh extends UiStrings {
       '系统可能暂停后台的 Kiosk Satellite，导致自动返回计时停止，无法自动回到 Kiosk 界面。请在平板上显示的授权对话框中完成授权。';
 
   @override
+  String get launcherNotificationAccessHeld => '其他应用正在播放视频或音乐时，不会返回 Kiosk。';
+
+  @override
+  String get launcherNotificationAccessMissing =>
+      '未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。';
+
+  @override
+  String get launcherNotificationAccessRemote =>
+      '未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。请在平板上显示的授权界面中完成授权。';
+
+  @override
   String get launcherPermissionsSearch => '“自动返回”所依赖的权限。';
+
+  @override
+  String get settingCalendarDefaultViewTitle => '默认视图';
+
+  @override
+  String get settingCalendarDefaultViewDescription => '打开日历时显示的视图。';
+
+  @override
+  String get settingCalendarWeekStartTitle => '每周开始于';
+
+  @override
+  String get settingCalendarWeekStartDescription => '跟随设备语言，除非另行设置。';
+
+  @override
+  String get settingCalendarWeatherEntityTitle => '天气';
+
+  @override
+  String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
+
+  @override
+  String get settingCalendarMenuTitle => '在 Kiosk 菜单中显示';
+
+  @override
+  String get settingCalendarMenuDescription => '在 Kiosk 菜单中添加“日历”入口。';
+
+  @override
+  String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
+
+  @override
+  String get settingCalendarIdleCloseMinutesDescription => '在这段时间内无触摸后返回仪表盘。';
+
+  @override
+  String get settingKioskAllowCalendarTitle => '日历';
+
+  @override
+  String get settingKioskAllowCalendarDescription => '从 Kiosk 菜单打开家庭日历。';
+
+  @override
+  String get calendarWeekStartLocale => '跟随语言';
+
+  @override
+  String get calendarWeekStartSunday => '星期日';
+
+  @override
+  String get calendarWeekStartMonday => '星期一';
+
+  @override
+  String get calendarWeekStartSaturday => '星期六';
+
+  @override
+  String get calendarIdleNever => '从不';
+
+  @override
+  String get calendarIdle1Minute => '1 分钟';
+
+  @override
+  String get calendarIdle2Minutes => '2 分钟';
+
+  @override
+  String get settingsMenuCalendar => '日历';
+
+  @override
+  String get settingsMenuCalendarSummary => '来自 Home Assistant 的家庭日历';
+
+  @override
+  String get fleetTheCalendarsHiddenWithTheirChips => '用标签隐藏的日历';
 
   @override
   String get settingCameraEnabledTitle => '启用摄像头';
@@ -4937,6 +5202,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get cameraStreamsEditView => '编辑画面';
+
+  @override
+  String get cameraStreamsViewId => '画面 ID';
 
   @override
   String get cameraStreamsShowNames => '显示摄像头名称';
@@ -6763,6 +7031,9 @@ class UiStringsZh extends UiStrings {
   String get esphomeLocationServicesOff => '设备设置中的位置功能已关闭，接收器无法提供数据。';
 
   @override
+  String get esphomeLocationApproximate => '仅允许使用大致位置，而 GPS 接收器需要精确位置。';
+
+  @override
   String get esphomeLocationGranted => '位置传感器可读取 GPS 接收器。';
 
   @override
@@ -7781,6 +8052,15 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get kioskAllowedHelp => 'Kiosk 菜单提供哪些快捷操作';
+
+  @override
+  String get settingKioskAllowedAppsTitle => '允许的应用';
+
+  @override
+  String get settingKioskAllowedAppsDescription => 'Kiosk 模式开启时提供的启动器应用。';
+
+  @override
+  String get kioskAllowedAppsEmpty => '请先在“设置 > 应用启动器”中添加应用。';
 
   @override
   String get settingKioskEnabledTitle => '启用 Kiosk 模式';
@@ -8928,6 +9208,9 @@ class UiStringsZh extends UiStrings {
   String get settingsGroupMediaCameras => '媒体与摄像头';
 
   @override
+  String get settingsGroupHousehold => '家庭';
+
+  @override
   String get settingsGroupKiosk => 'Kiosk';
 
   @override
@@ -9333,6 +9616,394 @@ class UiStringsZh extends UiStrings {
   String get screensaverBlackSection => '黑屏屏保';
 
   @override
+  String get settingScreensaverCelestialLocationTitle => '位置';
+
+  @override
+  String get settingScreensaverCelestialLocationDescription => '观测天空的位置。';
+
+  @override
+  String get settingScreensaverCelestialEntityTitle => '实体';
+
+  @override
+  String get settingScreensaverCelestialEntityDescription =>
+      '带有位置的人员、设备追踪器或区域。';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesTitle => '坐标';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesDescription =>
+      '纬度和经度，例如 40.71, -74.01。';
+
+  @override
+  String get settingScreensaverCelestialTerrainTitle => '地貌';
+
+  @override
+  String get settingScreensaverCelestialTerrainDescription => '地平线上的地形。';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceTitle => '对准天空';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceDescription =>
+      '举起设备，屏幕上的天空会随之转动，便于识别你正看着的天体。需要指南针传感器。';
+
+  @override
+  String get settingScreensaverCelestialDaytimeTitle => '白天天空';
+
+  @override
+  String get settingScreensaverCelestialDaytimeDescription =>
+      '太阳升起时天空变亮、星星淡出。关闭后全天显示夜空。';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayTitle => '银河';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayDescription => '在夜空中显示银河系的光带。';
+
+  @override
+  String get settingScreensaverCelestialPlanetsTitle => '行星';
+
+  @override
+  String get settingScreensaverCelestialPlanetsDescription => '显示行星今晚所在的位置。';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyTitle => '星系与星云';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyDescription =>
+      '显示仙女座星系、猎户座大星云等无需望远镜即可看到的天体。';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionTitle => '光污染';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionDescription =>
+      '模拟城市灯光的光晕。数值越高，较暗的星星和银河越不可见。';
+
+  @override
+  String get settingScreensaverCelestialTwinkleTitle => '星星闪烁';
+
+  @override
+  String get settingScreensaverCelestialTwinkleDescription =>
+      '让星星闪烁，越靠近地平线越明显。关闭可省电。';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonTitle => '放大月亮';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonDescription =>
+      '将月亮放大为实际大小的三倍、太阳放大为两倍，便于看清月相。';
+
+  @override
+  String get settingScreensaverCelestialLinesTitle => '星座连线';
+
+  @override
+  String get settingScreensaverCelestialLinesDescription => '连接每个星座的恒星。';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesTitle => '星座名称';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesDescription =>
+      '标注星座名称。放大后会显示更多。';
+
+  @override
+  String get settingScreensaverCelestialNamesTitle => '恒星和行星名称';
+
+  @override
+  String get settingScreensaverCelestialNamesDescription =>
+      '标注太阳、月亮、行星、最亮的恒星和星系。放大后会标注更多恒星。';
+
+  @override
+  String get settingScreensaverCelestialCompassTitle => '方位';
+
+  @override
+  String get settingScreensaverCelestialCompassDescription => '在地平线上标出北、东、南、西。';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleTitle => '标签大小';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleDescription =>
+      '将天空中的标签缩放到 50% 至 200%。';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesTitle => '位置';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesDescription =>
+      '显示观看天空的纬度和经度。';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthTitle => '方位角';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthDescription =>
+      '显示屏幕中心朝向的方位。';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeTitle => '高度角';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeDescription =>
+      '显示屏幕中心在地平线以上的高度。';
+
+  @override
+  String get settingScreensaverCelestialControlFovTitle => '视场';
+
+  @override
+  String get settingScreensaverCelestialControlFovDescription =>
+      '显示屏幕覆盖的天空范围，以度为单位。';
+
+  @override
+  String get settingScreensaverCelestialControlTimeTitle => '时间';
+
+  @override
+  String get settingScreensaverCelestialControlTimeDescription =>
+      '显示天空的时间，延时播放后会出现“现在”按钮。';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseTitle => '延时';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseDescription =>
+      '加快时间，观看天空转动。轻点可更改速度。';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyTitle => '“对准天空”开关';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyDescription =>
+      '开启或关闭“对准天空”。仅在带有指南针的设备上显示。';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseTitle => '月相';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseDescription =>
+      '显示月相以及月面被照亮的比例。';
+
+  @override
+  String get settingScreensaverCelestialControlScaleTitle => '控件大小';
+
+  @override
+  String get settingScreensaverCelestialControlScaleDescription =>
+      '将控件缩放到 50% 至 200%。';
+
+  @override
+  String get screensaverModeCelestial => '星空';
+
+  @override
+  String get screensaverCelestialTerrainHills => '丘陵';
+
+  @override
+  String get screensaverCelestialTerrainMountains => '山脉';
+
+  @override
+  String get screensaverCelestialTerrainPlains => '平原';
+
+  @override
+  String get screensaverCelestialTerrainNone => '无';
+
+  @override
+  String get screensaverCelestialLocationGps => 'GPS';
+
+  @override
+  String get screensaverCelestialLocationHaHome => 'Home Assistant 家庭位置';
+
+  @override
+  String get screensaverCelestialLocationHaEntity => 'Home Assistant 实体';
+
+  @override
+  String get screensaverCelestialLocationManual => '手动';
+
+  @override
+  String get screensaverCelestialCurrentLocation => '当前位置';
+
+  @override
+  String get screensaverCelestialNoGpsReceiver => '此设备没有 GPS 接收器。';
+
+  @override
+  String get screensaverCelestialLocationPermission => '未授予位置权限。';
+
+  @override
+  String get screensaverCelestialNoGpsFix => '尚无 GPS 定位。';
+
+  @override
+  String get screensaverCelestialNoHomeZone => 'Home Assistant 中没有家庭区域。';
+
+  @override
+  String get screensaverCelestialHaNotConnected => 'Home Assistant 未连接。';
+
+  @override
+  String get screensaverCelestialPickEntity => '请选择带有位置的实体。';
+
+  @override
+  String get screensaverCelestialEntityNoLocation => '此实体没有位置。';
+
+  @override
+  String get screensaverCelestialPage => '星空屏保';
+
+  @override
+  String get screensaverCelestialSummary => '位置、地景、天空、标签、控件';
+
+  @override
+  String get screensaverCelestialSkyGroup => '天空';
+
+  @override
+  String get screensaverCelestialLabelsGroup => '标注';
+
+  @override
+  String get screensaverCelestialControlsGroup => '控件';
+
+  @override
+  String get screensaverCelestialLocationGrantMissing =>
+      '没有此权限，无法读取 GPS 接收器，星空也就没有位置。';
+
+  @override
+  String get screensaverCelestialLocationGrantReady => '星空可以跟随 GPS 接收器。';
+
+  @override
+  String get screensaverCelestialCoordinatesInvalid =>
+      '请输入纬度和经度，例如 40.71, -74.01';
+
+  @override
+  String get screensaverCelestialNoLocation => '请在“设置 > 屏保 > 星空”中选择位置。';
+
+  @override
+  String get screensaverCelestialWaitingForGps => '正在等待 GPS 定位...';
+
+  @override
+  String get screensaverCelestialDoubleTapHint => '双击关闭';
+
+  @override
+  String get screensaverCelestialCalibrate => '请将设备按“8”字形移动以校准指南针。';
+
+  @override
+  String get celestialSun => '太阳';
+
+  @override
+  String get celestialMoon => '月亮';
+
+  @override
+  String get celestialMercury => '水星';
+
+  @override
+  String get celestialVenus => '金星';
+
+  @override
+  String get celestialMars => '火星';
+
+  @override
+  String get celestialJupiter => '木星';
+
+  @override
+  String get celestialSaturn => '土星';
+
+  @override
+  String get celestialUranus => '天王星';
+
+  @override
+  String get celestialNeptune => '海王星';
+
+  @override
+  String get celestialAndromedaGalaxy => '仙女座星系';
+
+  @override
+  String get celestialTriangulumGalaxy => '三角座星系';
+
+  @override
+  String get celestialLargeMagellanicCloud => '大麦哲伦云';
+
+  @override
+  String get celestialSmallMagellanicCloud => '小麦哲伦云';
+
+  @override
+  String get celestialOrionNebula => '猎户座大星云';
+
+  @override
+  String get celestialLagoonNebula => '礁湖星云';
+
+  @override
+  String get celestialCarinaNebula => '船底座星云';
+
+  @override
+  String get celestialPleiades => '昴星团';
+
+  @override
+  String get celestialBeehiveCluster => '蜂巢星团';
+
+  @override
+  String get celestialDoubleCluster => '英仙座双星团';
+
+  @override
+  String get celestialOmegaCentauri => '半人马座ω';
+
+  @override
+  String get celestialTucanae47 => '杜鹃座47';
+
+  @override
+  String get celestialCompassNorth => '北';
+
+  @override
+  String get celestialCompassEast => '东';
+
+  @override
+  String get celestialCompassSouth => '南';
+
+  @override
+  String get celestialCompassWest => '西';
+
+  @override
+  String get celestialCompassNorthEast => '东北';
+
+  @override
+  String get celestialCompassSouthEast => '东南';
+
+  @override
+  String get celestialCompassSouthWest => '西南';
+
+  @override
+  String get celestialCompassNorthWest => '西北';
+
+  @override
+  String get celestialAzimuthShort => '方位';
+
+  @override
+  String get celestialAltitudeShort => '高度';
+
+  @override
+  String get celestialFovShort => '视场';
+
+  @override
+  String get celestialNow => '现在';
+
+  @override
+  String get celestialMoonNew => '新月';
+
+  @override
+  String get celestialMoonWaxingCrescent => '娥眉月';
+
+  @override
+  String get celestialMoonFirstQuarter => '上弦月';
+
+  @override
+  String get celestialMoonWaxingGibbous => '盈凸月';
+
+  @override
+  String get celestialMoonFull => '满月';
+
+  @override
+  String get celestialMoonWaningGibbous => '亏凸月';
+
+  @override
+  String get celestialMoonLastQuarter => '下弦月';
+
+  @override
+  String get celestialMoonWaningCrescent => '残月';
+
+  @override
   String get settingScreensaverClockStyleTitle => '样式';
 
   @override
@@ -9538,6 +10209,17 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingScreensaverClockAmPmDescription => '在时间后显示 AM 或 PM。';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesTitle => '夜间关屏时间';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesDescription =>
+      '夜间模式持续设定时间后关闭屏幕，房间变亮时重新点亮。设为 0 时不关屏。需要设备管理器权限。';
+
+  @override
+  String get screensaverNightTurnOffWarning =>
+      '屏幕真正关闭后，平板的电源管理会接管。许多 Android 设备在此状态下可能出现问题：Wi-Fi 休眠或断开、Home Assistant 实体不可用、摄像头访问权限被收回，部分型号甚至会终止后台应用。部分光线传感器在屏幕关闭后也会停止上报，因此房间变亮时屏幕可能不会自动亮起。具体表现取决于设备厂商。\n\n可靠的替代方案是开启“用黑屏替代关屏”。屏幕看起来同样黑暗，应用也能继续保持完整控制。';
 
   @override
   String get screensaverOverlayEntity => '实体';
@@ -9860,10 +10542,26 @@ class UiStringsZh extends UiStrings {
       'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.';
 
   @override
+  String get settingScreensaverDashboardDoubleTapTitle => '双击关闭';
+
+  @override
+  String get settingScreensaverDashboardDoubleTapDescription =>
+      '单击与仪表盘交互，而非关闭屏保。';
+
+  @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
 
   @override
   String get screensaverModeUrl => '图片地址';
+
+  @override
+  String get screensaverCalendarSection => '日历屏保';
+
+  @override
+  String get settingScreensaverCalendarViewTitle => '日历视图';
+
+  @override
+  String get settingScreensaverCalendarViewDescription => '屏保打开时显示的日历视图。';
 
   @override
   String get settingScreensaverGlanceScaleTitle => '行缩放';
@@ -11324,6 +12022,13 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get screensaverOverlayShowIconHelp => '数值旁边的图标。';
+
+  @override
+  String get screensaverOverlayVisibleStates => '可见状态';
+
+  @override
+  String get screensaverOverlayVisibleStatesHelp =>
+      '仅当数值为其中之一时显示此小组件，以逗号分隔。留空则始终显示。';
 
   @override
   String get screensaverOverlayFontSystem => '系统';
@@ -12867,6 +13572,16 @@ class UiStringsZh extends UiStrings {
   String voiceModelNoLoad(String error) {
     return '模型无法加载：$error';
   }
+
+  @override
+  String get settingVoiceAmazonLocaleTitle => '唤醒词语言';
+
+  @override
+  String get settingVoiceAmazonLocaleDescription =>
+      'Amazon 唤醒词模型的语言。唤醒词选择框会提供该语言的唤醒词。';
+
+  @override
+  String get voiceOptionAppLanguage => 'Kiosk Satellite 的语言';
 
   @override
   String get settingDisableCacheTitle => '禁用缓存';
@@ -13921,6 +14636,182 @@ class UiStringsZhCn extends UiStringsZh {
   String get launcherEmpty => '未找到可启动的应用。';
 
   @override
+  String get launcherSearchApps => '搜索应用';
+
+  @override
+  String get calendarTitle => '日历';
+
+  @override
+  String get calendarViewDay => '日';
+
+  @override
+  String get calendarViewWeek => '周';
+
+  @override
+  String get calendarViewMonth => '月';
+
+  @override
+  String get calendarViewSchedule => '日程';
+
+  @override
+  String get calendarToday => '今天';
+
+  @override
+  String get calendarTomorrow => '明天';
+
+  @override
+  String get calendarPrevious => '上一页';
+
+  @override
+  String get calendarNext => '下一页';
+
+  @override
+  String get calendarAllDay => '全天';
+
+  @override
+  String calendarMore(String count) {
+    return '还有 $count 项';
+  }
+
+  @override
+  String get calendarUpNext => '接下来';
+
+  @override
+  String calendarStartsIn(String duration) {
+    return '$duration后';
+  }
+
+  @override
+  String get calendarHappeningNow => '现在';
+
+  @override
+  String get calendarLaterToday => '今天稍后';
+
+  @override
+  String get calendarNothingElseToday => '今天没有更多安排';
+
+  @override
+  String get calendarNothingPlanned => '暂无安排';
+
+  @override
+  String get calendarNothingThisWeek => '本周暂无安排';
+
+  @override
+  String get calendarEmptyTitle => '还没有日历';
+
+  @override
+  String get calendarEmptyHint => '在“设置 > 日历”中添加要显示的 Home Assistant 日历。';
+
+  @override
+  String calendarOffline(String time) {
+    return '无法连接 Home Assistant。显示的是 $time 的日程。';
+  }
+
+  @override
+  String calendarTimeRange(String start, String end) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String calendarPeopleTwo(String first, String second) {
+    return '$first和$second';
+  }
+
+  @override
+  String get calendarRepeatsDaily => '每天';
+
+  @override
+  String get calendarRepeatsWeekly => '每周';
+
+  @override
+  String get calendarRepeatsMonthly => '每月';
+
+  @override
+  String get calendarRepeatsYearly => '每年';
+
+  @override
+  String get calendarRepeats => '重复';
+
+  @override
+  String get calendarDone => '完成';
+
+  @override
+  String get calendarCalendarsSection => '日历';
+
+  @override
+  String get calendarAdd => '添加日历';
+
+  @override
+  String get calendarAlreadyAdded => '该日历已在列表中。';
+
+  @override
+  String get calendarOpen => '打开日历';
+
+  @override
+  String get calendarOpenHint => '在此 Kiosk 上显示日历。';
+
+  @override
+  String get calendarEditName => '名称';
+
+  @override
+  String get calendarEditColor => '颜色';
+
+  @override
+  String get calendarEditPerson => '人员';
+
+  @override
+  String get calendarEditPersonHint => '在日历标签上显示其照片。';
+
+  @override
+  String get calendarEditPersonNone => '无';
+
+  @override
+  String get calendarPickCalendar => '选择日历';
+
+  @override
+  String get calendarPickPerson => '选择人员';
+
+  @override
+  String get calendarColorTeal => '青色';
+
+  @override
+  String get calendarColorRust => '铁锈红';
+
+  @override
+  String get calendarColorBlue => '蓝色';
+
+  @override
+  String get calendarColorPlum => '梅紫';
+
+  @override
+  String get calendarColorOchre => '赭色';
+
+  @override
+  String get calendarColorSage => '灰绿';
+
+  @override
+  String get calendarColorRose => '玫瑰色';
+
+  @override
+  String get calendarColorSlate => '石板灰';
+
+  @override
+  String get calendarColorCustom => '自定义';
+
+  @override
+  String get calendarWidgetEvents => '显示的日程数';
+
+  @override
+  String get calendarVoiceSection => '语音日历';
+
+  @override
+  String get calendarVoiceManage => '通过 Voice Satellite 管理日历';
+
+  @override
+  String get calendarVoiceHint =>
+      '需要在 Home Assistant 中配置 Kiosk Satellite 日历蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
   String get cameraViewerTitle => '摄像头画面';
 
   @override
@@ -14141,6 +15032,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get dashboardPickerBuildsOwn => '自动生成页面';
+
+  @override
+  String get dashboardPickerIngressPage => 'Ingress 页面';
 
   @override
   String get dashboardPickerWholeHelp => '此仪表盘会自动生成页面，因此 Kiosk 会打开整个仪表盘。';
@@ -15257,6 +16151,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get gestureAndroidSettings => '打开 Android 设置';
+
+  @override
+  String get gestureOpenCalendar => '打开日历';
 
   @override
   String get gestureService => '调用服务';
@@ -17729,6 +18626,12 @@ class UiStringsZhCn extends UiStringsZh {
       '在其他应用中连续多久没有触屏操作后，自动返回 Kiosk。';
 
   @override
+  String get settingLauncherAutoReturnMediaTitle => '媒体播放时等待';
+
+  @override
+  String get settingLauncherAutoReturnMediaDescription => '正在播放视频或音乐时不自动返回。';
+
+  @override
   String get launcherOverlayHeld => 'Kiosk Satellite 可以自动返回前台，并检测其他应用中的触屏操作。';
 
   @override
@@ -17747,7 +18650,84 @@ class UiStringsZhCn extends UiStringsZh {
       '系统可能暂停后台的 Kiosk Satellite，导致自动返回计时停止，无法自动回到 Kiosk 界面。请在平板上显示的授权对话框中完成授权。';
 
   @override
+  String get launcherNotificationAccessHeld => '其他应用正在播放视频或音乐时，不会返回 Kiosk。';
+
+  @override
+  String get launcherNotificationAccessMissing =>
+      '未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。';
+
+  @override
+  String get launcherNotificationAccessRemote =>
+      '未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。请在平板上显示的授权界面中完成授权。';
+
+  @override
   String get launcherPermissionsSearch => '“自动返回”所依赖的权限。';
+
+  @override
+  String get settingCalendarDefaultViewTitle => '默认视图';
+
+  @override
+  String get settingCalendarDefaultViewDescription => '打开日历时显示的视图。';
+
+  @override
+  String get settingCalendarWeekStartTitle => '每周开始于';
+
+  @override
+  String get settingCalendarWeekStartDescription => '跟随设备语言，除非另行设置。';
+
+  @override
+  String get settingCalendarWeatherEntityTitle => '天气';
+
+  @override
+  String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
+
+  @override
+  String get settingCalendarMenuTitle => '在 Kiosk 菜单中显示';
+
+  @override
+  String get settingCalendarMenuDescription => '在 Kiosk 菜单中添加“日历”入口。';
+
+  @override
+  String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
+
+  @override
+  String get settingCalendarIdleCloseMinutesDescription => '在这段时间内无触摸后返回仪表盘。';
+
+  @override
+  String get settingKioskAllowCalendarTitle => '日历';
+
+  @override
+  String get settingKioskAllowCalendarDescription => '从 Kiosk 菜单打开家庭日历。';
+
+  @override
+  String get calendarWeekStartLocale => '跟随语言';
+
+  @override
+  String get calendarWeekStartSunday => '星期日';
+
+  @override
+  String get calendarWeekStartMonday => '星期一';
+
+  @override
+  String get calendarWeekStartSaturday => '星期六';
+
+  @override
+  String get calendarIdleNever => '从不';
+
+  @override
+  String get calendarIdle1Minute => '1 分钟';
+
+  @override
+  String get calendarIdle2Minutes => '2 分钟';
+
+  @override
+  String get settingsMenuCalendar => '日历';
+
+  @override
+  String get settingsMenuCalendarSummary => '来自 Home Assistant 的家庭日历';
+
+  @override
+  String get fleetTheCalendarsHiddenWithTheirChips => '用标签隐藏的日历';
 
   @override
   String get settingCameraEnabledTitle => '启用摄像头';
@@ -18537,6 +19517,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get cameraStreamsEditView => '编辑画面';
+
+  @override
+  String get cameraStreamsViewId => '画面 ID';
 
   @override
   String get cameraStreamsShowNames => '显示摄像头名称';
@@ -20363,6 +21346,9 @@ class UiStringsZhCn extends UiStringsZh {
   String get esphomeLocationServicesOff => '设备设置中的位置功能已关闭，接收器无法提供数据。';
 
   @override
+  String get esphomeLocationApproximate => '仅允许使用大致位置，而 GPS 接收器需要精确位置。';
+
+  @override
   String get esphomeLocationGranted => '位置传感器可读取 GPS 接收器。';
 
   @override
@@ -21381,6 +22367,15 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get kioskAllowedHelp => 'Kiosk 菜单提供哪些快捷操作';
+
+  @override
+  String get settingKioskAllowedAppsTitle => '允许的应用';
+
+  @override
+  String get settingKioskAllowedAppsDescription => 'Kiosk 模式开启时提供的启动器应用。';
+
+  @override
+  String get kioskAllowedAppsEmpty => '请先在“设置 > 应用启动器”中添加应用。';
 
   @override
   String get settingKioskEnabledTitle => '启用 Kiosk 模式';
@@ -22528,6 +23523,9 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingsGroupMediaCameras => '媒体与摄像头';
 
   @override
+  String get settingsGroupHousehold => '家庭';
+
+  @override
   String get settingsGroupKiosk => 'Kiosk';
 
   @override
@@ -22933,6 +23931,394 @@ class UiStringsZhCn extends UiStringsZh {
   String get screensaverBlackSection => '黑屏屏保';
 
   @override
+  String get settingScreensaverCelestialLocationTitle => '位置';
+
+  @override
+  String get settingScreensaverCelestialLocationDescription => '观测天空的位置。';
+
+  @override
+  String get settingScreensaverCelestialEntityTitle => '实体';
+
+  @override
+  String get settingScreensaverCelestialEntityDescription =>
+      '带有位置的人员、设备追踪器或区域。';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesTitle => '坐标';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesDescription =>
+      '纬度和经度，例如 40.71, -74.01。';
+
+  @override
+  String get settingScreensaverCelestialTerrainTitle => '地貌';
+
+  @override
+  String get settingScreensaverCelestialTerrainDescription => '地平线上的地形。';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceTitle => '对准天空';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceDescription =>
+      '举起设备，屏幕上的天空会随之转动，便于识别你正看着的天体。需要指南针传感器。';
+
+  @override
+  String get settingScreensaverCelestialDaytimeTitle => '白天天空';
+
+  @override
+  String get settingScreensaverCelestialDaytimeDescription =>
+      '太阳升起时天空变亮、星星淡出。关闭后全天显示夜空。';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayTitle => '银河';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayDescription => '在夜空中显示银河系的光带。';
+
+  @override
+  String get settingScreensaverCelestialPlanetsTitle => '行星';
+
+  @override
+  String get settingScreensaverCelestialPlanetsDescription => '显示行星今晚所在的位置。';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyTitle => '星系与星云';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyDescription =>
+      '显示仙女座星系、猎户座大星云等无需望远镜即可看到的天体。';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionTitle => '光污染';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionDescription =>
+      '模拟城市灯光的光晕。数值越高，较暗的星星和银河越不可见。';
+
+  @override
+  String get settingScreensaverCelestialTwinkleTitle => '星星闪烁';
+
+  @override
+  String get settingScreensaverCelestialTwinkleDescription =>
+      '让星星闪烁，越靠近地平线越明显。关闭可省电。';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonTitle => '放大月亮';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonDescription =>
+      '将月亮放大为实际大小的三倍、太阳放大为两倍，便于看清月相。';
+
+  @override
+  String get settingScreensaverCelestialLinesTitle => '星座连线';
+
+  @override
+  String get settingScreensaverCelestialLinesDescription => '连接每个星座的恒星。';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesTitle => '星座名称';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesDescription =>
+      '标注星座名称。放大后会显示更多。';
+
+  @override
+  String get settingScreensaverCelestialNamesTitle => '恒星和行星名称';
+
+  @override
+  String get settingScreensaverCelestialNamesDescription =>
+      '标注太阳、月亮、行星、最亮的恒星和星系。放大后会标注更多恒星。';
+
+  @override
+  String get settingScreensaverCelestialCompassTitle => '方位';
+
+  @override
+  String get settingScreensaverCelestialCompassDescription => '在地平线上标出北、东、南、西。';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleTitle => '标签大小';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleDescription =>
+      '将天空中的标签缩放到 50% 至 200%。';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesTitle => '位置';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesDescription =>
+      '显示观看天空的纬度和经度。';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthTitle => '方位角';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthDescription =>
+      '显示屏幕中心朝向的方位。';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeTitle => '高度角';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeDescription =>
+      '显示屏幕中心在地平线以上的高度。';
+
+  @override
+  String get settingScreensaverCelestialControlFovTitle => '视场';
+
+  @override
+  String get settingScreensaverCelestialControlFovDescription =>
+      '显示屏幕覆盖的天空范围，以度为单位。';
+
+  @override
+  String get settingScreensaverCelestialControlTimeTitle => '时间';
+
+  @override
+  String get settingScreensaverCelestialControlTimeDescription =>
+      '显示天空的时间，延时播放后会出现“现在”按钮。';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseTitle => '延时';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseDescription =>
+      '加快时间，观看天空转动。轻点可更改速度。';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyTitle => '“对准天空”开关';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyDescription =>
+      '开启或关闭“对准天空”。仅在带有指南针的设备上显示。';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseTitle => '月相';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseDescription =>
+      '显示月相以及月面被照亮的比例。';
+
+  @override
+  String get settingScreensaverCelestialControlScaleTitle => '控件大小';
+
+  @override
+  String get settingScreensaverCelestialControlScaleDescription =>
+      '将控件缩放到 50% 至 200%。';
+
+  @override
+  String get screensaverModeCelestial => '星空';
+
+  @override
+  String get screensaverCelestialTerrainHills => '丘陵';
+
+  @override
+  String get screensaverCelestialTerrainMountains => '山脉';
+
+  @override
+  String get screensaverCelestialTerrainPlains => '平原';
+
+  @override
+  String get screensaverCelestialTerrainNone => '无';
+
+  @override
+  String get screensaverCelestialLocationGps => 'GPS';
+
+  @override
+  String get screensaverCelestialLocationHaHome => 'Home Assistant 家庭位置';
+
+  @override
+  String get screensaverCelestialLocationHaEntity => 'Home Assistant 实体';
+
+  @override
+  String get screensaverCelestialLocationManual => '手动';
+
+  @override
+  String get screensaverCelestialCurrentLocation => '当前位置';
+
+  @override
+  String get screensaverCelestialNoGpsReceiver => '此设备没有 GPS 接收器。';
+
+  @override
+  String get screensaverCelestialLocationPermission => '未授予位置权限。';
+
+  @override
+  String get screensaverCelestialNoGpsFix => '尚无 GPS 定位。';
+
+  @override
+  String get screensaverCelestialNoHomeZone => 'Home Assistant 中没有家庭区域。';
+
+  @override
+  String get screensaverCelestialHaNotConnected => 'Home Assistant 未连接。';
+
+  @override
+  String get screensaverCelestialPickEntity => '请选择带有位置的实体。';
+
+  @override
+  String get screensaverCelestialEntityNoLocation => '此实体没有位置。';
+
+  @override
+  String get screensaverCelestialPage => '星空屏保';
+
+  @override
+  String get screensaverCelestialSummary => '位置、地景、天空、标签、控件';
+
+  @override
+  String get screensaverCelestialSkyGroup => '天空';
+
+  @override
+  String get screensaverCelestialLabelsGroup => '标注';
+
+  @override
+  String get screensaverCelestialControlsGroup => '控件';
+
+  @override
+  String get screensaverCelestialLocationGrantMissing =>
+      '没有此权限，无法读取 GPS 接收器，星空也就没有位置。';
+
+  @override
+  String get screensaverCelestialLocationGrantReady => '星空可以跟随 GPS 接收器。';
+
+  @override
+  String get screensaverCelestialCoordinatesInvalid =>
+      '请输入纬度和经度，例如 40.71, -74.01';
+
+  @override
+  String get screensaverCelestialNoLocation => '请在“设置 > 屏保 > 星空”中选择位置。';
+
+  @override
+  String get screensaverCelestialWaitingForGps => '正在等待 GPS 定位...';
+
+  @override
+  String get screensaverCelestialDoubleTapHint => '双击关闭';
+
+  @override
+  String get screensaverCelestialCalibrate => '请将设备按“8”字形移动以校准指南针。';
+
+  @override
+  String get celestialSun => '太阳';
+
+  @override
+  String get celestialMoon => '月亮';
+
+  @override
+  String get celestialMercury => '水星';
+
+  @override
+  String get celestialVenus => '金星';
+
+  @override
+  String get celestialMars => '火星';
+
+  @override
+  String get celestialJupiter => '木星';
+
+  @override
+  String get celestialSaturn => '土星';
+
+  @override
+  String get celestialUranus => '天王星';
+
+  @override
+  String get celestialNeptune => '海王星';
+
+  @override
+  String get celestialAndromedaGalaxy => '仙女座星系';
+
+  @override
+  String get celestialTriangulumGalaxy => '三角座星系';
+
+  @override
+  String get celestialLargeMagellanicCloud => '大麦哲伦云';
+
+  @override
+  String get celestialSmallMagellanicCloud => '小麦哲伦云';
+
+  @override
+  String get celestialOrionNebula => '猎户座大星云';
+
+  @override
+  String get celestialLagoonNebula => '礁湖星云';
+
+  @override
+  String get celestialCarinaNebula => '船底座星云';
+
+  @override
+  String get celestialPleiades => '昴星团';
+
+  @override
+  String get celestialBeehiveCluster => '蜂巢星团';
+
+  @override
+  String get celestialDoubleCluster => '英仙座双星团';
+
+  @override
+  String get celestialOmegaCentauri => '半人马座ω';
+
+  @override
+  String get celestialTucanae47 => '杜鹃座47';
+
+  @override
+  String get celestialCompassNorth => '北';
+
+  @override
+  String get celestialCompassEast => '东';
+
+  @override
+  String get celestialCompassSouth => '南';
+
+  @override
+  String get celestialCompassWest => '西';
+
+  @override
+  String get celestialCompassNorthEast => '东北';
+
+  @override
+  String get celestialCompassSouthEast => '东南';
+
+  @override
+  String get celestialCompassSouthWest => '西南';
+
+  @override
+  String get celestialCompassNorthWest => '西北';
+
+  @override
+  String get celestialAzimuthShort => '方位';
+
+  @override
+  String get celestialAltitudeShort => '高度';
+
+  @override
+  String get celestialFovShort => '视场';
+
+  @override
+  String get celestialNow => '现在';
+
+  @override
+  String get celestialMoonNew => '新月';
+
+  @override
+  String get celestialMoonWaxingCrescent => '娥眉月';
+
+  @override
+  String get celestialMoonFirstQuarter => '上弦月';
+
+  @override
+  String get celestialMoonWaxingGibbous => '盈凸月';
+
+  @override
+  String get celestialMoonFull => '满月';
+
+  @override
+  String get celestialMoonWaningGibbous => '亏凸月';
+
+  @override
+  String get celestialMoonLastQuarter => '下弦月';
+
+  @override
+  String get celestialMoonWaningCrescent => '残月';
+
+  @override
   String get settingScreensaverClockStyleTitle => '样式';
 
   @override
@@ -23138,6 +24524,17 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingScreensaverClockAmPmDescription => '在时间后显示 AM 或 PM。';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesTitle => '夜间关屏时间';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesDescription =>
+      '夜间模式持续设定时间后关闭屏幕，房间变亮时重新点亮。设为 0 时不关屏。需要设备管理器权限。';
+
+  @override
+  String get screensaverNightTurnOffWarning =>
+      '屏幕真正关闭后，平板的电源管理会接管。许多 Android 设备在此状态下可能出现问题：Wi-Fi 休眠或断开、Home Assistant 实体不可用、摄像头访问权限被收回，部分型号甚至会终止后台应用。部分光线传感器在屏幕关闭后也会停止上报，因此房间变亮时屏幕可能不会自动亮起。具体表现取决于设备厂商。\n\n可靠的替代方案是开启“用黑屏替代关屏”。屏幕看起来同样黑暗，应用也能继续保持完整控制。';
 
   @override
   String get screensaverOverlayEntity => '实体';
@@ -23460,10 +24857,26 @@ class UiStringsZhCn extends UiStringsZh {
       'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.';
 
   @override
+  String get settingScreensaverDashboardDoubleTapTitle => '双击关闭';
+
+  @override
+  String get settingScreensaverDashboardDoubleTapDescription =>
+      '单击与仪表盘交互，而非关闭屏保。';
+
+  @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
 
   @override
   String get screensaverModeUrl => '图片地址';
+
+  @override
+  String get screensaverCalendarSection => '日历屏保';
+
+  @override
+  String get settingScreensaverCalendarViewTitle => '日历视图';
+
+  @override
+  String get settingScreensaverCalendarViewDescription => '屏保打开时显示的日历视图。';
 
   @override
   String get settingScreensaverGlanceScaleTitle => '行缩放';
@@ -24924,6 +26337,13 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get screensaverOverlayShowIconHelp => '数值旁边的图标。';
+
+  @override
+  String get screensaverOverlayVisibleStates => '可见状态';
+
+  @override
+  String get screensaverOverlayVisibleStatesHelp =>
+      '仅当数值为其中之一时显示此小组件，以逗号分隔。留空则始终显示。';
 
   @override
   String get screensaverOverlayFontSystem => '系统';
@@ -26467,6 +27887,16 @@ class UiStringsZhCn extends UiStringsZh {
   String voiceModelNoLoad(String error) {
     return '模型无法加载：$error';
   }
+
+  @override
+  String get settingVoiceAmazonLocaleTitle => '唤醒词语言';
+
+  @override
+  String get settingVoiceAmazonLocaleDescription =>
+      'Amazon 唤醒词模型的语言。唤醒词选择框会提供该语言的唤醒词。';
+
+  @override
+  String get voiceOptionAppLanguage => 'Kiosk Satellite 的语言';
 
   @override
   String get settingDisableCacheTitle => '禁用缓存';

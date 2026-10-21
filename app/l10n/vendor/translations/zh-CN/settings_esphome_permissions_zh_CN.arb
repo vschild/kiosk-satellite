@@ -5,6 +5,7 @@
   "esphomeBluetoothSearch": "蓝牙代理扫描需要的附近设备权限。",
   "esphomeLocationMissing": "没有此权限，无法读取 GPS 接收器，位置传感器会保持未知状态。",
   "esphomeLocationServicesOff": "设备设置中的位置功能已关闭，接收器无法提供数据。",
+  "esphomeLocationApproximate": "仅允许使用大致位置，而 GPS 接收器需要精确位置。",
   "esphomeLocationGranted": "位置传感器可读取 GPS 接收器。",
   "esphomeBluetoothGranted": "代理可扫描附近的蓝牙设备。",
   "esphomeBluetoothMissing": "没有此权限，代理无法扫描设备。",

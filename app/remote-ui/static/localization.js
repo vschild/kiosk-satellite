@@ -115,6 +115,8 @@ export function settingsPageText(category, english) {
     : ['Kiosk', 'kiosk', 'Home', 'home', 'Lockdown', 'lockdown'].includes(category) ? kioskText(english)
     : category === 'Intercom' || category === 'intercom' ? (english === 'Answer' ? t('intercomAnswerSection') : english === 'Talk' ? t('intercomTalkSection') : intercomText(english))
     : category === 'Alarms' || category === 'alarms' ? alarmsPageText(english)
+    // Its groups reuse the sidebar's group names.
+    : category === 'Calendar' || category === 'calendar' ? calendarPageText(english)
     : category === 'Browser' || category === 'browser' ? browserPageText(english)
     : category === 'Sendspin' || category === 'sendspin' ? mediaText(english) : english;
 }
@@ -133,6 +135,23 @@ const BROWSER_PAGE_TEXT = {
 function browserPageText(english) {
   const id = BROWSER_PAGE_TEXT[english];
   return id ? t(id) : english;
+}
+
+// The Calendar page's groups (the sidebar's group names) and the hand-built
+// row search finds, Settings > Calendar on the device (settingsPageText in
+// messages.dart).
+const CALENDAR_PAGE_TEXT = {
+  'Add a calendar': 'calendarAdd',
+  'Add the Home Assistant calendars to show in Settings > Calendar.': 'calendarEmptyHint',
+  'Voice Calendar': 'calendarVoiceSection',
+  'Manage the calendar using Voice Satellite': 'calendarVoiceManage',
+  'Needs the Kiosk Satellite calendar blueprint and an LLM conversation agent in Home Assistant.': 'calendarVoiceHint',
+};
+
+function calendarPageText(english) {
+  if (english === 'Display' || english === 'Kiosk') return navigationText(english);
+  const id = CALENDAR_PAGE_TEXT[english];
+  return id ? t(id, {}, english) : english;
 }
 
 // The Alarms page's own headings and hand-built rows, Settings > Alarms

@@ -6,5 +6,7 @@
   "settingLauncherAutoReturnTitle": "Automatisch terugkeren",
   "settingLauncherAutoReturnDescription": "Keer terug naar de kiosk wanneer de andere app enige tijd niet is aangeraakt.",
   "settingLauncherAutoReturnSecondsTitle": "Terugkeer na (seconden)",
-  "settingLauncherAutoReturnSecondsDescription": "Tijd zonder aanraking in de andere app voordat de kiosk terugkeert."
+  "settingLauncherAutoReturnSecondsDescription": "Tijd zonder aanraking in de andere app voordat de kiosk terugkeert.",
+  "settingLauncherAutoReturnMediaTitle": "Wachten tijdens afspelen",
+  "settingLauncherAutoReturnMediaDescription": "Niet terugkeren zolang er video of muziek speelt."
 }

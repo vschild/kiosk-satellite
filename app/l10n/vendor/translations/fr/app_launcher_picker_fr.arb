@@ -5,5 +5,6 @@
   "launcherListFailed": "Impossible de lister les applications",
   "launcherListError": "Impossible de lister les applications : {error}",
   "launcherListingFailed": "échec de la récupération de la liste",
-  "launcherEmpty": "Aucune application pouvant être lancée n'a été trouvée."
+  "launcherEmpty": "Aucune application pouvant être lancée n'a été trouvée.",
+  "launcherSearchApps": "Rechercher des applications"
 }

@@ -156,6 +156,19 @@
       ]
     }
   },
+  "cameraStreamsViewId": "View ID",
+  "@cameraStreamsViewId": {
+    "context": "Settings > Camera Streams > Views",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera Streams > Views"
+      ],
+      "remoteAdmin": [
+        "Camera Streams > Views"
+      ]
+    }
+  },
   "cameraStreamsShowNames": "Show camera names",
   "@cameraStreamsShowNames": {
     "context": "Settings > Camera Streams > Views",

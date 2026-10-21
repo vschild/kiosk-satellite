@@ -55,6 +55,11 @@
   "screensaverModeDashboard": "Home Assistant-dashboard",
   "settingScreensaverDashboardViewTitle": "Dashboardweergave",
   "settingScreensaverDashboardViewDescription": "De Home Assistant-dashboardweergave die de schermbeveiliging toont.",
+  "settingScreensaverDashboardDoubleTapTitle": "Dubbele tik om af te sluiten",
+  "settingScreensaverDashboardDoubleTapDescription": "Enkele tikken werken met het dashboard en sluiten de schermbeveiliging niet af.",
   "screensaverDashboardSection": "Home Assistant-dashboard als schermbeveiliging",
-  "screensaverModeUrl": "Afbeeldings-URL"
+  "screensaverModeUrl": "Afbeeldings-URL",
+  "screensaverCalendarSection": "Agenda als schermbeveiliging",
+  "settingScreensaverCalendarViewTitle": "Agendaweergave",
+  "settingScreensaverCalendarViewDescription": "De agendaweergave waarmee de schermbeveiliging opent."
 }

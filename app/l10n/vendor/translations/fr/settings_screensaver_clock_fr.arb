@@ -65,5 +65,8 @@
   "screensaverRefreshError": "Saisissez un nombre entier de minutes entre 0 et 1440",
   "screensaverMaxCharacters": "Utilisez au maximum {count} caractères",
   "settingScreensaverClockAmPmTitle": "Afficher AM/PM",
-  "settingScreensaverClockAmPmDescription": "Ajouter AM ou PM après l'heure."
+  "settingScreensaverClockAmPmDescription": "Ajouter AM ou PM après l'heure.",
+  "settingScreensaverClockNightTurnOffMinutesTitle": "Éteindre l'écran la nuit après",
+  "settingScreensaverClockNightTurnOffMinutesDescription": "Éteint l'écran une fois le mode nuit actif depuis la durée définie et le rallume quand la pièce s'éclaire. Réglez sur 0 pour garder l'écran allumé. Nécessite l'autorisation Administrateur de l'appareil.",
+  "screensaverNightTurnOffWarning": "Une fois que l'affichage s'éteint réellement, la gestion de l'alimentation propre à la tablette prend le relais. De nombreux modèles Android se comportent alors mal : le Wi-Fi somnole ou se coupe, les entités Home Assistant deviennent indisponibles, l'accès à la caméra peut être révoqué et certains modèles arrêtent les applications en arrière-plan. Certains capteurs de luminosité cessent aussi de transmettre leurs mesures quand l'écran est éteint, si bien que l'écran peut ne pas se rallumer de lui-même quand la pièce s'éclaire. Le comportement dépend du fabricant.\n\nL'alternative fiable est « Utiliser un écran noir à la place ». Le panneau paraît tout aussi sombre et l'application garde le contrôle total."
 }

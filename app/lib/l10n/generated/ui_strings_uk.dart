@@ -327,6 +327,184 @@ class UiStringsUk extends UiStrings {
   String get launcherEmpty => 'Програм для запуску не знайдено.';
 
   @override
+  String get launcherSearchApps => 'Пошук застосунків';
+
+  @override
+  String get calendarTitle => 'Календар';
+
+  @override
+  String get calendarViewDay => 'День';
+
+  @override
+  String get calendarViewWeek => 'Тиждень';
+
+  @override
+  String get calendarViewMonth => 'Місяць';
+
+  @override
+  String get calendarViewSchedule => 'Розклад';
+
+  @override
+  String get calendarToday => 'Сьогодні';
+
+  @override
+  String get calendarTomorrow => 'Завтра';
+
+  @override
+  String get calendarPrevious => 'Назад';
+
+  @override
+  String get calendarNext => 'Далі';
+
+  @override
+  String get calendarAllDay => 'Увесь день';
+
+  @override
+  String calendarMore(String count) {
+    return 'Ще $count';
+  }
+
+  @override
+  String get calendarUpNext => 'Далі за планом';
+
+  @override
+  String calendarStartsIn(String duration) {
+    return 'через $duration';
+  }
+
+  @override
+  String get calendarHappeningNow => 'Зараз';
+
+  @override
+  String get calendarLaterToday => 'Пізніше сьогодні';
+
+  @override
+  String get calendarNothingElseToday => 'Сьогодні більше нічого';
+
+  @override
+  String get calendarNothingPlanned => 'Нічого не заплановано';
+
+  @override
+  String get calendarNothingThisWeek => 'Цього тижня нічого не заплановано';
+
+  @override
+  String get calendarEmptyTitle => 'Календарів ще немає';
+
+  @override
+  String get calendarEmptyHint =>
+      'Додайте в Налаштування > Календар календарі Home Assistant, які треба показувати.';
+
+  @override
+  String calendarOffline(String time) {
+    return 'Home Assistant недоступний. Показано події станом на $time.';
+  }
+
+  @override
+  String calendarTimeRange(String start, String end) {
+    return 'з $start до $end';
+  }
+
+  @override
+  String calendarPeopleTwo(String first, String second) {
+    return '$first і $second';
+  }
+
+  @override
+  String get calendarRepeatsDaily => 'Щодня';
+
+  @override
+  String get calendarRepeatsWeekly => 'Щотижня';
+
+  @override
+  String get calendarRepeatsMonthly => 'Щомісяця';
+
+  @override
+  String get calendarRepeatsYearly => 'Щороку';
+
+  @override
+  String get calendarRepeats => 'Повторюється';
+
+  @override
+  String get calendarDone => 'Готово';
+
+  @override
+  String get calendarCalendarsSection => 'Календарі';
+
+  @override
+  String get calendarAdd => 'Додати календар';
+
+  @override
+  String get calendarAlreadyAdded => 'Цей календар уже є в списку.';
+
+  @override
+  String get calendarOpen => 'Відкрити календар';
+
+  @override
+  String get calendarOpenHint => 'Показати календар на цьому кіоску.';
+
+  @override
+  String get calendarEditName => 'Назва';
+
+  @override
+  String get calendarEditColor => 'Колір';
+
+  @override
+  String get calendarEditPerson => 'Особа';
+
+  @override
+  String get calendarEditPersonHint =>
+      'Показує її фото на позначках календаря.';
+
+  @override
+  String get calendarEditPersonNone => 'Немає';
+
+  @override
+  String get calendarPickCalendar => 'Виберіть календар';
+
+  @override
+  String get calendarPickPerson => 'Виберіть особу';
+
+  @override
+  String get calendarColorTeal => 'Бірюзовий';
+
+  @override
+  String get calendarColorRust => 'Іржавий';
+
+  @override
+  String get calendarColorBlue => 'Синій';
+
+  @override
+  String get calendarColorPlum => 'Сливовий';
+
+  @override
+  String get calendarColorOchre => 'Охра';
+
+  @override
+  String get calendarColorSage => 'Шавлієвий';
+
+  @override
+  String get calendarColorRose => 'Рожевий';
+
+  @override
+  String get calendarColorSlate => 'Сланцевий';
+
+  @override
+  String get calendarColorCustom => 'Власний';
+
+  @override
+  String get calendarWidgetEvents => 'Показано подій';
+
+  @override
+  String get calendarVoiceSection => 'Голосовий календар';
+
+  @override
+  String get calendarVoiceManage => 'Керувати календарем через Voice Satellite';
+
+  @override
+  String get calendarVoiceHint =>
+      'Потрібні blueprint календаря Kiosk Satellite і агент розмови LLM у Home Assistant.';
+
+  @override
   String get cameraViewerTitle => 'Перегляд камери';
 
   @override
@@ -550,6 +728,9 @@ class UiStringsUk extends UiStrings {
 
   @override
   String get dashboardPickerBuildsOwn => 'Створює власні види';
+
+  @override
+  String get dashboardPickerIngressPage => 'Сторінка Ingress';
 
   @override
   String get dashboardPickerWholeHelp =>
@@ -1711,6 +1892,9 @@ class UiStringsUk extends UiStrings {
 
   @override
   String get gestureAndroidSettings => 'Відкрити налаштування Android';
+
+  @override
+  String get gestureOpenCalendar => 'Відкрити календар';
 
   @override
   String get gestureService => 'Викликати службу';
@@ -4315,6 +4499,14 @@ class UiStringsUk extends UiStrings {
       'Час без взаємодії в іншому застосунку до повернення кіоска.';
 
   @override
+  String get settingLauncherAutoReturnMediaTitle =>
+      'Чекати під час відтворення';
+
+  @override
+  String get settingLauncherAutoReturnMediaDescription =>
+      'Не повертатися, поки відтворюється відео або музика.';
+
+  @override
   String get launcherOverlayHeld =>
       'Kiosk Satellite може повертатися на передній план і помічати дотики в іншому застосунку.';
 
@@ -4335,8 +4527,95 @@ class UiStringsUk extends UiStrings {
       'Android може призупинити застосунок у фоні, і призупинений таймер ніколи не поверне кіоск. Діалог дозволу зʼявиться на планшеті.';
 
   @override
+  String get launcherNotificationAccessHeld =>
+      'Кіоск не повертається, поки інший застосунок відтворює відео або музику.';
+
+  @override
+  String get launcherNotificationAccessMissing =>
+      'Без цього кіоск не знає, коли відтворюється відео або музика, і все одно повертається.';
+
+  @override
+  String get launcherNotificationAccessRemote =>
+      'Без цього кіоск не знає, коли відтворюється відео або музика, і все одно повертається. Екран дозволу зʼявиться на планшеті.';
+
+  @override
   String get launcherPermissionsSearch =>
       'Дозволи, на які спирається функція автоматичного повернення.';
+
+  @override
+  String get settingCalendarDefaultViewTitle => 'Вигляд за замовчуванням';
+
+  @override
+  String get settingCalendarDefaultViewDescription =>
+      'Вигляд, з яким відкривається календар.';
+
+  @override
+  String get settingCalendarWeekStartTitle => 'Тиждень починається з';
+
+  @override
+  String get settingCalendarWeekStartDescription =>
+      'Відповідає мові пристрою, якщо не вибрано інше.';
+
+  @override
+  String get settingCalendarWeatherEntityTitle => 'Погода';
+
+  @override
+  String get settingCalendarWeatherEntityDescription =>
+      'Додає прогноз до кожного дня.';
+
+  @override
+  String get settingCalendarMenuTitle => 'Показувати в меню кіоска';
+
+  @override
+  String get settingCalendarMenuDescription =>
+      'Додати пункт «Календар» до меню кіоска.';
+
+  @override
+  String get settingCalendarIdleCloseMinutesTitle =>
+      'Закривати під час бездіяльності';
+
+  @override
+  String get settingCalendarIdleCloseMinutesDescription =>
+      'Повертатися до панелі керування після такого часу без дотиків.';
+
+  @override
+  String get settingKioskAllowCalendarTitle => 'Календар';
+
+  @override
+  String get settingKioskAllowCalendarDescription =>
+      'Відкривати сімейний календар з меню кіоска.';
+
+  @override
+  String get calendarWeekStartLocale => 'Як у мові';
+
+  @override
+  String get calendarWeekStartSunday => 'Неділя';
+
+  @override
+  String get calendarWeekStartMonday => 'Понеділок';
+
+  @override
+  String get calendarWeekStartSaturday => 'Субота';
+
+  @override
+  String get calendarIdleNever => 'Ніколи';
+
+  @override
+  String get calendarIdle1Minute => '1 хвилина';
+
+  @override
+  String get calendarIdle2Minutes => '2 хвилини';
+
+  @override
+  String get settingsMenuCalendar => 'Календар';
+
+  @override
+  String get settingsMenuCalendarSummary =>
+      'Сімейні календарі з Home Assistant';
+
+  @override
+  String get fleetTheCalendarsHiddenWithTheirChips =>
+      'календарі, приховані своїми позначками';
 
   @override
   String get settingCameraEnabledTitle => 'Увімкнути камеру';
@@ -5162,6 +5441,9 @@ class UiStringsUk extends UiStrings {
 
   @override
   String get cameraStreamsEditView => 'Редагувати вигляд';
+
+  @override
+  String get cameraStreamsViewId => 'ID вигляду';
 
   @override
   String get cameraStreamsShowNames => 'Показувати назви камер';
@@ -7129,6 +7411,10 @@ class UiStringsUk extends UiStrings {
       'Геолокацію вимкнено в налаштуваннях пристрою, тому приймач не передає даних.';
 
   @override
+  String get esphomeLocationApproximate =>
+      'Дозволено лише приблизне місцезнаходження, а GPS-приймачу потрібне точне.';
+
+  @override
   String get esphomeLocationGranted =>
       'Датчики місцезнаходження можуть зчитувати дані GPS-приймача.';
 
@@ -8229,6 +8515,17 @@ class UiStringsUk extends UiStrings {
 
   @override
   String get kioskAllowedHelp => 'Які швидкі дії пропонує меню кіоска';
+
+  @override
+  String get settingKioskAllowedAppsTitle => 'Дозволені застосунки';
+
+  @override
+  String get settingKioskAllowedAppsDescription =>
+      'Застосунки лаунчера, доступні, коли режим кіоска увімкнено.';
+
+  @override
+  String get kioskAllowedAppsEmpty =>
+      'Спочатку додайте застосунки в Налаштування > Лаунчер застосунків.';
 
   @override
   String get settingKioskEnabledTitle => 'Увімкнути режим кіоска';
@@ -9469,6 +9766,9 @@ class UiStringsUk extends UiStrings {
   String get settingsGroupMediaCameras => 'Медіа та камери';
 
   @override
+  String get settingsGroupHousehold => 'Домівка';
+
+  @override
   String get settingsGroupKiosk => 'Кіоск та захист';
 
   @override
@@ -9901,6 +10201,417 @@ class UiStringsUk extends UiStrings {
   String get screensaverBlackSection => 'Чорна заставка';
 
   @override
+  String get settingScreensaverCelestialLocationTitle => 'Розташування';
+
+  @override
+  String get settingScreensaverCelestialLocationDescription =>
+      'Місце, звідки видно небо.';
+
+  @override
+  String get settingScreensaverCelestialEntityTitle => 'Об’єкт';
+
+  @override
+  String get settingScreensaverCelestialEntityDescription =>
+      'Людина, трекер пристрою або зона з розташуванням.';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesTitle => 'Координати';
+
+  @override
+  String get settingScreensaverCelestialCoordinatesDescription =>
+      'Широта й довгота, наприклад 40.71, -74.01.';
+
+  @override
+  String get settingScreensaverCelestialTerrainTitle => 'Краєвид';
+
+  @override
+  String get settingScreensaverCelestialTerrainDescription =>
+      'Рельєф уздовж горизонту.';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceTitle => 'Наведіть на небо';
+
+  @override
+  String get settingScreensaverCelestialFollowDeviceDescription =>
+      'Підніміть пристрій, і небо на екрані повертатиметься разом із ним, щоб ви могли назвати те, на що дивитеся. Потрібен датчик компаса.';
+
+  @override
+  String get settingScreensaverCelestialDaytimeTitle => 'Денне небо';
+
+  @override
+  String get settingScreensaverCelestialDaytimeDescription =>
+      'Освітлювати небо та приглушувати зорі, поки Сонце над горизонтом. Вимкніть, щоб показувати нічне небо цілий день.';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayTitle => 'Чумацький Шлях';
+
+  @override
+  String get settingScreensaverCelestialMilkyWayDescription =>
+      'Показувати сяйво нашої галактики на нічному небі.';
+
+  @override
+  String get settingScreensaverCelestialPlanetsTitle => 'Планети';
+
+  @override
+  String get settingScreensaverCelestialPlanetsDescription =>
+      'Показувати планети там, де вони сьогодні вночі.';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyTitle =>
+      'Галактики й туманності';
+
+  @override
+  String get settingScreensaverCelestialDeepSkyDescription =>
+      'Показувати галактику Андромеди, туманність Оріона та інші об’єкти, які видно без телескопа.';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionTitle =>
+      'Світлове забруднення';
+
+  @override
+  String get settingScreensaverCelestialLightPollutionDescription =>
+      'Імітувати сяйво міських вогнів. Вищі значення приховують тьмяніші зорі та Чумацький Шлях.';
+
+  @override
+  String get settingScreensaverCelestialTwinkleTitle => 'Мерехтіння зір';
+
+  @override
+  String get settingScreensaverCelestialTwinkleDescription =>
+      'Зорі мерехтять, найсильніше біля горизонту. Вимкніть, щоб заощадити енергію.';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonTitle => 'Більший Місяць';
+
+  @override
+  String get settingScreensaverCelestialLargeMoonDescription =>
+      'Малювати Місяць утричі, а Сонце вдвічі більшими за справжній розмір, щоб фазу було легко розгледіти.';
+
+  @override
+  String get settingScreensaverCelestialLinesTitle => 'Лінії сузір’їв';
+
+  @override
+  String get settingScreensaverCelestialLinesDescription =>
+      'З’єднувати зорі кожного сузір’я.';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesTitle =>
+      'Назви сузір’їв';
+
+  @override
+  String get settingScreensaverCelestialConstellationNamesDescription =>
+      'Підписувати сузір’я. Під час наближення з’являється більше.';
+
+  @override
+  String get settingScreensaverCelestialNamesTitle => 'Назви зір і планет';
+
+  @override
+  String get settingScreensaverCelestialNamesDescription =>
+      'Підписувати Сонце, Місяць, планети, найяскравіші зорі та галактики. Під час наближення підписів зір стає більше.';
+
+  @override
+  String get settingScreensaverCelestialCompassTitle => 'Сторони світу';
+
+  @override
+  String get settingScreensaverCelestialCompassDescription =>
+      'Позначати північ, схід, південь і захід на горизонті.';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleTitle => 'Розмір підписів';
+
+  @override
+  String get settingScreensaverCelestialLabelScaleDescription =>
+      'Масштабує підписи на небі від 50 до 200 відсотків.';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesTitle => 'Положення';
+
+  @override
+  String get settingScreensaverCelestialControlCoordinatesDescription =>
+      'Показує широту й довготу, звідки видно небо.';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthTitle => 'Азимут';
+
+  @override
+  String get settingScreensaverCelestialControlAzimuthDescription =>
+      'Показує сторону світу, куди дивиться центр екрана.';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeTitle => 'Висота';
+
+  @override
+  String get settingScreensaverCelestialControlAltitudeDescription =>
+      'Показує, наскільки високо над горизонтом центр екрана.';
+
+  @override
+  String get settingScreensaverCelestialControlFovTitle => 'Поле зору';
+
+  @override
+  String get settingScreensaverCelestialControlFovDescription =>
+      'Показує, яку частину неба охоплює екран, у градусах.';
+
+  @override
+  String get settingScreensaverCelestialControlTimeTitle => 'Час';
+
+  @override
+  String get settingScreensaverCelestialControlTimeDescription =>
+      'Показує час неба з кнопкою «Зараз» після прискорення.';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseTitle =>
+      'Прискорення часу';
+
+  @override
+  String get settingScreensaverCelestialControlTimelapseDescription =>
+      'Прискорює час, щоб побачити, як обертається небо. Торкніться, щоб змінити швидкість.';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyTitle =>
+      'Перемикач «Наведіть на небо»';
+
+  @override
+  String get settingScreensaverCelestialControlPointAtSkyDescription =>
+      'Вмикає та вимикає режим «Наведіть на небо». Показується лише на пристроях із компасом.';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseTitle => 'Фаза Місяця';
+
+  @override
+  String get settingScreensaverCelestialControlMoonPhaseDescription =>
+      'Показує фазу Місяця й частку його освітленого диска.';
+
+  @override
+  String get settingScreensaverCelestialControlScaleTitle =>
+      'Розмір елементів керування';
+
+  @override
+  String get settingScreensaverCelestialControlScaleDescription =>
+      'Масштабує елементи керування від 50 до 200 відсотків.';
+
+  @override
+  String get screensaverModeCelestial => 'Зоряне небо';
+
+  @override
+  String get screensaverCelestialTerrainHills => 'Пагорби';
+
+  @override
+  String get screensaverCelestialTerrainMountains => 'Гори';
+
+  @override
+  String get screensaverCelestialTerrainPlains => 'Рівнина';
+
+  @override
+  String get screensaverCelestialTerrainNone => 'Немає';
+
+  @override
+  String get screensaverCelestialLocationGps => 'GPS';
+
+  @override
+  String get screensaverCelestialLocationHaHome => 'Дім у Home Assistant';
+
+  @override
+  String get screensaverCelestialLocationHaEntity => 'Об’єкт Home Assistant';
+
+  @override
+  String get screensaverCelestialLocationManual => 'Вручну';
+
+  @override
+  String get screensaverCelestialCurrentLocation => 'Поточне розташування';
+
+  @override
+  String get screensaverCelestialNoGpsReceiver =>
+      'Цей пристрій не має приймача GPS.';
+
+  @override
+  String get screensaverCelestialLocationPermission =>
+      'Дозвіл на розташування не надано.';
+
+  @override
+  String get screensaverCelestialNoGpsFix => 'Ще немає GPS-координат.';
+
+  @override
+  String get screensaverCelestialNoHomeZone =>
+      'У Home Assistant немає домашньої зони.';
+
+  @override
+  String get screensaverCelestialHaNotConnected =>
+      'Home Assistant не підключено.';
+
+  @override
+  String get screensaverCelestialPickEntity =>
+      'Виберіть об’єкт із розташуванням.';
+
+  @override
+  String get screensaverCelestialEntityNoLocation =>
+      'Цей об’єкт не має розташування.';
+
+  @override
+  String get screensaverCelestialPage => 'Заставка «Зоряне небо»';
+
+  @override
+  String get screensaverCelestialSummary =>
+      'Місце, пейзаж, небо, підписи, елементи керування';
+
+  @override
+  String get screensaverCelestialSkyGroup => 'Небо';
+
+  @override
+  String get screensaverCelestialLabelsGroup => 'Підписи';
+
+  @override
+  String get screensaverCelestialControlsGroup => 'Елементи керування';
+
+  @override
+  String get screensaverCelestialLocationGrantMissing =>
+      'Без цього неможливо зчитати GPS-приймач, і небо не матиме розташування.';
+
+  @override
+  String get screensaverCelestialLocationGrantReady =>
+      'Небо може стежити за GPS-приймачем.';
+
+  @override
+  String get screensaverCelestialCoordinatesInvalid =>
+      'Введіть широту й довготу, наприклад 40.71, -74.01';
+
+  @override
+  String get screensaverCelestialNoLocation =>
+      'Виберіть розташування в меню Налаштування > Заставка > Зоряне небо.';
+
+  @override
+  String get screensaverCelestialWaitingForGps => 'Очікування GPS-позиції...';
+
+  @override
+  String get screensaverCelestialDoubleTapHint =>
+      'Торкніться двічі, щоб закрити';
+
+  @override
+  String get screensaverCelestialCalibrate =>
+      'Рухайте пристроєм вісімкою, щоб відкалібрувати компас.';
+
+  @override
+  String get celestialSun => 'Сонце';
+
+  @override
+  String get celestialMoon => 'Місяць';
+
+  @override
+  String get celestialMercury => 'Меркурій';
+
+  @override
+  String get celestialVenus => 'Венера';
+
+  @override
+  String get celestialMars => 'Марс';
+
+  @override
+  String get celestialJupiter => 'Юпітер';
+
+  @override
+  String get celestialSaturn => 'Сатурн';
+
+  @override
+  String get celestialUranus => 'Уран';
+
+  @override
+  String get celestialNeptune => 'Нептун';
+
+  @override
+  String get celestialAndromedaGalaxy => 'Галактика Андромеди';
+
+  @override
+  String get celestialTriangulumGalaxy => 'Галактика Трикутника';
+
+  @override
+  String get celestialLargeMagellanicCloud => 'Велика Магелланова Хмара';
+
+  @override
+  String get celestialSmallMagellanicCloud => 'Мала Магелланова Хмара';
+
+  @override
+  String get celestialOrionNebula => 'Туманність Оріона';
+
+  @override
+  String get celestialLagoonNebula => 'Туманність Лагуна';
+
+  @override
+  String get celestialCarinaNebula => 'Туманність Кіля';
+
+  @override
+  String get celestialPleiades => 'Плеяди';
+
+  @override
+  String get celestialBeehiveCluster => 'Ясла';
+
+  @override
+  String get celestialDoubleCluster => 'Подвійне скупчення Персея';
+
+  @override
+  String get celestialOmegaCentauri => 'Омега Центавра';
+
+  @override
+  String get celestialTucanae47 => '47 Тукана';
+
+  @override
+  String get celestialCompassNorth => 'Пн';
+
+  @override
+  String get celestialCompassEast => 'Сх';
+
+  @override
+  String get celestialCompassSouth => 'Пд';
+
+  @override
+  String get celestialCompassWest => 'Зх';
+
+  @override
+  String get celestialCompassNorthEast => 'ПнСх';
+
+  @override
+  String get celestialCompassSouthEast => 'ПдСх';
+
+  @override
+  String get celestialCompassSouthWest => 'ПдЗх';
+
+  @override
+  String get celestialCompassNorthWest => 'ПнЗх';
+
+  @override
+  String get celestialAzimuthShort => 'Аз';
+
+  @override
+  String get celestialAltitudeShort => 'Вис';
+
+  @override
+  String get celestialFovShort => 'ПЗ';
+
+  @override
+  String get celestialNow => 'Зараз';
+
+  @override
+  String get celestialMoonNew => 'Новий місяць';
+
+  @override
+  String get celestialMoonWaxingCrescent => 'Молодий місяць';
+
+  @override
+  String get celestialMoonFirstQuarter => 'Перша чверть';
+
+  @override
+  String get celestialMoonWaxingGibbous => 'Зростаючий місяць';
+
+  @override
+  String get celestialMoonFull => 'Повня';
+
+  @override
+  String get celestialMoonWaningGibbous => 'Спадний місяць';
+
+  @override
+  String get celestialMoonLastQuarter => 'Остання чверть';
+
+  @override
+  String get celestialMoonWaningCrescent => 'Старий місяць';
+
+  @override
   String get settingScreensaverClockStyleTitle => 'Стиль';
 
   @override
@@ -10131,6 +10842,18 @@ class UiStringsUk extends UiStrings {
   @override
   String get settingScreensaverClockAmPmDescription =>
       'Додавати AM або PM після часу.';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesTitle =>
+      'Вимикати екран уночі через';
+
+  @override
+  String get settingScreensaverClockNightTurnOffMinutesDescription =>
+      'Вимикає екран, коли нічний режим триває зазначений час, і знову вмикає, коли в кімнаті стає світліше. Встановіть 0, щоб екран не вимикався. Вимагає дозволу адміністратора пристрою.';
+
+  @override
+  String get screensaverNightTurnOffWarning =>
+      'Коли дисплей повністю вимикається, керування переходить до системи енергозбереження планшета. Багато моделей Android у такому стані працюють нестабільно: Wi-Fi може засинати або відключатися, сутності Home Assistant стають недоступними, доступ до камери може скасовуватися, а деякі пристрої закривають фонові програми. Деякі датчики освітлення також перестають передавати дані, коли дисплей вимкнено, тому екран може не ввімкнутися сам, коли в кімнаті стане світліше. Поведінка залежить від виробника.\n\nНадійною альтернативою є «Використовувати чорний екран замість вимкнення». Екран виглядає так само темно, а застосунок зберігає повний контроль.';
 
   @override
   String get screensaverOverlayEntity => 'Сутність';
@@ -10478,11 +11201,29 @@ class UiStringsUk extends UiStrings {
       'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.';
 
   @override
+  String get settingScreensaverDashboardDoubleTapTitle =>
+      'Подвійний дотик для закриття';
+
+  @override
+  String get settingScreensaverDashboardDoubleTapDescription =>
+      'Одинарні дотики взаємодіють із панеллю керування замість закриття заставки.';
+
+  @override
   String get screensaverDashboardSection =>
       'Заставка панелі керування Home Assistant';
 
   @override
   String get screensaverModeUrl => 'URL-адреса зображення';
+
+  @override
+  String get screensaverCalendarSection => 'Заставка календаря';
+
+  @override
+  String get settingScreensaverCalendarViewTitle => 'Вигляд календаря';
+
+  @override
+  String get settingScreensaverCalendarViewDescription =>
+      'Вигляд календаря, з яким відкривається заставка.';
 
   @override
   String get settingScreensaverGlanceScaleTitle => 'Масштаб рядка';
@@ -12062,6 +12803,13 @@ class UiStringsUk extends UiStrings {
 
   @override
   String get screensaverOverlayShowIconHelp => 'Піктограма поруч зі значенням.';
+
+  @override
+  String get screensaverOverlayVisibleStates => 'Видимі стани';
+
+  @override
+  String get screensaverOverlayVisibleStatesHelp =>
+      'Показувати віджет лише тоді, коли його значення збігається з одним із цих, розділених комами. Залиште порожнім, щоб показувати завжди.';
 
   @override
   String get screensaverOverlayFontSystem => 'Системний';
@@ -13736,6 +14484,16 @@ class UiStringsUk extends UiStrings {
   String voiceModelNoLoad(String error) {
     return 'Модель не завантажується: $error';
   }
+
+  @override
+  String get settingVoiceAmazonLocaleTitle => 'Мова слова активації';
+
+  @override
+  String get settingVoiceAmazonLocaleDescription =>
+      'Мова моделей слів активації Amazon. У списках слів активації доступні слова активації цієї мови.';
+
+  @override
+  String get voiceOptionAppLanguage => 'Мова Kiosk Satellite';
 
   @override
   String get settingDisableCacheTitle => 'Вимкнути кеш';

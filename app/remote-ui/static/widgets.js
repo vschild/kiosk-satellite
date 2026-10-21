@@ -817,6 +817,21 @@ const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"'
   + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
   + '<path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
+// A dropdown whose choices are on their way, the device's KsDropdown
+// loading: disabled, a spinner inside the box and Loading… in place of the
+// value. The other options stay, so the box keeps its width.
+export function selectLoading(sel) {
+  const opt = document.createElement('option');
+  opt.value = '';
+  opt.hidden = true;
+  opt.textContent = t('commonLoading', {}, 'Loading…');
+  sel.prepend(opt);
+  sel.selectedIndex = 0;
+  sel.disabled = true;
+  sel.classList.add('loading');
+  return sel;
+}
+
 // A value the user takes elsewhere (the ESPHome encryption key): the
 // control box, read only, the value in mono, with a 36 copy disc inside
 // its end. Tapping anywhere on the box copies; the disc turns to a check

@@ -16,6 +16,8 @@ import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/plugins/plugin_manager.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart'
+    show screensaverMode;
 import 'package:kiosk_satellite/ui/plugin_overlay.dart';
 import 'package:kiosk_satellite/ui/ui_scale.dart';
 import 'package:kiosk_satellite/ui/kit.dart';
@@ -130,6 +132,42 @@ void main() {
     await publish('second');
     expect(plugins.screensavers.value, isEmpty);
   });
+
+  test(
+    'screensaver mode options notify remote admin only when the list changes',
+    () async {
+      final keys = <String>[];
+      final sub = bus.on<SettingOptionsChanged>().listen(
+        (event) => keys.add(event.key),
+      );
+      Future<void> publish(String title, String html) =>
+          native('screensavers', {
+            'id': 'hello-world',
+            'session': 'first',
+            'screensavers': [
+              {'key': 'dvd', 'title': title, 'html': html},
+            ],
+          });
+      await native('hostSession', {
+        'id': 'hello-world',
+        'session': 'first',
+        'capabilities': ['screensaver'],
+      });
+      await publish('DVD Logo', '<p>1</p>');
+      await Future<void>.delayed(Duration.zero);
+      expect(keys, [screensaverMode.key]);
+      await publish('DVD Logo', '<p>2</p>');
+      await Future<void>.delayed(Duration.zero);
+      expect(keys, hasLength(1));
+      await publish('Bouncing Logo', '<p>2</p>');
+      await Future<void>.delayed(Duration.zero);
+      expect(keys, hasLength(2));
+      await plugins.setEnabled(false);
+      await Future<void>.delayed(Duration.zero);
+      expect(keys, hasLength(3));
+      await sub.cancel();
+    },
+  );
 
   testWidgets('Shizuku is opt-in and permission requests require a user tap', (
     tester,

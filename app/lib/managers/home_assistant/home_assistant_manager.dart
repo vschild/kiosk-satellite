@@ -2941,7 +2941,10 @@ class HomeAssistantManager extends Manager {
 
   /// The navigable dashboards from the page's `hass.panels`: every Lovelace
   /// dashboard plus the auto "Overview" default (panel component `home`),
-  /// each with the url the sidebar navigates to. Null when hass is not up.
+  /// then the sidebar panels of apps, each with the url the sidebar
+  /// navigates to. An app has no views (its `lovelace/config` read answers
+  /// config_not_found), so the pickers offer it whole. Null when hass is
+  /// not up.
   Future<List<Map<String, Object?>>?> _dashboardsFromPage() async {
     const js = r'''
 (function () {
@@ -2957,6 +2960,20 @@ class HomeAssistantManager extends Manager {
     var out = [];
     Object.keys(panels).forEach(function (k) {
       var p = panels[k];
+      // An app's sidebar panel (Music Assistant, Panalume, Node-RED) is
+      // listed too: Home Assistant renders its web UI on that path. The
+      // bare "app" panel without an add-on is the app store.
+      if (p.component_name === 'app') {
+        if (p.config && p.config.addon) {
+          out.push({
+            url_path: p.url_path,
+            title: p.title || p.url_path,
+            comp: 'app',
+            icon: p.icon || 'mdi:puzzle',
+          });
+        }
+        return;
+      }
       var isDash = p.component_name === 'lovelace' || p.component_name === 'home';
       if (!isDash) return;
       if (p.url_path === 'lovelace' && p.title == null && hasHome) return;
@@ -2971,18 +2988,21 @@ class HomeAssistantManager extends Manager {
       });
     });
     // Default dashboard first, matching the sidebar: hass.defaultPanel when
-    // set, otherwise the auto "Overview" (component `home`). The rest keep
-    // their registration order.
+    // set, otherwise the auto "Overview" (component `home`). Apps come
+    // after the dashboards. The rest keep their registration order.
     out.sort(function (a, b) {
       function rank(d) {
         if (hass.defaultPanel && d.url_path === hass.defaultPanel) return 0;
         if (d.comp === 'home') return 1;
+        if (d.comp === 'app') return 3;
         return 2;
       }
       return rank(a) - rank(b);
     });
     return JSON.stringify(out.map(function (d) {
-      return { url_path: d.url_path, title: d.title, icon: d.icon };
+      var e = { url_path: d.url_path, title: d.title, icon: d.icon };
+      if (d.comp === 'app') e.app = true;
+      return e;
     }));
   } catch (e) {
     return 'null';
@@ -3000,6 +3020,7 @@ class HomeAssistantManager extends Manager {
             'url_path': d['url_path'],
             'title': d['title'],
             if (d['icon'] is String) 'icon': d['icon'],
+            if (d['app'] == true) 'app': true,
           },
       ];
     } catch (_) {

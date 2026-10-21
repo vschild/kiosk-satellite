@@ -8,6 +8,7 @@
   "dashboardPickerSubview": "子页面",
   "dashboardPickerWhole": "整个仪表盘",
   "dashboardPickerBuildsOwn": "自动生成页面",
+  "dashboardPickerIngressPage": "Ingress 页面",
   "dashboardPickerWholeHelp": "此仪表盘会自动生成页面，因此 Kiosk 会打开整个仪表盘。",
   "dashboardPickerViewCount": "{count} 个页面",
   "dashboardPickerOneView": "1 个页面",

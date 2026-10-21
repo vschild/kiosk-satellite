@@ -233,6 +233,18 @@ class PluginPackageTest {
         assertNull(PluginHostPolicy.haSubscriptionKey("ha.entity.light.a"))
         assertFalse(PluginHostPolicy.validEvent("ha.subscription.door"))
     }
+    @Test fun musicAssistantAccessIsItsOwnCapability() {
+        val ma = PluginManifest(manifest().put("capabilities", org.json.JSONArray(listOf("ma"))))
+        assertTrue("ma" in ma.capabilities)
+        assertEquals("queue", PluginHostPolicy.maSubscriptionKey("ma.subscription.queue"))
+        assertNull(PluginHostPolicy.maSubscriptionKey("ma.subscription.a b"))
+        assertNull(PluginHostPolicy.maSubscriptionKey("ha.subscription.queue"))
+        assertNull(PluginHostPolicy.haSubscriptionKey("ma.subscription.queue"))
+        assertFalse(PluginHostPolicy.validEvent("ma.subscription.queue"))
+        assertTrue(PluginHostPolicy.validEvent("sendspin.player"))
+        assertEquals(mapOf("events" to listOf("queue_updated")), PluginHostPolicy.maMessage(mapOf("events" to arrayOf("queue_updated"))))
+        rejects { PluginHostPolicy.maMessage(mapOf("args" to "x".repeat(40_000))) }
+    }
     @Test fun homeAssistantMessagesAreDetachedJson() {
         val nested = mutableMapOf<String, Any>("entity_id" to listOf("light.a", "light.b"))
         val message = mapOf<String, Any>(

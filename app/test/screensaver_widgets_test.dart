@@ -6,6 +6,7 @@ import 'package:kiosk_satellite/managers/screensaver/screensaver_manager.dart';
 import 'package:kiosk_satellite/managers/screensaver/screensaver_widgets.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
+import 'package:kiosk_satellite/managers/glance/glance_manager.dart';
 import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
 import 'package:kiosk_satellite/ui/screensaver_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -83,6 +84,12 @@ void main() {
   });
 
   group('screensaverWidgetAllowedOnMode', () {
+    test('nothing rides the calendar, which fills the screen', () {
+      for (final type in ['clock', 'weather', 'battery', 'calendar']) {
+        expect(screensaverWidgetAllowedOnMode(type, 'calendar'), isFalse);
+      }
+    });
+
     test('the clock stays off Clock and the camera grid', () {
       expect(screensaverWidgetAllowedOnMode('clock', 'clock'), isFalse);
       expect(screensaverWidgetAllowedOnMode('clock', 'camera'), isFalse);
@@ -220,6 +227,8 @@ void main() {
       expect(defaults['label'], '');
       // The state by default; an attribute is the opt-in, as on the row.
       expect(defaults['attribute'], '');
+      // Always shown until a list of states narrows it down.
+      expect(defaults['show_states'], '');
       // The name under the value reads by default; a corner that explains
       // itself can turn it off.
       expect(defaults['show_name'], isTrue);
@@ -275,6 +284,39 @@ void main() {
       expect(entity.customName, isNull);
       expect(entity.displayName, 'Outside');
       expect(entity.attribute, isNull);
+    });
+
+    test('visible states match the displayed or raw value', () {
+      final garage = GlanceEntity(
+        entityId: 'cover.garage',
+        name: 'Garage',
+        state: 'open',
+      );
+      bool visible(String states, String text) =>
+          entityWidgetStateVisible({'show_states': states}, garage, text);
+      // Empty always shows.
+      expect(visible('', 'Open'), isTrue);
+      expect(visible(' , ', 'Open'), isTrue);
+      // The displayed text or the raw state, either case, any spacing.
+      expect(visible('Open', 'Open'), isTrue);
+      expect(visible('closed, OPEN ', 'Open'), isTrue);
+      expect(visible('closed,opening', 'Open'), isFalse);
+      // An attribute widget compares its attribute, not the state.
+      final washer = GlanceEntity(
+        entityId: 'sensor.washer',
+        name: 'Washer',
+        attribute: 'program',
+        state: 'on',
+        attributeValue: 'eco_40',
+      );
+      expect(
+        entityWidgetStateVisible({'show_states': 'eco_40'}, washer, 'Eco 40'),
+        isTrue,
+      );
+      expect(
+        entityWidgetStateVisible({'show_states': 'on'}, washer, 'Eco 40'),
+        isFalse,
+      );
     });
   });
 

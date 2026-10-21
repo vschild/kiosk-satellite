@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "Apps",
   "settingKioskAllowAppsDescription": "Öffnet den App-Launcher. Wenn „Home-Taste deaktivieren“ aktiviert ist, wird beim Öffnen einer App die Kiosk-Fixierung aufgehoben, bis du zum Kiosk zurückkehrst.",
   "kioskAllowedActions": "Erlaubte Aktionen",
-  "kioskAllowedHelp": "Welche Schnellaktionen das Kiosk-Menü anbietet"
+  "kioskAllowedHelp": "Welche Schnellaktionen das Kiosk-Menü anbietet",
+  "settingKioskAllowedAppsTitle": "Erlaubte Apps",
+  "settingKioskAllowedAppsDescription": "Die Launcher-Apps, die bei aktiviertem Kioskmodus angeboten werden.",
+  "kioskAllowedAppsEmpty": "Füge zuerst unter Einstellungen > App-Launcher Apps hinzu."
 }

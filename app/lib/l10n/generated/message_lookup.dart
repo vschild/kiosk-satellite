@@ -79,6 +79,56 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'launcherListFailed' => strings.launcherListFailed,
       'launcherListingFailed' => strings.launcherListingFailed,
       'launcherEmpty' => strings.launcherEmpty,
+      'launcherSearchApps' => strings.launcherSearchApps,
+      'calendarTitle' => strings.calendarTitle,
+      'calendarViewDay' => strings.calendarViewDay,
+      'calendarViewWeek' => strings.calendarViewWeek,
+      'calendarViewMonth' => strings.calendarViewMonth,
+      'calendarViewSchedule' => strings.calendarViewSchedule,
+      'calendarToday' => strings.calendarToday,
+      'calendarTomorrow' => strings.calendarTomorrow,
+      'calendarPrevious' => strings.calendarPrevious,
+      'calendarNext' => strings.calendarNext,
+      'calendarAllDay' => strings.calendarAllDay,
+      'calendarUpNext' => strings.calendarUpNext,
+      'calendarHappeningNow' => strings.calendarHappeningNow,
+      'calendarLaterToday' => strings.calendarLaterToday,
+      'calendarNothingElseToday' => strings.calendarNothingElseToday,
+      'calendarNothingPlanned' => strings.calendarNothingPlanned,
+      'calendarNothingThisWeek' => strings.calendarNothingThisWeek,
+      'calendarEmptyTitle' => strings.calendarEmptyTitle,
+      'calendarEmptyHint' => strings.calendarEmptyHint,
+      'calendarRepeatsDaily' => strings.calendarRepeatsDaily,
+      'calendarRepeatsWeekly' => strings.calendarRepeatsWeekly,
+      'calendarRepeatsMonthly' => strings.calendarRepeatsMonthly,
+      'calendarRepeatsYearly' => strings.calendarRepeatsYearly,
+      'calendarRepeats' => strings.calendarRepeats,
+      'calendarDone' => strings.calendarDone,
+      'calendarCalendarsSection' => strings.calendarCalendarsSection,
+      'calendarAdd' => strings.calendarAdd,
+      'calendarAlreadyAdded' => strings.calendarAlreadyAdded,
+      'calendarOpen' => strings.calendarOpen,
+      'calendarOpenHint' => strings.calendarOpenHint,
+      'calendarEditName' => strings.calendarEditName,
+      'calendarEditColor' => strings.calendarEditColor,
+      'calendarEditPerson' => strings.calendarEditPerson,
+      'calendarEditPersonHint' => strings.calendarEditPersonHint,
+      'calendarEditPersonNone' => strings.calendarEditPersonNone,
+      'calendarPickCalendar' => strings.calendarPickCalendar,
+      'calendarPickPerson' => strings.calendarPickPerson,
+      'calendarColorTeal' => strings.calendarColorTeal,
+      'calendarColorRust' => strings.calendarColorRust,
+      'calendarColorBlue' => strings.calendarColorBlue,
+      'calendarColorPlum' => strings.calendarColorPlum,
+      'calendarColorOchre' => strings.calendarColorOchre,
+      'calendarColorSage' => strings.calendarColorSage,
+      'calendarColorRose' => strings.calendarColorRose,
+      'calendarColorSlate' => strings.calendarColorSlate,
+      'calendarColorCustom' => strings.calendarColorCustom,
+      'calendarWidgetEvents' => strings.calendarWidgetEvents,
+      'calendarVoiceSection' => strings.calendarVoiceSection,
+      'calendarVoiceManage' => strings.calendarVoiceManage,
+      'calendarVoiceHint' => strings.calendarVoiceHint,
       'cameraViewerTitle' => strings.cameraViewerTitle,
       'cameraViewerConnecting' => strings.cameraViewerConnecting,
       'cameraViewerReconnecting' => strings.cameraViewerReconnecting,
@@ -139,6 +189,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'dashboardPickerSubview' => strings.dashboardPickerSubview,
       'dashboardPickerWhole' => strings.dashboardPickerWhole,
       'dashboardPickerBuildsOwn' => strings.dashboardPickerBuildsOwn,
+      'dashboardPickerIngressPage' => strings.dashboardPickerIngressPage,
       'dashboardPickerWholeHelp' => strings.dashboardPickerWholeHelp,
       'dashboardPickerOneView' => strings.dashboardPickerOneView,
       'dashboardPickerOffline' => strings.dashboardPickerOffline,
@@ -472,6 +523,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'gestureLaunchApp' => strings.gestureLaunchApp,
       'gestureDeepLink' => strings.gestureDeepLink,
       'gestureAndroidSettings' => strings.gestureAndroidSettings,
+      'gestureOpenCalendar' => strings.gestureOpenCalendar,
       'gestureService' => strings.gestureService,
       'gestureScript' => strings.gestureScript,
       'gestureAutomation' => strings.gestureAutomation,
@@ -1161,12 +1213,55 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingLauncherAutoReturnSecondsTitle,
       'settingLauncherAutoReturnSecondsDescription' =>
         strings.settingLauncherAutoReturnSecondsDescription,
+      'settingLauncherAutoReturnMediaTitle' =>
+        strings.settingLauncherAutoReturnMediaTitle,
+      'settingLauncherAutoReturnMediaDescription' =>
+        strings.settingLauncherAutoReturnMediaDescription,
       'launcherOverlayHeld' => strings.launcherOverlayHeld,
       'launcherOverlayMissing' => strings.launcherOverlayMissing,
       'launcherOverlayRemote' => strings.launcherOverlayRemote,
       'launcherBatteryMissing' => strings.launcherBatteryMissing,
       'launcherBatteryRemote' => strings.launcherBatteryRemote,
+      'launcherNotificationAccessHeld' =>
+        strings.launcherNotificationAccessHeld,
+      'launcherNotificationAccessMissing' =>
+        strings.launcherNotificationAccessMissing,
+      'launcherNotificationAccessRemote' =>
+        strings.launcherNotificationAccessRemote,
       'launcherPermissionsSearch' => strings.launcherPermissionsSearch,
+      'settingCalendarDefaultViewTitle' =>
+        strings.settingCalendarDefaultViewTitle,
+      'settingCalendarDefaultViewDescription' =>
+        strings.settingCalendarDefaultViewDescription,
+      'settingCalendarWeekStartTitle' => strings.settingCalendarWeekStartTitle,
+      'settingCalendarWeekStartDescription' =>
+        strings.settingCalendarWeekStartDescription,
+      'settingCalendarWeatherEntityTitle' =>
+        strings.settingCalendarWeatherEntityTitle,
+      'settingCalendarWeatherEntityDescription' =>
+        strings.settingCalendarWeatherEntityDescription,
+      'settingCalendarMenuTitle' => strings.settingCalendarMenuTitle,
+      'settingCalendarMenuDescription' =>
+        strings.settingCalendarMenuDescription,
+      'settingCalendarIdleCloseMinutesTitle' =>
+        strings.settingCalendarIdleCloseMinutesTitle,
+      'settingCalendarIdleCloseMinutesDescription' =>
+        strings.settingCalendarIdleCloseMinutesDescription,
+      'settingKioskAllowCalendarTitle' =>
+        strings.settingKioskAllowCalendarTitle,
+      'settingKioskAllowCalendarDescription' =>
+        strings.settingKioskAllowCalendarDescription,
+      'calendarWeekStartLocale' => strings.calendarWeekStartLocale,
+      'calendarWeekStartSunday' => strings.calendarWeekStartSunday,
+      'calendarWeekStartMonday' => strings.calendarWeekStartMonday,
+      'calendarWeekStartSaturday' => strings.calendarWeekStartSaturday,
+      'calendarIdleNever' => strings.calendarIdleNever,
+      'calendarIdle1Minute' => strings.calendarIdle1Minute,
+      'calendarIdle2Minutes' => strings.calendarIdle2Minutes,
+      'settingsMenuCalendar' => strings.settingsMenuCalendar,
+      'settingsMenuCalendarSummary' => strings.settingsMenuCalendarSummary,
+      'fleetTheCalendarsHiddenWithTheirChips' =>
+        strings.fleetTheCalendarsHiddenWithTheirChips,
       'settingCameraEnabledTitle' => strings.settingCameraEnabledTitle,
       'settingCameraEnabledDescription' =>
         strings.settingCameraEnabledDescription,
@@ -1429,6 +1524,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'cameraStreamsShowFailed' => strings.cameraStreamsShowFailed,
       'cameraStreamsShowFailedRemote' => strings.cameraStreamsShowFailedRemote,
       'cameraStreamsEditView' => strings.cameraStreamsEditView,
+      'cameraStreamsViewId' => strings.cameraStreamsViewId,
       'cameraStreamsShowNames' => strings.cameraStreamsShowNames,
       'cameraStreamsShowNamesHelp' => strings.cameraStreamsShowNamesHelp,
       'cameraStreamsGrid' => strings.cameraStreamsGrid,
@@ -2013,6 +2109,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'esphomeBluetoothSearch' => strings.esphomeBluetoothSearch,
       'esphomeLocationMissing' => strings.esphomeLocationMissing,
       'esphomeLocationServicesOff' => strings.esphomeLocationServicesOff,
+      'esphomeLocationApproximate' => strings.esphomeLocationApproximate,
       'esphomeLocationGranted' => strings.esphomeLocationGranted,
       'esphomeBluetoothGranted' => strings.esphomeBluetoothGranted,
       'esphomeBluetoothMissing' => strings.esphomeBluetoothMissing,
@@ -2392,6 +2489,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingKioskAllowAppsDescription,
       'kioskAllowedActions' => strings.kioskAllowedActions,
       'kioskAllowedHelp' => strings.kioskAllowedHelp,
+      'settingKioskAllowedAppsTitle' => strings.settingKioskAllowedAppsTitle,
+      'settingKioskAllowedAppsDescription' =>
+        strings.settingKioskAllowedAppsDescription,
+      'kioskAllowedAppsEmpty' => strings.kioskAllowedAppsEmpty,
       'settingKioskEnabledTitle' => strings.settingKioskEnabledTitle,
       'settingKioskEnabledDescription' =>
         strings.settingKioskEnabledDescription,
@@ -2905,6 +3006,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'settingsGroupHomeAssistant' => strings.settingsGroupHomeAssistant,
       'settingsGroupDisplay' => strings.settingsGroupDisplay,
       'settingsGroupMediaCameras' => strings.settingsGroupMediaCameras,
+      'settingsGroupHousehold' => strings.settingsGroupHousehold,
       'settingsGroupKiosk' => strings.settingsGroupKiosk,
       'settingsGroupSystem' => strings.settingsGroupSystem,
       'settingsMenuMenu' => strings.settingsMenuMenu,
@@ -3058,6 +3160,203 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'settingScreensaverBlackHideExtrasDescription' =>
         strings.settingScreensaverBlackHideExtrasDescription,
       'screensaverBlackSection' => strings.screensaverBlackSection,
+      'settingScreensaverCelestialLocationTitle' =>
+        strings.settingScreensaverCelestialLocationTitle,
+      'settingScreensaverCelestialLocationDescription' =>
+        strings.settingScreensaverCelestialLocationDescription,
+      'settingScreensaverCelestialEntityTitle' =>
+        strings.settingScreensaverCelestialEntityTitle,
+      'settingScreensaverCelestialEntityDescription' =>
+        strings.settingScreensaverCelestialEntityDescription,
+      'settingScreensaverCelestialCoordinatesTitle' =>
+        strings.settingScreensaverCelestialCoordinatesTitle,
+      'settingScreensaverCelestialCoordinatesDescription' =>
+        strings.settingScreensaverCelestialCoordinatesDescription,
+      'settingScreensaverCelestialTerrainTitle' =>
+        strings.settingScreensaverCelestialTerrainTitle,
+      'settingScreensaverCelestialTerrainDescription' =>
+        strings.settingScreensaverCelestialTerrainDescription,
+      'settingScreensaverCelestialFollowDeviceTitle' =>
+        strings.settingScreensaverCelestialFollowDeviceTitle,
+      'settingScreensaverCelestialFollowDeviceDescription' =>
+        strings.settingScreensaverCelestialFollowDeviceDescription,
+      'settingScreensaverCelestialDaytimeTitle' =>
+        strings.settingScreensaverCelestialDaytimeTitle,
+      'settingScreensaverCelestialDaytimeDescription' =>
+        strings.settingScreensaverCelestialDaytimeDescription,
+      'settingScreensaverCelestialMilkyWayTitle' =>
+        strings.settingScreensaverCelestialMilkyWayTitle,
+      'settingScreensaverCelestialMilkyWayDescription' =>
+        strings.settingScreensaverCelestialMilkyWayDescription,
+      'settingScreensaverCelestialPlanetsTitle' =>
+        strings.settingScreensaverCelestialPlanetsTitle,
+      'settingScreensaverCelestialPlanetsDescription' =>
+        strings.settingScreensaverCelestialPlanetsDescription,
+      'settingScreensaverCelestialDeepSkyTitle' =>
+        strings.settingScreensaverCelestialDeepSkyTitle,
+      'settingScreensaverCelestialDeepSkyDescription' =>
+        strings.settingScreensaverCelestialDeepSkyDescription,
+      'settingScreensaverCelestialLightPollutionTitle' =>
+        strings.settingScreensaverCelestialLightPollutionTitle,
+      'settingScreensaverCelestialLightPollutionDescription' =>
+        strings.settingScreensaverCelestialLightPollutionDescription,
+      'settingScreensaverCelestialTwinkleTitle' =>
+        strings.settingScreensaverCelestialTwinkleTitle,
+      'settingScreensaverCelestialTwinkleDescription' =>
+        strings.settingScreensaverCelestialTwinkleDescription,
+      'settingScreensaverCelestialLargeMoonTitle' =>
+        strings.settingScreensaverCelestialLargeMoonTitle,
+      'settingScreensaverCelestialLargeMoonDescription' =>
+        strings.settingScreensaverCelestialLargeMoonDescription,
+      'settingScreensaverCelestialLinesTitle' =>
+        strings.settingScreensaverCelestialLinesTitle,
+      'settingScreensaverCelestialLinesDescription' =>
+        strings.settingScreensaverCelestialLinesDescription,
+      'settingScreensaverCelestialConstellationNamesTitle' =>
+        strings.settingScreensaverCelestialConstellationNamesTitle,
+      'settingScreensaverCelestialConstellationNamesDescription' =>
+        strings.settingScreensaverCelestialConstellationNamesDescription,
+      'settingScreensaverCelestialNamesTitle' =>
+        strings.settingScreensaverCelestialNamesTitle,
+      'settingScreensaverCelestialNamesDescription' =>
+        strings.settingScreensaverCelestialNamesDescription,
+      'settingScreensaverCelestialCompassTitle' =>
+        strings.settingScreensaverCelestialCompassTitle,
+      'settingScreensaverCelestialCompassDescription' =>
+        strings.settingScreensaverCelestialCompassDescription,
+      'settingScreensaverCelestialLabelScaleTitle' =>
+        strings.settingScreensaverCelestialLabelScaleTitle,
+      'settingScreensaverCelestialLabelScaleDescription' =>
+        strings.settingScreensaverCelestialLabelScaleDescription,
+      'settingScreensaverCelestialControlCoordinatesTitle' =>
+        strings.settingScreensaverCelestialControlCoordinatesTitle,
+      'settingScreensaverCelestialControlCoordinatesDescription' =>
+        strings.settingScreensaverCelestialControlCoordinatesDescription,
+      'settingScreensaverCelestialControlAzimuthTitle' =>
+        strings.settingScreensaverCelestialControlAzimuthTitle,
+      'settingScreensaverCelestialControlAzimuthDescription' =>
+        strings.settingScreensaverCelestialControlAzimuthDescription,
+      'settingScreensaverCelestialControlAltitudeTitle' =>
+        strings.settingScreensaverCelestialControlAltitudeTitle,
+      'settingScreensaverCelestialControlAltitudeDescription' =>
+        strings.settingScreensaverCelestialControlAltitudeDescription,
+      'settingScreensaverCelestialControlFovTitle' =>
+        strings.settingScreensaverCelestialControlFovTitle,
+      'settingScreensaverCelestialControlFovDescription' =>
+        strings.settingScreensaverCelestialControlFovDescription,
+      'settingScreensaverCelestialControlTimeTitle' =>
+        strings.settingScreensaverCelestialControlTimeTitle,
+      'settingScreensaverCelestialControlTimeDescription' =>
+        strings.settingScreensaverCelestialControlTimeDescription,
+      'settingScreensaverCelestialControlTimelapseTitle' =>
+        strings.settingScreensaverCelestialControlTimelapseTitle,
+      'settingScreensaverCelestialControlTimelapseDescription' =>
+        strings.settingScreensaverCelestialControlTimelapseDescription,
+      'settingScreensaverCelestialControlPointAtSkyTitle' =>
+        strings.settingScreensaverCelestialControlPointAtSkyTitle,
+      'settingScreensaverCelestialControlPointAtSkyDescription' =>
+        strings.settingScreensaverCelestialControlPointAtSkyDescription,
+      'settingScreensaverCelestialControlMoonPhaseTitle' =>
+        strings.settingScreensaverCelestialControlMoonPhaseTitle,
+      'settingScreensaverCelestialControlMoonPhaseDescription' =>
+        strings.settingScreensaverCelestialControlMoonPhaseDescription,
+      'settingScreensaverCelestialControlScaleTitle' =>
+        strings.settingScreensaverCelestialControlScaleTitle,
+      'settingScreensaverCelestialControlScaleDescription' =>
+        strings.settingScreensaverCelestialControlScaleDescription,
+      'screensaverModeCelestial' => strings.screensaverModeCelestial,
+      'screensaverCelestialTerrainHills' =>
+        strings.screensaverCelestialTerrainHills,
+      'screensaverCelestialTerrainMountains' =>
+        strings.screensaverCelestialTerrainMountains,
+      'screensaverCelestialTerrainPlains' =>
+        strings.screensaverCelestialTerrainPlains,
+      'screensaverCelestialTerrainNone' =>
+        strings.screensaverCelestialTerrainNone,
+      'screensaverCelestialLocationGps' =>
+        strings.screensaverCelestialLocationGps,
+      'screensaverCelestialLocationHaHome' =>
+        strings.screensaverCelestialLocationHaHome,
+      'screensaverCelestialLocationHaEntity' =>
+        strings.screensaverCelestialLocationHaEntity,
+      'screensaverCelestialLocationManual' =>
+        strings.screensaverCelestialLocationManual,
+      'screensaverCelestialCurrentLocation' =>
+        strings.screensaverCelestialCurrentLocation,
+      'screensaverCelestialNoGpsReceiver' =>
+        strings.screensaverCelestialNoGpsReceiver,
+      'screensaverCelestialLocationPermission' =>
+        strings.screensaverCelestialLocationPermission,
+      'screensaverCelestialNoGpsFix' => strings.screensaverCelestialNoGpsFix,
+      'screensaverCelestialNoHomeZone' =>
+        strings.screensaverCelestialNoHomeZone,
+      'screensaverCelestialHaNotConnected' =>
+        strings.screensaverCelestialHaNotConnected,
+      'screensaverCelestialPickEntity' =>
+        strings.screensaverCelestialPickEntity,
+      'screensaverCelestialEntityNoLocation' =>
+        strings.screensaverCelestialEntityNoLocation,
+      'screensaverCelestialPage' => strings.screensaverCelestialPage,
+      'screensaverCelestialSummary' => strings.screensaverCelestialSummary,
+      'screensaverCelestialSkyGroup' => strings.screensaverCelestialSkyGroup,
+      'screensaverCelestialLabelsGroup' =>
+        strings.screensaverCelestialLabelsGroup,
+      'screensaverCelestialControlsGroup' =>
+        strings.screensaverCelestialControlsGroup,
+      'screensaverCelestialLocationGrantMissing' =>
+        strings.screensaverCelestialLocationGrantMissing,
+      'screensaverCelestialLocationGrantReady' =>
+        strings.screensaverCelestialLocationGrantReady,
+      'screensaverCelestialCoordinatesInvalid' =>
+        strings.screensaverCelestialCoordinatesInvalid,
+      'screensaverCelestialNoLocation' =>
+        strings.screensaverCelestialNoLocation,
+      'screensaverCelestialWaitingForGps' =>
+        strings.screensaverCelestialWaitingForGps,
+      'screensaverCelestialDoubleTapHint' =>
+        strings.screensaverCelestialDoubleTapHint,
+      'screensaverCelestialCalibrate' => strings.screensaverCelestialCalibrate,
+      'celestialSun' => strings.celestialSun,
+      'celestialMoon' => strings.celestialMoon,
+      'celestialMercury' => strings.celestialMercury,
+      'celestialVenus' => strings.celestialVenus,
+      'celestialMars' => strings.celestialMars,
+      'celestialJupiter' => strings.celestialJupiter,
+      'celestialSaturn' => strings.celestialSaturn,
+      'celestialUranus' => strings.celestialUranus,
+      'celestialNeptune' => strings.celestialNeptune,
+      'celestialAndromedaGalaxy' => strings.celestialAndromedaGalaxy,
+      'celestialTriangulumGalaxy' => strings.celestialTriangulumGalaxy,
+      'celestialLargeMagellanicCloud' => strings.celestialLargeMagellanicCloud,
+      'celestialSmallMagellanicCloud' => strings.celestialSmallMagellanicCloud,
+      'celestialOrionNebula' => strings.celestialOrionNebula,
+      'celestialLagoonNebula' => strings.celestialLagoonNebula,
+      'celestialCarinaNebula' => strings.celestialCarinaNebula,
+      'celestialPleiades' => strings.celestialPleiades,
+      'celestialBeehiveCluster' => strings.celestialBeehiveCluster,
+      'celestialDoubleCluster' => strings.celestialDoubleCluster,
+      'celestialOmegaCentauri' => strings.celestialOmegaCentauri,
+      'celestialTucanae47' => strings.celestialTucanae47,
+      'celestialCompassNorth' => strings.celestialCompassNorth,
+      'celestialCompassEast' => strings.celestialCompassEast,
+      'celestialCompassSouth' => strings.celestialCompassSouth,
+      'celestialCompassWest' => strings.celestialCompassWest,
+      'celestialCompassNorthEast' => strings.celestialCompassNorthEast,
+      'celestialCompassSouthEast' => strings.celestialCompassSouthEast,
+      'celestialCompassSouthWest' => strings.celestialCompassSouthWest,
+      'celestialCompassNorthWest' => strings.celestialCompassNorthWest,
+      'celestialAzimuthShort' => strings.celestialAzimuthShort,
+      'celestialAltitudeShort' => strings.celestialAltitudeShort,
+      'celestialFovShort' => strings.celestialFovShort,
+      'celestialNow' => strings.celestialNow,
+      'celestialMoonNew' => strings.celestialMoonNew,
+      'celestialMoonWaxingCrescent' => strings.celestialMoonWaxingCrescent,
+      'celestialMoonFirstQuarter' => strings.celestialMoonFirstQuarter,
+      'celestialMoonWaxingGibbous' => strings.celestialMoonWaxingGibbous,
+      'celestialMoonFull' => strings.celestialMoonFull,
+      'celestialMoonWaningGibbous' => strings.celestialMoonWaningGibbous,
+      'celestialMoonLastQuarter' => strings.celestialMoonLastQuarter,
+      'celestialMoonWaningCrescent' => strings.celestialMoonWaningCrescent,
       'settingScreensaverClockStyleTitle' =>
         strings.settingScreensaverClockStyleTitle,
       'settingScreensaverClockStyleDescription' =>
@@ -3173,6 +3472,12 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingScreensaverClockAmPmTitle,
       'settingScreensaverClockAmPmDescription' =>
         strings.settingScreensaverClockAmPmDescription,
+      'settingScreensaverClockNightTurnOffMinutesTitle' =>
+        strings.settingScreensaverClockNightTurnOffMinutesTitle,
+      'settingScreensaverClockNightTurnOffMinutesDescription' =>
+        strings.settingScreensaverClockNightTurnOffMinutesDescription,
+      'screensaverNightTurnOffWarning' =>
+        strings.screensaverNightTurnOffWarning,
       'screensaverOverlayEntity' => strings.screensaverOverlayEntity,
       'screensaverOverlayNotSet' => strings.screensaverOverlayNotSet,
       'screensaverOverlayName' => strings.screensaverOverlayName,
@@ -3320,8 +3625,17 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'screensaverAndroidAndroidOnly' => strings.screensaverAndroidAndroidOnly,
       'screensaverAndroidCannotStart' => strings.screensaverAndroidCannotStart,
       'screensaverAndroidModernLimit' => strings.screensaverAndroidModernLimit,
+      'settingScreensaverDashboardDoubleTapTitle' =>
+        strings.settingScreensaverDashboardDoubleTapTitle,
+      'settingScreensaverDashboardDoubleTapDescription' =>
+        strings.settingScreensaverDashboardDoubleTapDescription,
       'screensaverDashboardSection' => strings.screensaverDashboardSection,
       'screensaverModeUrl' => strings.screensaverModeUrl,
+      'screensaverCalendarSection' => strings.screensaverCalendarSection,
+      'settingScreensaverCalendarViewTitle' =>
+        strings.settingScreensaverCalendarViewTitle,
+      'settingScreensaverCalendarViewDescription' =>
+        strings.settingScreensaverCalendarViewDescription,
       'settingScreensaverGlanceScaleTitle' =>
         strings.settingScreensaverGlanceScaleTitle,
       'settingScreensaverGlanceScaleDescription' =>
@@ -4018,6 +4332,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'screensaverOverlayShowIcon' => strings.screensaverOverlayShowIcon,
       'screensaverOverlayShowIconHelp' =>
         strings.screensaverOverlayShowIconHelp,
+      'screensaverOverlayVisibleStates' =>
+        strings.screensaverOverlayVisibleStates,
+      'screensaverOverlayVisibleStatesHelp' =>
+        strings.screensaverOverlayVisibleStatesHelp,
       'screensaverOverlayFontSystem' => strings.screensaverOverlayFontSystem,
       'screensaverOverlayFontSerif' => strings.screensaverOverlayFontSerif,
       'screensaverOverlayFontCondensed' =>
@@ -4587,6 +4905,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'voiceModelNotOnnx' => strings.voiceModelNotOnnx,
       'voiceModelNotOww' => strings.voiceModelNotOww,
       'voiceModelOwwWindow' => strings.voiceModelOwwWindow,
+      'settingVoiceAmazonLocaleTitle' => strings.settingVoiceAmazonLocaleTitle,
+      'settingVoiceAmazonLocaleDescription' =>
+        strings.settingVoiceAmazonLocaleDescription,
+      'voiceOptionAppLanguage' => strings.voiceOptionAppLanguage,
       'settingDisableCacheTitle' => strings.settingDisableCacheTitle,
       'settingDisableCacheDescription' =>
         strings.settingDisableCacheDescription,

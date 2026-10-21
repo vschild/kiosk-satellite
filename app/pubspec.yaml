@@ -2,7 +2,7 @@ name: kiosk_satellite
 description: "Modern kiosk browser for Home Assistant — companion app for Voice Satellite."
 publish_to: 'none'
 
-version: 2026.10.31+329
+version: 2026.10.34+332
 
 environment:
   sdk: ^3.12.2
@@ -73,6 +73,7 @@ dev_dependencies:
   fake_async: ^1.3.1
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  video_player_platform_interface: ^6.9.0
 
 # Launcher icons for both platforms, generated from the master art in
 # ../assets/icons (run: dart run flutter_launcher_icons). Only the legacy
@@ -100,6 +101,9 @@ flutter:
     - shaders/weather_mood_clouds_height.frag
     - shaders/weather_mood_blend.frag
     - shaders/weather_mood_glass.frag
+    - shaders/celestial_sky.frag
+    - shaders/celestial_moon.frag
+    - shaders/celestial_terrain.frag
     - shaders/ink_splat_velocity.frag
     - shaders/ink_curl.frag
     - shaders/ink_vorticity.frag
@@ -117,6 +121,13 @@ flutter:
     - assets/screensaver/screensaver.js
     # The Weather Mood moon, from NASA imagery (see moon-NASA.txt).
     - assets/screensaver/moon.png
+    # The Celestial sky: stars, constellations, the Milky Way and the Moon
+    # (see assets/celestial/SOURCES.md).
+    - assets/celestial/stars.bin
+    - assets/celestial/sky.json
+    - assets/celestial/milky_way.jpg
+    - assets/celestial/moon.jpg
+    - assets/celestial/SOURCES.md
     - assets/camera-view/index.html
     - assets/camera-view/camera-view.js
     - assets/camera-view/messages.js

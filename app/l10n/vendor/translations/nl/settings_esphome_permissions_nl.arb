@@ -5,6 +5,7 @@
   "esphomeBluetoothSearch": "De toestemming voor apparaten in de buurt die de Bluetooth-proxy nodig heeft om te scannen.",
   "esphomeLocationMissing": "Zonder dit kan de GPS-ontvanger niet worden gelezen en blijven de locatiesensoren onbekend.",
   "esphomeLocationServicesOff": "Locatie is uitgeschakeld in de apparaatinstellingen, waardoor de ontvanger geen gegevens levert.",
+  "esphomeLocationApproximate": "Alleen de geschatte locatie is toegestaan en de GPS-ontvanger heeft de precieze locatie nodig.",
   "esphomeLocationGranted": "De locatiesensoren kunnen de GPS-ontvanger lezen.",
   "esphomeBluetoothGranted": "De proxy kan naar Bluetooth-apparaten in de buurt scannen.",
   "esphomeBluetoothMissing": "Zonder dit kan de proxy niet naar apparaten scannen.",

@@ -259,6 +259,7 @@ const Map<String, String> subpageHints = {
   'Immich Media screensaver': 'Server, media, slideshow, metadata, filters',
   'Camera Streams screensaver': 'Views to show, seconds per view, sound',
   'Weather Mood screensaver': 'Weather entity, lightning, preview',
+  'Celestial screensaver': 'Location, landscape, sky, labels, controls',
   'Widgets': 'Corner overlays and their scale',
   'At a Glance': 'Entities shown over the screensaver',
   'RTSP & ONVIF Streaming': 'Share the device camera via RTSP or ONVIF',
@@ -1118,6 +1119,18 @@ const kioskAllowAlarms = SettingDef<bool>(
   dependsOn: 'kiosk.allow_drawer',
 );
 
+const kioskAllowCalendar = SettingDef<bool>(
+  key: 'kiosk.allow_calendar',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Calendar',
+  description: 'Open the family calendar from the kiosk menu.',
+  category: 'Kiosk',
+  section: 'Allowed Actions',
+  subpage: 'Allowed Actions',
+  dependsOn: 'kiosk.allow_drawer',
+);
+
 const kioskAllowMusic = SettingDef<bool>(
   key: 'kiosk.allow_music',
   type: SettingType.boolean,
@@ -1202,6 +1215,24 @@ const kioskAllowApps = SettingDef<bool>(
   section: 'Allowed Actions',
   subpage: 'Allowed Actions',
   dependsOn: 'kiosk.allow_drawer',
+);
+
+// The launcher's apps a locked kiosk still offers (issue #1067): a JSON
+// list of packages, a subset of launcher.apps in no order of its own. The
+// launcher opened while kiosk mode is on shows only these, and the full
+// list waits behind the exit gesture and PIN. Hand-built switch rows on
+// the device and in the remote admin write it. An upgrade seeds it with
+// every launcher app, so an existing quick menu keeps what it offered.
+const kioskAllowedApps = SettingDef<String>(
+  key: 'kiosk.allowed_apps',
+  type: SettingType.string,
+  defaultValue: '[]',
+  title: 'Allowed Apps',
+  description: 'The launcher apps offered while kiosk mode is on.',
+  category: 'Kiosk',
+  section: 'Allowed Apps',
+  subpage: 'Allowed Actions',
+  dependsOn: 'kiosk.allow_apps',
 );
 
 // ── Lockdown Mode (discussion #143) ────────────────────────────────────
@@ -1346,6 +1377,20 @@ const launcherAutoReturnSeconds = SettingDef<num>(
   title: 'Return after (seconds)',
   description:
       'Time without a touch in the other app before the kiosk comes back.',
+  category: 'Launcher',
+  dependsOn: 'launcher.auto_return',
+);
+
+// Issue #1055: a video or song in another app is someone using it even
+// without a touch, so the idle clock holds while any app's media session
+// plays and starts over once it stops. Reading other apps' sessions needs
+// the Notification access grant; without it nothing reads as playing.
+const launcherAutoReturnMedia = SettingDef<bool>(
+  key: 'launcher.auto_return_media',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Wait while media plays',
+  description: 'Do not come back while video or music is playing.',
   category: 'Launcher',
   dependsOn: 'launcher.auto_return',
 );
@@ -2027,6 +2072,8 @@ const screensaverMode = SettingDef<String>(
     'black',
     'clock',
     'weather_mood',
+    'celestial',
+    'calendar',
     'media',
     'local',
     'gallery',
@@ -2042,6 +2089,8 @@ const screensaverMode = SettingDef<String>(
     'black': 'Black',
     'clock': 'Clock',
     'weather_mood': 'Weather Mood',
+    'celestial': 'Celestial',
+    'calendar': 'Calendar',
     'media': 'Home Assistant Media',
     'local': 'Local Media',
     'gallery': 'Photo Gallery',
@@ -2068,6 +2117,42 @@ const screensaverDashboardView = SettingDef<String>(
   section: 'Home Assistant Dashboard screensaver',
   dependsOn: 'screensaver.mode',
   dependsOnValue: 'dashboard',
+);
+
+// Single taps reach the dashboard's cards (discussion #1069). The same
+// chain as the website's toggle, run in the screensaver manager.
+const screensaverDashboardDoubleTap = SettingDef<bool>(
+  key: 'screensaver.dashboard_double_tap',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Double tap to dismiss',
+  description: 'Single taps interact with the dashboard instead of dismissing.',
+  category: 'Screensaver',
+  section: 'Home Assistant Dashboard screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'dashboard',
+);
+
+// The Calendar mode opens on this view, on today. Its own setting, not
+// the calendar's Default view, so the kiosk menu can open on one view and
+// the screensaver show another.
+const screensaverCalendarView = SettingDef<String>(
+  key: 'screensaver.calendar_view',
+  type: SettingType.select,
+  defaultValue: 'week',
+  title: 'Calendar view',
+  description: 'The calendar view the screensaver opens on.',
+  category: 'Screensaver',
+  section: 'Calendar screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'calendar',
+  options: ['day', 'week', 'month', 'schedule'],
+  optionLabels: {
+    'day': 'Day',
+    'week': 'Week',
+    'month': 'Month',
+    'schedule': 'Schedule',
+  },
 );
 
 // Weather Mood follows the selected weather entity and sun.sun.
@@ -2511,6 +2596,447 @@ const screensaverWeatherAlarmTakeover = SettingDef<bool>(
   subpage: 'Weather Mood screensaver',
   dependsOn: 'screensaver.mode',
   dependsOnValue: 'weather_mood',
+);
+
+// ── Celestial (mode: celestial) ──
+
+/// Where the Celestial sky is seen from. Each source reveals its own row:
+/// the GPS and the home zone a status line, the entity a picker and
+/// Manual the coordinates field.
+const screensaverCelestialLocation = SettingDef<String>(
+  key: 'screensaver.celestial_location',
+  type: SettingType.select,
+  defaultValue: 'ha_home',
+  title: 'Location',
+  description: 'Where the sky is seen from.',
+  category: 'Screensaver',
+  section: 'Celestial screensaver',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+  options: ['gps', 'ha_home', 'ha_entity', 'manual'],
+  optionLabels: {
+    'gps': 'GPS',
+    'ha_home': 'Home Assistant home',
+    'ha_entity': 'Home Assistant entity',
+    'manual': 'Manual',
+  },
+);
+
+/// A person, device tracker or zone whose latitude and longitude place
+/// the sky.
+const screensaverCelestialEntity = SettingDef<String>(
+  key: 'screensaver.celestial_entity',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Entity',
+  description: 'A person, device tracker or zone with a location.',
+  category: 'Screensaver',
+  section: 'Celestial screensaver',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.celestial_location',
+  dependsOnValue: 'ha_entity',
+);
+
+/// Typed coordinates for the Celestial sky, "latitude, longitude" in
+/// decimal degrees.
+const screensaverCelestialCoordinates = SettingDef<String>(
+  key: 'screensaver.celestial_coordinates',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Coordinates',
+  description: 'Latitude and longitude, like 40.71, -74.01.',
+  category: 'Screensaver',
+  section: 'Celestial screensaver',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.celestial_location',
+  dependsOnValue: 'manual',
+  placeholder: '40.71, -74.01',
+  validator: validateCoordinates,
+);
+
+/// Null for empty or valid "latitude, longitude", an error otherwise.
+String? validateCoordinates(Object? value) {
+  final text = '${value ?? ''}'.trim();
+  if (text.isEmpty || parseCoordinates(text) != null) return null;
+  return 'Enter a latitude and longitude, like 40.71, -74.01';
+}
+
+/// "40.71, -74.01" as latitude and longitude, or null.
+({double latitude, double longitude})? parseCoordinates(String text) {
+  final parts = text.split(RegExp(r'[,;\s]+')).where((p) => p.isNotEmpty);
+  final values = parts.map(double.tryParse).toList();
+  if (values.length != 2 || values.contains(null)) return null;
+  final lat = values[0]!, lon = values[1]!;
+  if (lat.abs() > 90 || lon.abs() > 180) return null;
+  return (latitude: lat, longitude: lon);
+}
+
+const screensaverCelestialTerrain = SettingDef<String>(
+  key: 'screensaver.celestial_terrain',
+  type: SettingType.select,
+  defaultValue: 'hills',
+  title: 'Landscape',
+  description: 'The ground along the horizon.',
+  category: 'Screensaver',
+  section: 'Celestial screensaver',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+  options: ['hills', 'mountains', 'plains', 'none'],
+  optionLabels: {
+    'hills': 'Hills',
+    'mountains': 'Mountains',
+    'plains': 'Plains',
+    'none': 'None',
+  },
+);
+
+/// Point at the sky: the view turns with the device's compass and tilt,
+/// so a tablet held up to the sky names what is in front of it. Any
+/// location source works; the GPS one also follows the device as it moves.
+const screensaverCelestialFollowDevice = SettingDef<bool>(
+  key: 'screensaver.celestial_follow_device',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Point at the sky',
+  description:
+      'Hold the device up and the sky on screen turns with it, so you can '
+      'name what you are looking at. Needs a compass sensor.',
+  category: 'Screensaver',
+  section: 'Celestial screensaver',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialDaytime = SettingDef<bool>(
+  key: 'screensaver.celestial_daytime',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Daytime sky',
+  description:
+      'Brighten the sky and fade the stars while the Sun is up. Turn off '
+      'to show the night sky all day.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialMilkyWay = SettingDef<bool>(
+  key: 'screensaver.celestial_milky_way',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Milky Way',
+  description: 'Show the glow of our galaxy across the night sky.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialPlanets = SettingDef<bool>(
+  key: 'screensaver.celestial_planets',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Planets',
+  description: 'Show the planets where they are tonight.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialDeepSky = SettingDef<bool>(
+  key: 'screensaver.celestial_deep_sky',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Galaxies and nebulae',
+  description:
+      'Show the Andromeda Galaxy, the Orion Nebula and other objects you '
+      'can see without a telescope.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialLightPollution = SettingDef<num>(
+  key: 'screensaver.celestial_light_pollution',
+  type: SettingType.number,
+  defaultValue: 0,
+  title: 'Light pollution',
+  description:
+      'Simulate the glow of city lights. Higher values hide the fainter '
+      'stars and the Milky Way.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+  min: 0,
+  max: 100,
+  step: 5,
+  unit: '%',
+);
+
+const screensaverCelestialTwinkle = SettingDef<bool>(
+  key: 'screensaver.celestial_twinkle',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Twinkling stars',
+  description:
+      'Let the stars shimmer, most of all near the horizon. Turn off to '
+      'save power.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialLargeMoon = SettingDef<bool>(
+  key: 'screensaver.celestial_large_moon',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Larger Moon',
+  description:
+      'Draw the Moon at three times its real size and the Sun at twice, '
+      'so the phase is easy to see.',
+  category: 'Screensaver',
+  section: 'Sky',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialLines = SettingDef<bool>(
+  key: 'screensaver.celestial_lines',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Constellation lines',
+  description: 'Connect the stars of each constellation.',
+  category: 'Screensaver',
+  section: 'Labels',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialConstellationNames = SettingDef<bool>(
+  key: 'screensaver.celestial_constellation_names',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Constellation names',
+  description: 'Name the constellations. More appear as you zoom in.',
+  category: 'Screensaver',
+  section: 'Labels',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialNames = SettingDef<bool>(
+  key: 'screensaver.celestial_names',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Star and planet names',
+  description:
+      'Name the Sun, the Moon, the planets, the brightest stars and the '
+      'galaxies. '
+      'More stars get names as you zoom in.',
+  category: 'Screensaver',
+  section: 'Labels',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialCompass = SettingDef<bool>(
+  key: 'screensaver.celestial_compass',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Compass points',
+  description: 'Mark north, east, south and west on the horizon.',
+  category: 'Screensaver',
+  section: 'Labels',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialLabelScale = SettingDef<num>(
+  key: 'screensaver.celestial_label_scale',
+  type: SettingType.number,
+  defaultValue: 100,
+  title: 'Label size',
+  description: 'Scale the labels on the sky from 50 to 200 percent.',
+  category: 'Screensaver',
+  section: 'Labels',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+  min: 50,
+  max: 200,
+  step: 5,
+  unit: '%',
+);
+
+// The readouts and buttons a touch brings up along the bottom of the sky,
+// each with its own switch.
+
+const screensaverCelestialControlCoordinates = SettingDef<bool>(
+  key: 'screensaver.celestial_control_coordinates',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Position',
+  description: 'Show the latitude and longitude the sky is seen from.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlAzimuth = SettingDef<bool>(
+  key: 'screensaver.celestial_control_azimuth',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Azimuth',
+  description: 'Show the compass direction the center of the screen faces.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlAltitude = SettingDef<bool>(
+  key: 'screensaver.celestial_control_altitude',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Altitude',
+  description: 'Show how high above the horizon the center of the screen is.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlFov = SettingDef<bool>(
+  key: 'screensaver.celestial_control_fov',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Field of view',
+  description: 'Show how much of the sky the screen spans, in degrees.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlTime = SettingDef<bool>(
+  key: 'screensaver.celestial_control_time',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Time',
+  description: 'Show the time of the sky, with a Now button after a timelapse.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlTimelapse = SettingDef<bool>(
+  key: 'screensaver.celestial_control_timelapse',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Timelapse',
+  description: 'Speed up time to watch the sky turn. Tap to change the speed.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlPointAtSky = SettingDef<bool>(
+  key: 'screensaver.celestial_control_point_at_sky',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Point at the sky switch',
+  description:
+      'Turn Point at the sky on and off. Shows only on devices with a compass.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlMoonPhase = SettingDef<bool>(
+  key: 'screensaver.celestial_control_moon_phase',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Moon phase',
+  description: 'Show the phase of the Moon and how much of it is lit.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+);
+
+const screensaverCelestialControlScale = SettingDef<num>(
+  key: 'screensaver.celestial_control_scale',
+  type: SettingType.number,
+  defaultValue: 100,
+  title: 'Controls size',
+  description: 'Scale the controls from 50 to 200 percent.',
+  category: 'Screensaver',
+  section: 'Controls',
+  subpage: 'Celestial screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'celestial',
+  min: 50,
+  max: 200,
+  step: 5,
+  unit: '%',
+);
+
+/// Where the Celestial view was left: "azimuth,altitude,fov" in degrees.
+/// Each kiosk faces its own way, so the view never travels with Fleet.
+const screensaverCelestialView = SettingDef<String>(
+  key: 'screensaver.celestial_view',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Celestial view',
+  description: 'The direction and zoom the Celestial screensaver shows.',
+  category: 'Screensaver',
+  hidden: true,
+  perDevice: true,
+);
+
+/// The last GPS fix the Celestial sky was placed at, "latitude, longitude",
+/// for when the receiver has none yet. Where a kiosk is never travels with
+/// Fleet.
+const screensaverCelestialLastGps = SettingDef<String>(
+  key: 'screensaver.celestial_last_gps',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Celestial last GPS position',
+  description: 'The last GPS fix the Celestial screensaver placed the sky at.',
+  category: 'Screensaver',
+  hidden: true,
+  perDevice: true,
 );
 
 // ── Black (mode: black) ──
@@ -3043,6 +3569,45 @@ const screensaverClockNightCardColor = SettingDef<String>(
   dependsOn: 'screensaver.clock_night',
   alsoDependsOn: 'screensaver.clock_style',
   alsoDependsOnValue: 'flip',
+);
+
+// Turn screen off at night (issue #1060): even the darkest night colors
+// leave a bedroom panel glowing, so Night mode can take the screen off
+// altogether, by the same two means as Turn screen off after. The room
+// brightening past Night mode's threshold brings the clock back.
+const screensaverClockNightTurnOffMinutes = SettingDef<num>(
+  key: 'screensaver.clock_night_turn_off_minutes',
+  type: SettingType.number,
+  defaultValue: 0,
+  min: 0,
+  max: 60,
+  step: 1,
+  unit: ' min',
+  title: 'Turn screen off at night after',
+  description:
+      'Turns the screen off once Night mode has lasted the set time and back '
+      'on when the room brightens. Set to 0 to keep the screen on. Requires '
+      'Device Administrator permission.',
+  category: 'Screensaver',
+  section: 'Night mode',
+  subpage: 'Clock screensaver',
+  dependsOn: 'screensaver.clock_night',
+);
+
+const screensaverClockNightTurnOffBlack = SettingDef<bool>(
+  key: 'screensaver.clock_night_turn_off_black',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Use a black screen instead',
+  description:
+      'Show a plain black screen at zero brightness instead of powering off '
+      'the display. Hides widgets and Now Playing. No Device Administrator '
+      'permission is needed.',
+  category: 'Screensaver',
+  section: 'Night mode',
+  subpage: 'Clock screensaver',
+  dependsOn: 'screensaver.clock_night_turn_off_minutes',
+  dependsOnValue: {'gt': 0},
 );
 
 /// A ringing alarm shows on the Clock screensaver in its own style (the
@@ -6092,13 +6657,35 @@ const voiceWakeWordEngine = SettingDef<String>(
   description: 'Which engine listens. All models ship with the app.',
   category: 'Voice Satellite',
   subpage: 'Wake Word',
-  options: ['vswakeword', 'microwakeword', 'openwakeword'],
+  // pryon is Amazon's engine, only on the Echo Dot image (PryonCatalog
+  // hides it everywhere else).
+  options: ['vswakeword', 'microwakeword', 'openwakeword', 'pryon'],
   optionLabels: {
     'vswakeword': 'vsWakeWord',
     'microwakeword': 'microWakeWord',
     'openwakeword': 'openWakeWord',
+    'pryon': 'Amazon',
   },
   dependsOn: 'voice.enabled',
+);
+
+/// The locale of Amazon's wake word models, under the Amazon engine. Empty
+/// follows the app's language. The options are the locales the Echo Dot
+/// image's service lists (PryonCatalog), so SettingsManager fills them in.
+const voiceAmazonLocale = SettingDef<String>(
+  key: 'voice.amazon_locale',
+  type: SettingType.select,
+  defaultValue: '',
+  title: 'Wake word language',
+  description:
+      "The language of Amazon's wake word models. The wake word selects "
+      'offer the wake words it has.',
+  category: 'Voice Satellite',
+  subpage: 'Wake Word',
+  options: [''],
+  optionLabels: {'': "Kiosk Satellite's language"},
+  dependsOn: 'voice.wake_word_engine',
+  dependsOnValue: 'pryon',
 );
 
 /// The active wake words as a JSON list of model ids, slot 1 first. Home
@@ -10618,6 +11205,137 @@ String? validateAlarmsList(Object? value) {
   }
 }
 
+// ── Calendar ───────────────────────────────────────────────────────────
+// Home Assistant's calendars on the kiosk, read only. The calendars and
+// their colors are hand-edited on both surfaces (the Calendars card in
+// Settings > Calendar, the Calendar page on the remote); the rest renders
+// from these definitions.
+
+/// The calendars shown, a JSON array of
+/// `{entity, name, color: "r,g,b", person, on}` in the order the chips and
+/// the Day view's lanes take. A household shares its calendars, so they
+/// travel with the Calendar fleet category.
+const calendarCalendars = SettingDef<String>(
+  key: 'calendar.calendars',
+  type: SettingType.string,
+  defaultValue: '[]',
+  title: 'Calendars',
+  description: 'The Home Assistant calendars this kiosk shows.',
+  category: 'Calendar',
+  hidden: true,
+  validator: validateCalendarList,
+);
+
+/// The calendars hidden with their chips on this kiosk, a JSON array of
+/// entity ids. The kitchen can hide the work calendars the hall shows.
+const calendarHidden = SettingDef<String>(
+  key: 'calendar.hidden',
+  type: SettingType.string,
+  defaultValue: '[]',
+  title: 'Hidden calendars',
+  description: 'The calendars hidden with their chips on this kiosk.',
+  category: 'Calendar',
+  hidden: true,
+  perDevice: true,
+);
+
+const calendarDefaultView = SettingDef<String>(
+  key: 'calendar.default_view',
+  type: SettingType.select,
+  defaultValue: 'week',
+  title: 'Default view',
+  description: 'The view Calendar opens on.',
+  category: 'Calendar',
+  section: 'Display',
+  options: ['day', 'week', 'month', 'schedule'],
+  optionLabels: {
+    'day': 'Day',
+    'week': 'Week',
+    'month': 'Month',
+    'schedule': 'Schedule',
+  },
+);
+
+/// The first day of the week and month views. The language default is the
+/// one the device's language uses.
+const calendarWeekStart = SettingDef<String>(
+  key: 'calendar.week_start',
+  type: SettingType.select,
+  defaultValue: 'locale',
+  title: 'Week starts on',
+  description: 'Follows the device language unless set.',
+  category: 'Calendar',
+  section: 'Display',
+  options: ['locale', 'sunday', 'monday', 'saturday'],
+  optionLabels: {
+    'locale': 'Language default',
+    'sunday': 'Sunday',
+    'monday': 'Monday',
+    'saturday': 'Saturday',
+  },
+);
+
+/// The weather entity whose daily forecast goes on each day's header.
+/// Picked from the list, never typed.
+const calendarWeatherEntity = SettingDef<String>(
+  key: 'calendar.weather_entity',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Weather',
+  description: 'Adds the forecast to each day.',
+  category: 'Calendar',
+  section: 'Display',
+);
+
+/// The Calendar entry in the kiosk menu. The restricted menu also needs
+/// Calendar under Kiosk Mode's Allowed Actions.
+const calendarMenu = SettingDef<bool>(
+  key: 'calendar.menu',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Show in the kiosk menu',
+  description: 'Add a Calendar entry to the kiosk menu.',
+  category: 'Calendar',
+  section: 'Kiosk',
+);
+
+const calendarIdleCloseMinutes = SettingDef<String>(
+  key: 'calendar.idle_close_minutes',
+  type: SettingType.select,
+  defaultValue: '2',
+  title: 'Close when idle',
+  description: 'Returns to the dashboard after no touch for this long.',
+  category: 'Calendar',
+  section: 'Kiosk',
+  options: ['0', '1', '2', '5', '10'],
+  optionLabels: {
+    '0': 'Never',
+    '1': '1 minute',
+    '2': '2 minutes',
+    '5': '5 minutes',
+    '10': '10 minutes',
+  },
+);
+
+/// The calendars must decode, or the list is refused rather than stored:
+/// a bad write over the API would otherwise drop every calendar.
+String? validateCalendarList(Object? value) {
+  if (value is! String) return 'Calendars must be a JSON array.';
+  try {
+    final raw = jsonDecode(value);
+    if (raw is! List) return 'Calendars must be a JSON array.';
+    for (final item in raw) {
+      if (item is! Map) return 'Each calendar must be an object.';
+      if (!'${item['entity'] ?? ''}'.startsWith('calendar.')) {
+        return 'Each calendar needs a calendar entity.';
+      }
+    }
+    return null;
+  } catch (_) {
+    return 'Calendars must be a JSON array.';
+  }
+}
+
 /// The categories a fleet leader can push, in the sidebar's order: the
 /// definitions category, the name both UIs show for it and what stays per
 /// kiosk inside it (the [SettingDef.perDevice] keys it holds, in words).
@@ -10649,6 +11367,7 @@ const fleetSyncCategories = <(String, String, String)>[
   ('Gestures', 'Gestures', ''),
   ('Intercom', 'Intercom', 'the key, unless synced as a credential'),
   ('Alarms', 'Alarms', 'the alarms themselves'),
+  ('Calendar', 'Calendar', 'the calendars hidden with their chips'),
   (
     'Device',
     'Device',
@@ -11081,6 +11800,9 @@ const fleetFollowsKey = {
   'screen.adaptive_point3_position': 'screen.adaptive_min_brightness',
   'screen.adaptive_point3_level': 'screen.adaptive_min_brightness',
   'screen.adaptive_inverted': 'screen.adaptive_min_brightness',
+  // The kiosk's apps are picked out of the launcher's, which name this
+  // device's own packages.
+  'kiosk.allowed_apps': 'launcher.apps',
 };
 
 /// What a new follower gets unless the leader says otherwise.
@@ -11859,6 +12581,7 @@ const List<SettingDef<Object>> allSettings = [
   kioskAllowCamera,
   kioskAllowIntercom,
   kioskAllowAlarms,
+  kioskAllowCalendar,
   kioskAllowMusic,
   kioskAllowSendspinPlayer,
   kioskAllowScreensaver,
@@ -11866,6 +12589,7 @@ const List<SettingDef<Object>> allSettings = [
   kioskAllowLockdown,
   kioskAllowTheme,
   kioskAllowApps,
+  kioskAllowedApps,
   lockdownEnabled,
   lockdownMenu,
   lockdownBlackout,
@@ -11877,6 +12601,7 @@ const List<SettingDef<Object>> allSettings = [
   launcherApps,
   launcherAutoReturn,
   launcherAutoReturnSeconds,
+  launcherAutoReturnMedia,
   // The Screen & Audio page: screen first, then the volume mixer, then the
   // hand-built device pickers, then capture tuning. Both UIs render this
   // category in this order.
@@ -11965,6 +12690,34 @@ const List<SettingDef<Object>> allSettings = [
   screensaverWeatherPreview,
   screensaverWeatherPreviewCondition,
   screensaverWeatherPreviewPeriod,
+  screensaverCelestialLocation,
+  screensaverCelestialEntity,
+  screensaverCelestialCoordinates,
+  screensaverCelestialTerrain,
+  screensaverCelestialFollowDevice,
+  screensaverCelestialDaytime,
+  screensaverCelestialMilkyWay,
+  screensaverCelestialPlanets,
+  screensaverCelestialDeepSky,
+  screensaverCelestialLightPollution,
+  screensaverCelestialTwinkle,
+  screensaverCelestialLargeMoon,
+  screensaverCelestialLines,
+  screensaverCelestialConstellationNames,
+  screensaverCelestialNames,
+  screensaverCelestialCompass,
+  screensaverCelestialLabelScale,
+  screensaverCelestialControlCoordinates,
+  screensaverCelestialControlAzimuth,
+  screensaverCelestialControlAltitude,
+  screensaverCelestialControlFov,
+  screensaverCelestialControlTime,
+  screensaverCelestialControlTimelapse,
+  screensaverCelestialControlPointAtSky,
+  screensaverCelestialControlMoonPhase,
+  screensaverCelestialControlScale,
+  screensaverCelestialView,
+  screensaverCelestialLastGps,
   // One titled panel per mode, in the dropdown's order; only the panel of
   // the selected mode is visible (each setting depends on the mode).
   screensaverDimLevel,
@@ -11997,6 +12750,8 @@ const List<SettingDef<Object>> allSettings = [
   screensaverClockNightHideBackground,
   screensaverClockNightHideWidgets,
   screensaverClockNightCardColor,
+  screensaverClockNightTurnOffMinutes,
+  screensaverClockNightTurnOffBlack,
   screensaverMediaId,
   screensaverMediaIsFolder,
   screensaverMediaInterval,
@@ -12085,6 +12840,8 @@ const List<SettingDef<Object>> allSettings = [
   screensaverCameraView,
   screensaverCameraViewName,
   screensaverDashboardView,
+  screensaverDashboardDoubleTap,
+  screensaverCalendarView,
   // The Widgets group: corner overlays riding over the mode panels above,
   // so it sits between them and the other overlay group, At a Glance.
   screensaverWidgets,
@@ -12171,6 +12928,7 @@ const List<SettingDef<Object>> allSettings = [
   voiceTtsOutput,
   voiceTtsOutputMode,
   voiceWakeWordEngine,
+  voiceAmazonLocale,
   voiceWakeWords,
   voiceHaPipeline,
   voiceHaPipeline2,
@@ -12455,4 +13213,11 @@ const List<SettingDef<Object>> allSettings = [
   alarmsTtsEngine,
   alarmsTtsLanguage,
   alarmsTtsVoice,
+  calendarCalendars,
+  calendarHidden,
+  calendarDefaultView,
+  calendarWeekStart,
+  calendarWeatherEntity,
+  calendarMenu,
+  calendarIdleCloseMinutes,
 ];

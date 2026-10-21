@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "Приложения",
   "settingKioskAllowAppsDescription": "Открыть лаунчер приложений. При включённом «Отключить кнопку Домой» запуск приложения снимает закрепление киоска до его возврата.",
   "kioskAllowedActions": "Разрешённые действия",
-  "kioskAllowedHelp": "Какие быстрые действия предлагает меню киоска"
+  "kioskAllowedHelp": "Какие быстрые действия предлагает меню киоска",
+  "settingKioskAllowedAppsTitle": "Разрешённые приложения",
+  "settingKioskAllowedAppsDescription": "Приложения лаунчера, доступные при включённом режиме киоска.",
+  "kioskAllowedAppsEmpty": "Сначала добавьте приложения в «Настройки > Лаунчер приложений»."
 }

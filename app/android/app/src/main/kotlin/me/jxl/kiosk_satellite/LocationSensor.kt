@@ -7,6 +7,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
@@ -26,7 +27,17 @@ import io.flutter.plugin.common.MethodChannel
  * receiver, and a Wi-Fi guess in a moving vehicle is worse than nothing)
  * for a fix every `intervalMs`, and forwards each one as a map.
  *
- * Both need the fine location permission: without it the stream fails at
+ * `current` is one fix on demand for the Celestial screensaver, which
+ * needs a position whether or not the stream runs: the last known fix
+ * when there is one, otherwise a single request that gives up after
+ * `timeoutMs`. It answers with an `error` of `absent` or `denied` instead
+ * of a fix when it cannot ask.
+ *
+ * `grants` says which of the two location grants the app holds. Android
+ * 12 and later let a person allow approximate location only, which the
+ * permission rows explain, since the receiver cannot be read with it.
+ *
+ * All of them need the fine location permission: without it the stream fails at
  * once with `denied` and the Dart side says so under the switch. A
  * receiver switched off in the device settings takes the request and
  * delivers nothing until it is on; the Dart side reads that state from the
@@ -55,9 +66,10 @@ class LocationSensor(private val context: Context, messenger: BinaryMessenger) {
             )
         }
 
-    private fun granted(): Boolean =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
+    private fun granted(): Boolean = holds(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    private fun holds(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     private fun encode(l: Location): Map<String, Any?> = mapOf(
         "latitude" to l.latitude,
@@ -82,6 +94,16 @@ class LocationSensor(private val context: Context, messenger: BinaryMessenger) {
             when (call.method) {
                 "support" -> result.success(support())
                 "last" -> result.success(last())
+                "grants" -> result.success(
+                    mapOf(
+                        "precise" to granted(),
+                        "approximate" to holds(Manifest.permission.ACCESS_COARSE_LOCATION),
+                    ),
+                )
+                "current" -> current(
+                    ((call.argument<Number>("timeoutMs"))?.toLong() ?: 30_000L),
+                    result,
+                )
                 else -> result.notImplemented()
             }
         }
@@ -123,6 +145,47 @@ class LocationSensor(private val context: Context, messenger: BinaryMessenger) {
 
             override fun onCancel(args: Any?) = detach()
         })
+    }
+
+    private fun current(timeoutMs: Long, result: MethodChannel.Result) {
+        if (!hasReceiver()) return result.success(mapOf("error" to "absent"))
+        if (!granted()) return result.success(mapOf("error" to "denied"))
+        last()?.let { return result.success(it) }
+        val handler = Handler(Looper.getMainLooper())
+        var done = false
+        lateinit var single: LocationListener
+        val timeout = Runnable {
+            if (done) return@Runnable
+            done = true
+            locationManager.removeUpdates(single)
+            result.success(null)
+        }
+        single = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                if (done) return
+                done = true
+                handler.removeCallbacks(timeout)
+                locationManager.removeUpdates(this)
+                result.success(encode(location))
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
+        }
+        try {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 1000L, 0f, single, Looper.getMainLooper(),
+            )
+            handler.postDelayed(timeout, timeoutMs)
+        } catch (e: SecurityException) {
+            done = true
+            result.success(mapOf("error" to "denied"))
+        } catch (e: Exception) {
+            done = true
+            result.success(null)
+        }
     }
 
     private fun detach() {

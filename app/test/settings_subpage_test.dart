@@ -145,8 +145,9 @@ void main() {
 
   test('the Voice Satellite Wake Word page holds the detection settings', () {
     // On the dashboard runtime the rest of that page is live rows from the
-    // integration; native Voice Satellite adds its own engine, sensitivity,
-    // noise gate and stop word (the wake words are Home Assistant's selects).
+    // integration; native Voice Satellite adds its own engine, the language
+    // of Amazon's engine, sensitivity, noise gate and stop word (the wake
+    // words are Home Assistant's selects).
     final moved = [
       for (final d in defs.allSettings)
         if (d.subpage == 'Wake Word') d.key,
@@ -155,6 +156,7 @@ void main() {
       defs.wakeWordPreferFp32.key,
       defs.wakeWordResumeTimeoutSeconds.key,
       defs.voiceWakeWordEngine.key,
+      defs.voiceAmazonLocale.key,
       defs.voiceWakeWordSensitivity.key,
       defs.voiceNoiseGate.key,
       defs.voiceStopWord.key,
@@ -372,9 +374,11 @@ void main() {
       for (final d in defs.allSettings)
         if (d.subpage == 'Allowed Actions') d.key,
     ];
-    // The menu's own switch leads, then the action it gates, one per row.
+    // The menu's own switch leads, then the action it gates, one per row,
+    // then the apps a locked launcher offers.
     expect(moved.first, defs.kioskAllowDrawer.key);
-    expect(moved, hasLength(13));
+    expect(moved, hasLength(15));
+    expect(moved.last, defs.kioskAllowedApps.key);
     // The protections stay on the page above: they are what kiosk mode is.
     expect(defs.kioskExitGesture.subpage, isNull);
     expect(defs.kioskDisableStatusBar.subpage, isNull);

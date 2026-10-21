@@ -1,6 +1,6 @@
 import { confirmRemoteProtocol } from './tls.js';
 import { brightnessCurveRow } from './brightness_curve.js';
-import { esphomeText, launcherText, messageLanguage, voiceText } from './localization.js';
+import { esphomeText, kioskText, launcherText, messageLanguage, voiceText } from './localization.js';
 import { intercomError, mediaText, cameraText, cameraError, deviceText, haText, screensaverText, screensaverError, t } from './localization.js';
 import { watchUpdates } from './live.js';
 import {
@@ -37,7 +37,7 @@ import {
   openWakeSourcesPicker,
   wakeSourcesText,
 } from './pickers.js';
-import { loadSettings, refreshRealMacNote, syncSubpages, updatePersonSensorRows, updateRtspRows } from './settings.js';
+import { loadSettings, refreshRealMacNote, syncSubpages, updateCelestialLocationRow, updateCelestialPermissionRows, updateClockNightAdminRows, updatePersonSensorRows, updateRtspRows } from './settings.js';
 import { dashboardField } from './dashboard_picker.js';
 import { updatePlayerRow } from './panels.js';
 import {
@@ -331,11 +331,23 @@ export function settingRow(s) {
     if (s.key === 'motion.use_entity') updateMotionCameraRows();
     // The person sensor pages' status rows answer for their own switches.
     if (s.key === 'screensaver.dismiss_on_person' || s.key === 'person.sensor') updatePersonSensorRows();
+    // Turn screen off at night's grant group answers for the Night mode
+    // settings above it.
+    if (['screensaver.clock_night', 'screensaver.clock_night_turn_off_minutes',
+      'screensaver.clock_night_turn_off_black'].includes(s.key)) updateClockNightAdminRows();
     if (s.key === 'camera.rtsp.enabled' || s.key === 'camera.rtsp.protocol') updateRtspRows();
     // The hints under the brightness sliders come and go with the
     // adaptive brightness switch (issue #343). After the gated sync, so
     // the curve rows the switch reveals are in place first.
     if (s.key === 'screen.adaptive_brightness') updateAdaptiveBrightnessRows();
+    // The Celestial location status follows its source and entity, and
+    // the GPS source brings its Location grant.
+    if (s.key === 'screensaver.celestial_location' || s.key === 'screensaver.celestial_entity') {
+      updateCelestialLocationRow();
+    }
+    if (s.key === 'screensaver.celestial_location' || s.key === 'screensaver.mode') {
+      updateCelestialPermissionRows();
+    }
     // The Ambient light row follows the reading's source (issue #911).
     if (s.key === 'screen.adaptive_use_entity' || s.key === 'screen.adaptive_light_entity') {
       updateAdaptiveBrightnessRows({ reprobe: true });
@@ -425,9 +437,15 @@ export function settingRow(s) {
     row.appendChild(field.el);
     return field;
   };
-  // Weather Mood's weather entity: weather only.
-  if (s.key === 'screensaver.weather_entity') {
+  // Weather Mood's and the calendar's weather entity: weather only.
+  if (s.key === 'screensaver.weather_entity' || s.key === 'calendar.weather_entity') {
     entityRow(entitySpec({ domains: ['weather'] }), { allowClear: true });
+    return row;
+  }
+  // The Celestial screensaver's location entity: anything with a latitude
+  // and longitude.
+  if (s.key === 'screensaver.celestial_entity') {
+    entityRow(entitySpec({ domains: ['person', 'device_tracker', 'zone'] }), { allowClear: true });
     return row;
   }
   // Adaptive brightness's light sensor entity (issue #911), mirroring the
@@ -586,9 +604,9 @@ export function settingRow(s) {
     return row;
   }
 
-  // The launcher whitelist, mirroring the device's checkbox picker. The
-  // summary renders from the labels cached in the setting; the picker asks
-  // the device for the live app list.
+  // The launcher whitelist, mirroring the device's picker. The summary
+  // renders from the labels cached in the setting; the picker asks the
+  // device for the live app list.
   if (s.key === 'launcher.apps') {
     let chosen = [];
     try { chosen = JSON.parse(s.value || '[]') || []; } catch (_) {}
@@ -618,6 +636,68 @@ export function settingRow(s) {
     controls.append(val, btn);
     row.appendChild(controls);
     return row;
+  }
+
+  // The launcher's apps a locked kiosk offers (issue #1067), mirroring the
+  // device's rows: a switch per launcher app, in the launcher's order.
+  if (s.key === 'kiosk.allowed_apps') {
+    const value = (key) => (state.settings || []).find((o) => o.key === key)?.value;
+    let apps = [];
+    try {
+      if (value('launcher.enabled') === true) apps = JSON.parse(value('launcher.apps') || '[]') || [];
+    } catch (_) {}
+    apps = apps.filter((a) => a && typeof a.package === 'string' && a.package);
+    if (!apps.length) {
+      info.querySelector('.desc').textContent = kioskText('Add apps in Settings > App Launcher first.');
+      return row;
+    }
+    const allowed = () => {
+      try {
+        const list = JSON.parse(value(s.key) ?? s.value ?? '[]');
+        return new Set(Array.isArray(list) ? list : []);
+      } catch (_) { return new Set(); }
+    };
+    const fragment = document.createDocumentFragment();
+    for (const app of apps) {
+      const appRow = document.createElement('div'); appRow.className = 'row';
+      const appInfo = document.createElement('div'); appInfo.className = 'info';
+      appInfo.innerHTML = `<div class="name"></div><div class="desc"></div>`;
+      appInfo.querySelector('.name').textContent = app.label || app.package;
+      appInfo.querySelector('.desc').textContent = app.package;
+      const lbl = document.createElement('label'); lbl.className = 'switch';
+      const cb = document.createElement('input'); cb.type = 'checkbox';
+      const paint = () => { cb.checked = allowed().has(app.package); };
+      paint();
+      cb.addEventListener('change', async () => {
+        const next = allowed();
+        if (cb.checked) next.add(app.package); else next.delete(app.package);
+        const picked = JSON.stringify(apps.map((a) => a.package).filter((p) => next.has(p)));
+        try {
+          const res = await api('/api/settings', { method: 'PATCH', body: JSON.stringify({ [s.key]: picked }) });
+          const out = await res.json().catch(() => null);
+          if (!res.ok || out?.ok !== true || out.rejected?.includes(s.key)) {
+            throw new Error(out?.errors?.[s.key] || out?.error
+              || 'Could not save this setting. Try again.');
+          }
+        } catch (error) {
+          paint();
+          showRowError(appRow, error?.message || 'Could not save this setting. Try again.', null);
+          return;
+        }
+        clearRowError(appRow);
+        const cached = (state.settings || []).find((o) => o.key === s.key);
+        if (cached) cached.value = picked;
+        paint();
+      });
+      const sl = document.createElement('span'); sl.className = 'slider';
+      lbl.append(cb, sl);
+      appRow.append(appInfo, lbl);
+      // Every app's row repaints when the list changes elsewhere.
+      appRow.dataset.key = s.key;
+      appRow.updateSetting = () => { paint(); return true; };
+      fragment.appendChild(appRow);
+    }
+    return fragment;
   }
 
   if (s.key === 'esphome.excluded_entities') {
@@ -1022,7 +1102,7 @@ export function settingRow(s) {
       ['bottom_left', screensaverText('Bottom left')], ['bottom_right', screensaverText('Bottom right')]];
     const TYPES = [['clock', screensaverText('Small clock')], ['weather', screensaverText('Weather')],
       ['battery', screensaverText('Battery')], ['entity', screensaverText('Entity')],
-      ['alarm', t('alarmsNextWidget')]];
+      ['alarm', t('alarmsNextWidget')], ['calendar', t('calendarUpNext')]];
     const DEFAULTS = {
       clock: { color: '250,250,250', scale: 0, font: 'default',
         font_weight: 'default', h24: false, ampm: true, date: false },
@@ -1032,11 +1112,13 @@ export function settingRow(s) {
         forecast: true, humidity: true, wind: true, visibility: true },
       battery: { color: '250,250,250', scale: 0, font: 'default',
         font_weight: 'default', percent: true, low: false },
-      entity: { entity: '', name: '', label: '', attribute: '',
+      entity: { entity: '', name: '', label: '', attribute: '', show_states: '',
         show_name: true, show_icon: true, color: '250,250,250', scale: 0, font: 'default',
         font_weight: 'default' },
       alarm: { color: '250,250,250', scale: 0, font: 'default',
         font_weight: 'default' },
+      calendar: { color: '250,250,250', scale: 0, font: 'default',
+        font_weight: 'default', count: 3 },
     };
     // The typeface and weight pickers, the clock screensaver's vocabulary
     // (kept with definitions.dart) behind a Default that follows the
@@ -1197,6 +1279,28 @@ export function settingRow(s) {
             refs.weight.wrap, refs.percent.wrap, refs.low.wrap);
           return;
         }
+        // Up next: how many of today's coming events it lists.
+        if (type === 'calendar') {
+          const count = document.createElement('select');
+          count.className = 'field';
+          for (let n = 1; n <= 5; n++) {
+            const opt = document.createElement('option');
+            opt.value = String(n);
+            opt.textContent = String(n);
+            opt.selected = n === (Number(config.count) || 3);
+            count.appendChild(opt);
+          }
+          refs.count = count;
+          const countField = document.createElement('label');
+          countField.className = 'form-field';
+          const countLabel = document.createElement('span');
+          countLabel.className = 'desc';
+          countLabel.textContent = t('calendarWidgetEvents');
+          countField.append(countLabel, count);
+          typeBlock.append(refs.color.wrap, refs.scale.wrap, refs.font.wrap,
+            refs.weight.wrap, countField);
+          return;
+        }
         // The next alarm: nothing of its own, the look every widget has.
         if (type === 'alarm') {
           typeBlock.append(refs.color.wrap, refs.scale.wrap, refs.font.wrap,
@@ -1240,6 +1344,25 @@ export function settingRow(s) {
           // the entity's attributes, from the value step.
           refs.attribute = { wrap: formField(screensaverText('Displayed value'), valueBox.el),
             select: { get value() { return config.attribute || ''; } } };
+          // Compared with the displayed value, so the list follows
+          // whatever that shows (issue #1066).
+          refs.states = (() => {
+            const wrap = document.createElement('label');
+            wrap.className = 'form-field';
+            const title = document.createElement('span');
+            title.className = 'desc';
+            title.textContent = screensaverText('Visible states');
+            const input = document.createElement('input');
+            input.className = 'field';
+            input.type = 'text';
+            input.value = config.show_states || '';
+            input.style.maxWidth = 'none';
+            const hint = document.createElement('span');
+            hint.className = 'desc';
+            hint.textContent = screensaverText('Show the widget only when its value is one of these, separated by commas. Leave empty to always show it.');
+            wrap.append(title, hint, input);
+            return { wrap, input };
+          })();
           refs.label = (() => {
             const wrap = document.createElement('label');
             wrap.className = 'form-field';
@@ -1261,7 +1384,7 @@ export function settingRow(s) {
           refs.showIcon = cameraToggle(screensaverText('Show icon'),
             config.show_icon !== false, screensaverText('The icon beside the value.'));
           typeBlock.append(refs.entity.wrap, refs.label.wrap,
-            refs.attribute.wrap, refs.color.wrap, refs.scale.wrap,
+            refs.attribute.wrap, refs.states.wrap, refs.color.wrap, refs.scale.wrap,
             refs.font.wrap, refs.weight.wrap, refs.showName.wrap, refs.showIcon.wrap);
           return;
         }
@@ -1357,12 +1480,16 @@ export function settingRow(s) {
               low: refs.low.input.checked };
           } else if (type === 'alarm') {
             entryConfig = { color, scale, font, font_weight };
+          } else if (type === 'calendar') {
+            entryConfig = { color, scale, font, font_weight,
+              count: Number(refs.count?.value) || 3 };
           } else if (type === 'entity') {
             if (!config.entity) return { ok: false, error: screensaverText('Pick an entity.') };
             entryConfig = { entity: config.entity,
               name: config.name || config.entity,
               label: refs.label.input.value.trim(),
               attribute: refs.attribute.select.value,
+              show_states: refs.states.input.value.trim(),
               show_name: refs.showName.input.checked,
               show_icon: refs.showIcon.input.checked, color, scale, font,
               font_weight };
@@ -1401,7 +1528,7 @@ export function settingRow(s) {
         }, false, 'delete'),
       ],
       {
-        icon: ['weather', 'battery', 'entity', 'alarm'].includes(e.type)
+        icon: ['weather', 'battery', 'entity', 'alarm', 'calendar'].includes(e.type)
           ? e.type : 'clock',
         onClick: () => editWidget(e),
       },
@@ -1701,6 +1828,20 @@ export function settingRow(s) {
           buttons: [{id:'commonCancel', value:'Cancel'}, {id:'screensaverScreenOffProceed', value:'Proceed'}],
         });
         if (pick === 'Cancel') {
+          slider.set(0);
+          return;
+        }
+      }
+      // Night mode's own, with the light sensor added: the room brightening
+      // is what turns the screen back on.
+      if (s.key === 'screensaver.clock_night_turn_off_minutes' &&
+          Number(s.value || 0) === 0 && next > 0 &&
+          !state.settings.some(o => o.key === 'screensaver.clock_night_turn_off_black' && o.value === true)) {
+        const pick = await localizedMessageBox({
+          titleId: 'screensaverWarningTitle', messageId: 'screensaverNightTurnOffWarning',
+          buttons: [{id:'commonCancel', value:'Cancel'}, {id:'screensaverScreenOffProceed', value:'Proceed'}],
+        });
+        if (pick !== 'Proceed') {
           slider.set(0);
           return;
         }

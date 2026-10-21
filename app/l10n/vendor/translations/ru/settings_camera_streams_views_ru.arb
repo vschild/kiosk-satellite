@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "Не удалось показать вид",
   "cameraStreamsShowFailedRemote": "Не удалось показать вид",
   "cameraStreamsEditView": "Изменение вида",
+  "cameraStreamsViewId": "ID вида",
   "cameraStreamsShowNames": "Показывать названия камер",
   "cameraStreamsShowNamesHelp": "Показывать подпись поверх каждой камеры.",
   "cameraStreamsGrid": "Сетка",

@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "Le nom sous la valeur.",
   "screensaverOverlayShowIcon": "Afficher l'icône",
   "screensaverOverlayShowIconHelp": "L'icône à côté de la valeur.",
+  "screensaverOverlayVisibleStates": "États visibles",
+  "screensaverOverlayVisibleStatesHelp": "Afficher le widget uniquement lorsque sa valeur fait partie de celles-ci, séparées par des virgules. Laisser vide pour toujours l'afficher.",
   "screensaverOverlayFontSystem": "Système",
   "screensaverOverlayFontSerif": "Serif",
   "screensaverOverlayFontCondensed": "Condensée",

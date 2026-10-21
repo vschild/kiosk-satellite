@@ -23,6 +23,12 @@ Navigate to **Settings**, then **Kiosk Mode**. This same configuration page is a
 | Disable Gestures | Keeps all custom mappings from the [Gestures page](gestures.md) dormant for as long as Kiosk Mode is on. |
 | Allow menu with quick actions | Opts a restricted version of the menu back in: only the harmless actions you explicitly select below this switch will be visible. Everything else remains hidden behind the exit gesture and PIN. |
 
+### Allowed Apps
+
+When **Apps** is on under **Allowed Actions**, an **Allowed Apps** group lists the apps picked under **Settings > App Launcher**. While Kiosk Mode is on, the App Launcher shows only the apps switched on here, whether it opens from the quick actions menu, a gesture, Home Assistant or the remote API. The full list stays behind the exit gesture and PIN. Apps added to the App Launcher later stay off until you switch them on.
+
+To change the order of the tiles, open **Settings > App Launcher > Apps** and drag the picked apps or use the arrows next to them. The Allowed Apps follow the same order.
+
 ### Staying in Front
 
 The **Disable home button** feature relies on Android screen pinning. On a device that is not fully managed by an MDM, Android will present an "App is pinned" consent dialog the very first time it activates. Simply answer **Got it** once, and all future pins will occur silently. On certain devices, this dialog aggressively returns on every single boot. Configuring the [Home Launcher](home-launcher.md) permanently solves this annoyance, because when the kiosk acts as the true home screen, the pin is bypassed entirely and the home button naturally lands on the kiosk. 
@@ -34,6 +40,8 @@ The app deliberately ignores two specific situations: apps opened legitimately t
 The App Launcher's **Return automatically** feature operates as an idle clock, not a hard countdown timer. **Return after** tracks how long the launched app goes untouched. Every touch inside the other app resets the clock, ensuring someone actively using it is never rudely pulled back to the kiosk. The app detects these touches by placing a one pixel, invisible, and untouchable window over the other app while the clock runs. This clever technique requires the **display over other apps** permission, which the return feature itself also needs. 
 
 You will see a **Required system permissions** group appear directly under the switch (both on the device and in the remote admin) tracking that specific grant, along with **Unrestricted battery** (since Android pauses clocks for apps lacking battery exemption). If a highly secure app (like some banking apps) actively blocks overlay windows, it keeps its touch events hidden. In that specific scenario, the idle clock runs blindly and will pull the kiosk back after the configured time regardless of user activity.
+
+Video and music count as activity too. With **Wait while media plays** on (the default), the kiosk stays away while any other app plays video or music, such as SmartTube, Plex or Spotify. Once playback stops or pauses, the full **Return after** time starts over. The app learns what is playing from Android's media sessions, which requires the **Notification access** permission. That row joins the **Required system permissions** group while the switch is on. Without the grant, the clock only counts touches.
 
 Both of these aggressive relaunches, as well as recovering from a crash, are handled by the [Kiosk Satellite Service](permissions.md#the-kiosk-satellite-service), the persistent foreground service the app maintains. These recovery paths require the **display over other apps** permission. The [permissions group](#required-system-permissions) at the bottom of the settings page clearly indicates if it is missing.
 

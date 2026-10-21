@@ -65,6 +65,45 @@
       ]
     }
   },
+  "launcherNotificationAccessHeld": "The kiosk stays away while video or music plays in another app.",
+  "@launcherNotificationAccessHeld": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
+  "launcherNotificationAccessMissing": "Without this the kiosk cannot tell when video or music is playing and comes back anyway.",
+  "@launcherNotificationAccessMissing": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
+  "launcherNotificationAccessRemote": "Without this the kiosk cannot tell when video or music is playing and comes back anyway. The grant screen appears on the tablet.",
+  "@launcherNotificationAccessRemote": {
+    "context": "Settings > App Launcher > Required system permissions",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Required system permissions"
+      ]
+    }
+  },
   "launcherPermissionsSearch": "The grants Return automatically leans on.",
   "@launcherPermissionsSearch": {
     "context": "Settings > Search > App Launcher > Required system permissions",

@@ -65,6 +65,21 @@
       ]
     }
   },
+  "esphomeLocationApproximate": "Only approximate location is allowed, and the GPS receiver needs precise location.",
+  "@esphomeLocationApproximate": {
+    "context": "Settings > ESPHome > GPS Sensor and Screensaver > Celestial screensaver > Required system permissions",
+    "description": "Location permission row when only approximate location is allowed (Android 12 and later). The GPS receiver needs precise location.",
+    "x-locations": {
+      "device": [
+        "Settings > ESPHome > GPS Sensor > Required system permissions",
+        "Settings > Screensaver > Celestial screensaver > Required system permissions"
+      ],
+      "remoteAdmin": [
+        "ESPHome > GPS Sensor > Required system permissions",
+        "Screensaver > Celestial screensaver > Required system permissions"
+      ]
+    }
+  },
   "esphomeLocationGranted": "The location sensors can read the GPS receiver.",
   "@esphomeLocationGranted": {
     "context": "Settings > ESPHome > Bluetooth Proxy and GPS Sensor > Required system permissions",

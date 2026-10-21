@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "Zeigt den Namen unter dem Wert an.",
   "screensaverOverlayShowIcon": "Symbol anzeigen",
   "screensaverOverlayShowIconHelp": "Zeigt das Symbol neben dem Wert an.",
+  "screensaverOverlayVisibleStates": "Sichtbare Zustände",
+  "screensaverOverlayVisibleStatesHelp": "Zeigt das Widget nur an, wenn sein Wert einem dieser Werte entspricht, durch Kommas getrennt. Leer lassen, um es immer anzuzeigen.",
   "screensaverOverlayFontSystem": "System",
   "screensaverOverlayFontSerif": "Serifen",
   "screensaverOverlayFontCondensed": "Schmal",

@@ -4,7 +4,7 @@ import { api, cmd, state } from './core.js';
 import { pickRow, playerSpec } from './entity_picker.js';
 import { readOnlyRow } from './device.js';
 import { SUBPAGE_ICONS } from './icons.js';
-import { banner, messageBox, modalShell, showToast } from './widgets.js';
+import { banner, messageBox, modalShell, selectLoading, showToast } from './widgets.js';
 import { vsSelectRow } from './vs.js';
 import { watchUpdates } from './live.js';
 import { toggleRow } from './audio.js';
@@ -269,6 +269,15 @@ async function haSelectRows(container, rows) {
   for (const [key, title, desc] of rows) {
     const entity = data[key];
     const options = Array.isArray(entity?.options) ? entity.options.map(String) : [];
+    // Another engine's wake words, which Home Assistant learns as it
+    // reconnects to the kiosk.
+    if (entity && data.wakeWordsPending === true && (key === 'wake_word' || key === 'wake_word_2')) {
+      const row = vsSelectRow(voiceText(title), voiceText(desc),
+        options.map((o) => ({ value: o, label: label(key, o) })), null, () => {});
+      selectLoading(row.querySelector('select'));
+      container.appendChild(row);
+      continue;
+    }
     if (!entity || entity.available !== true || !options.length) {
       container.appendChild(voiceRow(title, desc,
         voiceText(data.selectsMissing === true ? 'Reload needed' : 'Not available')));
@@ -299,6 +308,9 @@ async function haSelectRows(container, rows) {
 export const VS_SELECT_SETTINGS = new Set([
   'voice.ha_pipeline', 'voice.ha_pipeline_2', 'voice.ha_vad_sensitivity',
   'voice.ha_wake_word', 'voice.ha_wake_word_2', 'voice.pending_selects',
+  // The kiosk's copy of the wake words Home Assistant set: no row of its
+  // own, and every pick in the Wake word selects saves it.
+  'voice.wake_words',
   'voice.engine_1', 'voice.engine_2',
   'voice.realtime_openai_validated', 'voice.realtime_xai_validated',
   'voice.realtime_gemini_validated',
@@ -559,14 +571,15 @@ export async function renderNativeVs(root, byKey) {
     if (ttsRow) ttsOutputRow(ttsRow, byKey['voice.tts_output']?.value || '');
     const wake = panel('Wake Word');
     if (wake) {
-      // Engine, Home Assistant's wake words, then sensitivity, the noise
-      // gate and the stop word in one card, the engine's own tuning after.
+      // Engine, the language of Amazon's engine, Home Assistant's wake
+      // words (which follow both), then sensitivity, the noise gate and the
+      // stop word in one card, the engine's own tuning after.
       const first = document.createElement('div');
       first.className = 'card';
-      for (const key of ['voice.wake_word_engine', 'voice.wake_word_sensitivity', 'voice.noise_gate', 'voice.stop_word']) {
+      for (const key of ['voice.wake_word_engine', 'voice.amazon_locale', 'voice.wake_word_sensitivity', 'voice.noise_gate', 'voice.stop_word']) {
         const row = wake.querySelector(`[data-key="${key}"]`);
         if (row) first.appendChild(row);
-        if (key === 'voice.wake_word_engine') first.appendChild(selectsBlock(WAKE_ROWS));
+        if (key === 'voice.amazon_locale') first.appendChild(selectsBlock(WAKE_ROWS));
       }
       wake.querySelectorAll(':scope > .card').forEach((c) => { if (!c.children.length) c.remove(); });
       wake.prepend(first);

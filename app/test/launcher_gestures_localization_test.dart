@@ -11,6 +11,7 @@ import 'package:kiosk_satellite/l10n/gesture_messages.dart';
 import 'package:kiosk_satellite/managers/gestures/gesture_mappings.dart';
 import 'package:kiosk_satellite/managers/motion/motion_manager.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
+import 'package:kiosk_satellite/ui/entity_picker.dart';
 import 'package:kiosk_satellite/ui/gesture_settings.dart';
 import 'package:kiosk_satellite/ui/hand_gesture_tester.dart';
 import 'package:kiosk_satellite/ui/settings_screen.dart';
@@ -175,17 +176,16 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      PickCatalog.reset();
       await tester.tap(find.text('TEST select apps'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Original App'));
       language.value = const Locale('en');
       await tester.pumpAndSettle();
-      expect(
-        tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-        isTrue,
-      );
-      expect(find.text('com.example.Raw'), findsOneWidget);
-      await tester.tap(find.text('Save'));
+      // The pick shows in the list and in the picks beside it.
+      expect(find.text('Original App'), findsNWidgets(2));
+      expect(find.text('com.example.Raw'), findsWidgets);
+      await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       expect(jsonDecode(c.settings.get(defs.launcherApps)), [
         {'package': 'com.example.Raw', 'label': 'Original App'},

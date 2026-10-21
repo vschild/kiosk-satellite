@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "Назва під значенням.",
   "screensaverOverlayShowIcon": "Показувати піктограму",
   "screensaverOverlayShowIconHelp": "Піктограма поруч зі значенням.",
+  "screensaverOverlayVisibleStates": "Видимі стани",
+  "screensaverOverlayVisibleStatesHelp": "Показувати віджет лише тоді, коли його значення збігається з одним із цих, розділених комами. Залиште порожнім, щоб показувати завжди.",
   "screensaverOverlayFontSystem": "Системний",
   "screensaverOverlayFontSerif": "Із зарубками",
   "screensaverOverlayFontCondensed": "Вузький",

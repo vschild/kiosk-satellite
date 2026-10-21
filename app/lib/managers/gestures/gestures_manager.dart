@@ -468,6 +468,12 @@ class GesturesManager extends Manager {
         // kiosk menu's Show in the kiosk menu or Allowed Action switches,
         // the same as the other links.
         return _run('openAlarms', const {});
+      case 'calendar':
+        // Opened by a ks://calendar link, on its view when the link names
+        // one. Like the alarm list, not behind the kiosk menu's switches.
+        return _run('openCalendar', {
+          if (a['view'] is String) 'view': a['view'],
+        });
       case 'ha_script':
         return _runHa(a, 'haCallService', {
           'domain': 'script',

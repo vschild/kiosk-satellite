@@ -10,6 +10,7 @@ import '../browser/dashboard_state.dart';
 import '../home_assistant/plugin_entities.dart';
 import '../home_assistant/plugin_ha_socket.dart';
 import '../intercom/intercom_sensors.dart';
+import '../sendspin/plugin_ma_socket.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import '../voice/assist_view.dart';
@@ -35,10 +36,12 @@ class PluginHostApi {
     EventBus bus,
     this.sendEvent, {
     this.ha,
+    this.ma,
     this.voice,
   }) {
     _events = bus.stream.listen(_onEvent);
     ha?.emit = _onHaEvent;
+    ma?.emit = _onMaEvent;
     voice?.view.addListener(_onVoice);
     voice?.level.addListener(_onVoiceLevel);
   }
@@ -48,6 +51,10 @@ class PluginHostApi {
   /// Home Assistant commands and subscriptions for sessions that declare
   /// the `ha` capability.
   final HaPluginSocket? ha;
+
+  /// Music Assistant commands and events for sessions that declare the
+  /// `ma` capability.
+  final MaPluginSocket? ma;
   final Future<void> Function(Map<String, Object?>) sendEvent;
 
   /// The voice turn, for voice.text, voice.level and voice.skin.
@@ -86,6 +93,7 @@ class PluginHostApi {
     'getDashboardState',
     'getCameraViews',
     'getDashboards',
+    'getSendspinPlayer',
   ];
   static const controlNames = [
     'startScreensaver',
@@ -109,6 +117,8 @@ class PluginHostApi {
     'showLinkPage',
     'hideOverlayPage',
     'showMusicAssistant',
+    'openCalendar',
+    'hideCalendar',
     'loadUrl',
     'loadDashboard',
     'loadStartUrl',
@@ -217,6 +227,20 @@ class PluginHostApi {
             const ['http', 'https'].contains(uri.scheme) &&
             uri.host.isNotEmpty &&
             uri.userInfo.isEmpty;
+      case 'openCalendar':
+        final date = params['date'];
+        return keys({'view', 'date'}) &&
+            (!params.containsKey('view') ||
+                const [
+                  'day',
+                  'week',
+                  'month',
+                  'schedule',
+                ].contains(params['view'])) &&
+            (date == null ||
+                (date is String &&
+                    RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(date) &&
+                    DateTime.tryParse(date) != null));
       case 'loadDashboard':
         return keys({'dashboard'}) && path('dashboard');
       case 'haNavigate':
@@ -255,6 +279,7 @@ class PluginHostApi {
     'stopword.detected',
     'camera.view',
     'browser.state',
+    'sendspin.player',
   ];
   static const _fields = {
     'getLightLevel': ['present', 'lux', 'live'],
@@ -304,6 +329,19 @@ class PluginHostApi {
     'getVoiceState': ['enabled', 'state', 'skinSelected', 'overlay'],
     'getIntercomState': ['enabled', 'state', 'kiosk', 'dnd'],
     'haStatus': ['configured', 'connected'],
+    'getSendspinPlayer': [
+      'enabled',
+      'running',
+      'connected',
+      'clientId',
+      'playerName',
+      'serverName',
+      'maConfigured',
+      'maPlayerId',
+      'maServerId',
+      'maServerName',
+      'maServerVersion',
+    ],
     'getDashboardState': [
       'homeAssistantUrl',
       'startUrl',
@@ -320,7 +358,8 @@ class PluginHostApi {
     final capabilities = args['capabilities'];
     if (capabilities is! List ||
         !capabilities.any(
-          (c) => c == 'host.read' || c == 'host.control' || c == 'ha',
+          (c) =>
+              c == 'host.read' || c == 'host.control' || c == 'ha' || c == 'ma',
         )) {
       return;
     }
@@ -333,6 +372,7 @@ class PluginHostApi {
       capabilities.contains('host.control'),
       canNoise: capabilities.contains('noise'),
       canHa: capabilities.contains('ha'),
+      canMa: capabilities.contains('ma'),
       canVoiceText: capabilities.contains('voice.text'),
     );
   }
@@ -350,6 +390,7 @@ class PluginHostApi {
       commands.execute('haPluginUnwatchEntity', {'owner': session.owner}),
     );
     if (session.canHa) ha?.release(session.owner);
+    if (session.canMa) ma?.release(session.owner);
   }
 
   static String? entityEventId(String event) {
@@ -449,11 +490,18 @@ class PluginHostApi {
                 'maxSubscriptions': HaPluginSocket.maxSubscriptions,
               }
             : null,
+        'maSubscriptions': session.canMa && ma != null
+            ? {
+                'eventPrefix': 'ma.subscription.',
+                'maxSubscriptions': MaPluginSocket.maxSubscriptions,
+              }
+            : null,
         'capabilities': [
           if (session.canRead) 'host.read',
           if (session.canControl) 'host.control',
           if (session.canRead && session.canNoise) 'noise',
           if (session.canHa && ha != null) 'ha',
+          if (session.canMa && ma != null) 'ma',
           if (session.canRead && session.canVoiceText) 'voice.text',
         ],
         'commands': [
@@ -518,6 +566,7 @@ class PluginHostApi {
               'getHaEntityState' => 'haPluginReadEntity',
               'getVoiceState' => 'voiceStatus',
               'getIntercomState' => 'intercomSensors',
+              'getSendspinPlayer' => 'sendspinPlayer',
               _ => name,
             },
             name == 'screenOff'
@@ -641,7 +690,7 @@ class PluginHostApi {
     if (session == null || message == null) return _haRefused(session);
     final result = await ha!.call(session.owner, message);
     if (_session(args) != session) return _haRefused(null);
-    return _haAnswer(result, data: result['result']);
+    return _answer(result, data: result['result']);
   }
 
   /// Subscribe a plugin to a Home Assistant websocket subscription under
@@ -658,7 +707,7 @@ class PluginHostApi {
       ha!.unsubscribe(session.owner, key);
       return _haRefused(null);
     }
-    return _haAnswer(result);
+    return _answer(result);
   }
 
   void haUnsubscribe(Map args) {
@@ -666,8 +715,8 @@ class PluginHostApi {
     final key = args['key'];
     if (session == null || key is! String) return;
     ha!.unsubscribe(session.owner, key);
-    session.haQueue.removeWhere((e) => e.key == 'ha.subscription.$key');
-    session.haDropped.remove('ha.subscription.$key');
+    session.ordered.removeWhere((e) => e.key == 'ha.subscription.$key');
+    session.orderedDropped.remove('ha.subscription.$key');
   }
 
   _HostSession? _haSession(Map args) {
@@ -679,7 +728,7 @@ class PluginHostApi {
   static Map<String, Object?>? _haMessage(Object? message) =>
       message is Map ? Map<String, Object?>.from(message) : null;
 
-  static Map<String, Object?> _haRefused(_HostSession? session) => _haAnswer({
+  static Map<String, Object?> _haRefused(_HostSession? session) => _answer({
     'ok': false,
     'error': {
       'code': session == null ? 'not_allowed' : 'invalid_message',
@@ -689,7 +738,9 @@ class PluginHostApi {
     },
   });
 
-  static Map<String, Object?> _haAnswer(
+  /// A Home Assistant or Music Assistant answer as the SDK hands it over:
+  /// on failure, error reads "code: message" and data keeps both.
+  static Map<String, Object?> _answer(
     Map<String, Object?> result, {
     Object? data,
   }) {
@@ -709,14 +760,21 @@ class PluginHostApi {
 
   /// A subscription's event, queued in order: unlike KS's own state
   /// events, none of these may be merged into the next one.
-  void _onHaEvent(String owner, String key, Map<String, Object?> payload) {
-    final name = 'ha.subscription.$key';
+  void _onHaEvent(String owner, String key, Map<String, Object?> payload) =>
+      _queueOrdered(owner, 'ha.subscription.$key', payload, (s) => s.canHa);
+
+  void _queueOrdered(
+    String owner,
+    String name,
+    Map<String, Object?> payload,
+    bool Function(_HostSession session) allowed,
+  ) {
     for (final session in _sessions.values) {
-      if (session.owner != owner || !session.canHa) continue;
-      if (session.haQueue.length >= _HostSession.maxHaQueue) {
-        session.haDropped[name] = (session.haDropped[name] ?? 0) + 1;
+      if (session.owner != owner || !allowed(session)) continue;
+      if (session.ordered.length >= _HostSession.maxOrdered) {
+        session.orderedDropped[name] = (session.orderedDropped[name] ?? 0) + 1;
       } else {
-        session.haQueue.add(
+        session.ordered.add(
           MapEntry(name, {
             ...payload,
             'time': DateTime.now().toUtc().toIso8601String(),
@@ -726,6 +784,73 @@ class PluginHostApi {
       _schedule(session);
     }
   }
+
+  /// Run one Music Assistant command for a plugin. Answers like [haCall].
+  Future<Map<String, Object?>> maCall(Map args) async {
+    final session = _maSession(args);
+    final command = args['command'];
+    final params = args['args'];
+    if (session == null || command is! String || params is! Map) {
+      return _maRefused(session);
+    }
+    final result = await ma!.call(
+      session.owner,
+      command,
+      Map<String, Object?>.from(params),
+    );
+    if (_session(args) != session) return _maRefused(null);
+    return _answer(result, data: result['result']);
+  }
+
+  /// Hear Music Assistant events under a key of the plugin's own. Events
+  /// follow as `ma.subscription.KEY`.
+  Future<Map<String, Object?>> maSubscribe(Map args) async {
+    final session = _maSession(args);
+    final filter = args['filter'];
+    final key = args['key'];
+    if (session == null || filter is! Map || key is! String) {
+      return _maRefused(session);
+    }
+    final result = await ma!.subscribe(
+      session.owner,
+      key,
+      Map<String, Object?>.from(filter),
+    );
+    if (_session(args) != session) {
+      ma!.unsubscribe(session.owner, key);
+      return _maRefused(null);
+    }
+    return _answer(result);
+  }
+
+  void maUnsubscribe(Map args) {
+    final session = _maSession(args);
+    final key = args['key'];
+    if (session == null || key is! String) return;
+    ma!.unsubscribe(session.owner, key);
+    session.ordered.removeWhere((e) => e.key == 'ma.subscription.$key');
+    session.orderedDropped.remove('ma.subscription.$key');
+  }
+
+  _HostSession? _maSession(Map args) {
+    final session = _session(args);
+    return session != null && session.canMa && ma != null ? session : null;
+  }
+
+  static Map<String, Object?> _maRefused(_HostSession? session) => _answer({
+    'ok': false,
+    'error': {
+      'code': session == null ? 'not_allowed' : 'invalid_message',
+      'message': session == null
+          ? 'Music Assistant is not available through this plugin session'
+          : 'The request needs a command and JSON object args',
+    },
+  });
+
+  /// A Music Assistant subscription's event, queued in order like Home
+  /// Assistant's.
+  void _onMaEvent(String owner, String key, Map<String, Object?> payload) =>
+      _queueOrdered(owner, 'ma.subscription.$key', payload, (s) => s.canMa);
 
   /// The kiosk's camera views by name, without servers, streams or
   /// credentials.
@@ -793,6 +918,7 @@ class PluginHostApi {
     SettingChanged e
         when e.key == defs.haUrl.key || e.key == defs.startUrl.key =>
       ('browser.state', {}),
+    SendspinPlayerChanged e => ('sendspin.player', e.player),
     ScreensaverStateChanged e => ('screensaver.state', {'active': e.active}),
     ScreensaverCountdownChanged e => (
       'screensaver.countdown',
@@ -1045,15 +1171,15 @@ class PluginHostApi {
         session.sending ||
         session.timer != null ||
         (session.pending.isEmpty &&
-            session.haQueue.isEmpty &&
-            session.haDropped.isEmpty)) {
+            session.ordered.isEmpty &&
+            session.orderedDropped.isEmpty)) {
       return;
     }
     // The voice level alone goes out about 30 times a second, so a skin
     // moves with the voice. Everything else is batched every 100 ms.
     final levelOnly =
-        session.haQueue.isEmpty &&
-        session.haDropped.isEmpty &&
+        session.ordered.isEmpty &&
+        session.orderedDropped.isEmpty &&
         session.pending.keys.every((k) => k == 'voice.level');
     session.timer = Timer(
       Duration(milliseconds: levelOnly ? 33 : 100),
@@ -1062,9 +1188,9 @@ class PluginHostApi {
         session.sending = true;
         final batch = [
           ...session.pending.entries,
-          ...session.haQueue,
+          ...session.ordered,
           // Events that did not fit: the plugin hears how many it missed.
-          for (final entry in session.haDropped.entries)
+          for (final entry in session.orderedDropped.entries)
             MapEntry(entry.key, {
               'type': 'overflow',
               'dropped': entry.value,
@@ -1072,14 +1198,16 @@ class PluginHostApi {
             }),
         ];
         session.pending.clear();
-        session.haQueue.clear();
-        session.haDropped.clear();
+        session.ordered.clear();
+        session.orderedDropped.clear();
         try {
           for (final entry in batch) {
             if (session.closed) break;
             // Unsubscribed while the batch went out. The Android side drops
-            // events for ended Home Assistant subscriptions.
+            // events for ended Home Assistant and Music Assistant
+            // subscriptions.
             if (!entry.key.startsWith('ha.subscription.') &&
+                !entry.key.startsWith('ma.subscription.') &&
                 !session.subscriptions.contains(entry.key)) {
               continue;
             }
@@ -1126,25 +1254,27 @@ class _HostSession {
     this.canControl, {
     this.canNoise = false,
     this.canHa = false,
+    this.canMa = false,
     this.canVoiceText = false,
   });
 
-  /// Home Assistant events waiting for a slow plugin. Past this the newest
-  /// are dropped and counted.
-  static const maxHaQueue = 64;
+  /// Home Assistant and Music Assistant events waiting for a slow plugin.
+  /// Past this the newest are dropped and counted.
+  static const maxOrdered = 64;
 
   final bool canRead;
   final bool canControl;
   final bool canNoise;
   final bool canHa;
+  final bool canMa;
   final bool canVoiceText;
   final String id;
   final String token;
   String get owner => '$id:$token';
   final subscriptions = <String>{};
   final pending = <String, Map<String, Object?>>{};
-  final haQueue = <MapEntry<String, Map<String, Object?>>>[];
-  final haDropped = <String, int>{};
+  final ordered = <MapEntry<String, Map<String, Object?>>>[];
+  final orderedDropped = <String, int>{};
   Timer? timer;
   bool sending = false;
   bool closed = false;
@@ -1152,8 +1282,8 @@ class _HostSession {
     closed = true;
     timer?.cancel();
     pending.clear();
-    haQueue.clear();
-    haDropped.clear();
+    ordered.clear();
+    orderedDropped.clear();
     subscriptions.clear();
   }
 }

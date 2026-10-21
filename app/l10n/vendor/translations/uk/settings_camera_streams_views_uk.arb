@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "Не вдалося показати вигляд",
   "cameraStreamsShowFailedRemote": "Не вдалося показати вигляд",
   "cameraStreamsEditView": "Редагувати вигляд",
+  "cameraStreamsViewId": "ID вигляду",
   "cameraStreamsShowNames": "Показувати назви камер",
   "cameraStreamsShowNamesHelp": "Відображати мітку над кожною камерою.",
   "cameraStreamsGrid": "Сітка",

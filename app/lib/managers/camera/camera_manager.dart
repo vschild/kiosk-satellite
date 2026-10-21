@@ -249,7 +249,7 @@ class CameraManager extends Manager {
               'With toggle, a view that is already showing closes instead — '
               'gestures pass it so the same gesture opens and closes a view.',
           params: const {
-            'viewId': 'Camera view id',
+            'viewId': 'Camera view id or name, empty for the default view',
             'toggle': 'true to close the view when it is already showing',
           },
           handler: (params) => showView(
@@ -735,7 +735,7 @@ class CameraManager extends Manager {
   }
 
   Future<CommandResult> showView(String viewId, {bool toggle = false}) async {
-    final view = _config.views.where((item) => item.id == viewId).firstOrNull;
+    final view = _config.findView(viewId);
     if (view == null) return const CommandResult.fail('view not found');
     if (view.cameraIds.isEmpty) {
       return const CommandResult.fail('view has no cameras');

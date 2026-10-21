@@ -48,6 +48,9 @@ export function loadDashboards() {
         // The Custom Pages entry: the person's own pages under /local/,
         // listed as its views and named in the admin's language.
         custom: d.custom === true,
+        // An app's sidebar panel (Music Assistant, Panalume): Home
+        // Assistant shows its ingress page on its path, with no views.
+        app: d.app === true,
         title: d.custom === true ? haText('Custom Pages') : (d.title || d.url_path),
         iconPath: d.icon_path || null,
         views: views[i].filter((v) => v.route !== undefined && v.route !== '')
@@ -179,12 +182,12 @@ function glyph(iconPath, title, size) {
   return s;
 }
 
-const viewTitle = (v) => (v ? v.title : haText('Whole dashboard'));
+const viewTitle = (d, v) => (v ? v.title : d.app ? d.title : haText('Whole dashboard'));
 const viewIcon = (d, v) => (v ? v.iconPath : (d.iconPath || DASHBOARD_ICON));
 
 function square(d, v) {
   const s = el('span', 'dp-square');
-  s.appendChild(glyph(viewIcon(d, v), viewTitle(v), 22));
+  s.appendChild(glyph(viewIcon(d, v), viewTitle(d, v), 22));
   return s;
 }
 
@@ -200,6 +203,7 @@ function highlighted(text, query) {
 }
 
 function countLabel(d) {
+  if (d.app) return haText('Ingress page');
   if (!d.views.length) return haText('Builds its own views');
   if (d.custom) {
     return d.views.length === 1 ? haText('1 page')
@@ -233,7 +237,7 @@ function tile(d, v, { picked, mode, showing, onClick }) {
   b.setAttribute('aria-pressed', picked ? 'true' : 'false');
   b.appendChild(square(d, v));
   const text = el('span', 'dp-text');
-  text.append(el('span', 'dp-title', viewTitle(v)), mono(shownPath(v ? v.route : d.path)));
+  text.append(el('span', 'dp-title', viewTitle(d, v)), mono(shownPath(v ? v.route : d.path)));
   b.appendChild(text);
   if (mode === 'several') {
     const cb = el('input');
@@ -264,7 +268,7 @@ function viewRow(d, v, { picked, mode, showing, withDashboard, query = '', onCli
   b.appendChild(square(d, v));
   const text = el('span', 'dp-text');
   const title = el('span', 'dp-title');
-  title.appendChild(highlighted(viewTitle(v), query));
+  title.appendChild(highlighted(viewTitle(d, v), query));
   const sub = el('span', 'dp-sub');
   if (withDashboard) sub.append(d.title, el('span', 'dp-sep', ' · '));
   sub.appendChild(mono(shownPath(pathOf(d, v))));
@@ -410,8 +414,10 @@ function buildPicker({ title = null, selected = [], mode = 'select', showing = n
     };
     if (!d.views.length) {
       pane.appendChild(grid([null]));
-      pane.appendChild(el('div', 'dp-note',
-        haText('This dashboard builds its own views, so the kiosk opens it whole.')));
+      if (!d.app) {
+        pane.appendChild(el('div', 'dp-note',
+          haText('This dashboard builds its own views, so the kiosk opens it whole.')));
+      }
       return pane;
     }
     pane.appendChild(grid(d.views.filter((v) => !v.subview)));
@@ -477,8 +483,10 @@ function buildPicker({ title = null, selected = [], mode = 'select', showing = n
       if (d) {
         if (!d.views.length) {
           node.appendChild(viewRow(d, null, rowOpts(d, null)));
-          node.appendChild(el('div', 'dp-note',
-            haText('This dashboard builds its own views, so the kiosk opens it whole.')));
+          if (!d.app) {
+            node.appendChild(el('div', 'dp-note',
+              haText('This dashboard builds its own views, so the kiosk opens it whole.')));
+          }
         } else {
           d.views.filter((v) => !v.subview).forEach((v) => node.appendChild(viewRow(d, v, rowOpts(d, v))));
           const subs = d.views.filter((v) => v.subview);
@@ -657,10 +665,14 @@ export function dashboardField({ value = '', title, onPick, mode = 'select', sho
       lead.classList.toggle('error', missing);
       text.appendChild(mono(current));
     } else {
-      lead.appendChild(glyph(viewIcon(m.dashboard, m.view), viewTitle(m.view), 20));
+      lead.appendChild(glyph(viewIcon(m.dashboard, m.view), viewTitle(m.dashboard, m.view), 20));
       lead.classList.add('primary');
-      text.append(el('span', 'dp-field-dash', m.dashboard.title),
-        el('span', 'dp-sep', ' / '), viewTitle(m.view));
+      // An app is its own page, so its name alone says it.
+      if (m.dashboard.app && !m.view) text.append(viewTitle(m.dashboard, m.view));
+      else {
+        text.append(el('span', 'dp-field-dash', m.dashboard.title),
+          el('span', 'dp-sep', ' / '), viewTitle(m.dashboard, m.view));
+      }
     }
     const chev = el('span', 'dp-field-chev');
     chev.appendChild(svgPath('M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z', 20));
@@ -722,7 +734,7 @@ export function dashboardViewListRow(value, trailing) {
       const text = el('span', 'dp-text');
       const sub = el('span', 'dp-sub');
       sub.append(m.dashboard.title, el('span', 'dp-sep', ' · '), mono(shownPath(value)));
-      text.append(el('span', 'dp-title', viewTitle(m.view)), sub);
+      text.append(el('span', 'dp-title', viewTitle(m.dashboard, m.view)), sub);
       row.appendChild(text);
     } else {
       const sq = el('span', 'dp-square' + (catalog ? ' error' : ''));

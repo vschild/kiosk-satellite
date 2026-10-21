@@ -48,7 +48,7 @@ const HEADLESS_TRIGGERS = new Set(['button', 'claps', 'plugin']);
 const DISPLAY_ACTIONS = new Set([
   'navigate', 'refresh', 'url', 'camera_view', 'sendspin_player', 'now_playing',
   'music_assistant', 'app_launcher', 'intercom_open', 'screensaver', 'screensaver_stop',
-  'hold_mode', 'ha_kiosk', 'launch_app', 'open_uri', 'android_settings',
+  'hold_mode', 'ha_kiosk', 'launch_app', 'open_uri', 'android_settings', 'calendar',
 ]);
 // The buttons that reach the app. The Echo Dot's LineageOS build keeps the
 // microphone and volume buttons for itself (they mute and change the volume
@@ -75,6 +75,7 @@ export const GESTURE_ACTION_GROUPS = [
     ['intercom_decline', 'Decline intercom call', 'callOff'],
     ['alarm_stop', 'Stop the alarm', 'alarmOff'],
     ['alarm_snooze', 'Snooze the alarm', 'snooze'],
+    ['calendar', 'Open the calendar', 'calendar'],
     ['voice_wake', 'Start a voice command', 'mic'],
     ['voice_stop', 'Stop the voice assistant', 'stop'],
     ['voice_mute', 'Mute or unmute Voice Satellite', 'micOff'],
@@ -157,6 +158,7 @@ export function describeGestureAction(a) {
     case 'intercom_decline': return gestureText('Decline intercom call');
     case 'alarm_stop': return gestureText('Stop the alarm');
     case 'alarm_snooze': return gestureText('Snooze the alarm');
+    case 'calendar': return gestureText('Open the calendar');
     case 'voice_wake': return gestureText('Start a voice command');
     case 'voice_stop': return gestureText('Stop the voice assistant');
     case 'voice_mute': return gestureText('Mute or unmute Voice Satellite');
@@ -520,7 +522,7 @@ export async function pickGestureAction(current) {
     case 'ha_kiosk': case 'now_playing': case 'music_assistant':
     case 'media_play_pause': case 'intercom_open': case 'intercom_hangup':
     case 'intercom_answer': case 'intercom_decline':
-    case 'alarm_stop': case 'alarm_snooze': case 'refresh':
+    case 'alarm_stop': case 'alarm_snooze': case 'calendar': case 'refresh':
     case 'voice_wake': case 'voice_stop': case 'voice_mute':
       return { type };
     case 'navigate': return configureGestureNavigate(carried);
@@ -903,6 +905,7 @@ export const CATEGORY_TABS = [
   ['tab-dlna', ['DLNA']],
   ['tab-intercom', ['Intercom']],
   ['tab-alarms', ['Alarms']],
+  ['tab-calendar', ['Calendar']],
   ['tab-esphome', ['ESPHome']],
   ['tab-leds', ['LED Control']],
   ['device-settings', ['Device'],

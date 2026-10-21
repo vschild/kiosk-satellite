@@ -45,10 +45,10 @@
 <p align="center">
   <a href="assets/screenshots/screensaver-np.png"><img src="assets/screenshots/screensaver-np.png" alt="Settings in Kiosk Satellite" width="650" /></a>
   <a href="assets/screenshots/clock_flip.png"><img src="assets/screenshots/clock_flip.png" alt="Flip Clock Screensaver in  Kiosk Satellite" width="320" /></a>
-  <a href="assets/screenshots/weather_cloudy.png"><img src="assets/screenshots/weather_cloudy.png" alt="Weather Mood Screensaver in Kiosk Satellite" width="320" /></a>
+  <a href="assets/screenshots/weathermood-dawn.png"><img src="assets/screenshots/weathermood-dawn.png" alt="Weather Mood Screensaver in Kiosk Satellite" width="320" /></a>
 </p>
 
-&bull; **Screensavers:** [Immich albums](https://kiosksatellite.com/docs/immich/), local photos, clocks and weather mood, with motion, face or presence detection to wake the kiosk.
+&bull; **Screensavers:** [Immich albums](https://kiosksatellite.com/docs/immich/), local photos, clocks, weather mood and a live night sky, with motion, face or presence detection to wake the kiosk.
 
 &bull; **Home Assistant integration:** The built-in [ESPHome connection](https://kiosksatellite.com/docs/esphome/) exposes screen controls, volume and device sensors. An optional Bluetooth proxy relays nearby Bluetooth devices to Home Assistant.
 
@@ -61,6 +61,13 @@
 &bull; **Intercom:** Kiosks can call each other or broadcast to all kiosks at once using the [Intercom](https://kiosksatellite.com/docs/intercom/) feature. Kiosks are auto discovered in the local network. 
 
 &bull; **Alarms:** Set [alarms](https://kiosksatellite.com/docs/alarms/) that ring on the kiosk itself, with no Home Assistant or network needed. A sunrise can brighten the screen before the alarm rings, and a Clock or Weather Mood screensaver can show the alarm with Snooze and Stop in its own style.
+
+&bull; **Calendar:** Show your Home Assistant calendars as a family [calendar](https://kiosksatellite.com/docs/calendar/) with Day, Week, Month and Schedule views. Each person gets a color, and an event shared by several people is split between their colors.
+
+<p align="center">
+  <a href="assets/screenshots/calendar-day.png"><img src="assets/screenshots/calendar-day.png" alt="Calendar Days" width="320" /></a>
+  <a href="assets/screenshots/calendar_schedule.png"><img src="assets/screenshots/calendar_schedule.png" alt="Calendar Schedule" width="320" /></a>
+</p>
 
 &bull; **Kiosk conveniences:** Use [hand gestures](https://kiosksatellite.com/docs/gestures/#show-fingers) to run Home Assistant actions or open a camera view by holding up fingers to the device camera. Set Kiosk Satellite as the [home launcher](https://kiosksatellite.com/docs/home-launcher/) on supported devices so the Home button returns to your dashboard. Arrange up to twelve live feeds in [camera views](https://kiosksatellite.com/docs/cameras/), with camera imports from Home Assistant or Go2RTC.
 

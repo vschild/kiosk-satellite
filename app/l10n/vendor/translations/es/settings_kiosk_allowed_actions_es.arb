@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "Aplicaciones",
   "settingKioskAllowAppsDescription": "Abre el lanzador de aplicaciones. Si Desactivar botón Inicio está activado, abrir una aplicación libera la fijación del kiosko hasta que vuelvas a él.",
   "kioskAllowedActions": "Acciones permitidas",
-  "kioskAllowedHelp": "Qué acciones rápidas ofrece el menú del kiosko"
+  "kioskAllowedHelp": "Qué acciones rápidas ofrece el menú del kiosko",
+  "settingKioskAllowedAppsTitle": "Aplicaciones permitidas",
+  "settingKioskAllowedAppsDescription": "Las aplicaciones del lanzador que se ofrecen mientras el modo kiosko está activado.",
+  "kioskAllowedAppsEmpty": "Primero añade aplicaciones en Ajustes > Lanzador de aplicaciones."
 }

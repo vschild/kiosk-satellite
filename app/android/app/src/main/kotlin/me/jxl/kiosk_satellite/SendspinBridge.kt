@@ -77,6 +77,13 @@ class SendspinBridge(
     @Volatile private var serverName: String? = null
     @Volatile private var playbackState: String? = null
     @Volatile private var supportedCommands: List<String> = emptyList()
+    // The server's own list and the commands Dart keeps off the controls
+    // because the source playing cannot take them. supportedCommands is
+    // the first without the second.
+    @Volatile private var serverCommands: List<String> = emptyList()
+    @Volatile private var withheldCommands: Set<String> = emptySet()
+    @Volatile private var controllerShuffle = false
+    @Volatile private var controllerRepeat = "off"
     @Volatile private var duckFactor: Float = 1f
     @Volatile private var title: String? = null
     @Volatile private var artist: String? = null
@@ -214,6 +221,13 @@ class SendspinBridge(
                     // Seek carries its position (ms); the rest take no value.
                     val value = call.argument<Number>("value")?.toLong() ?: 0L
                     result.success(sendControl(command, value))
+                }
+                "withholdCommands" -> {
+                    withheldCommands =
+                        (call.argument<List<String>>("commands") ?: emptyList()).toSet()
+                    // Before the server's first word there is no list to cut.
+                    if (serverCommands.isNotEmpty()) publishCommands()
+                    result.success(true)
                 }
                 // Cover bytes for the media session, fetched on the Dart
                 // side, which knows which self-signed hosts to trust.
@@ -470,6 +484,21 @@ class SendspinBridge(
     // Events / status
     // ==================================================================
 
+    /** The server's commands less the withheld ones, to the controls and Dart. */
+    private fun publishCommands() {
+        val commands = serverCommands.filter { it !in withheldCommands }
+        supportedCommands = commands
+        media.onCommands(commands)
+        emit(
+            "controllerChanged",
+            mapOf(
+                "supportedCommands" to commands,
+                "shuffle" to controllerShuffle,
+                "repeat" to controllerRepeat,
+            ),
+        )
+    }
+
     private fun emit(method: String, arguments: Any?) {
         mainHandler.post { channel.invokeMethod(method, arguments) }
     }
@@ -584,12 +613,10 @@ class SendspinBridge(
         }
 
         override fun onControllerState(commands: List<String>, shuffle: Boolean, repeat: String) {
-            supportedCommands = commands
-            media.onCommands(commands)
-            emit(
-                "controllerChanged",
-                mapOf("supportedCommands" to commands, "shuffle" to shuffle, "repeat" to repeat),
-            )
+            serverCommands = commands
+            controllerShuffle = shuffle
+            controllerRepeat = repeat
+            publishCommands()
         }
 
         override fun onStreamActiveChanged(active: Boolean) {

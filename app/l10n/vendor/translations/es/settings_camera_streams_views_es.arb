@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "No se pudo mostrar la vista",
   "cameraStreamsShowFailedRemote": "No se pudo mostrar la vista",
   "cameraStreamsEditView": "Editar vista",
+  "cameraStreamsViewId": "ID de la vista",
   "cameraStreamsShowNames": "Mostrar nombres de cámaras",
   "cameraStreamsShowNamesHelp": "Muestra una etiqueta sobre cada cámara.",
   "cameraStreamsGrid": "Cuadrícula",

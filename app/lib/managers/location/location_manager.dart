@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/command_registry.dart';
@@ -223,6 +225,34 @@ class LocationManager extends Manager {
     }
   }
 
+  /// A position for a consumer that needs one whether or not Report
+  /// location runs (the Celestial screensaver): the last fix when there is
+  /// one, otherwise one asked of the receiver. It is not published, so the
+  /// ESPHome sensors only ever see the stream. [error] is `absent`,
+  /// `denied` or `no_fix` when there is no position.
+  Future<({LocationFix? fix, String? error})> currentFix({
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    if (live.value case final fix?) return (fix: fix, error: null);
+    if (_last case final fix?) return (fix: fix, error: null);
+    if (_onDemand case final fix?) return (fix: fix, error: null);
+    if (locationKnownUnsupported) return (fix: null, error: 'absent');
+    try {
+      final raw = await _methods.invokeMethod<Map<Object?, Object?>>(
+        'current',
+        {'timeoutMs': timeout.inMilliseconds},
+      );
+      final error = raw?['error'];
+      if (error is String) return (fix: null, error: error);
+      final fix = _onDemand = LocationFix.fromMap(raw);
+      return (fix: fix, error: fix == null ? 'no_fix' : null);
+    } catch (_) {
+      return (fix: null, error: 'no_fix');
+    }
+  }
+
+  LocationFix? _onDemand;
+
   /// What the settings pages show under the switch.
   Map<String, Object?> status() => {
     'enabled': enabled,
@@ -260,8 +290,34 @@ class LocationManager extends Manager {
     }
   }
 
+  /// Fixes for a consumer that follows the receiver live, the Celestial
+  /// screensaver's Point at the sky, whether or not Report location runs.
+  /// Only Report location publishes them to the ESPHome sensors.
+  final live = ValueNotifier<LocationFix?>(null);
+  int _watchers = 0;
+
+  /// Seconds between fixes while something follows them live.
+  static const _liveInterval = 5;
+
+  void watchLive() {
+    _watchers++;
+    if (_watchers == 1) _restart();
+  }
+
+  void unwatchLive() {
+    if (_watchers == 0) return;
+    _watchers--;
+    if (_watchers == 0) _restart();
+  }
+
+  /// A new request at the interval the watchers want.
+  void _restart() {
+    _stop();
+    _sync();
+  }
+
   void _sync() {
-    if (!enabled) {
+    if (!enabled && _watchers == 0) {
       _stop();
       _error = null;
       return;
@@ -273,7 +329,10 @@ class LocationManager extends Manager {
     if (_sub != null) return;
     _retry?.cancel();
     _retry = null;
-    final interval = _settings.get(defs.locationInterval).toInt();
+    var interval = _settings.get(defs.locationInterval).toInt();
+    if (_watchers > 0) {
+      interval = enabled ? math.min(interval, _liveInterval) : _liveInterval;
+    }
     log.info(name, 'reading GPS fixes every ${interval}s');
     _sub = _stream
         .receiveBroadcastStream({'intervalMs': interval * 1000})
@@ -282,7 +341,8 @@ class LocationManager extends Manager {
             final fix = LocationFix.fromMap(raw is Map ? raw : null);
             if (fix == null) return;
             _error = null;
-            _accept(fix);
+            live.value = fix;
+            if (enabled) _accept(fix);
           },
           onError: (Object e) {
             final code = e is PlatformException ? e.code : '';
@@ -304,7 +364,8 @@ class LocationManager extends Manager {
         await _methods.invokeMethod<Map<Object?, Object?>>('last'),
       );
       if (seed != null && (_last == null || seed.time.isAfter(_last!.time))) {
-        _accept(seed);
+        live.value ??= seed;
+        if (enabled) _accept(seed);
       }
     } catch (_) {}
   }

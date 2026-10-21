@@ -48,6 +48,29 @@ void main() {
     expect(find.text('Unrestricted battery'), findsOneWidget);
   });
 
+  testWidgets('asks for Notification access while waiting for media', (
+    tester,
+  ) async {
+    await open(tester, {
+      'ks.launcher.enabled': true,
+      'ks.launcher.auto_return': true,
+    });
+    // On by default (issue #1055).
+    expect(find.text('Notification access'), findsOneWidget);
+  });
+
+  testWidgets('drops Notification access when media does not hold it', (
+    tester,
+  ) async {
+    await open(tester, {
+      'ks.launcher.enabled': true,
+      'ks.launcher.auto_return': true,
+      'ks.launcher.auto_return_media': false,
+    });
+    expect(heading(), findsOneWidget);
+    expect(find.text('Notification access'), findsNothing);
+  });
+
   testWidgets('hides the group while auto-return is off', (tester) async {
     await open(tester, {
       'ks.launcher.enabled': true,

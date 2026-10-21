@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "Kon de weergave niet tonen",
   "cameraStreamsShowFailedRemote": "Kon weergave niet tonen",
   "cameraStreamsEditView": "Weergave bewerken",
+  "cameraStreamsViewId": "Weergave-ID",
   "cameraStreamsShowNames": "Cameranamen tonen",
   "cameraStreamsShowNamesHelp": "Toon een label over elke camera.",
   "cameraStreamsGrid": "Raster",

@@ -70,9 +70,10 @@ try:
         expect(root.get_by_text(translated[mapping['launcher.enabled']['title']],exact=True)).to_be_visible()
         expect(root.get_by_text(translated['launcherOverlayHeld'],exact=True)).to_be_visible()
         root.locator('[data-key="launcher.apps"]').get_by_role('button',name=translated[json.loads((APP/'l10n/launcher_text.json').read_text())['Edit']]).click()
-        expect(page.get_by_text(apps[0]['label'],exact=True)).to_be_visible()
-        page.locator('.modal-back input[type="checkbox"]').check()
-        page.locator('.modal-back').get_by_role('button',name=translated['commonSave'],exact=True).click()
+        # The shared picker: the row ticks, Done saves in the picked order.
+        page.locator('.dash-picker-card .dp-row',has_text=apps[0]['label']).first.click()
+        page.locator('.dash-picker-card').get_by_role('button',name=translated['dashboardPickerDone'],exact=True).click()
+        expect(page.locator('.dash-picker-card')).to_have_count(0)
         expect(root.get_by_text(apps[0]['label'],exact=True)).to_be_visible()
         assert json.loads(writes[-1]['launcher.apps'])==apps
         assert root.locator('b').count()==0

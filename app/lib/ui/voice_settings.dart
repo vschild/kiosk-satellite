@@ -366,6 +366,20 @@ class _VoiceHaSelectsState extends State<VoiceHaSelects> {
     final options = [
       for (final o in (entity?['options'] as List? ?? const [])) '$o',
     ];
+    // Another engine's wake words, which Home Assistant learns as it
+    // reconnects to the kiosk.
+    if (entity != null &&
+        _data?['wakeWordsPending'] == true &&
+        (key == 'wake_word' || key == 'wake_word_2')) {
+      return DropdownRow<String>(
+        title: voiceText(context, title),
+        description: voiceText(context, description),
+        value: null,
+        options: [for (final o in options) (o, _label(key, o))],
+        onChanged: null,
+        loading: true,
+      );
+    }
     if (entity == null || entity['available'] != true || options.isEmpty) {
       return SettingsRow(
         title: Text(voiceText(context, title)),

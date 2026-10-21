@@ -48,12 +48,15 @@ enum EngineFailure {
 /// say something truer than "it isn't working". [detail] is for the log.
 typedef EngineFailureCallback = void Function(EngineFailure kind, String detail);
 
-enum WakeWordEngineType { microWakeWord, openWakeWord, vsWakeWord }
+/// [pryon] is Amazon's own engine, which only the Echo Dot image ships
+/// (PryonCatalog).
+enum WakeWordEngineType { microWakeWord, openWakeWord, vsWakeWord, pryon }
 
 WakeWordEngineType? engineTypeFromWire(String? value) => switch (value) {
       'microWakeWord' || 'mww' => WakeWordEngineType.microWakeWord,
       'openWakeWord' || 'oww' => WakeWordEngineType.openWakeWord,
       'vsWakeWord' || 'vww' => WakeWordEngineType.vsWakeWord,
+      'pryon' => WakeWordEngineType.pryon,
       _ => null,
     };
 
@@ -63,6 +66,7 @@ extension WakeWordEngineTypeLabel on WakeWordEngineType {
         WakeWordEngineType.microWakeWord => 'microWakeWord',
         WakeWordEngineType.openWakeWord => 'openWakeWord',
         WakeWordEngineType.vsWakeWord => 'vsWakeWord',
+        WakeWordEngineType.pryon => 'Amazon',
       };
 }
 
@@ -75,6 +79,7 @@ class WakeWordModelRef {
     required this.manifestUrl,
     this.confidenceScale = 1.0,
     this.cutoff,
+    this.thresholdOffset = 0.0,
   });
 
   final String id;
@@ -104,12 +109,19 @@ class WakeWordModelRef {
   /// and runtime.high_confidence_bypass). 1.0 leaves the manifest untouched.
   final double confidenceScale;
 
+  /// Added to the threshold Amazon's engine reports with each detection,
+  /// resolved from the Sensitivity setting. That engine decides on its own
+  /// threshold, which it lowers itself while music or an alarm plays, so
+  /// a multiplier on a number we never see does not fit. 0 elsewhere.
+  final double thresholdOffset;
+
   Map<String, Object?> toJson() => {
         'id': id,
         'wakeWord': wakeWord,
         'manifestUrl': manifestUrl,
         'confidenceScale': confidenceScale,
         if (cutoff != null) 'cutoff': cutoff,
+        if (thresholdOffset != 0) 'thresholdOffset': thresholdOffset,
       };
 
   @override
@@ -119,11 +131,13 @@ class WakeWordModelRef {
       other.wakeWord == wakeWord &&
       other.manifestUrl == manifestUrl &&
       other.confidenceScale == confidenceScale &&
-      other.cutoff == cutoff;
+      other.cutoff == cutoff &&
+      other.thresholdOffset == thresholdOffset;
 
   @override
   int get hashCode =>
-      Object.hash(id, wakeWord, manifestUrl, confidenceScale, cutoff);
+      Object.hash(
+          id, wakeWord, manifestUrl, confidenceScale, cutoff, thresholdOffset);
 }
 
 /// Voice Satellite's energy gate, already resolved to numbers.

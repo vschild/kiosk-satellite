@@ -190,7 +190,7 @@ launchable app as `[{package, label}]`), `immichAlbums`,
 people and tags as `[{id, name}]`, for its source and filter pickers), `showAppLauncher` /
 `hideAppLauncher` (the app launcher overlay;
 `showAppLauncher` refuses while the App Launcher is disabled in
-settings), `homeLauncherStatus`, `acquireHomeRole` and `releaseHomeRole`
+settings, and shows only the Allowed Apps while Kiosk Mode is on), `homeLauncherStatus`, `acquireHomeRole` and `releaseHomeRole`
 (the [Home Launcher](home-launcher.md) role: its live state, starting the
 takeover, and giving the role back; `releaseHomeRole` is the recovery
 lever and works with no kiosk screen up, as long as the process runs), `showNotification {message, title, duration, type, chime, scale, icon, chime_file, volume, image}` and

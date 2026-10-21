@@ -55,6 +55,11 @@
   "screensaverModeDashboard": "Панель Home Assistant",
   "settingScreensaverDashboardViewTitle": "Вид панели",
   "settingScreensaverDashboardViewDescription": "Вид панели Home Assistant, который показывает заставка.",
+  "settingScreensaverDashboardDoubleTapTitle": "Двойное касание для закрытия",
+  "settingScreensaverDashboardDoubleTapDescription": "Одиночные касания взаимодействуют с панелью вместо закрытия.",
   "screensaverDashboardSection": "Заставка «Панель Home Assistant»",
-  "screensaverModeUrl": "URL изображения"
+  "screensaverModeUrl": "URL изображения",
+  "screensaverCalendarSection": "Заставка «Календарь»",
+  "settingScreensaverCalendarViewTitle": "Вид календаря",
+  "settingScreensaverCalendarViewDescription": "Вид календаря, с которым открывается заставка."
 }

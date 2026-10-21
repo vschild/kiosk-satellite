@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,7 @@ import '../../core/headless.dart';
 import '../../core/tls_identity.dart';
 import '../../core/manager.dart';
 import '../device_camera/camera_resolutions.dart';
+import '../wake_word/pryon/pryon_catalog.dart';
 import 'definitions.dart';
 
 export 'definitions.dart';
@@ -121,6 +123,8 @@ class SettingsManager extends Manager {
   List<String> optionsFor(SettingDef<Object> def) =>
       def.key == cameraRtspResolution.key
       ? _cameraStreamResolutions ?? const []
+      : def.key == voiceAmazonLocale.key
+      ? ['', ...PryonCatalog.locales]
       : _realtimeOptions(def) ??
             [
               for (final option in def.options ?? const <String>[])
@@ -138,6 +142,8 @@ class SettingsManager extends Manager {
   String? optionLabel(SettingDef<Object> def, String value) =>
       def.key == cameraRtspResolution.key
       ? cameraResolutionLabel(value)
+      : def.key == voiceAmazonLocale.key && value.isNotEmpty
+      ? PryonCatalog.localeLabel(value)
       // Model ids read as they are; voices are names.
       : _realtimeLists[def.key] != null && value.isNotEmpty
       ? (_realtimeLists[def.key]!.$2
@@ -447,6 +453,25 @@ class SettingsManager extends Manager {
     // one design now, so the rows are gone and stored values with them.
     await _prefs.remove('${_prefix}launcher.layout');
     await _prefs.remove('${_prefix}launcher.show_icons');
+    // The locked kiosk offered every launcher app before it had its own
+    // list (issue #1067). Seeded once with all of them, so the quick menu
+    // keeps what it offered and later additions wait to be allowed.
+    if (_prefs.get(_prefix + kioskAllowedApps.key) == null) {
+      var packages = const <Object?>[];
+      try {
+        final apps = jsonDecode(get(launcherApps));
+        if (apps is List) {
+          packages = [
+            for (final app in apps)
+              if (app is Map && app['package'] is String) app['package'],
+          ];
+        }
+      } catch (_) {}
+      await _prefs.setString(
+        _prefix + kioskAllowedApps.key,
+        jsonEncode(packages),
+      );
+    }
     // The Sonos page's own lyrics switch: the Lyrics page's Enable lyrics
     // covers every source now.
     await _prefs.remove('${_prefix}sendspin.sonos_lyrics');
@@ -798,6 +823,9 @@ class SettingsManager extends Manager {
                 !pluginScreensavers().containsKey(get(def)))
               get(def) as String: 'Unavailable plugin screensaver',
             if (def.key == voiceSkin.key) ...pluginVoiceSkins(),
+            if (def.key == voiceAmazonLocale.key)
+              for (final locale in PryonCatalog.locales)
+                locale: PryonCatalog.localeLabel(locale),
             if (def.key == voiceSkin.key &&
                 isPluginVoiceSkin(get(def)) &&
                 !pluginVoiceSkins().containsKey(get(def)))

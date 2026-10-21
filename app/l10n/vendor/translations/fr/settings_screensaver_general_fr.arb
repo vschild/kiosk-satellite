@@ -55,6 +55,11 @@
   "screensaverModeDashboard": "Tableau de bord Home Assistant",
   "settingScreensaverDashboardViewTitle": "Vue du tableau de bord",
   "settingScreensaverDashboardViewDescription": "La vue du tableau de bord Home Assistant affichée par l'économiseur d'écran.",
+  "settingScreensaverDashboardDoubleTapTitle": "Double appui pour fermer",
+  "settingScreensaverDashboardDoubleTapDescription": "Les appuis simples interagissent avec le tableau de bord au lieu de fermer l'économiseur d'écran.",
   "screensaverDashboardSection": "Économiseur d'écran tableau de bord Home Assistant",
-  "screensaverModeUrl": "URL d'image"
+  "screensaverModeUrl": "URL d'image",
+  "screensaverCalendarSection": "Économiseur d'écran calendrier",
+  "settingScreensaverCalendarViewTitle": "Vue du calendrier",
+  "settingScreensaverCalendarViewDescription": "La vue du calendrier à l'ouverture de l'économiseur d'écran."
 }

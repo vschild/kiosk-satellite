@@ -44,6 +44,7 @@ import {
 import { applyManagedBanners, renderFleetPage } from './fleetsync.js';
 import { decorateAnnouncementsPage, renderIntercomPage } from './intercom.js';
 import { renderAlarmsPage } from './alarms.js';
+import { renderCalendarPage } from './calendar.js';
 import { renderCustomPagesPage } from './custom_pages.js';
 import { renderUrlFilterPage } from './url_filter.js';
 import { renderPluginScreensaverEntry } from './plugins.js';
@@ -229,6 +230,8 @@ const runtimeStateSettings = new Set([
   // The alarms and their ring state: the Alarms page redraws from the
   // alarms event, not from a settings rebuild.
   'alarms.list', 'alarms.runtime',
+  // The Calendar page redraws its Calendars card itself.
+  'calendar.calendars', 'calendar.hidden',
 ]);
 // The Announcements and Alarms text to speech rows and Voice Satellite's
 // Play sounds on, each a picker that repaints itself (intercom.js,
@@ -273,7 +276,10 @@ async function flushSettingsUpdates() {
     const rows = [...document.querySelectorAll(`[data-key="${setting.key}"]`)];
     const previous = JSON.parse(renderedSettings.get(setting.key) || '{}');
     renderedSettings.set(setting.key, JSON.stringify(setting));
-    if (runtimeStateSettings.has(setting.key)) continue;
+    if (runtimeStateSettings.has(setting.key)) {
+      if (setting.key === 'calendar.calendars') renderCalendarPage();
+      continue;
+    }
     const shapeChanged = JSON.stringify({ ...previous, value: null })
       !== JSON.stringify({ ...setting, value: null });
     const hasDependants = state.settings.some(s => s.dependsOn === setting.key || s.alsoDependsOn === setting.key);
@@ -345,6 +351,23 @@ async function flushSettingsUpdates() {
         && rows.every(row => row.updateSetting?.() && syncGatedRows(setting.key, row))) {
       updatePlayerRow();
       continue;
+    }
+    // The wake word engine reveals Amazon's Wake word language in its own
+    // card, in place like the text to speech pickers, and the language
+    // only changes what the wake word selects offer: neither rebuilds the
+    // page.
+    if (!shapeChanged && ['voice.wake_word_engine', 'voice.amazon_locale'].includes(setting.key)) {
+      const byKey = Object.fromEntries(state.settings.map(s => [s.key, s]));
+      if ((!rows.length && !depSatisfied(setting, byKey)) || (rows.length
+          && rows.every(row => row.updateSetting?.() && syncGatedRows(setting.key, row)))) {
+        // A revealed language goes back by schema order, in front of
+        // Sensitivity, past the wake word selects it decides: it belongs
+        // right under the engine (vs_native.js).
+        const engineRow = document.querySelector('[data-key="voice.wake_word_engine"]');
+        const localeRow = document.querySelector('[data-key="voice.amazon_locale"]');
+        if (engineRow && localeRow && engineRow.nextElementSibling !== localeRow) engineRow.after(localeRow);
+        continue;
+      }
     }
     // Voice Satellite's selects repaint themselves on the ks-settings event
     // below (vs_native.js): Home Assistant's mirrored selects and the
@@ -734,6 +757,13 @@ async function renderSettings({ cached = false } = {}) {
       { method: 'POST', body: '{}' }).then((r) => r.json())
       .then((res) => res.data ? res.data.batteryUnrestricted === true : null)
       .catch(() => null);
+    const pollNotifications = () => api('/api/commands/getSystemPermissions',
+      { method: 'POST', body: '{}' }).then((r) => r.json())
+      .then((res) => res.data ? res.data.notificationAccess === true : null)
+      .catch(() => null);
+    const grantNotifications = () => api('/api/commands/requestOsPermissions',
+      { method: 'POST',
+        body: JSON.stringify({ which: ['notificationAccess'] }) });
     const grantBattery = () => api('/api/commands/requestOsPermissions',
       { method: 'POST',
         body: JSON.stringify({ which: ['batteryOptimizations'] }) });
@@ -817,6 +847,13 @@ async function renderSettings({ cached = false } = {}) {
     // the toggles in place rather than through a re-render, the same as
     // the device page.
     {
+      // Wait while media plays reads other apps' media sessions (issue
+      // #1055), which Android shows to no one without Notification access.
+      const mediaRow = permRow('Notification access',
+        'The kiosk stays away while video or music plays in another app.',
+        'Without this the kiosk cannot tell when video or music is playing '
+          + 'and comes back anyway. The grant screen appears on the tablet.',
+        'Grant on device', grantNotifications, pollNotifications);
       const launcherGroup = group('tab-launcher', [
         permRow('Display over other apps',
           'Kiosk Satellite can bring itself back in the foreground and '
@@ -832,6 +869,7 @@ async function renderSettings({ cached = false } = {}) {
             + 'clock never brings the kiosk back. The grant dialog appears '
             + 'on the tablet.',
           'Grant on device', grantBattery, pollBattery),
+        mediaRow,
       ]);
       const tab = document.getElementById('tab-launcher');
       const on = (key) => {
@@ -842,12 +880,14 @@ async function renderSettings({ cached = false } = {}) {
       const sync = () => {
         const show = on('launcher.enabled') && on('launcher.auto_return');
         launcherGroup.forEach((el) => el.classList.toggle('hidden', !show));
+        mediaRow.classList.toggle('hidden', !on('launcher.auto_return_media'));
       };
       // Delegated: the auto-return row comes and goes with the master
       // switch (dependsOn), so a listener on the row itself would be lost.
       tab.addEventListener('change', (e) => {
         const key = e.target.closest?.('[data-key]')?.dataset.key;
-        if (key === 'launcher.enabled' || key === 'launcher.auto_return') {
+        if (key === 'launcher.enabled' || key === 'launcher.auto_return'
+          || key === 'launcher.auto_return_media') {
           setTimeout(sync, 50);
         }
       });
@@ -1129,6 +1169,8 @@ async function renderSettings({ cached = false } = {}) {
         info.querySelector('.desc').textContent = ok === null
           ? esphomeText('Status unavailable.')
           : ok ? esphomeText('The location sensors can read the GPS receiver.')
+          : p.location !== true && p.locationApproximate === true
+            ? esphomeText('Only approximate location is allowed, and the GPS receiver needs precise location.')
           : p.location !== true
             ? esphomeText('Without this the GPS receiver cannot be read and the location sensors stay unknown.')
             : esphomeText('Location is off in the device settings, so the receiver delivers nothing.');
@@ -1166,7 +1208,10 @@ async function renderSettings({ cached = false } = {}) {
   }
 
   updatePersonSensorRows();
+  updateClockNightAdminRows();
+  updateCelestialPermissionRows();
   updateRtspRows();
+  updateCelestialLocationRow();
 
   // ── Bluetooth Proxy nearby devices ───────────────────────────────────
   // The live list the device shows under the lookup toggle, same data:
@@ -1635,6 +1680,9 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
   // The Alarms tab: the list and the Set an alarm button over the
   // Defaults rows, from the alarmsStatus command, and the tone picker.
   await renderAlarmsPage();
+  // The Calendar tab: Open on the kiosk and the Calendars card over the
+  // Display and Kiosk rows.
+  renderCalendarPage();
 
   const tlsPanel = document.querySelector('#tab-device .subpage[data-subpage="TLS"]');
   if (tlsPanel) renderTlsSettings(tlsPanel);
@@ -2784,6 +2832,194 @@ const PERSON_SENSOR_PAGES = [
   { tab: 'tab-screensaver', subpage: 'Person Detection', key: 'screensaver.dismiss_on_person' },
   { tab: 'tab-camera', subpage: 'Person Sensor', key: 'person.sensor' },
 ];
+
+// Where the Celestial sky's location source places it, or why it cannot,
+// mirroring the device's CelestialLocationStatusRow: under the Location
+// select for the GPS and the home zone, under the entity picker for an
+// entity. Manual shows its own field.
+export function updateCelestialLocationRow() {
+  const panel = document.getElementById('tab-screensaver')
+    ?.querySelector('.subpage[data-subpage="Celestial screensaver"]');
+  if (!panel) return;
+  for (const stale of panel.querySelectorAll('.celestial-location')) stale.remove();
+  const source = (state.settings || [])
+    .find((o) => o.key === 'screensaver.celestial_location')?.value;
+  const key = source === 'ha_entity' ? 'screensaver.celestial_entity'
+    : source === 'gps' || source === 'ha_home' ? 'screensaver.celestial_location' : null;
+  const row = key && panel.querySelector(`[data-key="${key}"]`);
+  if (!row) return;
+  const status = readOnlyRow(screensaverText('Current location'),
+    screensaverText('Checking...'), '', false);
+  status.classList.add('celestial-location');
+  row.insertAdjacentElement('afterend', status);
+  // A GPS without a recent fix asks the receiver for one, which can take
+  // up to half a minute.
+  cmd('getCelestialLocation', { source }, { timeoutMs: 40000 })
+    .then((r) => r.data || null)
+    .catch(() => null)
+    .then((st) => {
+      if (!status.isConnected) return;
+      status.querySelector('.desc').textContent = !st
+        ? screensaverText('Status unavailable.')
+        : st.available
+          ? `${st.latitude.toFixed(4)}, ${st.longitude.toFixed(4)}`
+          : screensaverText(st.message || 'Status unavailable.');
+    });
+}
+
+/* The Celestial screensaver's Required system permissions group while the
+   GPS is the location source, mirroring the device's: the Location grant
+   with the system location switch, right after the group holding the
+   Location select. Grant on device runs the dialog on the tablet, and the
+   Current location row asks again once it is granted. */
+export function updateCelestialPermissionRows() {
+  const panel = document.getElementById('tab-screensaver')
+    ?.querySelector('.subpage[data-subpage="Celestial screensaver"]');
+  if (!panel) return;
+  for (const stale of panel.querySelectorAll('.celestial-permission')) stale.remove();
+  const byKey = Object.fromEntries((state.settings || []).map((s) => [s.key, s]));
+  const source = byKey['screensaver.celestial_location'];
+  if (!source || source.value !== 'gps' || !depSatisfied(source, byKey)) return;
+  const card = panel.querySelector('[data-key="screensaver.celestial_location"]')?.closest('.card');
+  if (!card) return;
+  const h = document.createElement('h2');
+  h.className = 'card-title celestial-permission';
+  h.textContent = screensaverText('Required system permissions');
+  const permCard = document.createElement('div');
+  permCard.className = 'card celestial-permission';
+  const permRow = document.createElement('div');
+  permRow.className = 'row';
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = '<div class="name"></div><div class="desc"></div>';
+  info.querySelector('.name').textContent = esphomeText('Location');
+  info.querySelector('.desc').textContent = screensaverText('Checking...');
+  permRow.appendChild(info);
+  const stateEl = document.createElement('span');
+  stateEl.style.whiteSpace = 'nowrap';
+  permRow.appendChild(stateEl);
+  permCard.appendChild(permRow);
+  card.insertAdjacentElement('afterend', h);
+  h.insertAdjacentElement('afterend', permCard);
+  const readPerm = () => cmd('getSystemPermissions')
+    .then((r) => r.data || null).catch(() => null);
+  const paint = (p) => {
+    const ok = p === null ? null
+      : p.location === true && p.locationServicesOn === true;
+    info.querySelector('.desc').textContent = ok === null
+      ? screensaverText('Status unavailable.')
+      : ok ? screensaverText('The sky can follow the GPS receiver.')
+      : p.location !== true && p.locationApproximate === true
+        ? esphomeText('Only approximate location is allowed, and the GPS receiver needs precise location.')
+      : p.location !== true
+        ? screensaverText('Without this the GPS receiver cannot be read and the sky has no location.')
+        : esphomeText('Location is off in the device settings, so the receiver delivers nothing.');
+    stateEl.textContent = ok === null ? '' : ok ? screensaverText('Granted') : screensaverText('Missing');
+    stateEl.style.color = ok ? 'var(--ok)' : 'var(--error)';
+    permRow.querySelector('button')?.remove();
+    if (ok !== false) return;
+    const btn = document.createElement('button');
+    btn.className = 'btn-ghost';
+    btn.textContent = screensaverText('Grant on device');
+    btn.style.cssText = 'flex-shrink:0;';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        // The device runs the whole flow: the dialog, then the location
+        // settings screen when the system switch is off.
+        await api('/api/commands/requestOsPermissions', { method: 'POST',
+          body: JSON.stringify({ which: ['location'] }) });
+      } catch (_) {}
+      for (let i = 0; i < 30 && permCard.isConnected; i++) {
+        await new Promise((r) => setTimeout(r, 2500));
+        const now = await readPerm();
+        if (now && now.location === true && now.locationServicesOn === true) {
+          paint(now);
+          updateCelestialLocationRow();
+          return;
+        }
+      }
+      btn.disabled = false;
+    });
+    permRow.appendChild(btn);
+  };
+  readPerm().then((p) => { if (permCard.isConnected) paint(p); });
+}
+
+/* The Clock screensaver's Required system permissions group while Turn
+   screen off at night really powers the panel off, mirroring the device's
+   _NightScreenOffAdminTile: the Device admin grant, with Grant on device
+   while it is missing. Idempotent: the Night mode switches' save path and
+   their live updates re-run it. */
+const CLOCK_NIGHT_ADMIN_KEYS = ['screensaver.clock_night', 'screensaver.clock_night_turn_off_minutes',
+  'screensaver.clock_night_turn_off_black'];
+export function updateClockNightAdminRows() {
+  const panel = document.getElementById('tab-screensaver')
+    ?.querySelector('.subpage[data-subpage="Clock screensaver"]');
+  if (!panel) return;
+  for (const stale of panel.querySelectorAll('.clock-night-admin')) stale.remove();
+  const byKey = Object.fromEntries((state.settings || []).map((s) => [s.key, s]));
+  const slider = byKey['screensaver.clock_night_turn_off_minutes'];
+  if (!slider || !(Number(slider.value) > 0) || !depSatisfied(slider, byKey)
+      || byKey['screensaver.clock_night_turn_off_black']?.value === true) return;
+  const h = document.createElement('h2');
+  h.className = 'card-title clock-night-admin';
+  h.textContent = screensaverText('Required system permissions');
+  const permCard = document.createElement('div');
+  permCard.className = 'card clock-night-admin';
+  const permRow = document.createElement('div');
+  permRow.className = 'row';
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = '<div class="name"></div><div class="desc"></div>';
+  info.querySelector('.name').textContent = screensaverText('Device admin');
+  info.querySelector('.desc').textContent = screensaverText('Checking...');
+  permRow.appendChild(info);
+  const stateEl = document.createElement('span');
+  stateEl.style.whiteSpace = 'nowrap';
+  permRow.appendChild(stateEl);
+  permCard.appendChild(permRow);
+  panel.append(h, permCard);
+  const readGranted = () => cmd('getSystemPermissions')
+    .then((r) => (r.data ? !!r.data.deviceAdmin : null)).catch(() => null);
+  const paint = (granted) => {
+    info.querySelector('.desc').textContent = granted === null
+      ? screensaverText('Status unavailable.')
+      : granted ? deviceText('Allows the app to turn the screen off.')
+      : screensaverText('Not granted, so the screen cannot turn off.');
+    stateEl.textContent = granted === null ? '' : granted ? screensaverText('Granted') : screensaverText('Missing');
+    stateEl.style.color = granted ? 'var(--ok)' : 'var(--error)';
+    permRow.querySelector('button')?.remove();
+    if (granted !== false) return;
+    const btn = document.createElement('button');
+    btn.className = 'btn-ghost';
+    btn.textContent = screensaverText('Grant on device');
+    btn.style.cssText = 'flex-shrink:0;';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        await api('/api/commands/requestOsPermissions', { method: 'POST',
+          body: JSON.stringify({ which: ['deviceAdmin'] }) });
+      } catch (_) {}
+      // Android's grant screen is on the tablet: watch for the answer.
+      for (let i = 0; i < 30 && permCard.isConnected; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        if (await readGranted()) { paint(true); return; }
+      }
+      btn.disabled = false;
+    });
+    permRow.appendChild(btn);
+  };
+  readGranted().then((granted) => { if (permCard.isConnected) paint(granted); });
+}
+
+document.addEventListener('ks-settings', (e) => {
+  if ((e.detail || []).some((key) => CLOCK_NIGHT_ADMIN_KEYS.includes(key))) updateClockNightAdminRows();
+  if ((e.detail || []).some((key) => key === 'screensaver.celestial_location'
+      || key === 'screensaver.mode')) {
+    updateCelestialPermissionRows();
+  }
+});
 
 export function updatePersonSensorRows() {
   PERSON_SENSOR_PAGES.forEach(personSensorPage);

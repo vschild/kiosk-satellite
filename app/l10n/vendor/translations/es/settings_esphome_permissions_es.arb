@@ -5,6 +5,7 @@
   "esphomeBluetoothSearch": "El permiso de dispositivos cercanos que necesita el proxy Bluetooth para escanear.",
   "esphomeLocationMissing": "Sin este permiso no se puede leer el receptor GPS y los sensores de ubicación quedan sin datos.",
   "esphomeLocationServicesOff": "La ubicación está desactivada en los ajustes del dispositivo, por lo que el receptor no proporciona datos.",
+  "esphomeLocationApproximate": "Solo se permite la ubicación aproximada y el receptor GPS necesita la ubicación precisa.",
   "esphomeLocationGranted": "Los sensores de ubicación pueden leer el receptor GPS.",
   "esphomeBluetoothGranted": "El proxy puede escanear dispositivos Bluetooth cercanos.",
   "esphomeBluetoothMissing": "Sin este permiso, el proxy no puede escanear dispositivos.",

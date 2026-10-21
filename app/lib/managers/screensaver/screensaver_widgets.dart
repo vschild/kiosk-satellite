@@ -41,6 +41,8 @@
 ///      (its friendly name, cached for the editors), label (a name chosen
 ///      by hand; the Home Assistant name when empty), attribute (the
 ///      attribute shown instead of the state; the state when empty),
+///      show_states (a comma separated list of values; when set, the
+///      widget only shows while its value matches one, issue #1066),
 ///      show_name (the name line under the value), show_icon (the icon
 ///      beside the value, issue #912) and color ("r,g,b" icon and text
 ///      color). A blank value hides the whole widget, vignette
@@ -89,6 +91,7 @@ const screensaverWidgetTypes = [
   'battery',
   'entity',
   'alarm',
+  'calendar',
 ];
 
 String describeScreensaverWidgetType(String type) => switch (type) {
@@ -97,6 +100,7 @@ String describeScreensaverWidgetType(String type) => switch (type) {
   'battery' => 'Battery',
   'entity' => 'Entity',
   'alarm' => 'Next alarm',
+  'calendar' => 'Up next',
   _ => type,
 };
 
@@ -141,11 +145,20 @@ Map<String, Object?> screensaverWidgetDefaults(String type) => switch (type) {
     'font': screensaverWidgetFontDefault,
     'font_weight': screensaverWidgetFontDefault,
   },
+  // The family calendar's next events today, up to [count].
+  'calendar' => {
+    'color': '250,250,250',
+    'scale': screensaverWidgetScaleDefault,
+    'font': screensaverWidgetFontDefault,
+    'font_weight': screensaverWidgetFontDefault,
+    'count': 3,
+  },
   'entity' => {
     'entity': '',
     'name': '',
     'label': '',
     'attribute': '',
+    'show_states': '',
     'show_name': true,
     'show_icon': true,
     'color': '250,250,250',
@@ -218,10 +231,12 @@ double screensaverWidgetScaleFactor(Map<String, Object?> config) {
 }
 
 /// Whether [type] renders over the [mode] screensaver. Everything stays
-/// off the camera grid, where an overlay sits in the way of a live feed;
+/// off the calendar, whose top bar and views fill the screen, and off the
+/// camera grid, where an overlay sits in the way of a live feed;
 /// the clock widget also stays off the Clock mode, which is one already —
 /// the weather widget is exactly what a clock face wants next to it.
 bool screensaverWidgetAllowedOnMode(String type, String mode) => switch (type) {
+  _ when mode == 'calendar' => false,
   'clock' => mode != 'clock' && mode != 'camera',
   _ => mode != 'camera',
 };

@@ -5,7 +5,7 @@ import 'dart:math' show Random, max;
 import 'dart:typed_data' show BytesBuilder;
 
 import 'package:flutter/foundation.dart'
-    show Uint8List, ValueNotifier, mapEquals, visibleForTesting;
+    show Uint8List, ValueNotifier, mapEquals, setEquals, visibleForTesting;
 import 'package:flutter/services.dart';
 
 import '../../core/certificate_log.dart';
@@ -61,6 +61,14 @@ class SendspinManager extends Manager {
   bool _running = false;
   bool _playing = false;
   Map<String, Object?> _status = const {};
+
+  /// What Music Assistant knows this device as: the id of the player that
+  /// stands for it there and the server's identity. Resolved after the
+  /// player connects.
+  Map<String, Object?> _maIdentity = const {};
+  String _maIdentityKey = '';
+  int _maIdentityRun = 0;
+  String _playerSent = '';
 
   /// Whether this device's own Sendspin player is playing, whichever player
   /// the Now Playing surfaces follow. The status lights read it.
@@ -122,6 +130,92 @@ class SendspinManager extends Manager {
   String _watcherKey = '';
   String _watchSig = '';
   Map<String, Object?>? _localQueueSnapshot;
+
+  /// The Sendspin controller commands kept off the local player's
+  /// controls, the engine's included (see [withheldCommands]).
+  Set<String> _withheld = const {};
+
+  /// Each Sendspin controller command and what the watcher's snapshot
+  /// calls the ability it needs.
+  static const _commandAbility = {
+    'play': 'play',
+    'pause': 'pause',
+    'stop': 'stop',
+    'next': 'next',
+    'previous': 'previous',
+    'seek': 'seek',
+    'seek_relative': 'seek',
+    'repeat_off': 'repeat',
+    'repeat_one': 'repeat',
+    'repeat_all': 'repeat',
+    'shuffle': 'shuffle',
+    'unshuffle': 'shuffle',
+  };
+
+  /// The abilities Music Assistant's Sendspin controller applies to the
+  /// queue alone.
+  static const _queueAbilities = {'seek', 'repeat', 'shuffle'};
+
+  /// The Sendspin controller commands to keep off the local player's
+  /// controls. Music Assistant advertises the same full set to every
+  /// Sendspin controller whatever plays, so a source with no controls,
+  /// like its AirPlay Receiver, showed buttons that only raised errors.
+  /// The watcher's [snapshot] says what the source can do. Seek, repeat
+  /// and shuffle act on a queue there, so they also go while the source
+  /// plays without one ([queue] false). No snapshot withholds nothing and
+  /// the server's list stands.
+  @visibleForTesting
+  static Set<String> withheldCommands(
+    Map<String, Object?>? snapshot, {
+    required bool queue,
+  }) {
+    final allowed = snapshot?['supportedCommands'];
+    if (allowed is! List) return const {};
+    return {
+      for (final e in _commandAbility.entries)
+        if (!allowed.contains(e.value) ||
+            (!queue && _queueAbilities.contains(e.value)))
+          e.key,
+    };
+  }
+
+  /// [commands] without the withheld ones.
+  List<Object?> _offered(Object? commands) => [
+    if (commands is List)
+      for (final c in commands)
+        if (!_withheld.contains(c)) c,
+  ];
+
+  /// Work the withheld commands out again and tell the engine, which
+  /// keeps them off the media session and refuses them.
+  void _syncWithheld() {
+    final watcher = _watcher;
+    final next = _remote == null && watcher != null
+        ? withheldCommands(_localQueueSnapshot, queue: watcher.hasQueue)
+        : const <String>{};
+    if (setEquals(next, _withheld)) return;
+    _withheld = next;
+    unawaited(_pushWithheld(next.toList()));
+    // The card's list was cut by the last set. The engine's own list
+    // brings back what this one gives back.
+    final shown = nowPlaying.value;
+    if (_remote == null && shown != null) {
+      _setNowPlaying({
+        ...shown,
+        'supportedCommands': ?_status['supportedCommands'],
+      });
+    }
+  }
+
+  Future<void> _pushWithheld(List<String> commands) async {
+    try {
+      await _channel.invokeMethod<bool>('withholdCommands', {
+        'commands': commands,
+      });
+    } catch (e) {
+      log.warn(name, 'withholding commands failed: $e');
+    }
+  }
 
   /// When the local player last sent a seek or a previous, epoch ms: the
   /// re-base stands down for a moment after it.
@@ -769,6 +863,8 @@ class SendspinManager extends Manager {
         'mediaUri': matches ? queue['mediaUri'] : null,
         'chapters': matches ? queue['chapters'] : null,
         'audioQuality': matches ? queue['audioQuality'] : null,
+        if (value['supportedCommands'] != null)
+          'supportedCommands': _offered(value['supportedCommands']),
         // The group this device plays in, whatever the track.
         'groupVolume': queue?['groupVolume'],
         'groupMuted': queue?['groupMuted'],
@@ -939,6 +1035,7 @@ class SendspinManager extends Manager {
         case 'stateChanged':
           _status = {..._status, ...map};
           _remoteMediaChanged();
+          _playerChanged();
           log.info(
             name,
             'state: connected=${map['connected']} '
@@ -1114,6 +1211,13 @@ class SendspinManager extends Manager {
       // The source sensor names the player, and a rename or the player
       // surface going away moves it without a snapshot.
       _publishMediaSummary();
+      if (e.key == defs.sendspinEnabled.key ||
+          e.key == defs.sendspinClientId.key ||
+          e.key == defs.sendspinLocalPlayerName.key ||
+          e.key == defs.sendspinMaUrl.key ||
+          e.key == defs.sendspinMaToken.key) {
+        _playerChanged();
+      }
       if (e.key == defs.sendspinDuckPercent.key) _syncDucking();
       // The card-surface flag rides the settings that decide it.
       if (e.key == defs.sendspinPlayer.key ||
@@ -1285,6 +1389,17 @@ class SendspinManager extends Manager {
 
     commands.register(
       Command(
+        name: 'sendspinPlayer',
+        description:
+            'The local Sendspin player: whether it is on and connected, its '
+            'client id and name and the Music Assistant player and server '
+            'it maps to.',
+        handler: (_) async => CommandResult.ok(playerIdentity),
+      ),
+    );
+
+    commands.register(
+      Command(
         name: 'sendspinStatus',
         description:
             'The Sendspin player status: connection, server, playback state, '
@@ -1297,6 +1412,9 @@ class SendspinManager extends Manager {
             live = ((await _channel.invokeMethod<Map>('getStatus')) ?? const {})
                 .cast<String, Object?>();
           } catch (_) {}
+          final localCommands = _remote == null
+              ? live['supportedCommands'] ?? _status['supportedCommands']
+              : null;
           return CommandResult.ok({
             'enabled': _settings.get(defs.sendspinEnabled),
             'running': _running,
@@ -1309,6 +1427,8 @@ class SendspinManager extends Manager {
               'remotePlayer': _settings.get(defs.sendspinPlayerName),
             ..._status,
             ...live,
+            if (localCommands != null)
+              'supportedCommands': _offered(localCommands),
             // A followed player's track over the local client's, which
             // sits idle while another player is controlled: the shown
             // surfaces play from the snapshot, so the status says what
@@ -2312,6 +2432,90 @@ class SendspinManager extends Manager {
     token: _settings.get(defs.sendspinMaToken),
   );
 
+  /// The local player as plugins see it, through `getSendspinPlayer` and
+  /// the `sendspin.player` event. The Music Assistant fields are empty
+  /// until the player connects and the server names it.
+  Map<String, Object?> get playerIdentity {
+    final ma = _maConfigured ? _maIdentity : const <String, Object?>{};
+    final connected = _running && _status['connected'] == true;
+    return {
+      'enabled': _settings.get(defs.sendspinEnabled),
+      'running': _running,
+      'connected': connected,
+      'clientId': _settings.get(defs.sendspinClientId),
+      'playerName': _settings.get(defs.sendspinLocalPlayerName),
+      'serverName': connected ? '${_status['serverName'] ?? ''}' : '',
+      'maConfigured': _maConfigured,
+      'maPlayerId': '${ma['playerId'] ?? ''}',
+      'maServerId': '${ma['serverId'] ?? ''}',
+      'maServerName': '${ma['serverName'] ?? ''}',
+      'maServerVersion': '${ma['serverVersion'] ?? ''}',
+    };
+  }
+
+  /// Tell plugins when [playerIdentity] changed.
+  void _playerChanged() {
+    _syncMaIdentity();
+    final player = playerIdentity;
+    final signature = jsonEncode(player);
+    if (signature == _playerSent) return;
+    _playerSent = signature;
+    bus.publish(SendspinPlayerChanged(player));
+  }
+
+  /// Ask Music Assistant which player stands for this device, once per
+  /// connection to a server with a given address, token and client id.
+  void _syncMaIdentity() {
+    final clientId = _settings.get(defs.sendspinClientId).trim();
+    final connected = _running && _status['connected'] == true;
+    final key = connected && _maConfigured && clientId.isNotEmpty
+        ? '${_settings.get(defs.sendspinMaUrl)}|'
+              '${_settings.get(defs.sendspinMaToken)}|$clientId|'
+              '${_status['serverName'] ?? ''}'
+        : '';
+    if (key == _maIdentityKey) return;
+    _maIdentityKey = key;
+    final run = ++_maIdentityRun;
+    if (!_maConfigured) _maIdentity = const {};
+    if (key.isNotEmpty) unawaited(_resolveMaIdentity(run, clientId));
+  }
+
+  /// Music Assistant may list a player a moment after it connects, so a
+  /// miss is asked again twice.
+  Future<void> _resolveMaIdentity(int run, String clientId) async {
+    for (final wait in const [0, 3, 10]) {
+      if (wait > 0) await Future<void>.delayed(Duration(seconds: wait));
+      if (run != _maIdentityRun) return;
+      final res = await _api().call('players/all');
+      final players = res.result;
+      var playerId = res.ok && players is List
+          ? MusicAssistantApi.ownPlayerId(
+              {
+                for (final p in players)
+                  if (p is Map) '${p['player_id'] ?? ''}': p,
+              },
+              clientId,
+              ownName: _settings.get(defs.sendspinLocalPlayerName),
+            )
+          : '';
+      // The queue Music Assistant answers for the client id is the queue
+      // of the player that stands for this device, and shares its id.
+      if (playerId.isEmpty && res.ok) playerId = await _ownQueueId();
+      if (run != _maIdentityRun) return;
+      final info = res.serverInfo;
+      _maIdentity = res.ok
+          ? {
+              'playerId': playerId,
+              'serverId': '${info['server_id'] ?? ''}',
+              'serverName': '${info['name'] ?? ''}',
+              'serverVersion': '${info['server_version'] ?? ''}',
+            }
+          : const {};
+      _playerChanged();
+      if (playerId.isNotEmpty) return;
+    }
+  }
+
   /// The id of the queue Music Assistant answers for this device's client
   /// id, which is the id of the player that stands for it there; empty
   /// when there is none to ask or no answer.
@@ -2360,6 +2564,7 @@ class SendspinManager extends Manager {
     _watcher = null;
     _watchSig = '';
     _localQueueSnapshot = null;
+    _syncWithheld();
     if (old != null) unawaited(old.stop());
     _syncQueuePoll();
     if (!want) return;
@@ -2379,6 +2584,7 @@ class SendspinManager extends Manager {
   void _onWatchSnapshot(Map<String, Object?>? snapshot) {
     if (_watcher == null) return;
     _localQueueSnapshot = snapshot;
+    _syncWithheld();
     if (_remote == null && nowPlaying.value != null) {
       _setNowPlaying(nowPlaying.value);
     }
@@ -2867,6 +3073,7 @@ class SendspinManager extends Manager {
       });
       _running = true;
       log.info(name, 'player started as "$playerName"');
+      _playerChanged();
       _syncWatcher();
       _remoteMediaChanged();
     } catch (e) {
@@ -2896,6 +3103,7 @@ class SendspinManager extends Manager {
       );
     }
     _status = const {};
+    _playerChanged();
     _idleGrace?.cancel();
     _idleGrace = null;
     _uiPlaying = false;

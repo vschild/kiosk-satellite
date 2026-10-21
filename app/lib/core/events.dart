@@ -930,6 +930,15 @@ class AssistOverlayVisibility extends AppEvent {
   final bool pauses;
 }
 
+/// The calendar opened, closed or moved to another view: the view it shows
+/// (day, week, month or schedule), or null once it closed. Internal: the
+/// ESPHome Calendar view select follows it.
+class CalendarViewChanged extends AppEvent {
+  const CalendarViewChanged(this.view);
+
+  final String? view;
+}
+
 class CameraViewStateChanged extends AppEvent {
   const CameraViewStateChanged({
     required this.viewId,
@@ -1051,6 +1060,15 @@ class SendspinNowPlayingChanged extends AppEvent {
   const SendspinNowPlayingChanged({required this.active, this.playing = false});
   final bool active;
   final bool playing;
+}
+
+/// The local Sendspin player's identity or connection changed: whether
+/// it is on and connected, its Sendspin client id and name and the Music
+/// Assistant player and server it maps to. Plugins hear it as
+/// `sendspin.player`.
+class SendspinPlayerChanged extends AppEvent {
+  const SendspinPlayerChanged(this.player);
+  final Map<String, Object?> player;
 }
 
 /// An AirPlay session started, changed or ended: the snapshot the

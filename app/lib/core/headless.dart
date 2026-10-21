@@ -14,6 +14,8 @@ abstract final class Headless {
 
   static bool _volumeClaim = false;
 
+  static bool _pryon = false;
+
   static bool get active => _active;
 
   /// Whether the ROM lets the kiosk claim the volume buttons, so they can
@@ -21,12 +23,17 @@ abstract final class Headless {
   /// (BiscuitVolumeButtons.kt). Only on a device without a screen.
   static bool get volumeClaim => _volumeClaim;
 
+  /// Whether the ROM runs Amazon's wake word engine as a service
+  /// (PryonCatalog). Only on a device without a screen.
+  static bool get pryon => _pryon;
+
   static Future<void> detect() async {
     try {
       _active = await _channel.invokeMethod<bool>('isHeadless') ?? false;
       if (_active) {
         _volumeClaim =
             await _channel.invokeMethod<bool>('volumeClaim') ?? false;
+        _pryon = await _channel.invokeMethod<bool>('pryon') ?? false;
       }
     } catch (_) {
       // No native side (a test): a device with a screen.
@@ -38,4 +45,7 @@ abstract final class Headless {
 
   /// Tests only.
   static set debugVolumeClaim(bool value) => _volumeClaim = value;
+
+  /// Tests only.
+  static set debugPryon(bool value) => _pryon = value;
 }

@@ -5,5 +5,6 @@
   "launcherListFailed": "Не удалось получить список приложений",
   "launcherListError": "Не удалось получить список приложений: {error}",
   "launcherListingFailed": "не удалось получить список",
-  "launcherEmpty": "Запускаемые приложения не найдены."
+  "launcherEmpty": "Запускаемые приложения не найдены.",
+  "launcherSearchApps": "Поиск приложений"
 }

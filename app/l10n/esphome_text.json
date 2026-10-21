@@ -133,6 +133,7 @@
   "The Nearby devices grant the Bluetooth proxy needs to scan.": "esphomeBluetoothSearch",
   "Without this the GPS receiver cannot be read and the location sensors stay unknown.": "esphomeLocationMissing",
   "Location is off in the device settings, so the receiver delivers nothing.": "esphomeLocationServicesOff",
+  "Only approximate location is allowed, and the GPS receiver needs precise location.": "esphomeLocationApproximate",
   "The location sensors can read the GPS receiver.": "esphomeLocationGranted",
   "The proxy can scan for nearby Bluetooth devices.": "esphomeBluetoothGranted",
   "Without this the proxy cannot scan for devices.": "esphomeBluetoothMissing",

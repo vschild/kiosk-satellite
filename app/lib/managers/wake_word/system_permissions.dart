@@ -2,6 +2,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../core/headless.dart';
 import '../../core/permissions.dart';
 import 'background_listening.dart';
 
@@ -33,6 +34,7 @@ class SystemPermissions {
     required this.allFiles,
     required this.usageAccess,
     this.notificationAccess = false,
+    this.locationApproximate = false,
     this.overlayRequestable = true,
     this.batteryRequestable = true,
   });
@@ -56,8 +58,14 @@ class SystemPermissions {
   /// Motion detection, and any page that asks for a camera.
   final bool camera;
 
-  /// Only a page ever wants this (geolocation). Nothing native here uses it.
+  /// Pages (geolocation), Bluetooth scanning and the GPS receiver. Precise
+  /// location: Android 12 and later can allow approximate location alone,
+  /// which reads false here, since the receiver cannot be read with it.
   final bool location;
+
+  /// Approximate location allowed without precise, possible on Android 12
+  /// and later only, so the rows can say why the grant still reads missing.
+  final bool locationApproximate;
 
   /// Whether the proxy can actually scan on this Android: the "Nearby
   /// devices" pair (granted at install below 12) AND the location gate.
@@ -115,6 +123,7 @@ class SystemPermissions {
 
   static const _brightnessChannel = MethodChannel('kiosk_satellite/brightness');
   static const _backgroundChannel = MethodChannel('kiosk_satellite/background');
+  static const _locationChannel = MethodChannel('kiosk_satellite/location');
   static const _mediaSessionsChannel = MethodChannel(
     'kiosk_satellite/media_sessions',
   );
@@ -192,8 +201,24 @@ class SystemPermissions {
   /// switch is off, the only place that can flip it. What the Bluetooth
   /// proxy needs after its pair, and all the location sensors need
   /// (issue #363). Returns whether a position can actually be read.
+  ///
+  /// With approximate location allowed, Android 12 and later ask to change
+  /// it to precise. Once Android will not ask again, after two refusals on
+  /// any version, the app's page in the OS settings is the only way left,
+  /// so that opens instead of nothing happening.
   static Future<bool> requestLocation() async {
-    if (!await ensureOsPermission(Permission.locationWhenInUse)) {
+    final asked = DateTime.now();
+    final outcome = await requestOsPermission(Permission.locationWhenInUse);
+    // Read the grant itself: with approximate location held, the request
+    // can come back granted while precise is still refused. An answer
+    // faster than anyone could tap means Android showed no dialog.
+    if (!await Permission.locationWhenInUse.isGranted) {
+      final instant =
+          DateTime.now().difference(asked) < const Duration(milliseconds: 800);
+      if ((outcome == PermissionOutcome.blocked || instant) &&
+          !Headless.active) {
+        await openOsAppSettings();
+      }
       return false;
     }
     if ((await Permission.location.serviceStatus).isEnabled) return true;
@@ -201,6 +226,17 @@ class SystemPermissions {
       await _backgroundChannel.invokeMethod('openLocationSettings');
     } catch (_) {}
     return false;
+  }
+
+  static Future<bool> _locationApproximate() async {
+    try {
+      final grants = await _locationChannel
+          .invokeMapMethod<String, Object?>('grants')
+          .timeout(const Duration(milliseconds: 500));
+      return grants?['approximate'] == true && grants?['precise'] != true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<bool> _canWriteSettings() async {
@@ -211,28 +247,33 @@ class SystemPermissions {
     }
   }
 
-  static Future<SystemPermissions> read() async => SystemPermissions(
-    microphone: await Permission.microphone.isGranted,
-    microphoneBlocked: await Permission.microphone.isPermanentlyDenied,
-    displayOverOtherApps: await BackgroundListening.canBringToFront(),
-    notification: await Permission.notification.isGranted,
-    batteryUnrestricted: await BackgroundListening.isBatteryUnrestricted(),
-    camera: await Permission.camera.isGranted,
-    location: await Permission.locationWhenInUse.isGranted,
-    bluetooth:
-        await _bluetoothPairSatisfied() && await _locationGateSatisfied(),
-    bluetoothPair: await _bluetoothPairSatisfied(),
-    bluetoothNeedsLocation: true,
-    locationServicesOn: (await Permission.location.serviceStatus).isEnabled,
-    deviceAdmin: await BackgroundListening.isScreenOffAvailable(),
-    writeSettings: await _canWriteSettings(),
-    allFiles: await _hasAllFilesAccess(),
-    usageAccess: await _hasUsageAccess(),
-    notificationAccess: await _hasNotificationAccess(),
-    overlayRequestable: await BackgroundListening.canRequestBringToFront(),
-    batteryRequestable:
-        await BackgroundListening.canRequestBatteryUnrestricted(),
-  );
+  static Future<SystemPermissions> read() async {
+    final location = await Permission.locationWhenInUse.isGranted;
+    return SystemPermissions(
+      microphone: await Permission.microphone.isGranted,
+      microphoneBlocked: await Permission.microphone.isPermanentlyDenied,
+      displayOverOtherApps: await BackgroundListening.canBringToFront(),
+      notification: await Permission.notification.isGranted,
+      batteryUnrestricted: await BackgroundListening.isBatteryUnrestricted(),
+      camera: await Permission.camera.isGranted,
+      location: location,
+      // Only worth asking when precise reads missing.
+      locationApproximate: !location && await _locationApproximate(),
+      bluetooth:
+          await _bluetoothPairSatisfied() && await _locationGateSatisfied(),
+      bluetoothPair: await _bluetoothPairSatisfied(),
+      bluetoothNeedsLocation: true,
+      locationServicesOn: (await Permission.location.serviceStatus).isEnabled,
+      deviceAdmin: await BackgroundListening.isScreenOffAvailable(),
+      writeSettings: await _canWriteSettings(),
+      allFiles: await _hasAllFilesAccess(),
+      usageAccess: await _hasUsageAccess(),
+      notificationAccess: await _hasNotificationAccess(),
+      overlayRequestable: await BackgroundListening.canRequestBringToFront(),
+      batteryRequestable:
+          await BackgroundListening.canRequestBatteryUnrestricted(),
+    );
+  }
 
   /// Nothing we could not read. A platform without these channels answers
   /// everything false, which would draw as a wall of red rather than an honest
@@ -263,6 +304,7 @@ class SystemPermissions {
     'batteryUnrestricted': batteryUnrestricted,
     'camera': camera,
     'location': location,
+    'locationApproximate': locationApproximate,
     'bluetooth': bluetooth,
     'bluetoothPair': bluetoothPair,
     'bluetoothNeedsLocation': bluetoothNeedsLocation,

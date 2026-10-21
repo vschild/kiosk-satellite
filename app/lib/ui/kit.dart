@@ -805,6 +805,7 @@ class KsDropdown<T> extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.expand = false,
+    this.loading = false,
   });
 
   final T? value;
@@ -815,6 +816,11 @@ class KsDropdown<T> extends StatelessWidget {
 
   /// Fill the available width instead of hugging the value.
   final bool expand;
+
+  /// The choices are on their way: disabled, a spinner and Loading… in
+  /// place of the value. The items stay, so the box keeps its width. The
+  /// remote admin's twin is selectLoading in widgets.js.
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -848,7 +854,7 @@ class KsDropdown<T> extends StatelessWidget {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<T>(
-                value: value,
+                value: loading ? null : value,
                 isExpanded: expand,
                 borderRadius: BorderRadius.circular(Ks.radiusControl),
                 focusColor: Colors.transparent,
@@ -857,7 +863,23 @@ class KsDropdown<T> extends StatelessWidget {
                   color: scheme.onSurface,
                 ),
                 items: items,
-                onChanged: onChanged,
+                onChanged: loading ? null : onChanged,
+                disabledHint: loading
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox.square(
+                            dimension: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: scheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(l10n(context).commonLoading),
+                        ],
+                      )
+                    : null,
               ),
             ),
           );
@@ -1026,6 +1048,7 @@ class DropdownRow<T> extends StatelessWidget {
     required this.value,
     required this.options,
     required this.onChanged,
+    this.loading = false,
   });
 
   final String title;
@@ -1040,6 +1063,9 @@ class DropdownRow<T> extends StatelessWidget {
 
   /// Null disables the dropdown.
   final ValueChanged<T?>? onChanged;
+
+  /// The options are still loading (see [KsDropdown.loading]).
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -1056,6 +1082,7 @@ class DropdownRow<T> extends StatelessWidget {
           ),
       ],
       onChanged: onChanged,
+      loading: loading,
     );
     if (!tight) {
       return ListTile(

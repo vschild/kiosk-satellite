@@ -91,5 +91,8 @@
   "voiceModelNotOnnx": "Не модель ONNX.",
   "voiceModelNotOww": "Не модель openWakeWord.",
   "voiceModelOwwWindow": "Не модель openWakeWord: не принимает окно эмбеддингов 16 x 96.",
-  "voiceModelNoLoad": "Модель не загружается: {error}"
+  "voiceModelNoLoad": "Модель не загружается: {error}",
+  "settingVoiceAmazonLocaleTitle": "Язык слова пробуждения",
+  "settingVoiceAmazonLocaleDescription": "Язык моделей слов пробуждения Amazon. В списках слов пробуждения доступны слова пробуждения этого языка.",
+  "voiceOptionAppLanguage": "Язык Kiosk Satellite"
 }

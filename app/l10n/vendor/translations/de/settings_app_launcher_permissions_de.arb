@@ -5,5 +5,8 @@
   "launcherOverlayRemote": "Ohne diese Berechtigung kann der Kiosk nicht selbstständig zurückkehren oder Berührungen in der anderen App erkennen. Die Seite zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.",
   "launcherBatteryMissing": "Android kann die Anwendung pausieren, während die andere App geöffnet ist. Wenn der Timer pausiert wird, kehrt der Kiosk nicht zurück.",
   "launcherBatteryRemote": "Android kann die Anwendung pausieren, während die andere App geöffnet ist. Wenn der Timer pausiert wird, kehrt der Kiosk nicht zurück. Der Dialog zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.",
+  "launcherNotificationAccessHeld": "Der Kiosk kehrt nicht zurück, solange eine andere App Video oder Musik abspielt.",
+  "launcherNotificationAccessMissing": "Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück.",
+  "launcherNotificationAccessRemote": "Ohne diese Berechtigung erkennt der Kiosk nicht, ob Video oder Musik läuft, und kehrt trotzdem zurück. Der Bildschirm zum Erteilen der Berechtigung wird auf dem Tablet angezeigt.",
   "launcherPermissionsSearch": "Die Berechtigungen, die für die Funktion „Automatisch zurückkehren“ benötigt werden."
 }

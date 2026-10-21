@@ -286,6 +286,19 @@
       ]
     }
   },
+  "gestureOpenCalendar": "Open the calendar",
+  "@gestureOpenCalendar": {
+    "context": "Settings > Gestures > Add gesture > Choose an action",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Add gesture > Choose an action"
+      ],
+      "remoteAdmin": [
+        "Gestures > Add gesture > Choose an action"
+      ]
+    }
+  },
   "gestureService": "Call a service",
   "@gestureService": {
     "context": "Settings > Gestures > Add gesture > Choose an action",

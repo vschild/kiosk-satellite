@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "Застосунки",
   "settingKioskAllowAppsDescription": "Відкрити лаунчер застосунків. Якщо увімкнено вимкнення кнопки «Додому», запуск застосунку скасовує закріплення кіоска до повернення.",
   "kioskAllowedActions": "Дозволені дії",
-  "kioskAllowedHelp": "Які швидкі дії пропонує меню кіоска"
+  "kioskAllowedHelp": "Які швидкі дії пропонує меню кіоска",
+  "settingKioskAllowedAppsTitle": "Дозволені застосунки",
+  "settingKioskAllowedAppsDescription": "Застосунки лаунчера, доступні, коли режим кіоска увімкнено.",
+  "kioskAllowedAppsEmpty": "Спочатку додайте застосунки в Налаштування > Лаунчер застосунків."
 }

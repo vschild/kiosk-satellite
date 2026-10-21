@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
@@ -55,6 +57,7 @@ void main() {
         'Camera',
         'Kiosk',
         'Lockdown',
+        'Calendar',
       }.contains(def.category)) {
         expect(hidden, contains(def.key), reason: def.key);
       }
@@ -70,6 +73,17 @@ void main() {
     expect(hidden, isNot(contains(defs.intercomEnabled.key)));
     expect(hidden, isNot(contains(defs.dlnaEnabled.key)));
     expect(hidden, isNot(contains(defs.alarmsVolume.key)));
+  });
+
+  test('the remote admin hides the same display pages', () {
+    // headless.js keeps its own list for the page's tabs and search.
+    final js = File('remote-ui/static/headless.js').readAsStringSync();
+    final list = RegExp(
+      r'HIDDEN_TABS = new Set\(\[([^\]]*)\]',
+    ).firstMatch(js)!.group(1)!;
+    for (final tab in ['screensaver', 'calendar', 'kiosk', 'camera']) {
+      expect(list, contains("'$tab'"), reason: tab);
+    }
   });
 
   test('stored values that cannot work without a screen are pinned', () {

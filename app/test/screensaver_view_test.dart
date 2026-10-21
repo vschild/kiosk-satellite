@@ -265,6 +265,58 @@ void main() {
       expect(defs.screensaverWebsiteDoubleTap.dependsOn, 'screensaver.mode');
       expect(defs.screensaverWebsiteDoubleTap.dependsOnValue, 'website');
     });
+
+    // The Home Assistant Dashboard mode's own toggle (discussion #1069):
+    // single taps reach the dashboard's cards, a double tap dismisses.
+    Future<void> buildDashboard(Map<String, Object> extra) async {
+      await build('dashboard', extra: extra);
+      now = DateTime(2026, 10, 21, 12);
+      saver.clock = () => now;
+      await saver.start();
+      await pumpEventQueue();
+      expect(saver.activeView.value, 'dashboard');
+    }
+
+    test('the dashboard takes two taps with its toggle on', () async {
+      await buildDashboard({'ks.screensaver.dashboard_double_tap': true});
+      saver.notifyActivity('touch');
+      await pumpEventQueue();
+      expect(saver.activeView.value, 'dashboard');
+      now = now.add(const Duration(milliseconds: 300));
+      saver.notifyActivity('touch');
+      await pumpEventQueue();
+      expect(saver.activeView.value, isNull);
+    });
+
+    test('the dashboard keeps single-tap dismissal by default', () async {
+      // The Website toggle is not the dashboard's.
+      await buildDashboard({'ks.screensaver.website_double_tap': true});
+      saver.notifyActivity('touch');
+      await pumpEventQueue();
+      expect(saver.activeView.value, isNull);
+    });
+
+    test('the dashboard toggle does not reach the website', () async {
+      await build(
+        'website',
+        extra: {'ks.screensaver.dashboard_double_tap': true},
+      );
+      await saver.start();
+      await pumpEventQueue();
+      saver.notifyActivity('touch');
+      await pumpEventQueue();
+      expect(saver.activeView.value, isNull);
+    });
+
+    test('the dashboard toggle lives in its group, off by default', () {
+      expect(defs.screensaverDashboardDoubleTap.defaultValue, isFalse);
+      expect(
+        defs.screensaverDashboardDoubleTap.section,
+        'Home Assistant Dashboard screensaver',
+      );
+      expect(defs.screensaverDashboardDoubleTap.dependsOn, 'screensaver.mode');
+      expect(defs.screensaverDashboardDoubleTap.dependsOnValue, 'dashboard');
+    });
   });
 
   // The Website screensaver's zoom level: a page built for a monitor lands

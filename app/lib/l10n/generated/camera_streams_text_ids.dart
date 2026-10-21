@@ -111,6 +111,7 @@ const cameraStreamsTextMessageIds = <String, String>{
   "Could not show the view": "cameraStreamsShowFailed",
   "Could not show view": "cameraStreamsShowFailedRemote",
   "Edit view": "cameraStreamsEditView",
+  "View ID": "cameraStreamsViewId",
   "Show camera names": "cameraStreamsShowNames",
   "Display a label over each camera.": "cameraStreamsShowNamesHelp",
   "Grid": "cameraStreamsGrid",

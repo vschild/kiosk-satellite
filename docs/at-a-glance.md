@@ -29,7 +29,7 @@ When you select **Entities**, a picker opens where you can search your Home Assi
 
 ## Where It Appears
 
-The At a Glance row is available on every screensaver mode *except* the Camera Streams grid (since a status row would obscure a live video feed):
+The At a Glance row is available on every screensaver mode *except* Calendar, which fills the screen, and the Camera Streams grid (since a status row would obscure a live video feed):
 
 * **Black:** The row is centered and takes up the entire display.
 * **Clock:** The row sits just under the date; the clock itself shrinks slightly to accommodate it.

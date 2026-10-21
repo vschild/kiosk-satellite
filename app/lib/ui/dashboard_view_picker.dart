@@ -38,6 +38,7 @@ class HaDashboard {
     this.icon,
     this.views = const [],
     this.custom = false,
+    this.app = false,
   });
 
   /// The dashboard's url_path.
@@ -48,6 +49,10 @@ class HaDashboard {
   /// The Custom Pages entry: the person's own pages under /local/, listed
   /// as its views.
   final bool custom;
+
+  /// An app's sidebar panel, such as Music Assistant: Home Assistant shows
+  /// the app's ingress page on its path, with no views.
+  final bool app;
 
   /// The name the pickers show, in the kiosk's language for Custom Pages.
   String label(BuildContext context) =>
@@ -116,6 +121,7 @@ abstract final class DashboardCatalog {
             title: '${d['title'] ?? d['url_path']}',
             icon: d['icon'] is String ? d['icon'] as String : null,
             custom: d['custom'] == true,
+            app: d['app'] == true,
             views: [
               // A dashboard whose views cannot be read opens whole, the
               // same as one that builds its own.
@@ -704,7 +710,7 @@ class _DashboardPickerState extends State<DashboardPicker> {
               ),
               if (d.whole) ...[
                 grid([null]),
-                SliverToBoxAdapter(child: _WholeNote()),
+                if (!d.app) SliverToBoxAdapter(child: _WholeNote()),
               ] else ...[
                 grid(main),
                 if (subs.isNotEmpty) ...[
@@ -778,7 +784,7 @@ class _DashboardPickerState extends State<DashboardPicker> {
         children: [
           if (d.whole) ...[
             row(null),
-            _WholeNote(),
+            if (!d.app) _WholeNote(),
           ] else ...[
             for (final v in main) row(v),
             if (subs.isNotEmpty) ...[
@@ -1020,8 +1026,8 @@ class _WholeNote extends StatelessWidget {
   }
 }
 
-String _viewTitle(BuildContext context, HaView? view) =>
-    view?.title ?? haText(context, 'Whole dashboard');
+String _viewTitle(BuildContext context, HaDashboard d, HaView? view) =>
+    view?.title ?? (d.app ? d.title : haText(context, 'Whole dashboard'));
 
 String? _viewIcon(HaDashboard d, HaView? view) =>
     view == null ? (d.icon ?? 'mdi:view-dashboard') : view.icon;
@@ -1044,7 +1050,7 @@ Widget _glyphSquare(
     alignment: Alignment.center,
     child: _Glyph(
       icon: _viewIcon(d, view),
-      title: _viewTitle(context, view),
+      title: _viewTitle(context, d, view),
       size: 22,
       color: picked ? scheme.primary : scheme.onSurfaceVariant,
     ),
@@ -1075,6 +1081,8 @@ class _DashboardRow extends StatelessWidget {
         ? count == 1
               ? haText(context, '1 page')
               : l10n(context).dashboardPickerPageCount('$count')
+        : d.app
+        ? haText(context, 'Ingress page')
         : d.whole
         ? haText(context, 'Builds its own views')
         : count == 1
@@ -1207,7 +1215,7 @@ class _ViewTile extends StatelessWidget {
                   _glyphSquare(context, dashboard, view, picked: picked),
                   const Spacer(),
                   Text(
-                    _viewTitle(context, view),
+                    _viewTitle(context, dashboard, view),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -1296,7 +1304,7 @@ class _ViewRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _Highlighted(
-                        _viewTitle(context, view),
+                        _viewTitle(context, dashboard, view),
                         query,
                         style: TextStyle(
                           fontSize: 15.5,
@@ -1646,7 +1654,7 @@ class _DashboardFieldState extends State<DashboardField> {
             children: [
               _Glyph(
                 icon: _viewIcon(d, v),
-                title: _viewTitle(context, v),
+                title: _viewTitle(context, d, v),
                 size: 20,
                 color: scheme.primary,
               ),
@@ -1655,15 +1663,18 @@ class _DashboardFieldState extends State<DashboardField> {
                 child: Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(
-                        text: d.label(context),
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                      TextSpan(
-                        text: ' / ',
-                        style: TextStyle(color: scheme.outline),
-                      ),
-                      TextSpan(text: _viewTitle(context, v)),
+                      // An app is its own page, so its name alone says it.
+                      if (!d.app || v != null) ...[
+                        TextSpan(
+                          text: d.label(context),
+                          style: TextStyle(color: scheme.onSurfaceVariant),
+                        ),
+                        TextSpan(
+                          text: ' / ',
+                          style: TextStyle(color: scheme.outline),
+                        ),
+                      ],
+                      TextSpan(text: _viewTitle(context, d, v)),
                     ],
                   ),
                   maxLines: 1,
@@ -1803,7 +1814,7 @@ class DashboardViewListRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _viewTitle(context, v),
+                _viewTitle(context, d, v),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

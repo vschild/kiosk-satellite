@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "无法显示画面",
   "cameraStreamsShowFailedRemote": "无法显示画面",
   "cameraStreamsEditView": "编辑画面",
+  "cameraStreamsViewId": "画面 ID",
   "cameraStreamsShowNames": "显示摄像头名称",
   "cameraStreamsShowNamesHelp": "在每个摄像头上显示标签。",
   "cameraStreamsGrid": "网格",

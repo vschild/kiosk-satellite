@@ -15,6 +15,8 @@ import 'fleet_plugin_host.dart';
 import 'plugin_directory.dart';
 import 'plugin_repository.dart';
 import '../home_assistant/plugin_ha_socket.dart';
+import '../sendspin/plugin_ma_socket.dart';
+import '../settings/definitions.dart' as defs;
 import 'plugin_camera.dart';
 import 'plugin_host_api.dart';
 
@@ -160,10 +162,13 @@ class PluginManager extends Manager implements FleetPluginHost {
           '${entry.value['title']} (${installed.value.where((p) => p['id'] == entry.value['pluginId']).firstOrNull?['name'] ?? entry.value['pluginId']})',
   };
 
-  /// Installed plugins that offer a voice skin, by the Skin setting's value.
+  /// Enabled plugins that offer a voice skin, by the Skin setting's value.
+  /// A disabled plugin cannot draw its skin, so it is not offered.
   Map<String, String> get voiceSkinOptions => {
     for (final plugin in installed.value)
-      if ((plugin['capabilities'] as List? ?? const []).contains('voice.skin'))
+      if (enabled.value &&
+          plugin['enabled'] == true &&
+          (plugin['capabilities'] as List? ?? const []).contains('voice.skin'))
         'plugin:${plugin['id']}': '${plugin['name'] ?? plugin['id']}',
   };
 
@@ -263,9 +268,18 @@ class PluginManager extends Manager implements FleetPluginHost {
   bool Function(String id) fleetManaged = _never;
   static bool _never(String _) => false;
 
+  /// Counts a plugin install, update, removal or failed install that
+  /// someone asked for here, by name, for usage analytics. Fleet pushes
+  /// do not count. Set by the app container.
+  void Function(String name)? onActivity;
+
   /// The Home Assistant connection plugins with the `ha` capability share.
   /// Set by the app container before [init].
   HaPluginSocket? haSocket;
+
+  /// The Music Assistant connection plugins with the `ma` capability
+  /// share. Set by the app container before [init].
+  MaPluginSocket? maSocket;
 
   /// The voice turn plugins follow. Set by the app container before [init].
   PluginVoiceFeed? voice;
@@ -343,6 +357,20 @@ class PluginManager extends Manager implements FleetPluginHost {
 
     installed.addListener(publishSettings);
     enabled.addListener(publishSettings);
+    // Screensaver mode lists each plugin screensaver by title and plugin
+    // name, so the remote admin rebuilds its dropdown when either changes.
+    // A slideshow's new photos leave the list alone.
+    var screensaverList = jsonEncode(screensaverOptions);
+    void publishScreensaverOptions() {
+      final next = jsonEncode(screensaverOptions);
+      if (!_disposed && next != screensaverList) {
+        screensaverList = next;
+        bus.publish(SettingOptionsChanged(defs.screensaverMode.key));
+      }
+    }
+
+    screensavers.addListener(publishScreensaverOptions);
+    installed.addListener(publishScreensaverOptions);
     // The Overview's plugin tiles, apart from the readings and charts a
     // plugin page follows: those move often, the tiles rarely.
     void publishTiles() {
@@ -363,6 +391,7 @@ class PluginManager extends Manager implements FleetPluginHost {
       bus,
       (event) => channel.invokeMethod<void>('hostEvent', event),
       ha: haSocket,
+      ma: maSocket,
       voice: voice,
     );
     channel.setMethodCallHandler((call) async {
@@ -413,6 +442,12 @@ class PluginManager extends Manager implements FleetPluginHost {
           return _hostReads.haSubscribe(call.arguments as Map);
         case 'haUnsubscribe':
           _hostReads.haUnsubscribe(call.arguments as Map);
+        case 'maCall':
+          return _hostReads.maCall(call.arguments as Map);
+        case 'maSubscribe':
+          return _hostReads.maSubscribe(call.arguments as Map);
+        case 'maUnsubscribe':
+          _hostReads.maUnsubscribe(call.arguments as Map);
         case 'entities':
           final data = call.arguments as Map;
           if (_runtimeSessions[data['id']] == data['session'] &&
@@ -894,7 +929,13 @@ class PluginManager extends Manager implements FleetPluginHost {
     String token, {
     required bool trusted,
   }) async {
-    final args = await repository.installArguments(token, trusted: trusted);
+    final Map<String, Object?> args;
+    try {
+      args = await repository.installArguments(token, trusted: trusted);
+    } catch (_) {
+      onActivity?.call('plugin_install_failures');
+      rethrow;
+    }
     return update('install', args);
   }
 
@@ -1013,7 +1054,7 @@ class PluginManager extends Manager implements FleetPluginHost {
       'trusted': true,
       'sha256': sha256,
       if (source != null) 'source': jsonEncode(source),
-    });
+    }, counted: false);
   }
 
   @override
@@ -1026,12 +1067,18 @@ class PluginManager extends Manager implements FleetPluginHost {
       });
 
   @override
-  Future<void> fleetRemove(String id) => update('remove', {'id': id});
+  Future<void> fleetRemove(String id) =>
+      update('remove', {'id': id}, counted: false);
 
   Future<List<Map<String, Object?>>> update(
     String method,
-    Map<String, Object?> args,
-  ) async {
+    Map<String, Object?> args, {
+    bool counted = true,
+  }) async {
+    final count = counted && (method == 'install' || method == 'remove');
+    final before = count
+        ? {for (final p in installed.value) '${p['id']}'}
+        : const <String>{};
     try {
       final result = await channel
           .invokeMethod<Object?>(method, args)
@@ -1040,11 +1087,42 @@ class PluginManager extends Manager implements FleetPluginHost {
         _readInstalled(result);
         status.value = '';
       }
+      if (count) unawaited(_countActivity(method, args, before));
       return installed.value;
     } catch (error) {
       if (!_disposed) status.value = _errorText(error);
+      if (count && method == 'install') {
+        onActivity?.call('plugin_install_failures');
+      }
       rethrow;
     }
+  }
+
+  /// Names what a user's install or removal did, for [onActivity]: a new
+  /// plugin by where it came from, a plugin already there as an update.
+  Future<void> _countActivity(
+    String method,
+    Map<String, Object?> args,
+    Set<String> before,
+  ) async {
+    final report = onActivity;
+    if (report == null) return;
+    if (method == 'remove') return report('plugin_removals');
+    final added = installed.value.any((p) => !before.contains('${p['id']}'));
+    if (!added) return report('plugin_updates');
+    String? repo;
+    try {
+      final source = args['source'];
+      final decoded = source is String ? jsonDecode(source) : null;
+      if (decoded is Map && decoded['repository'] is String) {
+        repo = decoded['repository'] as String;
+      }
+    } catch (_) {}
+    if (repo == null) return report('plugin_installs_zip');
+    final listed = await directory.lists(repo);
+    report(
+      listed == true ? 'plugin_installs_directory' : 'plugin_installs_github',
+    );
   }
 
   /// Starts a settings button ([target] `button`) or a choices refresh
@@ -1451,6 +1529,7 @@ class PluginManager extends Manager implements FleetPluginHost {
     await _attachSub?.cancel();
     await _hostReads.dispose();
     haSocket?.dispose();
+    maSocket?.dispose();
     repository.close();
     channel.setMethodCallHandler(null);
     try {

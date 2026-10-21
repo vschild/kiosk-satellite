@@ -162,5 +162,8 @@ export const kioskTextMessageIds = {
   "Home screen status": "searchHomeStatus",
   "Whether Kiosk Satellite is the device home screen, and where to finish setting it as the default.": "searchHomeHelp",
   "DuraSpeed is blocking the dashboard": "kioskDuraSpeedBlocking",
-  "This tablet's DuraSpeed keeps the dashboard's renderer from starting, and some tablets give it no settings page. Turn it off once over adb, then restart Kiosk Satellite:": "kioskDuraSpeedBlockingHelp"
+  "This tablet's DuraSpeed keeps the dashboard's renderer from starting, and some tablets give it no settings page. Turn it off once over adb, then restart Kiosk Satellite:": "kioskDuraSpeedBlockingHelp",
+  "Allowed Apps": "settingKioskAllowedAppsTitle",
+  "The launcher apps offered while kiosk mode is on.": "settingKioskAllowedAppsDescription",
+  "Add apps in Settings > App Launcher first.": "kioskAllowedAppsEmpty"
 };

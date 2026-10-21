@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "De naam onder de waarde.",
   "screensaverOverlayShowIcon": "Pictogram tonen",
   "screensaverOverlayShowIconHelp": "Het pictogram naast de waarde.",
+  "screensaverOverlayVisibleStates": "Zichtbare statussen",
+  "screensaverOverlayVisibleStatesHelp": "Toon de widget alleen als de waarde een van deze is, gescheiden door komma's. Laat leeg om hem altijd te tonen.",
   "screensaverOverlayFontSystem": "Systeemlettertype",
   "screensaverOverlayFontSerif": "Schreefletter",
   "screensaverOverlayFontCondensed": "Gecondenseerd",

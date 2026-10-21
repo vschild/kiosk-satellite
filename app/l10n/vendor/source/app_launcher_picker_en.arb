@@ -83,5 +83,18 @@
         "App Launcher > Apps"
       ]
     }
+  },
+  "launcherSearchApps": "Search apps",
+  "@launcherSearchApps": {
+    "context": "Settings > App Launcher > Apps",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > App Launcher > Apps"
+      ],
+      "remoteAdmin": [
+        "App Launcher > Apps"
+      ]
+    }
   }
 }

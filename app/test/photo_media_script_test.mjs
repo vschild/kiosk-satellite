@@ -21,6 +21,7 @@ function harness() {
     clearTimeout(id) { timers.delete(id); },
     log() {}, cameraOf() { return null; }, isVideo() { return false; },
     stillFor(image) { return image; }, showElement(image) { shown.push(image); },
+    bridge() {},
   });
   vm.runInContext(playback, context);
   function advance(ms) {

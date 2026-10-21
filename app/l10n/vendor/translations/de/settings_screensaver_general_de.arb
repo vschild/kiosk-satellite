@@ -55,6 +55,11 @@
   "screensaverModeDashboard": "Home-Assistant-Dashboard",
   "settingScreensaverDashboardViewTitle": "Dashboard-Ansicht",
   "settingScreensaverDashboardViewDescription": "Die Home-Assistant-Dashboard-Ansicht, die der Bildschirmschoner zeigt.",
+  "settingScreensaverDashboardDoubleTapTitle": "Zum Schließen doppeltippen",
+  "settingScreensaverDashboardDoubleTapDescription": "Ein einfacher Tipp ermöglicht die Interaktion mit dem Dashboard, anstatt den Bildschirmschoner zu schließen.",
   "screensaverDashboardSection": "Bildschirmschoner: Home-Assistant-Dashboard",
-  "screensaverModeUrl": "Bild-URL"
+  "screensaverModeUrl": "Bild-URL",
+  "screensaverCalendarSection": "Bildschirmschoner: Kalender",
+  "settingScreensaverCalendarViewTitle": "Kalenderansicht",
+  "settingScreensaverCalendarViewDescription": "Die Kalenderansicht, mit der der Bildschirmschoner öffnet."
 }

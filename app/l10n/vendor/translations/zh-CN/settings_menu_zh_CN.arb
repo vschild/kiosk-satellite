@@ -49,6 +49,7 @@
   "settingsGroupHomeAssistant": "Home Assistant",
   "settingsGroupDisplay": "显示",
   "settingsGroupMediaCameras": "媒体与摄像头",
+  "settingsGroupHousehold": "家庭",
   "settingsGroupKiosk": "Kiosk",
   "settingsGroupSystem": "系统",
   "settingsMenuMenu": "菜单",

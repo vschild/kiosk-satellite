@@ -5,5 +5,6 @@
   "launcherListFailed": "无法获取应用列表",
   "launcherListError": "无法获取应用列表：{error}",
   "launcherListingFailed": "获取应用列表失败",
-  "launcherEmpty": "未找到可启动的应用。"
+  "launcherEmpty": "未找到可启动的应用。",
+  "launcherSearchApps": "搜索应用"
 }

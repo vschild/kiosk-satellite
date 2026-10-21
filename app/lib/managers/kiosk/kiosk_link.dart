@@ -74,6 +74,15 @@ Map<String, Object?>? kioskLinkAction(String url) {
       return arg == null ? const {'type': 'android_settings'} : null;
     case 'alarms':
       return arg == null ? const {'type': 'alarms'} : null;
+    case 'calendar':
+      return switch (arg) {
+        null => const {'type': 'calendar'},
+        'day' ||
+        'week' ||
+        'month' ||
+        'schedule' => {'type': 'calendar', 'view': arg},
+        _ => null,
+      };
   }
   return null;
 }

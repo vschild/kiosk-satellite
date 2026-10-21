@@ -134,6 +134,29 @@ Map<String, Object?>? activeScheduleEntry(
   return current ?? entries.last;
 }
 
+/// The Night mode decision (issue #391): whether the clock wears its night
+/// color, given the last decision.
+///
+/// Entering at the threshold but leaving only a quarter above it keeps a
+/// reading hovering on the line from flickering the color back and forth:
+/// the sensor's native damper spaces events out, it does not steady them.
+/// A null [lux] is a sensor that has not spoken and has no persisted last
+/// reading, which cannot claim the room is dark. The clock face and Turn
+/// screen off at night (issue #1060) both decide with it, from the same
+/// reading, so the screen only goes off under a face already wearing its
+/// night colors.
+bool clockNightActive({
+  required bool previous,
+  required bool enabled,
+  required double? lux,
+  required double threshold,
+}) {
+  if (!enabled || lux == null) return false;
+  if (lux <= threshold) return true;
+  if (lux > threshold * 1.25) return false;
+  return previous;
+}
+
 /// Idle tracking and the screensaver itself.
 ///
 /// Modes:
@@ -148,8 +171,9 @@ Map<String, Object?>? activeScheduleEntry(
 /// commands so this manager never references the screen manager. The
 /// screensaver's black stays brightness zero behind an overlay (the app
 /// alive, motion and wake word running); real display power-off happens in
-/// exactly one place, the "Turn screen off after" timer, and by explicit
-/// request — with background listening on, the process (and its camera,
+/// two places, the "Turn screen off after" timer and Night mode's "Turn
+/// screen off at night", both through [_goDark], and by explicit request —
+/// with background listening on, the process (and its camera,
 /// carried by the camera-type foreground service) keeps running behind the
 /// dark panel, so motion, the ESPHome dismiss and the wake word can all light
 /// it back up. The session stays active across the power-off, which is what
@@ -162,7 +186,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     this._settings, {
     this._screenOffUnit = const Duration(minutes: 1),
     this._pauseProbeDelay = const Duration(seconds: 1),
-  });
+    double? Function()? lightReading,
+    this._nightTurnOffUnit = const Duration(minutes: 1),
+  }) : _lightReading = lightReading ?? _noLightReading;
+
+  static double? _noLightReading() => null;
 
   final SettingsManager _settings;
 
@@ -184,6 +212,100 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// One real minute, injectable for tests only.
   final Duration _screenOffUnit;
 
+  /// The ambient light the clock face reads (DeviceManager's lightLux, null
+  /// without a sensor), for Turn screen off at night.
+  final double? Function() _lightReading;
+
+  /// Turn screen off at night after (issue #1060): one of its minutes, the
+  /// way [_screenOffUnit] is one of Turn screen off after's. The countdown
+  /// starts when Night mode does and again after every wake that keeps the
+  /// session. Injectable for tests only.
+  final Duration _nightTurnOffUnit;
+  Timer? _nightTimer;
+
+  /// Night mode's decision as the face makes it, kept between sessions so
+  /// the band above the threshold holds the same way for both.
+  bool _night = false;
+
+  /// The dark panel or black screen in this session is Night mode's, so
+  /// the room brightening may undo it. A panel turned off by hand or by
+  /// Turn screen off after is never Night mode's to light.
+  bool _nightDark = false;
+
+  /// Android refused the power-off, which means the Device admin grant is
+  /// missing. Asking again every countdown would only fill the log, so
+  /// the night waits for a settings change or the next session.
+  bool _nightRefused = false;
+
+  bool get _nightBlack => _settings.get(defs.screensaverClockNightTurnOffBlack);
+
+  /// Something is using the screen: the countdown starts over instead of
+  /// cutting it off.
+  bool get _nightHeld =>
+      _paused ||
+      _voiceTurn ||
+      _assistOverlay ||
+      _behindAnotherApp ||
+      _nowPlayingTakeover ||
+      alarmTakeover.value != null;
+
+  /// Bring Night mode's decision up to date and act on it: count down to
+  /// a dark screen while the room is dark under the Clock screensaver, and
+  /// light the clock again once it is not.
+  void _reviewNight() {
+    _night = clockNightActive(
+      previous: _night,
+      enabled: _settings.get(defs.screensaverClockNight),
+      lux: _lightReading(),
+      threshold: _settings.get(defs.screensaverClockNightLux).toDouble(),
+    );
+    final minutes = _settings.get(defs.screensaverClockNightTurnOffMinutes);
+    final wanted =
+        _active && _night && _effectiveMode == 'clock' && minutes > 0;
+    if (!wanted) {
+      _nightTimer?.cancel();
+      _nightTimer = null;
+      if (_nightDark) {
+        _nightDark = false;
+        log.info(name, 'Night mode over; lighting the screen');
+        if (_blanked) {
+          unawaited(_wakeFromBlank());
+        } else if (_panelDark) {
+          unawaited(commands.execute('screenOn', const {}));
+        }
+      }
+      return;
+    }
+    if (_screenDark || _nightTimer != null) return;
+    if (_nightRefused && !_nightBlack) return;
+    _nightTimer = Timer(_nightTurnOffUnit * minutes, () {
+      _nightTimer = null;
+      unawaited(_turnOffForNight());
+    });
+  }
+
+  Future<void> _turnOffForNight() async {
+    if (!_active || _screenDark) return;
+    if (_nightHeld) {
+      _reviewNight();
+      return;
+    }
+    _screenOffTimer?.cancel();
+    _screenOffTimer = null;
+    final ok = await _goDark(black: _nightBlack, why: 'Night mode');
+    if (!ok) {
+      _nightRefused = true;
+      return;
+    }
+    // A dismissal while Android was powering off already ran stop(), whose
+    // screenOn came too early to count: the dashboard must not stay dark.
+    if (!_active) {
+      await commands.execute('screenOn', const {});
+      return;
+    }
+    _nightDark = true;
+  }
+
   /// The minutes the running countdown was armed with, so a schedule
   /// boundary or a slider move re-arms only when the effective value
   /// actually changed: a notification lifting the brightness or music
@@ -203,6 +325,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
 
   Future<void> _wakeFromBlank() async {
     _blanked = false;
+    _nightDark = false;
     _armScreenOffTimer();
     await _applyVisuals();
   }
@@ -388,14 +511,18 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     );
   }
 
-  /// Whether dismissal currently takes two taps: only the website
-  /// screensaver offers the option (its page is the only thing a single
-  /// tap could talk to), and never while the Sendspin now-playing view
-  /// has taken the slot over — that view is ours, not a page.
+  /// Whether dismissal currently takes two taps: the website and Home
+  /// Assistant Dashboard screensavers offer the option (their pages are
+  /// the only things a single tap could talk to, discussion #1069), and
+  /// never while the Sendspin now-playing view has taken the slot over.
+  /// That view is ours, not a page.
   bool get _doubleTapToDismiss =>
-      (activeView.value == 'website' &&
-          !_nowPlayingTakeover &&
-          _settings.get(defs.screensaverWebsiteDoubleTap)) ||
+      (!_nowPlayingTakeover &&
+          switch (activeView.value) {
+            'website' => _settings.get(defs.screensaverWebsiteDoubleTap),
+            'dashboard' => _settings.get(defs.screensaverDashboardDoubleTap),
+            _ => false,
+          }) ||
       (_nowPlayingHoldsTouch &&
           !nowPlayingShared &&
           _settings.get(defs.sendspinFullscreenDoubleTap));
@@ -408,6 +535,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   DateTime? _controlTouchAt;
 
   void markControlTouch() => _controlTouchAt = clock();
+
+  /// Set while the Celestial screensaver follows the device held up to the
+  /// sky: someone moving the tablet around would otherwise read as motion,
+  /// a face or something close, and close it. Cleared on stop.
+  bool holdSensorDismiss = false;
 
   bool get _touchOnControl => _within(_controlTouchAt);
 
@@ -556,6 +688,10 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       }
       final wasDark = _panelDark;
       _panelDark = false;
+      // Any wake that keeps the session gives the clock a fresh countdown
+      // before Night mode takes the screen off again. Harmless for the
+      // Android dream: Night mode only acts on an active Clock session.
+      _nightDark = false;
       if (_androidSession && !_active) {
         unawaited(_onAndroidScreenOn(byHand: byHand, wasDark: wasDark));
         return;
@@ -569,8 +705,13 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
         unawaited(_wakeFromBlank());
       } else {
         _armScreenOffTimer();
+        _reviewNight();
       }
     });
+    // The room getting darker or lighter is what Turn screen off at night
+    // answers to, session or not: between sessions it only keeps the
+    // decision in step with the face's.
+    bus.on<LightLevelChanged>().listen((_) => _reviewNight());
     bus.on<NotificationsChanged>().listen((e) {
       unawaited(_onNotificationsChanged(e.showing));
     });
@@ -738,6 +879,20 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       notifyActivity('proximity');
     });
     bus.on<SettingChanged>().listen((e) {
+      if (e.key == defs.screensaverClockNight.key ||
+          e.key == defs.screensaverClockNightLux.key ||
+          e.key == defs.screensaverClockNightTurnOffMinutes.key ||
+          e.key == defs.screensaverClockNightTurnOffBlack.key) {
+        // A changed setting is also the moment to try a refused power-off
+        // again: the grant may have come with it. A moved slider counts
+        // its new time from now.
+        _nightRefused = false;
+        if (e.key == defs.screensaverClockNightTurnOffMinutes.key) {
+          _nightTimer?.cancel();
+          _nightTimer = null;
+        }
+        _reviewNight();
+      }
       // The saved brightness is the session's own bookkeeping, written
       // as it starts and stops: re-arming on it put a due moment on the
       // wire in the middle of every start (issue #406).
@@ -1174,6 +1329,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
         return;
       }
     }
+    if (_active &&
+        holdSensorDismiss &&
+        const {'motion', 'face', 'person', 'proximity'}.contains(source)) {
+      return;
+    }
     // Overlay controls consume their touch without dismissing the view.
     if (_touchOnControl &&
         (source == 'touch' || source == 'touch_page' || source == 'tap')) {
@@ -1491,6 +1651,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// Zero whenever the chips are not showing.
   final ValueNotifier<double> weatherChipsHeight = ValueNotifier(0);
 
+  /// Whether the running mode shows its own controls, which the corner
+  /// widgets and the At a Glance row step aside for. The Celestial sky
+  /// raises it for the few seconds its chips are up after a touch.
+  final ValueNotifier<bool> modeControlsShown = ValueNotifier(false);
+
   /// The room the Immich metadata takes in each bottom corner it sits in,
   /// measured after layout, so the At a Glance row can wrap between the
   /// panels or rise above them (issue #916). It only grows while the
@@ -1623,6 +1788,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     if (_screenDark) {
       _panelDark = false;
       _blanked = false;
+      _nightDark = false;
       await commands.execute('screenOn', const {});
     }
     // A ring lifts the screensaver's own dimming back to normal.
@@ -1998,33 +2164,51 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     if (minutes <= 0) return;
     _screenOffTimer = Timer(_screenOffUnit * minutes, () async {
       _screenOffTimer = null;
-      if (!_active && !_androidSession) return;
-      if (_settings.get(defs.screensaverScreenOffBlack)) {
-        if (_androidSession && !_active) {
+      // The Android dream is not a visual session. A black cover has to
+      // end the dream first, and a real power-off has to park it so the
+      // dream-stopped broadcast keeps this session. _goDark paints over
+      // the app, which cannot cover the system dream.
+      if (_androidSession && !_active) {
+        if (_settings.get(defs.screensaverScreenOffBlack)) {
           await _blankAndroidDream(minutes);
           return;
         }
-        log.info(name, 'up for ${minutes}m; blanking the screen');
-        _blanked = true;
-        _nowPlayingShared = false;
-        _tapChainStart = null;
-        _controlTouchAt = null;
-        _slideTouchAt = null;
-        await _applyVisuals();
+        _dreamParked = true;
+        log.info(name, 'up for ${minutes}m; powering the panel off');
+        final r = await commands.execute('screenOff', const {'prompt': false});
+        if (!r.ok) {
+          _dreamParked = false;
+          log.warn(name, 'could not power the panel off: ${r.error}');
+        }
         return;
       }
-      if (_androidSession && !_active) {
-        // Park before the command. lockNow ends the dream, and that
-        // broadcast has to keep this session instead of opening the panel.
-        _dreamParked = true;
-      }
-      log.info(name, 'up for ${minutes}m; powering the panel off');
-      final r = await commands.execute('screenOff', const {'prompt': false});
-      if (!r.ok) {
-        if (_androidSession && !_active) _dreamParked = false;
-        log.warn(name, 'could not power the panel off: ${r.error}');
-      }
+      if (!_active) return;
+      await _goDark(
+        black: _settings.get(defs.screensaverScreenOffBlack),
+        why: 'up for ${minutes}m',
+      );
     });
+  }
+
+  /// Take the screen dark under the session: a black screen at zero
+  /// brightness, or the panel really powered off. Never prompts for the
+  /// Device admin grant, since nobody may be in the room; false when
+  /// Android refused the power-off for want of it.
+  Future<bool> _goDark({required bool black, required String why}) async {
+    if (black) {
+      log.info(name, '$why; blanking the screen');
+      _blanked = true;
+      _nowPlayingShared = false;
+      _tapChainStart = null;
+      _controlTouchAt = null;
+      _slideTouchAt = null;
+      await _applyVisuals();
+      return true;
+    }
+    log.info(name, '$why; powering the panel off');
+    final r = await commands.execute('screenOff', const {'prompt': false});
+    if (!r.ok) log.warn(name, 'could not power the panel off: ${r.error}');
+    return r.ok;
   }
 
   /// The minutes in force right now: the active schedule entry's own
@@ -2119,6 +2303,10 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// brightness. Shared layouts follow the screensaver's brightness unless
   /// their brightness override is enabled.
   Future<void> _applyVisuals() async {
+    // Every change of what the session shows (a start, the schedule, Now
+    // Playing, an alarm letting go, a wake) is a moment Night mode's
+    // countdown may need to start or stop.
+    _reviewNight();
     final mode = _effectiveMode;
     // A running session whose mode becomes Android's screensaver steps
     // aside: stop restores the dashboard, then the dream covers it. An
@@ -2310,6 +2498,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     if (!_active) return;
     final nowPlaying = _nowPlayingSession;
     _active = false;
+    holdSensorDismiss = false;
     _startedForNowPlaying = false;
     alarmTakeover.value = null;
     renderPaused.value = false;
@@ -2320,6 +2509,10 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     _armedScreenOffMinutes = null;
     _panelDark = false;
     _blanked = false;
+    _nightTimer?.cancel();
+    _nightTimer = null;
+    _nightDark = false;
+    _nightRefused = false;
     log.info(name, 'stop');
     // Thaw the dashboard while the overlay still covers it, so the wake
     // never shows a blank hole where the page is (a no-op unless the
@@ -2349,6 +2542,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     scheduleGlance.value = null;
     claimedCorners.value = const {};
     weatherChipsHeight.value = 0;
+    modeControlsShown.value = false;
     metadataFootprint.value = const {};
     mediaSlide.value = null;
     _slides = null;
@@ -2427,6 +2621,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     _idleTimer?.cancel();
     _scheduleTimer?.cancel();
     _screenOffTimer?.cancel();
+    _nightTimer?.cancel();
     activeView.dispose();
     scheduleNowPlaying.dispose();
   }

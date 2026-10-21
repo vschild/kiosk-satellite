@@ -53,7 +53,15 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "camera": "screensaverModeCamera",
     "weather_mood": "screensaverWeatherMood",
     "dashboard": "screensaverModeDashboard",
-    "android": "screensaverModeAndroid"
+    "android": "screensaverModeAndroid",
+    "celestial": "screensaverModeCelestial",
+    "calendar": "calendarTitle"
+  },
+  "screensaver.calendar_view": {
+    "day": "calendarViewDay",
+    "week": "calendarViewWeek",
+    "month": "calendarViewMonth",
+    "schedule": "calendarViewSchedule"
   },
   "screensaver.clock_style": {
     "digital": "screensaverStyleDigital",
@@ -436,6 +444,40 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "top_right": "screensaverMediaTopRight",
     "bottom_left": "screensaverMediaBottomLeft",
     "bottom_right": "screensaverMediaBottomRight"
+  },
+  "calendar.default_view": {
+    "day": "calendarViewDay",
+    "week": "calendarViewWeek",
+    "month": "calendarViewMonth",
+    "schedule": "calendarViewSchedule"
+  },
+  "calendar.week_start": {
+    "locale": "calendarWeekStartLocale",
+    "sunday": "calendarWeekStartSunday",
+    "monday": "calendarWeekStartMonday",
+    "saturday": "calendarWeekStartSaturday"
+  },
+  "calendar.idle_close_minutes": {
+    "0": "calendarIdleNever",
+    "1": "calendarIdle1Minute",
+    "2": "calendarIdle2Minutes",
+    "5": "alarmsOption5Minutes",
+    "10": "alarmsOption10Minutes"
+  },
+  "screensaver.celestial_terrain": {
+    "hills": "screensaverCelestialTerrainHills",
+    "mountains": "screensaverCelestialTerrainMountains",
+    "plains": "screensaverCelestialTerrainPlains",
+    "none": "screensaverCelestialTerrainNone"
+  },
+  "screensaver.celestial_location": {
+    "gps": "screensaverCelestialLocationGps",
+    "ha_home": "screensaverCelestialLocationHaHome",
+    "ha_entity": "screensaverCelestialLocationHaEntity",
+    "manual": "screensaverCelestialLocationManual"
+  },
+  "voice.amazon_locale": {
+    "": "voiceOptionAppLanguage"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

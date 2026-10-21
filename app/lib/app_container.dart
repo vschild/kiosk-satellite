@@ -27,6 +27,7 @@ import 'managers/gestures/hardware_buttons.dart';
 import 'managers/glance/glance_manager.dart';
 import 'managers/home_assistant/home_assistant_manager.dart';
 import 'managers/home_assistant/plugin_ha_socket.dart';
+import 'managers/sendspin/plugin_ma_socket.dart';
 import 'managers/js_api/js_api_manager.dart';
 import 'managers/js_api/page_ha_socket.dart';
 import 'managers/js_api/page_state_manager.dart';
@@ -41,10 +42,12 @@ import 'managers/fleet/fleet_manager.dart';
 import 'managers/fleet/fleet_sync_manager.dart';
 import 'managers/intercom/intercom_manager.dart';
 import 'managers/alarms/alarm_manager.dart';
+import 'managers/calendar/calendar_manager.dart';
 import 'managers/analytics/analytics_manager.dart';
 import 'managers/analytics/usage_counters.dart';
 import 'managers/broadcasts/event_broadcast_manager.dart';
 import 'managers/location/location_manager.dart';
+import 'managers/screensaver/celestial_location.dart';
 import 'managers/person/person_sensor_manager.dart';
 import 'managers/proximity/proximity_manager.dart';
 import 'managers/proxy/proxy_manager.dart';
@@ -97,7 +100,14 @@ class AppContainer {
     launcher = AppLauncherManager(bus, commands, log, settings);
     homeLauncher = HomeLauncherManager(bus, commands, log, settings);
     gestures = GesturesManager(bus, commands, log, settings);
-    screensaver = ScreensaverManager(bus, commands, log, settings);
+    screensaver = ScreensaverManager(
+      bus,
+      commands,
+      log,
+      settings,
+      // The reading the Clock screensaver's Night mode decides by.
+      lightReading: () => device.hasLightSensor ? device.lightLux : null,
+    );
     immich = ImmichManager(bus, commands, log, settings);
     // Before motion: its init runs the legacy motion-camera migration the
     // motion manager's gate reads.
@@ -113,6 +123,14 @@ class AppContainer {
     );
     proximity = ProximityManager(bus, commands, log, settings);
     location = LocationManager(bus, commands, log, settings);
+    celestial = CelestialLocator(
+      bus,
+      commands,
+      log,
+      settings,
+      location,
+      homeAssistant,
+    );
     analytics = AnalyticsManager(bus, commands, log, settings);
     personSensor = PersonSensorManager(bus, commands, log, settings);
     // Before wakeWord: its init seeds the mic selector the engine reads at
@@ -183,8 +201,11 @@ class AppContainer {
       ..plugins = plugins;
     plugins.fleetManaged = (id) =>
         fleetSync.following && fleetSync.syncedPlugins.containsKey(id);
+    plugins.onActivity = (name) =>
+        unawaited(UsageCounters.bump(settings, name));
     intercom = IntercomManager(bus, commands, log, settings);
     alarms = AlarmManager(bus, commands, log, settings);
+    calendar = CalendarManager(bus, commands, log, settings);
     voiceRequests = VoiceRequestsManager(bus, commands, log, settings);
     // It follows what the managers above are doing, through the bus and
     // the media players' own states.
@@ -239,6 +260,7 @@ class AppContainer {
   late final MotionEntityManager motionEntity;
   late final ProximityManager proximity;
   late final LocationManager location;
+  late final CelestialLocator celestial;
   late final AnalyticsManager analytics;
   late final PersonSensorManager personSensor;
   late final HomeAssistantManager homeAssistant;
@@ -265,6 +287,7 @@ class AppContainer {
   late final FleetSyncManager fleetSync;
   late final IntercomManager intercom;
   late final AlarmManager alarms;
+  late final CalendarManager calendar;
   late final VoiceRequestsManager voiceRequests;
   late final LedManager leds;
   late final PageStateManager pageState;
@@ -301,6 +324,7 @@ class AppContainer {
     motionEntity,
     proximity,
     location,
+    celestial,
     // After device (its info feeds every report) and settings; its first
     // report waits minutes anyway.
     analytics,
@@ -345,6 +369,8 @@ class AppContainer {
     // Its first check can ring at once, and a ring reaches for the
     // screen, the screensaver, the kiosk and the wake word's stop word.
     alarms,
+    // Nothing reaches Home Assistant until a screen watches some days.
+    calendar,
     // After intercom and alarms: it runs their commands.
     voiceRequests,
     // Before the remote admin's first request reads its hidden settings,
@@ -379,6 +405,11 @@ class AppContainer {
       token: () => settings.get(haToken),
       log: log,
     );
+    plugins.maSocket = MaPluginSocket(
+      baseUrl: () => settings.get(sendspinMaUrl),
+      token: () => settings.get(sendspinMaToken),
+      log: log,
+    );
     // Switched off: the sockets open now close, and the page's reconnects
     // hear no.
     bus.on<SettingChanged>().listen((e) {
@@ -387,6 +418,9 @@ class AppContainer {
       }
       if (e.key == haUrl.key || e.key == haToken.key) {
         plugins.haSocket?.restart();
+      }
+      if (e.key == sendspinMaUrl.key || e.key == sendspinMaToken.key) {
+        plugins.maSocket?.restart();
       }
     });
     for (final manager in _ordered.skip(2)) {

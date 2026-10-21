@@ -1,0 +1,196 @@
+blueprint:
+  name: Kiosk Satellite calendar
+  author: Kiosk Satellite
+  description: >-
+    Lets an LLM conversation agent add, find, change and cancel events on
+    the calendars of a Kiosk Satellite kiosk, and show the calendar on it,
+    in any language the agent speaks. Create a script from this blueprint
+    and expose it to Assist. The kiosk that heard the request answers, or
+    the kiosk named in it, using the calendars added under Settings,
+    Calendar. The kiosk needs its Home Assistant address and a token from
+    an administrator.
+  domain: script
+  homeassistant:
+    min_version: "2024.10.0"
+  source_url: https://github.com/jxlarrea/kiosk-satellite/blob/main/blueprints/script/kiosk_satellite_calendar.yaml
+  input:
+    show_on_kiosk:
+      name: Show on the kiosk
+      description: >-
+        Open the calendar on the kiosk that heard the request, on the day it
+        is about, with the event it added, found or changed ringed.
+      default: true
+      selector:
+        boolean:
+
+mode: parallel
+max: 10
+
+description: >-
+  Manages the family calendar of the Kiosk Satellite tablet the user is
+  talking to. Use it for any request about calendar events, appointments,
+  plans or schedules: adding one, asking what is on a day or when something
+  is, moving or renaming one, canceling one, or showing the calendar. Never
+  use it for alarms, timers or reminders. Times are local. Turn relative
+  days like "tomorrow" or "next Friday" into dates using the current date,
+  which every response also carries as now. The response says what
+  happened. Tell the user in their language. When it says several events
+  match, or that an event repeats, ask which one. When it names no
+  calendar for someone, ask whose calendar to use, from the calendars it
+  lists.
+
+fields:
+  action:
+    name: Action
+    description: >-
+      add creates an event. find lists the events on a day or a span of
+      days (give start and end for a span such as next week), or looks one
+      up by title (when is the dentist?). change moves, renames or
+      relocates one event. cancel removes one. show opens the calendar on
+      the kiosk without changing anything.
+    required: true
+    selector:
+      select:
+        options:
+          - add
+          - find
+          - change
+          - cancel
+          - show
+  title:
+    name: Title
+    description: >-
+      For add, the event's title, short, without the people or the time
+      (Soccer practice, Dentist). For find, change and cancel, words from
+      the title of the event meant. Leave empty for find to list
+      everything.
+    selector:
+      text:
+  start:
+    name: Start
+    description: >-
+      yyyy-MM-dd HH:mm in 24 hour time for an event at a time, or yyyy-MM-dd
+      alone for an all-day event. For find, the first day to look at
+      (leave empty for today, or to look ahead when searching by title).
+      For change and cancel, the day or time of the event meant. For show,
+      the day to open on.
+    selector:
+      text:
+  end:
+    name: End
+    description: >-
+      For add, when it ends: yyyy-MM-dd HH:mm, or HH:mm on the same day.
+      Leave empty for one hour. For an all-day event of several days, the
+      last day as yyyy-MM-dd. For find, the last day to look at.
+    selector:
+      text:
+  people:
+    name: People
+    description: >-
+      Whose calendars: the names of the people or calendars the user
+      mentions, like Leo or Sam, or everyone. For add, the event goes on
+      each of their calendars (leave empty for the family calendar). For
+      find, change and cancel, it narrows the search.
+    selector:
+      text:
+        multiple: true
+  location:
+    name: Location
+    description: For add, where it is, only when the user says.
+    selector:
+      text:
+  description:
+    name: Notes
+    description: For add, notes for the event, only when the user gives some.
+    selector:
+      text:
+  new_title:
+    name: New title
+    description: For change, the new title, only to rename the event.
+    selector:
+      text:
+  new_start:
+    name: New start
+    description: >-
+      For change, the new start: yyyy-MM-dd HH:mm, HH:mm to keep the day, or
+      yyyy-MM-dd to keep the time. The length stays the same.
+    selector:
+      text:
+  new_end:
+    name: New end
+    description: >-
+      For change, the new end, only when the user gives one: yyyy-MM-dd
+      HH:mm or HH:mm.
+    selector:
+      text:
+  new_location:
+    name: New location
+    description: For change, the new place, only to move it somewhere else.
+    selector:
+      text:
+  scope:
+    name: Scope
+    description: >-
+      For cancel of a repeating event: this (only that day, the default),
+      following (that day and every one after it) or all (every time).
+    selector:
+      select:
+        options:
+          - this
+          - following
+          - all
+  view:
+    name: View
+    description: For show, day, week, month or schedule, when the user asks for one.
+    selector:
+      select:
+        options:
+          - day
+          - week
+          - month
+          - schedule
+  kiosk:
+    name: Kiosk
+    description: >-
+      Leave empty. Only when the user names another kiosk, its name, like
+      Kitchen.
+    selector:
+      text:
+
+sequence:
+  - variables:
+      request: "{{ now().timestamp() }}-{{ range(10000) | random }}"
+      show: !input show_on_kiosk
+  - event: kiosk_satellite_calendar
+    event_data:
+      id: "{{ request }}"
+      action: "{{ action | default('') }}"
+      title: "{{ title | default('') }}"
+      start: "{{ start | default('') }}"
+      end: "{{ end | default('') }}"
+      people: "{{ people | default([]) }}"
+      location: "{{ location | default('') }}"
+      description: "{{ description | default('') }}"
+      new_title: "{{ new_title | default('') }}"
+      new_start: "{{ new_start | default('') }}"
+      new_end: "{{ new_end | default('') }}"
+      new_location: "{{ new_location | default('') }}"
+      scope: "{{ scope | default('') }}"
+      view: "{{ view | default('') }}"
+      kiosk: "{{ kiosk | default('') }}"
+      show: "{{ show }}"
+  - wait_for_trigger:
+      - trigger: event
+        event_type: kiosk_satellite_calendar_result
+        event_data:
+          id: "{{ request }}"
+    timeout: 20
+  - variables:
+      result: >-
+        {{ wait.trigger.event.data if wait.trigger else {
+          'ok': false,
+          'error': 'No kiosk answered. None is in a voice turn or has that
+          name, or the kiosk cannot reach Home Assistant.'
+        } }}
+  - stop: Done
+    response_variable: result

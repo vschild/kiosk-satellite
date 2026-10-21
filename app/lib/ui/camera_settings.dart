@@ -889,6 +889,15 @@ class _CameraSettingsPanelState extends State<CameraSettingsPanel> {
                         decoration: const InputDecoration(),
                       ),
                     ),
+                    // What ks://camera/<id> links and automations take.
+                    // Unlike the name, it survives a rename.
+                    if (view != null) ...[
+                      const SizedBox(height: 12),
+                      LabeledField(
+                        label: cameraStreamsText(context, 'View ID'),
+                        child: CopyBox(value: view.id),
+                      ),
+                    ],
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(

@@ -637,6 +637,19 @@
       ]
     }
   },
+  "settingsGroupHousehold": "Household",
+  "@settingsGroupHousehold": {
+    "context": "Settings:Menu",
+    "description": "Settings menu group heading over Intercom, Alarms and Calendar.",
+    "x-locations": {
+      "device": [
+        "Settings > menu"
+      ],
+      "remoteAdmin": [
+        "Sidebar menu"
+      ]
+    }
+  },
   "settingsGroupKiosk": "Kiosk",
   "@settingsGroupKiosk": {
     "context": "Settings:Menu",

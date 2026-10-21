@@ -65,5 +65,8 @@
   "screensaverRefreshError": "Voer een geheel aantal minuten van 0 tot en met 1440 in",
   "screensaverMaxCharacters": "Gebruik maximaal {count} tekens",
   "settingScreensaverClockAmPmTitle": "AM/PM tonen",
-  "settingScreensaverClockAmPmDescription": "Toon AM of PM na de tijd."
+  "settingScreensaverClockAmPmDescription": "Toon AM of PM na de tijd.",
+  "settingScreensaverClockNightTurnOffMinutesTitle": "Scherm 's nachts uitschakelen na",
+  "settingScreensaverClockNightTurnOffMinutesDescription": "Schakelt het scherm uit zodra de nachtmodus de ingestelde tijd actief is en weer in zodra het lichter wordt in de kamer. Stel 0 in om het scherm aan te laten. Hiervoor is toestemming voor apparaatbeheer vereist.",
+  "screensaverNightTurnOffWarning": "Zodra het scherm echt wordt uitgeschakeld, neemt het energiebeheer van de tablet het over. Veel Android-modellen gedragen zich dan onvoorspelbaar: wifi kan in de slaapstand gaan of wegvallen, Home Assistant-entiteiten kunnen onbeschikbaar worden, de cameratoegang kan worden ingetrokken en sommige modellen sluiten achtergrondapps af. Sommige lichtsensoren geven ook geen metingen meer door als het scherm uit is, waardoor het scherm misschien niet vanzelf weer aangaat als het lichter wordt in de kamer. Dit verschilt per fabrikant.\n\nEen betrouwbare optie is Een zwart scherm gebruiken. Het scherm ziet er dan net zo donker uit, terwijl de app de volledige controle behoudt."
 }

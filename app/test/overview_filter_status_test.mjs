@@ -19,6 +19,7 @@ function client(read) {
     paintTile: (...args) => tiles.push(args),
     overviewText: text => text,
     overviewStatus: text => text,
+    isHeadless: () => false,
   });
   vm.runInContext(module + '\n' + paint, context);
   return { context, calls, tiles, read: context.readFilterStatus, paint: context.paintHaStatus,

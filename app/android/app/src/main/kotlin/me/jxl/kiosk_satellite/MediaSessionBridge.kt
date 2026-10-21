@@ -143,6 +143,7 @@ class MediaSessionBridge(
                     select()
                     result.success(true)
                 }
+                "anyPlaying" -> result.success(anyPlaying())
                 "control" -> result.success(control(call.argument<String>("command") ?: ""))
                 "seek" -> {
                     val controls = followed?.transportControls
@@ -189,6 +190,19 @@ class MediaSessionBridge(
             }
         }
         throw IllegalStateException("No Notification access screen on this device")
+    }
+
+    /** Whether another app is playing right now, for the App Launcher's
+     *  Return automatically (issue #1055). False without the grant, the
+     *  same answer as nothing playing, so the clock runs as it always did. */
+    private fun anyPlaying(): Boolean {
+        if (!hasAccess()) return false
+        return try {
+            sessions().any { isPlaying(it.playbackState?.state ?: PlaybackState.STATE_NONE) }
+        } catch (e: Exception) {
+            Log.w(TAG, "anyPlaying failed: ${e.message}")
+            false
+        }
     }
 
     private fun sessions(): List<MediaController> =

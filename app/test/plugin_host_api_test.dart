@@ -9,6 +9,7 @@ import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/home_assistant/plugin_ha_socket.dart';
 import 'package:kiosk_satellite/managers/plugins/plugin_host_api.dart';
+import 'package:kiosk_satellite/managers/sendspin/plugin_ma_socket.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
 import 'package:kiosk_satellite/managers/settings/settings_manager.dart';
 import 'package:kiosk_satellite/managers/voice/assist_view.dart';
@@ -124,6 +125,7 @@ void main() {
         'showOverlayPage': {'url': 'https://example.com'},
         'showLinkPage': {'url': 'http://example.com'},
         'loadUrl': {'url': 'https://example.com'},
+        'openCalendar': {'view': 'week', 'date': '2026-10-22'},
         'loadDashboard': {'dashboard': 'lovelace'},
         'haNavigate': {'path': 'lovelace/home'},
       };
@@ -197,6 +199,13 @@ void main() {
           {},
           {'muted': 'true'},
           {'muted': true, 'extra': true},
+        ],
+        'openCalendar': [
+          {'view': 'year'},
+          {'view': true},
+          {'date': 'tomorrow'},
+          {'date': '2026-10-22T09:00'},
+          {'view': 'day', 'highlight': 'x'},
         ],
         'haNavigate': [
           {'path': '../config'},
@@ -1063,6 +1072,179 @@ void main() {
     });
   });
 
+  group('Music Assistant access', () {
+    late _FakeMa ma;
+    late PluginHostApi maApi;
+    const maSession = {'id': 'ma-plugin', 'session': 'three'};
+
+    setUp(() {
+      ma = _FakeMa();
+      maApi = PluginHostApi(commands, bus, (event) async {
+        sent.add(event);
+      }, ma: ma);
+      maApi.open({
+        ...maSession,
+        'capabilities': ['ma'],
+      });
+      maApi.open({
+        ...session,
+        'capabilities': ['host.read', 'ha'],
+      });
+    });
+
+    tearDown(() => maApi.dispose());
+
+    test('needs the ma capability', () async {
+      final refused = await maApi.maCall({
+        ...session,
+        'command': 'players/all',
+        'args': const {},
+      });
+      expect(refused['ok'], false);
+      expect((refused['data'] as Map)['code'], 'not_allowed');
+      expect(ma.calls, isEmpty);
+      final ok = await maApi.maCall({
+        ...maSession,
+        'command': 'players/all',
+        'args': {'limit': 5},
+      });
+      expect(ok, {
+        'ok': true,
+        'data': [
+          {'player_id': 'p1'},
+        ],
+      });
+      expect(ma.calls.single.$1, 'ma-plugin:three');
+      expect(ma.calls.single.$2, 'players/all');
+      expect(ma.calls.single.$3, {'limit': 5});
+      final malformed = await maApi.maCall({
+        ...maSession,
+        'command': 'players/all',
+        'args': 'x',
+      });
+      expect((malformed['data'] as Map)['code'], 'invalid_message');
+    });
+
+    test("errors keep Music Assistant's code and message", () async {
+      ma.answer = {
+        'ok': false,
+        'error': {'code': '22', 'message': 'Insufficient permissions'},
+      };
+      expect(
+        await maApi.maCall({
+          ...maSession,
+          'command': 'music/library/remove_item',
+          'args': const {},
+        }),
+        {
+          'ok': false,
+          'error': '22: Insufficient permissions',
+          'data': {'code': '22', 'message': 'Insufficient permissions'},
+        },
+      );
+    });
+
+    test('events arrive in order under their key', () async {
+      expect(
+        (await maApi.maSubscribe({
+          ...maSession,
+          'key': 'queue',
+          'filter': {
+            'events': ['queue_updated'],
+          },
+        }))['ok'],
+        true,
+      );
+      expect(ma.subscribed.single.$3, {
+        'events': ['queue_updated'],
+      });
+      for (var i = 0; i < 3; i++) {
+        ma.emit!('ma-plugin:three', 'queue', {
+          'type': 'event',
+          'event': 'queue_updated',
+          'data': {'n': i},
+        });
+      }
+      ma.emit!('example:one', 'queue', {'type': 'event'});
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+      expect(sent.map((e) => e['event']), [
+        'ma.subscription.queue',
+        'ma.subscription.queue',
+        'ma.subscription.queue',
+      ]);
+      expect(sent.map((e) => ((e['payload'] as Map)['data'] as Map)['n']), [
+        0,
+        1,
+        2,
+      ]);
+      expect(sent.every((e) => e['session'] == 'three'), true);
+    });
+
+    test('unsubscribing drops queued events and the end of a session '
+        'releases everything', () async {
+      ma.emit!('ma-plugin:three', 'queue', {'type': 'event'});
+      maApi.maUnsubscribe({...maSession, 'key': 'queue'});
+      expect(ma.unsubscribed, [('ma-plugin:three', 'queue')]);
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+      expect(sent, isEmpty);
+      maApi.close(maSession);
+      expect(ma.released, ['ma-plugin:three']);
+    });
+
+    test('getHostApi lists the capability', () async {
+      final api = await maApi.execute({
+        ...maSession,
+        'command': 'getHostApi',
+        'arguments': const {},
+      });
+      final data = api['data'] as Map;
+      expect(data['capabilities'], ['ma']);
+      expect(data['maSubscriptions'], {
+        'eventPrefix': 'ma.subscription.',
+        'maxSubscriptions': 16,
+      });
+      expect(data['haSubscriptions'], isNull);
+    });
+  });
+
+  group('Sendspin player (issue #1053)', () {
+    const player = {
+      'enabled': true,
+      'running': true,
+      'connected': true,
+      'clientId': 'f00d',
+      'playerName': 'Kitchen Tablet',
+      'serverName': 'Music Assistant',
+      'maConfigured': true,
+      'maPlayerId': 'f00d',
+      'maServerId': 'abc123',
+      'maServerName': 'Home',
+      'maServerVersion': '2.10.2',
+    };
+
+    test('getSendspinPlayer reads the identity and nothing else', () async {
+      register('sendspinPlayer', (_) async {
+        return const CommandResult.ok({...player, 'token': 'secret'});
+      });
+      final result = await read('getSendspinPlayer');
+      expect(result['ok'], true);
+      expect(result['data'], player);
+      expect(executed, ['sendspinPlayer']);
+    });
+
+    test('sendspin.player follows the identity', () async {
+      subscribe('sendspin.player');
+      bus.publish(SendspinPlayerChanged({...player, 'connected': false}));
+      bus.publish(const SendspinPlayerChanged(player));
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+      expect(sent.single['event'], 'sendspin.player');
+      expect(sent.single['payload'], {
+        ...player,
+        'time': (sent.single['payload'] as Map)['time'],
+      });
+    });
+  });
+
   group('Voice skins (issue #1027)', () {
     late SettingsManager settings;
     late ValueNotifier<AssistView> view;
@@ -1334,6 +1516,47 @@ class _FakeHa extends HaPluginSocket {
     String key,
     Map<String, Object?> message,
   ) async => {'ok': true};
+
+  @override
+  void unsubscribe(String owner, String key) => unsubscribed.add((owner, key));
+
+  @override
+  void release(String owner) => released.add(owner);
+}
+
+class _FakeMa extends MaPluginSocket {
+  _FakeMa() : super(baseUrl: () => '', token: () => '', log: Logger());
+
+  final calls = <(String, String, Map<String, Object?>)>[];
+  final subscribed = <(String, String, Map<String, Object?>)>[];
+  final unsubscribed = <(String, String)>[];
+  final released = <String>[];
+  Map<String, Object?> answer = {
+    'ok': true,
+    'result': [
+      {'player_id': 'p1'},
+    ],
+  };
+
+  @override
+  Future<Map<String, Object?>> call(
+    String owner,
+    String command,
+    Map<String, Object?> args,
+  ) async {
+    calls.add((owner, command, args));
+    return answer;
+  }
+
+  @override
+  Future<Map<String, Object?>> subscribe(
+    String owner,
+    String key,
+    Map<String, Object?> filter,
+  ) async {
+    subscribed.add((owner, key, filter));
+    return {'ok': true};
+  }
 
   @override
   void unsubscribe(String owner, String key) => unsubscribed.add((owner, key));

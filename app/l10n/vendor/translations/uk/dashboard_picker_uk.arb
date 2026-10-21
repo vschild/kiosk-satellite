@@ -8,6 +8,7 @@
   "dashboardPickerSubview": "Вкладений вид",
   "dashboardPickerWhole": "Уся панель",
   "dashboardPickerBuildsOwn": "Створює власні види",
+  "dashboardPickerIngressPage": "Сторінка Ingress",
   "dashboardPickerWholeHelp": "Ця панель створює власні види, тому кіоск відкриває її повністю.",
   "dashboardPickerViewCount": "Видів: {count}",
   "dashboardPickerOneView": "1 вид",

@@ -29,6 +29,49 @@ Open `http://<dot ip>:2324` in a browser. The image's README shows how to find t
 
 The Action button reaches Kiosk Satellite through an accessibility service, which is switched on at every boot. Force-stopping Kiosk Satellite, with `adb shell am force-stop` or **Force stop** in Android's app settings, switches the service off until the next reboot. **Restart app** does not switch it off.
 
+## Wake Word
+
+Pick the engine with **Wake word engine** under **Voice Satellite > Wake Word**, with the **VS Wake word engine** select in Home Assistant or in the setup wizard. The Dot offers four:
+
+| Engine | What it is |
+|---|---|
+| vsWakeWord | The default. Its models ship with the app. |
+| microWakeWord | The engine of Home Assistant's voice hardware. Its models ship with the app, and it also offers the custom models Home Assistant has. |
+| openWakeWord | Its models ship with the app. |
+| Amazon | The engine the Dot shipped with, running Amazon's own wake word models. Needs the Kiosk Satellite Edition image 2026.10.3 or newer. Other devices do not offer it. |
+
+The first three also take your own models. See [Custom wake word models](custom-wake-words.md).
+
+### Amazon
+
+The image runs Amazon's wake word engine on the Dot itself, so Kiosk Satellite sends it the microphone audio locally and nothing goes to Amazon. Amazon's models are made per locale. With **Amazon** picked, a **Wake word language** select shows up under the engine. It follows Kiosk Satellite's language by default and falls back to English (United States) if the image has no models for it. The Wake word selects in Home Assistant then offer the wake words of that locale:
+
+| Language | Locale | Wake words |
+|---|---|---|
+| English (United States) | `en-US` | Alexa, Echo, Computer, Amazon, Ziggy, Hey Disney |
+| English (Canada) | `en-CA` | Alexa, Echo, Computer, Amazon, Ziggy, Hey Disney |
+| English (United Kingdom) | `en-GB` | Alexa, Echo, Computer |
+| English (Australia) | `en-AU` | Alexa, Echo, Computer |
+| English (India) | `en-IN` | Alexa, Echo, Computer |
+| Hindi (India) | `hi-IN` | Alexa, Echo, Computer |
+| Spanish (United States) | `es-US` | Alexa, Echo, Computer |
+| Spanish (Mexico) | `es-MX` | Alexa, Echo, Amazon, Ziggy |
+| Spanish (Spain) | `es-ES` | Alexa, Echo |
+| French (France) | `fr-FR` | Alexa, Echo |
+| French (Canada) | `fr-CA` | Alexa, Echo |
+| German (Germany) | `de-DE` | Alexa, Echo, Computer |
+| Italian (Italy) | `it-IT` | Alexa, Echo, Computer |
+| Portuguese (Brazil) | `pt-BR` | Alexa, Echo |
+| Japanese (Japan) | `ja-JP` | Alexa, Echo, Computer |
+| Dutch (Netherlands) | `nl-NL` | Alexa, Echo |
+| Arabic (Saudi Arabia) | `ar-SA` | Alexa, Echo |
+
+Each model spots one or more wake words. The Alexa, Echo and Computer models spot their own name, and some also spot Amazon, Ziggy or Hey Disney. A locale that Amazon gave the same model as another locale uses that model, so English (Australia) listens with the British models and Dutch with the German Alexa model. The Alexa model for English (United States) comes from the Dot's own firmware and the rest from Amazon's model servers.
+
+Each model also has its own stop word, so **Stop word interruption** works as it does with the other engines. Saying "stop" ends a ringing timer or a reply. **Wake word sensitivity** applies too.
+
+Amazon's engine uses more CPU and memory than vsWakeWord while it listens.
+
 ## Volume
 
 The image removes the speaker's sound from the Dot's microphones while music plays, so the wake word works at any media volume, up to 100%. Keep the **Master volume** on the **Audio** page at 100%, which leaves the assistant, alarms and intercom at full strength, and set the media volume as you like.

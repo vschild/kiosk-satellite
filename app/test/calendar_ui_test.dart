@@ -1,0 +1,301 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/app_container.dart';
+import 'package:kiosk_satellite/core/command_registry.dart';
+import 'package:kiosk_satellite/core/events.dart';
+import 'package:kiosk_satellite/managers/calendar/calendar_manager.dart';
+import 'package:kiosk_satellite/managers/calendar/calendar_model.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
+import 'package:kiosk_satellite/ui/calendar_overlay.dart';
+import 'package:kiosk_satellite/ui/settings_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _calendars =
+    '[{"entity":"calendar.leo","name":"Leo","color":"168,122,31"},'
+    '{"entity":"calendar.sam","name":"Sam","color":"192,97,58"},'
+    '{"entity":"calendar.maya","name":"Maya","color":"138,90,156"}]';
+
+/// A busy week around today: a shared event, an all-day one, a trip over
+/// two days and overlapping events.
+List<CalendarEvent> _week() {
+  final today = dateOnly(DateTime.now());
+  DateTime at(int day, int h, [int m = 0]) =>
+      DateTime(today.year, today.month, today.day + day, h, m);
+  CalendarEvent e(
+    String title,
+    DateTime start,
+    DateTime end,
+    List<String> calendars, {
+    bool allDay = false,
+    String location = '',
+  }) => CalendarEvent(
+    summary: title,
+    start: start,
+    end: end,
+    allDay: allDay,
+    calendars: calendars,
+    location: location,
+  );
+  return [
+    e('Recycling pickup', at(0, 0), at(1, 0), ['calendar.sam'], allDay: true),
+    e('Denver trip', at(2, 0), at(4, 0), ['calendar.sam'], allDay: true),
+    e('Team standup', at(0, 9), at(0, 9, 30), ['calendar.sam']),
+    e('Dentist', at(0, 11, 30), at(0, 12, 15), [
+      'calendar.maya',
+    ], location: 'Bright Smile Dental'),
+    e('Choir', at(0, 15, 30), at(0, 16, 30), ['calendar.maya']),
+    e(
+      'Soccer practice with a long name',
+      at(0, 16),
+      at(0, 17, 30),
+      ['calendar.leo', 'calendar.sam'],
+      location: 'Riverside Park, Field 2',
+    ),
+    e('Taco night', at(0, 18, 30), at(0, 19, 30), ['calendar.leo']),
+    e('Gym', at(1, 6, 30), at(1, 7, 30), ['calendar.sam']),
+    e('Piano lesson', at(1, 15, 30), at(1, 16, 15), ['calendar.maya']),
+    e('Book club', at(1, 19), at(1, 20, 30), ['calendar.sam']),
+    for (var i = 0; i < 6; i++)
+      e('Extra $i', at(3, 8 + i), at(3, 9 + i), ['calendar.leo']),
+  ]..sort(compareEvents);
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  Future<AppContainer> container() async {
+    SharedPreferences.setMockInitialValues({
+      // No Home Assistant: the manager stays offline and the test feeds
+      // the events itself.
+      'ks.ha.url': '',
+      'ks.ha.token': '',
+      'ks.calendar.calendars': _calendars,
+    });
+    final c = AppContainer();
+    await c.settings.init();
+    await c.calendar.init();
+    return c;
+  }
+
+  Future<void> letGo(WidgetTester tester, AppContainer c) async {
+    c.calendar.visible.value = false;
+    await tester.pump();
+    // The socket closes a minute after the last screen lets go.
+    await tester.pump(const Duration(seconds: 61));
+  }
+
+  for (final (name, size) in [
+    ('a tablet', const Size(1280, 800)),
+    ('a tablet in portrait', const Size(753, 1205)),
+    ('an Echo Show 5', const Size(960, 480)),
+    // Its real logical size at density 195.
+    ('an Echo Show 5 at 1.22x', const Size(788, 394)),
+    ('a phone', const Size(390, 844)),
+  ]) {
+    testWidgets('every view draws on $name', (tester) async {
+      final c = await container();
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      c.calendar.opening = (view: 'week', date: null);
+      c.calendar.visible.value = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(children: [CalendarOverlay(container: c)]),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      c.calendar.snapshot.value = CalendarSnapshot(
+        events: _week(),
+        link: CalendarLink.live,
+      );
+      for (final view in ['Day', 'Week', 'Month', 'Schedule']) {
+        // Through the manager, as the remote and ESPHome switch it: on a
+        // small screen the switcher scrolls and a tap could miss.
+        c.calendar.opening = (view: view.toLowerCase(), date: null);
+        c.calendar.reopened.value++;
+        await tester.pump(const Duration(milliseconds: 100));
+        // A wider span subscribes again, which fails here without Home
+        // Assistant: feed the events once more.
+        c.calendar.snapshot.value = CalendarSnapshot(
+          events: _week(),
+          link: CalendarLink.live,
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull, reason: '$view on $name');
+        // A month too small to list events shows dots instead.
+        if (view != 'Month' || size.height >= 400) {
+          expect(find.text('Recycling pickup'), findsWidgets, reason: view);
+        }
+      }
+      // The shared event opens with both calendars named.
+      c.calendar.opening = (view: 'day', date: null);
+      c.calendar.reopened.value++;
+      await tester.pump(const Duration(milliseconds: 100));
+      c.calendar.snapshot.value = CalendarSnapshot(
+        events: _week(),
+        link: CalendarLink.live,
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      final soccer = find.text('Soccer practice with a long name').first;
+      await tester.ensureVisible(soccer);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(soccer);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Leo and Sam'), findsOneWidget);
+      expect(find.text('Riverside Park, Field 2'), findsWidgets);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Done'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await letGo(tester, c);
+    });
+  }
+
+  testWidgets('a hidden chip takes its calendar off the screen', (
+    tester,
+  ) async {
+    final c = await container();
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    c.calendar.opening = (view: 'week', date: null);
+    c.calendar.visible.value = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(children: [CalendarOverlay(container: c)]),
+        ),
+      ),
+    );
+    c.calendar.snapshot.value = CalendarSnapshot(
+      events: _week(),
+      link: CalendarLink.live,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Choir'), findsOneWidget);
+    await tester.tap(find.text('Maya'));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.calendar.hidden.value, {'calendar.maya'});
+    expect(find.text('Choir'), findsNothing);
+    // A shared event stays while one of its people shows.
+    await tester.tap(find.text('Sam'));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Soccer practice with a long name'), findsOneWidget);
+    await letGo(tester, c);
+  });
+
+  testWidgets('an empty week says so once, and the open view is reported', (
+    tester,
+  ) async {
+    final c = await container();
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final views = <String?>[];
+    final sub = c.bus.on<CalendarViewChanged>().listen(
+      (e) => views.add(e.view),
+    );
+    addTearDown(sub.cancel);
+    c.calendar.opening = (view: 'week', date: null);
+    c.calendar.visible.value = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(children: [CalendarOverlay(container: c)]),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    c.calendar.snapshot.value = const CalendarSnapshot(link: CalendarLink.live);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Nothing planned this week'), findsOneWidget);
+    expect(find.text('Nothing planned'), findsNothing);
+    await tester.tap(find.text('Month').first);
+    await tester.pump(const Duration(milliseconds: 50));
+    await letGo(tester, c);
+    expect(views, ['week', 'month', null]);
+  });
+
+  testWidgets(
+    'as the screensaver it keeps the overlay opening, never idles out and '
+    'its X ends the screensaver',
+    (tester) async {
+      final c = await container();
+      var stops = 0;
+      c.commands.register(
+        Command(
+          name: 'stopScreensaver',
+          description: 'stub',
+          handler: (_) async {
+            stops++;
+            return const CommandResult.ok();
+          },
+        ),
+      );
+      await c.settings.set(defs.calendarIdleCloseMinutes, '1');
+      // Its own view, not the calendar's Default view.
+      await c.settings.set(defs.calendarDefaultView, 'month');
+      await c.settings.set(defs.screensaverCalendarView, 'day');
+      c.calendar.opening = (view: 'schedule', date: null);
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: CalendarScreen(container: c, screensaver: true)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(c.calendar.screensaverShown.value, isTrue);
+      expect(c.calendar.shownView.value, 'day');
+      // The opening waits for the overlay it was meant for.
+      expect(c.calendar.opening.view, 'schedule');
+      await tester.pump(const Duration(minutes: 2));
+      expect(find.byType(CalendarScreen), findsOneWidget);
+      expect(stops, 0);
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pump();
+      expect(stops, 1);
+      // ESPHome's Closed and the remote close it the same way.
+      await c.commands.execute('hideCalendar', const {});
+      expect(stops, 2);
+      expect(c.calendar.status()['visible'], isTrue);
+      await tester.pumpWidget(const SizedBox());
+      expect(c.calendar.screensaverShown.value, isFalse);
+      await tester.pump(const Duration(seconds: 61));
+    },
+  );
+
+  testWidgets('Settings > Calendar lists the calendars over the definitions', (
+    tester,
+  ) async {
+    final c = await container();
+    c.homeAssistant.connectionOk.value = true;
+    tester.view.physicalSize = const Size(500, 6000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(home: SettingsScreen(container: c)));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Calendar').first);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+    for (final text in [
+      'Open calendar',
+      'Calendars',
+      'Leo',
+      'calendar.sam',
+      'Add a calendar',
+      'Default view',
+      'Week starts on',
+      'Weather',
+      'Show in the kiosk menu',
+      'Close when idle',
+    ]) {
+      expect(find.text(text), findsWidgets, reason: text);
+    }
+    expect(tester.takeException(), isNull);
+  });
+}

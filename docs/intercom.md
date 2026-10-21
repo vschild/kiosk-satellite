@@ -116,7 +116,7 @@ Wake word detection pauses for the whole call, so the kiosk cannot hear "hang up
 
 The call goes out from the kiosk you are talking to. A request typed into Home Assistant's own chat reaches no kiosk until it names the one that should call, as in "call the kitchen from the bedroom kiosk", which matches the kiosk's device name or ESPHome name.
 
-The kiosk listens for the script over its own Home Assistant connection and it needs the Home Assistant long-lived token under **Settings, Home Assistant** to belong to an administrator user. Home Assistant only lets administrators fire and follow the events the script runs on. With any other token the kiosk leaves voice calls off and asks Home Assistant nothing. [Voice alarms](alarms.md#setting-alarms-by-voice) work the same way and need the same token.
+The kiosk listens for the script over its own Home Assistant connection and it needs the Home Assistant long-lived token under **Settings, Home Assistant** to belong to an administrator user. Home Assistant only lets administrators fire and follow the events the script runs on. With any other token the kiosk leaves voice calls off and asks Home Assistant nothing. [Voice alarms](alarms.md#setting-alarms-by-voice) and [the calendar by voice](calendar.md#managing-the-calendar-by-voice) work the same way and need the same token.
 
 The script works from automations too. Set `caller` to the kiosk that should place the call, and the call rings at once:
 

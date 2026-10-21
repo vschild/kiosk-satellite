@@ -65,5 +65,8 @@ export const navigationMessageIds = {
   "Timers": "settingsLedTimers",
   "Notifications": "settingsLedNotifications",
   "Idle": "settingsLedIdle",
-  "Effects": "settingsLedEffects"
+  "Effects": "settingsLedEffects",
+  "Calendar": "settingsMenuCalendar",
+  "Family calendars from Home Assistant": "settingsMenuCalendarSummary",
+  "Household": "settingsGroupHousehold"
 };

@@ -83,7 +83,7 @@ Settings that scale the UI, control screen brightness, or manage volume often de
 | `screensaver.local_folder` Local media folder | Local Media screensaver |
 | `screensaver.clock_background` Clock background photo | Clock screensaver |
 | `notifications.chime_file` Notification sound | Notifications |
-| `launcher.apps` Apps | App Launcher |
+| `launcher.apps` Apps, which carries `kiosk.allowed_apps` Allowed Apps | App Launcher |
 | `motion.sensitivity`, `motion.fps` | Camera |
 | `face.sensitivity` | Face Detection |
 | `camera.snapshot_resolution` | Camera |
@@ -138,9 +138,11 @@ Certain settings remain unique to each kiosk regardless of the profile configura
 | Remote admin & fleet | `remote.enabled`, `remote.port`, `remote.tls`, `remote.password`, `remote.fleet_discovery`, `remote.admin_url`, `fleet.*` |
 | Intercom encryption and hang up button | `intercom.tls`, `intercom.hangup_key`, `intercom.hangup_key_ringing` |
 | Alarms | `alarms.list`, `alarms.runtime` |
+| Calendar | `calendar.hidden` |
 | Hardware picks | `camera.device`, `camera.rtsp.tls`, `camera.rtsp.resolution`, `camera.rtsp.analysis`, `motion.camera`, `audio.mic_device`, `audio.speaker_device`, `audio.mic_channel`, `audio.mic_capture_mode`, `audio.software_echo_cancellation`, `audio.mic_noise_suppression`, `audio.mic_gain_db`, `audio.mic_capture_format`, `render.disable_impeller`, `render.legacy_webview`, `ui.scale`, `screen.ambient_display` |
 | Followed player | `sendspin.player`, `sendspin.player_source`, `sendspin.player_name`, `sendspin.speaker_pill_players` |
 | Weather preview | `screensaver.weather_preview`, `screensaver.weather_preview_condition`, `screensaver.weather_preview_period` |
+| Celestial view and last GPS position | `screensaver.celestial_view`, `screensaver.celestial_last_gps` |
 | Voice Satellite chimes | `voice_chimes.wake`, `voice_chimes.done`, `voice_chimes.error`, `voice_chimes.alert`, `voice_chimes.announce` |
 | Diagnostics | `wake_word.diagnostics` |
 | Wake word arbitration offset | `voice.wake_arbitration_offset_db` |
@@ -154,6 +156,8 @@ Gestures assigned to plugin actions also stay local, even when the profile inclu
 The Voice Satellite selects Home Assistant keeps for each kiosk travel with the Voice Satellite category: Assistant 1 and 2, Wake word 1 and 2 and Finished speaking detection. A follower sets its own selects in Home Assistant to the leader's picks, so Home Assistant configures it the same way it would for a pick made by hand. A follower keeps its own pick when Home Assistant does not offer the leader's, for example a model the follower lacks. The `voice.wake_words` setting in the table above is the kiosk's copy of what Home Assistant set, so it never travels on its own.
 
 The Alarms category carries the alarm defaults (Show in the kiosk menu, the volume, the tone, snooze, Silence after and sunrise lengths). The [alarms](alarms.md) themselves, and a ring or snooze in progress, stay on each kiosk.
+
+The Calendar category carries the [calendars](calendar.md) with their names, colors and people, and the Display and Kiosk settings. The calendars hidden with their chips stay on each kiosk.
 
 Custom wake word models are the exception: a leader passes its models to every follower whose profile syncs Voice Satellite, and those followers mirror the leader's set. See [Custom Wake Word Models](custom-wake-words.md).
 

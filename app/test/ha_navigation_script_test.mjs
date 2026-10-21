@@ -11,11 +11,14 @@ const template = source.match(
 )[0];
 
 function navigate(start, target, origin = 'http://ha.test:8123') {
-  const location = { pathname: start, href: origin + start };
+  const location = { origin, pathname: start, href: origin + start, search: '', hash: '' };
   const calls = [];
+  // No custom pages on other servers, so no origin counts as one.
   const script = template
     .replace('${jsonEncode(effectiveBase)}', JSON.stringify('http://ha.test:8123'))
-    .replace('${jsonEncode(viewPath)}', JSON.stringify(target));
+    .replace('${_onExternalPageJs()}', '[].indexOf(location.origin) >= 0')
+    .replace('${jsonEncode(viewPath)}', JSON.stringify(target))
+    .replace('${jsonEncode(viewRoute(viewPath))}', JSON.stringify(target.split(/[?#]/)[0]));
   const result = runInNewContext(script, {
     location,
     history: {
@@ -76,4 +79,16 @@ test('navigation leaves another origin untouched', () => {
   assert.deepEqual(navigate('/home/areas-salon', 'home', 'https://other.test'), {
     result: 'off-origin', path: '/home/areas-salon', calls: [],
   });
+});
+
+test("an app's sidebar panel opens from a dashboard and back", () => {
+  for (const [start, target] of [
+    ['/home-tablet/0', '1e25efb6_panalume'],
+    ['/1e25efb6_panalume', 'home-tablet/0'],
+  ]) {
+    const actual = navigate(start, target);
+    assert.equal(actual.result, 'navigated', `${start} -> ${target}`);
+    assert.equal(actual.path, '/' + target);
+  }
+  assert.equal(navigate('/1e25efb6_panalume', '1e25efb6_panalume').result, 'already');
 });

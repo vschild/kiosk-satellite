@@ -662,6 +662,336 @@ abstract class UiStrings {
   /// **'No launchable apps found.'**
   String get launcherEmpty;
 
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Search apps'**
+  String get launcherSearchApps;
+
+  /// Name of the calendar feature: the kiosk menu entry and the calendar's eyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendarTitle;
+
+  /// View switcher segment and Default view choice: one day.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get calendarViewDay;
+
+  /// View switcher segment and Default view choice: one week.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get calendarViewWeek;
+
+  /// View switcher segment and Default view choice: one month.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get calendarViewMonth;
+
+  /// View switcher segment and Default view choice: a list of the coming days.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get calendarViewSchedule;
+
+  /// Button that jumps back to today, and the label over today's events.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendarToday;
+
+  /// Label over tomorrow's events in the Schedule view.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get calendarTomorrow;
+
+  /// Tooltip of the arrow that goes back one day, week or month.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get calendarPrevious;
+
+  /// Tooltip of the arrow that goes ahead one day, week or month.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get calendarNext;
+
+  /// An event without a time, and the Day view's row for those events.
+  ///
+  /// In en, this message translates to:
+  /// **'All day'**
+  String get calendarAllDay;
+
+  /// A month day with more events than fit. {count} is how many are left out.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String calendarMore(String count);
+
+  /// Heading of the next event today, in the Schedule view and the screensaver widget.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get calendarUpNext;
+
+  /// How soon the next event starts. {duration} reads like 50 min or 2 h 10 min.
+  ///
+  /// In en, this message translates to:
+  /// **'in {duration}'**
+  String calendarStartsIn(String duration);
+
+  /// The next event has already started.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get calendarHappeningNow;
+
+  /// Heading of the rest of today's events in the Schedule view.
+  ///
+  /// In en, this message translates to:
+  /// **'Later today'**
+  String get calendarLaterToday;
+
+  /// Today has no more events.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing else today'**
+  String get calendarNothingElseToday;
+
+  /// A day or a span without events.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned'**
+  String get calendarNothingPlanned;
+
+  /// A week without events in the Week view.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned this week'**
+  String get calendarNothingThisWeek;
+
+  /// Shown when no calendar is added.
+  ///
+  /// In en, this message translates to:
+  /// **'No calendars yet'**
+  String get calendarEmptyTitle;
+
+  /// Under No calendars yet in the calendar itself.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the Home Assistant calendars to show in Settings > Calendar.'**
+  String get calendarEmptyHint;
+
+  /// Banner while the calendar cannot reach Home Assistant. {time} is when the events were last updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Assistant is not reachable. Showing the events from {time}.'**
+  String calendarOffline(String time);
+
+  /// An event's start and end time.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String calendarTimeRange(String start, String end);
+
+  /// Two calendars sharing an event, or the last two of several.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {second}'**
+  String calendarPeopleTwo(String first, String second);
+
+  /// How a repeating event repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get calendarRepeatsDaily;
+
+  /// How a repeating event repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get calendarRepeatsWeekly;
+
+  /// How a repeating event repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get calendarRepeatsMonthly;
+
+  /// How a repeating event repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Every year'**
+  String get calendarRepeatsYearly;
+
+  /// A repeating event whose rule has no simple name.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats'**
+  String get calendarRepeats;
+
+  /// Closes an event's details.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get calendarDone;
+
+  /// Heading of the list of calendars the kiosk shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendars'**
+  String get calendarCalendarsSection;
+
+  /// Button that picks a Home Assistant calendar to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a calendar'**
+  String get calendarAdd;
+
+  /// Toast when the picked calendar was added before.
+  ///
+  /// In en, this message translates to:
+  /// **'That calendar is already on the list.'**
+  String get calendarAlreadyAdded;
+
+  /// Row that shows the calendar on this kiosk.
+  ///
+  /// In en, this message translates to:
+  /// **'Open calendar'**
+  String get calendarOpen;
+
+  /// Under Open calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the calendar on this kiosk.'**
+  String get calendarOpenHint;
+
+  /// Field for the name on the calendar's chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get calendarEditName;
+
+  /// Heading of the calendar's color choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get calendarEditColor;
+
+  /// Field for the Home Assistant person the calendar belongs to.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get calendarEditPerson;
+
+  /// Under Person.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows their picture on the calendar chips.'**
+  String get calendarEditPersonHint;
+
+  /// No person picked.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get calendarEditPersonNone;
+
+  /// Title of the calendar picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a calendar'**
+  String get calendarPickCalendar;
+
+  /// Title of the person picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person'**
+  String get calendarPickPerson;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get calendarColorTeal;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Rust'**
+  String get calendarColorRust;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get calendarColorBlue;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Plum'**
+  String get calendarColorPlum;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Ochre'**
+  String get calendarColorOchre;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Sage'**
+  String get calendarColorSage;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get calendarColorRose;
+
+  /// A calendar color.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate'**
+  String get calendarColorSlate;
+
+  /// Picks any other color.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get calendarColorCustom;
+
+  /// How many coming events the Up next widget lists.
+  ///
+  /// In en, this message translates to:
+  /// **'Events shown'**
+  String get calendarWidgetEvents;
+
+  /// Heading of the group about managing the calendar by voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Calendar'**
+  String get calendarVoiceSection;
+
+  /// Row that opens the guide to adding and changing calendar events by voice. Keep Voice Satellite unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the calendar using Voice Satellite'**
+  String get calendarVoiceManage;
+
+  /// Description under that row. Keep Kiosk Satellite and Home Assistant unchanged. A blueprint is a Home Assistant template for a script.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs the Kiosk Satellite calendar blueprint and an LLM conversation agent in Home Assistant.'**
+  String get calendarVoiceHint;
+
   /// Page title.
   ///
   /// In en, this message translates to:
@@ -1069,6 +1399,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Builds its own views'**
   String get dashboardPickerBuildsOwn;
+
+  /// Second line of an app from the Home Assistant sidebar, such as Music Assistant, whose web page Home Assistant shows through ingress.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingress page'**
+  String get dashboardPickerIngressPage;
 
   /// Note under the Whole dashboard choice.
   ///
@@ -3074,6 +3410,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Open Android Settings'**
   String get gestureAndroidSettings;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the calendar'**
+  String get gestureOpenCalendar;
 
   /// Label or guidance in this section.
   ///
@@ -7498,6 +7840,18 @@ abstract class UiStrings {
   /// **'Time without a touch in the other app before the kiosk comes back.'**
   String get settingLauncherAutoReturnSecondsDescription;
 
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait while media plays'**
+  String get settingLauncherAutoReturnMediaTitle;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not come back while video or music is playing.'**
+  String get settingLauncherAutoReturnMediaDescription;
+
   /// Label or guidance in this section.
   ///
   /// In en, this message translates to:
@@ -7528,11 +7882,161 @@ abstract class UiStrings {
   /// **'Android may pause the app behind the other one, and a paused clock never brings the kiosk back. The grant dialog appears on the tablet.'**
   String get launcherBatteryRemote;
 
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'The kiosk stays away while video or music plays in another app.'**
+  String get launcherNotificationAccessHeld;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this the kiosk cannot tell when video or music is playing and comes back anyway.'**
+  String get launcherNotificationAccessMissing;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this the kiosk cannot tell when video or music is playing and comes back anyway. The grant screen appears on the tablet.'**
+  String get launcherNotificationAccessRemote;
+
   /// Description in settings search results.
   ///
   /// In en, this message translates to:
   /// **'The grants Return automatically leans on.'**
   String get launcherPermissionsSearch;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Default view'**
+  String get settingCalendarDefaultViewTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'The view Calendar opens on.'**
+  String get settingCalendarDefaultViewDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Week starts on'**
+  String get settingCalendarWeekStartTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows the device language unless set.'**
+  String get settingCalendarWeekStartDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get settingCalendarWeatherEntityTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds the forecast to each day.'**
+  String get settingCalendarWeatherEntityDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in the kiosk menu'**
+  String get settingCalendarMenuTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Calendar entry to the kiosk menu.'**
+  String get settingCalendarMenuDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Close when idle'**
+  String get settingCalendarIdleCloseMinutesTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns to the dashboard after no touch for this long.'**
+  String get settingCalendarIdleCloseMinutesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get settingKioskAllowCalendarTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the family calendar from the kiosk menu.'**
+  String get settingKioskAllowCalendarDescription;
+
+  /// Week starts on: the device language's first day.
+  ///
+  /// In en, this message translates to:
+  /// **'Language default'**
+  String get calendarWeekStartLocale;
+
+  /// Week starts on Sunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get calendarWeekStartSunday;
+
+  /// Week starts on Monday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get calendarWeekStartMonday;
+
+  /// Week starts on Saturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get calendarWeekStartSaturday;
+
+  /// Close when idle: the calendar stays open.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get calendarIdleNever;
+
+  /// Close when idle after one minute.
+  ///
+  /// In en, this message translates to:
+  /// **'1 minute'**
+  String get calendarIdle1Minute;
+
+  /// Close when idle after two minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'2 minutes'**
+  String get calendarIdle2Minutes;
+
+  /// Settings page name.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get settingsMenuCalendar;
+
+  /// Under Calendar in the settings menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Family calendars from Home Assistant'**
+  String get settingsMenuCalendarSummary;
+
+  /// What stays per kiosk when the Calendar category syncs.
+  ///
+  /// In en, this message translates to:
+  /// **'the calendars hidden with their chips'**
+  String get fleetTheCalendarsHiddenWithTheirChips;
 
   /// Setting label.
   ///
@@ -8955,6 +9459,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Edit view'**
   String get cameraStreamsEditView;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'View ID'**
+  String get cameraStreamsViewId;
 
   /// Label or guidance in this section.
   ///
@@ -12299,6 +12809,12 @@ abstract class UiStrings {
   /// **'Location is off in the device settings, so the receiver delivers nothing.'**
   String get esphomeLocationServicesOff;
 
+  /// Location permission row when only approximate location is allowed (Android 12 and later). The GPS receiver needs precise location.
+  ///
+  /// In en, this message translates to:
+  /// **'Only approximate location is allowed, and the GPS receiver needs precise location.'**
+  String get esphomeLocationApproximate;
+
   /// Interface label or status message.
   ///
   /// In en, this message translates to:
@@ -14170,6 +14686,24 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Which quick actions the kiosk menu offers'**
   String get kioskAllowedHelp;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Apps'**
+  String get settingKioskAllowedAppsTitle;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'The launcher apps offered while kiosk mode is on.'**
+  String get settingKioskAllowedAppsDescription;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Add apps in Settings > App Launcher first.'**
+  String get kioskAllowedAppsEmpty;
 
   /// Setting label.
   ///
@@ -16289,6 +16823,12 @@ abstract class UiStrings {
   /// **'Media & Cameras'**
   String get settingsGroupMediaCameras;
 
+  /// Settings menu group heading over Intercom, Alarms and Calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get settingsGroupHousehold;
+
   /// Heading above a group of Settings menu entries.
   ///
   /// In en, this message translates to:
@@ -17030,6 +17570,738 @@ abstract class UiStrings {
   /// Setting label.
   ///
   /// In en, this message translates to:
+  /// **'Location'**
+  String get settingScreensaverCelestialLocationTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the sky is seen from.'**
+  String get settingScreensaverCelestialLocationDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity'**
+  String get settingScreensaverCelestialEntityTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'A person, device tracker or zone with a location.'**
+  String get settingScreensaverCelestialEntityDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get settingScreensaverCelestialCoordinatesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude and longitude, like 40.71, -74.01.'**
+  String get settingScreensaverCelestialCoordinatesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Landscape'**
+  String get settingScreensaverCelestialTerrainTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'The ground along the horizon.'**
+  String get settingScreensaverCelestialTerrainDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Point at the sky'**
+  String get settingScreensaverCelestialFollowDeviceTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the device up and the sky on screen turns with it, so you can name what you are looking at. Needs a compass sensor.'**
+  String get settingScreensaverCelestialFollowDeviceDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Daytime sky'**
+  String get settingScreensaverCelestialDaytimeTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Brighten the sky and fade the stars while the Sun is up. Turn off to show the night sky all day.'**
+  String get settingScreensaverCelestialDaytimeDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Milky Way'**
+  String get settingScreensaverCelestialMilkyWayTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the glow of our galaxy across the night sky.'**
+  String get settingScreensaverCelestialMilkyWayDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Planets'**
+  String get settingScreensaverCelestialPlanetsTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the planets where they are tonight.'**
+  String get settingScreensaverCelestialPlanetsDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Galaxies and nebulae'**
+  String get settingScreensaverCelestialDeepSkyTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the Andromeda Galaxy, the Orion Nebula and other objects you can see without a telescope.'**
+  String get settingScreensaverCelestialDeepSkyDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Light pollution'**
+  String get settingScreensaverCelestialLightPollutionTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate the glow of city lights. Higher values hide the fainter stars and the Milky Way.'**
+  String get settingScreensaverCelestialLightPollutionDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Twinkling stars'**
+  String get settingScreensaverCelestialTwinkleTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the stars shimmer, most of all near the horizon. Turn off to save power.'**
+  String get settingScreensaverCelestialTwinkleDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger Moon'**
+  String get settingScreensaverCelestialLargeMoonTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw the Moon at three times its real size and the Sun at twice, so the phase is easy to see.'**
+  String get settingScreensaverCelestialLargeMoonDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Constellation lines'**
+  String get settingScreensaverCelestialLinesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the stars of each constellation.'**
+  String get settingScreensaverCelestialLinesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Constellation names'**
+  String get settingScreensaverCelestialConstellationNamesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Name the constellations. More appear as you zoom in.'**
+  String get settingScreensaverCelestialConstellationNamesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Star and planet names'**
+  String get settingScreensaverCelestialNamesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Name the Sun, the Moon, the planets, the brightest stars and the galaxies. More stars get names as you zoom in.'**
+  String get settingScreensaverCelestialNamesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Compass points'**
+  String get settingScreensaverCelestialCompassTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark north, east, south and west on the horizon.'**
+  String get settingScreensaverCelestialCompassDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Label size'**
+  String get settingScreensaverCelestialLabelScaleTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale the labels on the sky from 50 to 200 percent.'**
+  String get settingScreensaverCelestialLabelScaleDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get settingScreensaverCelestialControlCoordinatesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the latitude and longitude the sky is seen from.'**
+  String get settingScreensaverCelestialControlCoordinatesDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Azimuth'**
+  String get settingScreensaverCelestialControlAzimuthTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the compass direction the center of the screen faces.'**
+  String get settingScreensaverCelestialControlAzimuthDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settingScreensaverCelestialControlAltitudeTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show how high above the horizon the center of the screen is.'**
+  String get settingScreensaverCelestialControlAltitudeDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Field of view'**
+  String get settingScreensaverCelestialControlFovTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show how much of the sky the screen spans, in degrees.'**
+  String get settingScreensaverCelestialControlFovDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get settingScreensaverCelestialControlTimeTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the time of the sky, with a Now button after a timelapse.'**
+  String get settingScreensaverCelestialControlTimeDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Timelapse'**
+  String get settingScreensaverCelestialControlTimelapseTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed up time to watch the sky turn. Tap to change the speed.'**
+  String get settingScreensaverCelestialControlTimelapseDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Point at the sky switch'**
+  String get settingScreensaverCelestialControlPointAtSkyTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Point at the sky on and off. Shows only on devices with a compass.'**
+  String get settingScreensaverCelestialControlPointAtSkyDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon phase'**
+  String get settingScreensaverCelestialControlMoonPhaseTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the phase of the Moon and how much of it is lit.'**
+  String get settingScreensaverCelestialControlMoonPhaseDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls size'**
+  String get settingScreensaverCelestialControlScaleTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale the controls from 50 to 200 percent.'**
+  String get settingScreensaverCelestialControlScaleDescription;
+
+  /// Screensaver mode choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Celestial'**
+  String get screensaverModeCelestial;
+
+  /// Landscape choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Hills'**
+  String get screensaverCelestialTerrainHills;
+
+  /// Landscape choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountains'**
+  String get screensaverCelestialTerrainMountains;
+
+  /// Landscape choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Plains'**
+  String get screensaverCelestialTerrainPlains;
+
+  /// Landscape choice: no ground at all, so the whole screen shows the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get screensaverCelestialTerrainNone;
+
+  /// Location source choice.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS'**
+  String get screensaverCelestialLocationGps;
+
+  /// Location source choice: the home zone in Home Assistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Assistant home'**
+  String get screensaverCelestialLocationHaHome;
+
+  /// Location source choice: a person, device tracker or zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Assistant entity'**
+  String get screensaverCelestialLocationHaEntity;
+
+  /// Location source choice: coordinates typed in.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get screensaverCelestialLocationManual;
+
+  /// Status row title under the location source.
+  ///
+  /// In en, this message translates to:
+  /// **'Current location'**
+  String get screensaverCelestialCurrentLocation;
+
+  /// Location status when the GPS source is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no GPS receiver.'**
+  String get screensaverCelestialNoGpsReceiver;
+
+  /// Location status when the GPS source is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission not granted.'**
+  String get screensaverCelestialLocationPermission;
+
+  /// Location status when the GPS source is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'No GPS fix yet.'**
+  String get screensaverCelestialNoGpsFix;
+
+  /// Location status for the Home Assistant home source.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Assistant has no home zone.'**
+  String get screensaverCelestialNoHomeZone;
+
+  /// Location status for the Home Assistant sources.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Assistant is not connected.'**
+  String get screensaverCelestialHaNotConnected;
+
+  /// Location status for the Home Assistant entity source.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an entity with a location.'**
+  String get screensaverCelestialPickEntity;
+
+  /// Location status for the Home Assistant entity source.
+  ///
+  /// In en, this message translates to:
+  /// **'This entity has no location.'**
+  String get screensaverCelestialEntityNoLocation;
+
+  /// Settings page and section title.
+  ///
+  /// In en, this message translates to:
+  /// **'Celestial screensaver'**
+  String get screensaverCelestialPage;
+
+  /// Summary under the page entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Location, landscape, sky, labels, controls'**
+  String get screensaverCelestialSummary;
+
+  /// Group heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky'**
+  String get screensaverCelestialSkyGroup;
+
+  /// Group heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get screensaverCelestialLabelsGroup;
+
+  /// Group heading: switches for the chips a touch brings up over the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls'**
+  String get screensaverCelestialControlsGroup;
+
+  /// Location permission row under Required system permissions, shown while the GPS source has no location grant.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this the GPS receiver cannot be read and the sky has no location.'**
+  String get screensaverCelestialLocationGrantMissing;
+
+  /// Location permission row under Required system permissions, shown once the location grant is given.
+  ///
+  /// In en, this message translates to:
+  /// **'The sky can follow the GPS receiver.'**
+  String get screensaverCelestialLocationGrantReady;
+
+  /// Error under the coordinates field.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a latitude and longitude, like 40.71, -74.01'**
+  String get screensaverCelestialCoordinatesInvalid;
+
+  /// Prompt shown on a black screen when the location source has no position.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a location in Settings > Screensaver > Celestial.'**
+  String get screensaverCelestialNoLocation;
+
+  /// Shown on a black screen while the GPS source looks for its first position.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a GPS fix...'**
+  String get screensaverCelestialWaitingForGps;
+
+  /// Hint shown after a single tap on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to close'**
+  String get screensaverCelestialDoubleTapHint;
+
+  /// Note over the sky while the compass is not calibrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the device in a figure eight to calibrate the compass.'**
+  String get screensaverCelestialCalibrate;
+
+  /// Label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get celestialSun;
+
+  /// Label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon'**
+  String get celestialMoon;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Mercury'**
+  String get celestialMercury;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Venus'**
+  String get celestialVenus;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Mars'**
+  String get celestialMars;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Jupiter'**
+  String get celestialJupiter;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturn'**
+  String get celestialSaturn;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Uranus'**
+  String get celestialUranus;
+
+  /// Planet label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Neptune'**
+  String get celestialNeptune;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Andromeda Galaxy'**
+  String get celestialAndromedaGalaxy;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Triangulum Galaxy'**
+  String get celestialTriangulumGalaxy;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Large Magellanic Cloud'**
+  String get celestialLargeMagellanicCloud;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Small Magellanic Cloud'**
+  String get celestialSmallMagellanicCloud;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Orion Nebula'**
+  String get celestialOrionNebula;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Lagoon Nebula'**
+  String get celestialLagoonNebula;
+
+  /// Deep-sky object label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Carina Nebula'**
+  String get celestialCarinaNebula;
+
+  /// Star cluster label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Pleiades'**
+  String get celestialPleiades;
+
+  /// Star cluster label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Beehive Cluster'**
+  String get celestialBeehiveCluster;
+
+  /// Star cluster label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Double Cluster'**
+  String get celestialDoubleCluster;
+
+  /// Star cluster label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Omega Centauri'**
+  String get celestialOmegaCentauri;
+
+  /// Star cluster label on the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'47 Tucanae'**
+  String get celestialTucanae47;
+
+  /// Compass point on the horizon: north, one or two letters.
+  ///
+  /// In en, this message translates to:
+  /// **'N'**
+  String get celestialCompassNorth;
+
+  /// Compass point on the horizon: east, one or two letters.
+  ///
+  /// In en, this message translates to:
+  /// **'E'**
+  String get celestialCompassEast;
+
+  /// Compass point on the horizon: south, one or two letters.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get celestialCompassSouth;
+
+  /// Compass point on the horizon: west, one or two letters.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get celestialCompassWest;
+
+  /// Compass direction in the Azimuth chip: northeast, short like N or E.
+  ///
+  /// In en, this message translates to:
+  /// **'NE'**
+  String get celestialCompassNorthEast;
+
+  /// Compass direction in the Azimuth chip: southeast, short like N or E.
+  ///
+  /// In en, this message translates to:
+  /// **'SE'**
+  String get celestialCompassSouthEast;
+
+  /// Compass direction in the Azimuth chip: southwest, short like N or E.
+  ///
+  /// In en, this message translates to:
+  /// **'SW'**
+  String get celestialCompassSouthWest;
+
+  /// Compass direction in the Azimuth chip: northwest, short like N or E.
+  ///
+  /// In en, this message translates to:
+  /// **'NW'**
+  String get celestialCompassNorthWest;
+
+  /// Short label before the azimuth in the bar over the sky, like astronomy programs use. Keep it to a few letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Az'**
+  String get celestialAzimuthShort;
+
+  /// Short label before the altitude in the bar over the sky, like astronomy programs use. Keep it to a few letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Alt'**
+  String get celestialAltitudeShort;
+
+  /// Short label before the field of view in the bar over the sky, like astronomy programs use. Keep it to a few letters.
+  ///
+  /// In en, this message translates to:
+  /// **'FOV'**
+  String get celestialFovShort;
+
+  /// Button in the bar over the sky that brings the sky back to the current time after a timelapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get celestialNow;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'New Moon'**
+  String get celestialMoonNew;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing crescent'**
+  String get celestialMoonWaxingCrescent;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'First quarter'**
+  String get celestialMoonFirstQuarter;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing gibbous'**
+  String get celestialMoonWaxingGibbous;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Moon'**
+  String get celestialMoonFull;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning gibbous'**
+  String get celestialMoonWaningGibbous;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Last quarter'**
+  String get celestialMoonLastQuarter;
+
+  /// Moon phase in the Moon phase chip, followed by the lit percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning crescent'**
+  String get celestialMoonWaningCrescent;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
   /// **'Style'**
   String get settingScreensaverClockStyleTitle;
 
@@ -17422,6 +18694,24 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Add AM or PM after the time.'**
   String get settingScreensaverClockAmPmDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn screen off at night after'**
+  String get settingScreensaverClockNightTurnOffMinutesTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns the screen off once Night mode has lasted the set time and back on when the room brightens. Set to 0 to keep the screen on. Requires Device Administrator permission.'**
+  String get settingScreensaverClockNightTurnOffMinutesDescription;
+
+  /// Warning before Night mode is allowed to power the screen off.
+  ///
+  /// In en, this message translates to:
+  /// **'When the display really powers off, the tablet\'s own power management takes over. Many Android models misbehave in that state: Wi-Fi naps or drops, Home Assistant entities go unavailable, the camera can be revoked and some models kill background apps. Some light sensors also stop reporting with the display off, so the screen may not turn back on by itself when the room brightens. What happens depends on the manufacturer.\n\nThe reliable alternative is Use a black screen instead. The panel looks just as dark and the app keeps full control.'**
+  String get screensaverNightTurnOffWarning;
 
   /// Label or guidance in this editor.
   ///
@@ -18011,6 +19301,18 @@ abstract class UiStrings {
   /// **'On Android 14 and later the system often blocks apps from starting its screensaver. If nothing appears at the idle timeout, pick another mode or use a device that still allows it.'**
   String get screensaverAndroidModernLimit;
 
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to dismiss'**
+  String get settingScreensaverDashboardDoubleTapTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Single taps interact with the dashboard instead of dismissing.'**
+  String get settingScreensaverDashboardDoubleTapDescription;
+
   /// Label, status or guidance in this section.
   ///
   /// In en, this message translates to:
@@ -18022,6 +19324,24 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Image URL'**
   String get screensaverModeUrl;
+
+  /// Heading of the group for the Calendar screensaver mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar screensaver'**
+  String get screensaverCalendarSection;
+
+  /// Setting label: which calendar view (Day, Week, Month or Schedule) the screensaver opens on.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar view'**
+  String get settingScreensaverCalendarViewTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar view the screensaver opens on.'**
+  String get settingScreensaverCalendarViewDescription;
 
   /// Setting label.
   ///
@@ -20722,6 +22042,18 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'The icon beside the value.'**
   String get screensaverOverlayShowIconHelp;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible states'**
+  String get screensaverOverlayVisibleStates;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the widget only when its value is one of these, separated by commas. Leave empty to always show it.'**
+  String get screensaverOverlayVisibleStatesHelp;
 
   /// Generic font family option. Font brand names stay unchanged.
   ///
@@ -23602,6 +24934,24 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'The model does not load: {error}'**
   String voiceModelNoLoad(String error);
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake word language'**
+  String get settingVoiceAmazonLocaleTitle;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The language of Amazon\'s wake word models. The wake word selects offer the wake words it has.'**
+  String get settingVoiceAmazonLocaleDescription;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk Satellite\'s language'**
+  String get voiceOptionAppLanguage;
 
   /// Setting label.
   ///

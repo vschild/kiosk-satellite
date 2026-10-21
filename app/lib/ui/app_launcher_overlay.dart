@@ -125,7 +125,7 @@ class _LauncherScreenState extends State<_LauncherScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final apps = container.launcher.apps;
+    final apps = container.launcher.shown;
     final size = MediaQuery.sizeOf(context);
     final compact = size.height < 480 || size.width < 600;
     return Focus(

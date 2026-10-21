@@ -5,5 +5,8 @@
   "launcherOverlayRemote": "没有此权限，Kiosk 无法自动返回，也无法检测其他应用中的触屏操作。授权页面会显示在平板上。",
   "launcherBatteryMissing": "系统可能暂停后台的 Kiosk Satellite，导致自动返回计时停止，无法自动回到 Kiosk 界面。",
   "launcherBatteryRemote": "系统可能暂停后台的 Kiosk Satellite，导致自动返回计时停止，无法自动回到 Kiosk 界面。请在平板上显示的授权对话框中完成授权。",
+  "launcherNotificationAccessHeld": "其他应用正在播放视频或音乐时，不会返回 Kiosk。",
+  "launcherNotificationAccessMissing": "未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。",
+  "launcherNotificationAccessRemote": "未授权时无法判断是否正在播放视频或音乐，到时间仍会返回 Kiosk。请在平板上显示的授权界面中完成授权。",
   "launcherPermissionsSearch": "“自动返回”所依赖的权限。"
 }

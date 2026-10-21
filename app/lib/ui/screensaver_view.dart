@@ -18,6 +18,9 @@ import 'package:video_player/video_player.dart';
 import 'alarms_overlay.dart' show alarmTimeText;
 import '../managers/alarms/alarm_manager.dart';
 import 'alarm_ring_overlay.dart';
+import 'calendar_overlay.dart' show CalendarBands, CalendarScreen, calendarTime;
+import '../managers/calendar/calendar_manager.dart';
+import '../managers/calendar/calendar_model.dart' as cal_model;
 import '../app_container.dart';
 import '../l10n/messages.dart';
 import '../core/events.dart';
@@ -43,6 +46,7 @@ import '../managers/camera/models.dart'
     show CameraViewConfig, decodeCameraViewIds;
 import '../managers/device/haptics.dart';
 import '../managers/screensaver/photo_metadata.dart';
+import '../managers/screensaver/screensaver_manager.dart' show clockNightActive;
 import '../managers/screensaver/screensaver_widgets.dart';
 import '../managers/settings/definitions.dart' as defs;
 import '../managers/settings/settings_manager.dart';
@@ -53,6 +57,7 @@ import 'digital_clock_face.dart';
 import 'weather_readings.dart';
 import 'photo_frames.dart';
 import 'plugin_screensaver.dart';
+import 'celestial_screensaver.dart';
 import 'weather_mood_screensaver.dart';
 
 import 'glance_row.dart';
@@ -62,26 +67,6 @@ import 'video_surface.dart';
 import 'webview_server_trust.dart';
 
 export 'photo_frames.dart' show photoCovers;
-
-/// The Night mode decision (issue #391): whether the clock wears its night
-/// color, given the last decision.
-///
-/// Entering at the threshold but leaving only a quarter above it keeps a
-/// reading hovering on the line from flickering the color back and forth:
-/// the sensor's native damper spaces events out, it does not steady them.
-/// A null [lux] is a sensor that has not spoken and has no persisted last
-/// reading, which cannot claim the room is dark.
-bool clockNightActive({
-  required bool previous,
-  required bool enabled,
-  required double? lux,
-  required double threshold,
-}) {
-  if (!enabled || lux == null) return false;
-  if (lux <= threshold) return true;
-  if (lux > threshold * 1.25) return false;
-  return previous;
-}
 
 /// The screensaver overlay: whichever of the four views the manager says is
 /// active, or nothing.
@@ -147,6 +132,8 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
       defs.sendspinFullscreenControls.key,
       defs.sendspinFullscreenSplit.key,
       defs.sendspinFullscreenPhotoFill.key,
+      // Whether the dashboard mode's clear layer takes taps.
+      defs.screensaverDashboardDoubleTap.key,
       // The edge zones (issue #453), read at build by the row below the
       // mode, so the toggle mounts or unmounts them on the spot.
       for (final def in slideEdgeTapDefs.values) def.key,
@@ -285,6 +272,17 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                       child: WeatherMoodScreensaver(container: container),
                     ),
                   ),
+                  // Not wrapped in _Dismissable: the calendar keeps its
+                  // touches, and its X ends the screensaver.
+                  'calendar' => CalendarScreen(
+                    container: container,
+                    screensaver: true,
+                  ),
+                  // Not wrapped in _Dismissable: a drag looks around the
+                  // sky, and the view closes itself on a double tap.
+                  'celestial' => UiScaleExempt(
+                    child: CelestialScreensaver(container: container),
+                  ),
                   'clock' => _Dismissable(
                     container: container,
                     child: ClockScreensaver(
@@ -346,7 +344,15 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                   'camera' => CameraScreensaver(container: container),
                   // The Home Assistant Dashboard mode: the dashboard itself
                   // shows through a clear layer that takes the tap, so a
-                  // touch dismisses rather than pressing a card.
+                  // touch dismisses rather than pressing a card. With
+                  // Double tap to dismiss there is no layer: taps reach the
+                  // cards and the kiosk screen's raw pointer reports run
+                  // the manager's double-tap chain.
+                  'dashboard'
+                      when container.settings.get(
+                        defs.screensaverDashboardDoubleTap,
+                      ) =>
+                    const SizedBox.shrink(),
                   'dashboard' => _Dismissable(
                     container: container,
                     child: const SizedBox.expand(),
@@ -380,8 +386,8 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                 // The At a Glance row rides over the photo and web modes
                 // too, pinned to the bottom the way the Clock screensaver
                 // pins it. Black and Clock place their own row (centred,
-                // under the clock), and the camera grid stays clear, the
-                // same line the corner widgets draw. IgnorePointer keeps
+                // under the clock), and the calendar and the camera grid
+                // stay clear, the same line the corner widgets draw. IgnorePointer keeps
                 // taps falling through to the mode underneath: dismissal
                 // for the native modes, the page for the web ones.
                 if (!blackBare &&
@@ -389,53 +395,59 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                     view != 'black' &&
                     view != 'clock' &&
                     view != 'weather_mood' &&
+                    view != 'calendar' &&
                     view != 'camera')
-                  ValueListenableBuilder<bool?>(
-                    valueListenable: container.screensaver.scheduleGlance,
-                    builder: (context, scheduled, _) {
-                      if (!(scheduled ??
-                          container.settings.get(
-                            defs.screensaverGlanceEnabled,
-                          ))) {
-                        return const SizedBox.shrink();
-                      }
-                      return ValueListenableBuilder<Set<String>>(
-                        valueListenable: container.screensaver.claimedCorners,
-                        builder: (context, claimed, _) {
-                          // Photo metadata in a bottom corner, whether
-                          // the Immich pair's two panels (which claim
-                          // theirs live) or the single-photo panel's
-                          // settled spot, and the row narrows to
-                          // portrait's two columns so it wraps clear of
-                          // the panels instead of spreading into them.
-                          final metadata = photoMetadataCorner(
-                            container.settings,
-                            view,
-                          );
-                          final narrow =
-                              claimed.any((c) => c.startsWith('bottom_')) ||
-                              metadata == 'bottom_left' ||
-                              metadata == 'bottom_right';
-                          if (!narrow || !photoMetadataDefs.containsKey(view)) {
-                            return _GlanceOverlay(
-                              container: container,
-                              narrow: narrow,
+                  _StepAside(
+                    container: container,
+                    child: ValueListenableBuilder<bool?>(
+                      valueListenable: container.screensaver.scheduleGlance,
+                      builder: (context, scheduled, _) {
+                        if (!(scheduled ??
+                            container.settings.get(
+                              defs.screensaverGlanceEnabled,
+                            ))) {
+                          return const SizedBox.shrink();
+                        }
+                        return ValueListenableBuilder<Set<String>>(
+                          valueListenable: container.screensaver.claimedCorners,
+                          builder: (context, claimed, _) {
+                            // Photo metadata in a bottom corner, whether
+                            // the Immich pair's two panels (which claim
+                            // theirs live) or the single-photo panel's
+                            // settled spot, and the row narrows to
+                            // portrait's two columns so it wraps clear of
+                            // the panels instead of spreading into them.
+                            final metadata = photoMetadataCorner(
+                              container.settings,
+                              view,
                             );
-                          }
-                          // Once the panels have been measured, the row
-                          // fits itself to the room they leave.
-                          return ValueListenableBuilder<Map<String, Size>>(
-                            valueListenable:
-                                container.screensaver.metadataFootprint,
-                            builder: (context, footprint, _) => _GlanceOverlay(
-                              container: container,
-                              narrow: true,
-                              corners: footprint.values,
-                            ),
-                          );
-                        },
-                      );
-                    },
+                            final narrow =
+                                claimed.any((c) => c.startsWith('bottom_')) ||
+                                metadata == 'bottom_left' ||
+                                metadata == 'bottom_right';
+                            if (!narrow ||
+                                !photoMetadataDefs.containsKey(view)) {
+                              return _GlanceOverlay(
+                                container: container,
+                                narrow: narrow,
+                              );
+                            }
+                            // Once the panels have been measured, the row
+                            // fits itself to the room they leave.
+                            return ValueListenableBuilder<Map<String, Size>>(
+                              valueListenable:
+                                  container.screensaver.metadataFootprint,
+                              builder: (context, footprint, _) =>
+                                  _GlanceOverlay(
+                                    container: container,
+                                    narrow: true,
+                                    corners: footprint.values,
+                                  ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 // The corner widgets ride over every mode their type
                 // allows (the small clock stays off Clock, which is one
@@ -446,66 +458,90 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                 // boundary between two entries of the same mode changes
                 // nothing else this widget rebuilds on.
                 if (!blackBare && !weatherUnset)
-                  ValueListenableBuilder<bool?>(
-                    valueListenable: container.screensaver.scheduleWidgets,
-                    // A mode can also claim corners for itself while it
-                    // runs (the Immich pair's two metadata panels): a
-                    // widget in a claimed corner stands down until the
-                    // corner is free again, rather than sitting on top of
-                    // what claimed it.
-                    builder: (context, scheduled, _) =>
-                        ValueListenableBuilder<Set<String>>(
-                          valueListenable: container.screensaver.claimedCorners,
-                          builder: (context, claimed, _) => _AboveWeatherChips(
-                            container: container,
-                            enabled: view == 'weather_mood',
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                if ((scheduled ?? true) &&
-                                    !_widgetsNightHidden(view))
-                                  for (final spec in decodeScreensaverWidgets(
-                                    container.settings.get(
-                                      defs.screensaverWidgets,
-                                    ),
-                                  ))
-                                    if (screensaverWidgetAllowedOnMode(
-                                          spec.type,
-                                          view,
-                                        ) &&
-                                        !claimed.contains(spec.position))
-                                      switch (spec.type) {
-                                        'clock' => ClockWidgetOverlay(
-                                          container: container,
-                                          spec: spec,
-                                          nightColor: _widgetNightColor(view),
-                                        ),
-                                        'weather' => WeatherWidgetOverlay(
-                                          container: container,
-                                          spec: spec,
-                                          nightColor: _widgetNightColor(view),
-                                        ),
-                                        'battery' => BatteryWidgetOverlay(
-                                          container: container,
-                                          spec: spec,
-                                          nightColor: _widgetNightColor(view),
-                                        ),
-                                        'entity' => EntityWidgetOverlay(
-                                          container: container,
-                                          spec: spec,
-                                          nightColor: _widgetNightColor(view),
-                                        ),
-                                        'alarm' => AlarmWidgetOverlay(
-                                          container: container,
-                                          spec: spec,
-                                          nightColor: _widgetNightColor(view),
-                                        ),
-                                        _ => const SizedBox.shrink(),
-                                      },
-                              ],
-                            ),
+                  _StepAside(
+                    container: container,
+                    child: ValueListenableBuilder<bool?>(
+                      valueListenable: container.screensaver.scheduleWidgets,
+                      // A mode can also claim corners for itself while it
+                      // runs (the Immich pair's two metadata panels): a
+                      // widget in a claimed corner stands down until the
+                      // corner is free again, rather than sitting on top of
+                      // what claimed it.
+                      builder: (context, scheduled, _) =>
+                          ValueListenableBuilder<Set<String>>(
+                            valueListenable:
+                                container.screensaver.claimedCorners,
+                            builder: (context, claimed, _) =>
+                                _AboveWeatherChips(
+                                  container: container,
+                                  enabled: view == 'weather_mood',
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      if ((scheduled ?? true) &&
+                                          !_widgetsNightHidden(view))
+                                        for (final spec
+                                            in decodeScreensaverWidgets(
+                                              container.settings.get(
+                                                defs.screensaverWidgets,
+                                              ),
+                                            ))
+                                          if (screensaverWidgetAllowedOnMode(
+                                                spec.type,
+                                                view,
+                                              ) &&
+                                              !claimed.contains(spec.position))
+                                            switch (spec.type) {
+                                              'clock' => ClockWidgetOverlay(
+                                                container: container,
+                                                spec: spec,
+                                                nightColor: _widgetNightColor(
+                                                  view,
+                                                ),
+                                              ),
+                                              'weather' => WeatherWidgetOverlay(
+                                                container: container,
+                                                spec: spec,
+                                                nightColor: _widgetNightColor(
+                                                  view,
+                                                ),
+                                              ),
+                                              'battery' => BatteryWidgetOverlay(
+                                                container: container,
+                                                spec: spec,
+                                                nightColor: _widgetNightColor(
+                                                  view,
+                                                ),
+                                              ),
+                                              'entity' => EntityWidgetOverlay(
+                                                container: container,
+                                                spec: spec,
+                                                nightColor: _widgetNightColor(
+                                                  view,
+                                                ),
+                                              ),
+                                              'alarm' => AlarmWidgetOverlay(
+                                                container: container,
+                                                spec: spec,
+                                                nightColor: _widgetNightColor(
+                                                  view,
+                                                ),
+                                              ),
+                                              'calendar' =>
+                                                CalendarWidgetOverlay(
+                                                  container: container,
+                                                  spec: spec,
+                                                  nightColor: _widgetNightColor(
+                                                    view,
+                                                  ),
+                                                ),
+                                              _ => const SizedBox.shrink(),
+                                            },
+                                    ],
+                                  ),
+                                ),
                           ),
-                        ),
+                    ),
                   ),
               ],
             ),
@@ -514,6 +550,28 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
       },
     );
   }
+}
+
+/// Fades the corner widgets and the At a Glance row out while the running
+/// mode shows its own controls, so the two never stack.
+class _StepAside extends StatelessWidget {
+  const _StepAside({required this.container, required this.child});
+  final AppContainer container;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<bool>(
+    valueListenable: container.screensaver.modeControlsShown,
+    builder: (context, shown, child) => IgnorePointer(
+      ignoring: shown,
+      child: AnimatedOpacity(
+        opacity: shown ? 0 : 1,
+        duration: const Duration(milliseconds: 250),
+        child: child,
+      ),
+    ),
+    child: child,
+  );
 }
 
 /// Gives each surface its own viewport so clocks, photos and player controls
@@ -1992,6 +2050,218 @@ class _AlarmWidgetOverlayState extends State<AlarmWidgetOverlay> {
   );
 }
 
+/// The family calendar's next events today in a corner: a dot in each
+/// event's calendar color (split for a shared one), the start time and the
+/// title. Empty once nothing more is on today, so the corner stays clear.
+/// A tap opens the calendar, the alarm widget's twin.
+class CalendarWidgetOverlay extends StatefulWidget {
+  const CalendarWidgetOverlay({
+    super.key,
+    required this.container,
+    required this.spec,
+    this.nightColor,
+  });
+
+  final AppContainer container;
+  final ScreensaverWidget spec;
+  final Color? nightColor;
+
+  @override
+  State<CalendarWidgetOverlay> createState() => _CalendarWidgetOverlayState();
+}
+
+class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
+  Timer? _shift;
+  Offset _offset = Offset.zero;
+
+  CalendarManager get _cal => widget.container.calendar;
+
+  @override
+  void initState() {
+    super.initState();
+    _watchToday();
+    _shift = Timer.periodic(const Duration(minutes: 1), (_) {
+      // The day and what is still to come move with the clock.
+      _watchToday();
+      if (!widget.container.settings.get(defs.screensaverPixelShift)) {
+        setState(() {});
+        return;
+      }
+      final r = Random();
+      const max = 10.0;
+      setState(() {
+        _offset = Offset(
+          (r.nextDouble() * 2 - 1) * max,
+          (r.nextDouble() * 2 - 1) * max,
+        );
+      });
+    });
+  }
+
+  void _watchToday() {
+    final today = cal_model.dateOnly(DateTime.now());
+    _cal.watch(this, today, cal_model.addDays(today, 1));
+  }
+
+  @override
+  void dispose() {
+    _shift?.cancel();
+    _cal.unwatch(this);
+    super.dispose();
+  }
+
+  Color _dotColor(String entity) {
+    final rgb = cal_model.parseRgb(_cal.source(entity)?.color ?? '');
+    final base = rgb == null
+        ? const Color(0xFF6C9B9F)
+        : Color.fromARGB(255, rgb.$1, rgb.$2, rgb.$3);
+    return Color.lerp(base, Colors.white, .3)!;
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([_cal.snapshot, _cal.hidden, _cal.calendars]),
+    builder: (context, _) {
+      final now = DateTime.now();
+      final count = ((widget.spec.config['count'] as num?)?.toInt() ?? 3).clamp(
+        1,
+        5,
+      );
+      final coming = cal_model
+          .upNext(
+            cal_model.visibleEvents(
+              _cal.snapshot.value.events,
+              _cal.hidden.value,
+            ),
+            now,
+          )
+          .take(count)
+          .toList();
+      if (coming.isEmpty) return const SizedBox.shrink();
+      final corner = _cornerAlignment(widget.spec.position);
+      final color =
+          widget.nightColor ?? _widgetRgb(widget.spec.config['color']);
+      final size = MediaQuery.of(context).size;
+      final scale = _widgetScale(widget.container, widget.spec);
+      final textSize = max(min(size.width, size.height) * 0.032, 22.0) * scale;
+      final font = _widgetFont(widget.container, widget.spec);
+      final shadows = _overlayTextShadows(widget.container);
+      TextStyle style(double size, {double alpha = 1, FontWeight? weight}) =>
+          TextStyle(
+            fontFamily: font.family,
+            color: color.withValues(alpha: alpha),
+            fontSize: size,
+            fontWeight: weight ?? font.weight ?? FontWeight.w400,
+            fontVariations: clockFontVariations(
+              font.opticalSize,
+              weight ?? font.weight ?? FontWeight.w400,
+            ),
+            height: 1.2,
+            shadows: shadows,
+          );
+      final right = corner.x > 0;
+      final heading = Text(
+        l10n(context).calendarUpNext.toUpperCase(),
+        style: style(
+          textSize * .62,
+          alpha: .62,
+          weight: FontWeight.w600,
+        ).copyWith(letterSpacing: 1.2),
+      );
+      String when(cal_model.CalendarEvent e) => e.start.isAfter(now)
+          ? calendarTime(context, e.start)
+          : l10n(context).calendarHappeningNow;
+      // The times share the widest one's width, so the titles line up.
+      final timeStyle = style(textSize, alpha: .72);
+      final timeWidth = coming
+          .map(
+            (e) => (TextPainter(
+              text: TextSpan(
+                text: when(e),
+                // What the Text below draws with: the theme's
+                // family under the widget's own style.
+                style: DefaultTextStyle.of(context).style.merge(timeStyle),
+              ),
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout()).width,
+          )
+          .reduce(max);
+      final rows = [
+        for (final e in coming)
+          Padding(
+            padding: EdgeInsets.only(top: textSize * .4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: textSize * .42,
+                  height: textSize * .42,
+                  child: CustomPaint(
+                    painter: CalendarBands([
+                      for (final id in e.calendars) _dotColor(id),
+                    ], circle: true),
+                  ),
+                ),
+                SizedBox(width: textSize * .55),
+                SizedBox(
+                  width: timeWidth + 1,
+                  child: Text(
+                    when(e),
+                    style: timeStyle,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
+                SizedBox(width: textSize * .55),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: size.width * .32),
+                  child: Text(
+                    e.summary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style(textSize, weight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ];
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          IgnorePointer(
+            child: _cornerVignette(corner, widget.container, radius: 0.6),
+          ),
+          Align(
+            alignment: corner,
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Transform.translate(
+                offset: _offset,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => widget.container.commands.execute(
+                    'openCalendar',
+                    const {'view': 'schedule'},
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: right
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [heading, ...rows],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 /// At or below this the charge counts as low: the "only when low" widget
 /// appears, matching the level Android itself starts warning at.
 const lowBatteryLevel = 20;
@@ -2252,6 +2522,10 @@ class _EntityWidgetOverlayState extends State<EntityWidgetOverlay> {
     if (_entity.state == null || glanceValueBlank(_entity)) {
       return const SizedBox.shrink();
     }
+    final text = glanceStateText(_entity, strings: l10n(context));
+    if (!entityWidgetStateVisible(widget.spec.config, _entity, text)) {
+      return const SizedBox.shrink();
+    }
     final corner = _cornerAlignment(widget.spec.position);
     final color = widget.nightColor ?? _widgetRgb(widget.spec.config['color']);
     final size = MediaQuery.of(context).size;
@@ -2268,7 +2542,7 @@ class _EntityWidgetOverlayState extends State<EntityWidgetOverlay> {
       color: color,
     );
     final value = Text(
-      glanceStateText(_entity, strings: l10n(context)),
+      text,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
@@ -2367,6 +2641,25 @@ GlanceEntity entityWidgetEntity(Map<String, Object?> config) {
     customName: label.isEmpty ? null : label,
     attribute: attribute.isEmpty ? null : attribute,
   );
+}
+
+/// Whether the entity widget shows for this reading (issue #1066). An empty
+/// Visible states list always shows. Otherwise one entry has to match the
+/// displayed [text] ("Open") or the raw value behind it ("on"), ignoring
+/// case, so either way of writing it works.
+bool entityWidgetStateVisible(
+  Map<String, Object?> config,
+  GlanceEntity entity,
+  String text,
+) {
+  final states = {
+    for (final s in '${config['show_states'] ?? ''}'.split(','))
+      if (s.trim().isNotEmpty) s.trim().toLowerCase(),
+  };
+  if (states.isEmpty) return true;
+  final raw = entity.attribute == null ? entity.state : entity.attributeValue;
+  return states.contains(text.trim().toLowerCase()) ||
+      (raw != null && states.contains(raw.trim().toLowerCase()));
 }
 
 /// A Home Assistant weather entity with a prominent temperature, a labeled

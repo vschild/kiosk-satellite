@@ -20,7 +20,7 @@ Navigate to **Settings > Screensaver** (available in the on device settings and 
 | Wake to screensaver | Off | Picks what brings the screensaver back instead of the dashboard after the screen has turned off: motion, face, proximity, person, the power button and touch. The **Turn screen off after** countdown starts over. See [Turning the Screen Off](#turning-the-screen-off). |
 | Pixel shift | off | Periodically shifts on screen elements every minute to prevent image retention on OLED displays. Not applicable to Black mode. |
 | Show in the kiosk menu | on | Keeps the **Start Screensaver** entry in the kiosk menu. Turn it off to shorten the menu on a device that never starts the screensaver by hand. The idle timeout, gestures, the ESPHome switch and the API commands still start it. |
-| Follow Android animation settings | off | Pauses Weather Mood on a still frame while Android's **Transition animation scale** is off in Developer options. Turn it on to save CPU on low-power devices where the animation scales are zeroed. |
+| Follow Android animation settings | off | Pauses Weather Mood and the Celestial twinkle on a still frame while Android's **Transition animation scale** is off in Developer options. Turn it on to save CPU on low-power devices where the animation scales are zeroed. |
 | Screensaver mode | Black | Selects the active screensaver display mode. Options for the chosen mode appear directly below this selector. |
 
 The **Widgets** configuration group sits directly beneath the mode settings, allowing small overlays to be anchored to display corners.
@@ -48,6 +48,67 @@ The **Weather Preview** group on the device and in Remote Admin lets you try any
 Turn off **Lightning flashes** to keep thunderstorm clouds and rain without the flashes. Rainy scenes add drops that land on the glass in front of the sky, rest and sometimes slide down leaving a wet trail. Heavier rain brings more of them. The renderer uses Flutter GPU shaders and canvas drawing from bundled assets. Clouds render a few rows at a time across several frames and fade from one cloud image to the next, so older devices keep a steady frame rate. Each cloud image slides along with the wind until the next one is ready, low clouds faster than high ones, so moving clouds glide instead of jumping. It pauses when the display turns off or the app goes into the background. Android's animation scale does not stop the scene unless **Follow Android animation settings** is on. If weather data becomes unavailable, the scene retains its last known condition. Before the first valid reading it shows a neutral cloudy sky.
 
 Older devices use fewer cloud samples and a smaller cloud image that adjusts when frames remain slow. The renderer caches the sky at the display's resolution and renders a fresh cloud image about once a second, twice as often in full wind. Precipitation, twinkling stars and lightning animate separately at up to 20 frames per second. This reduces repeated GPU work while keeping the sun, moon and stars sharp. Weather Preview changes refresh the background immediately.
+
+### Celestial
+
+Celestial shows the sky above the kiosk as it is right now: the stars down to the faintest you can see by eye, the planets, the Moon in its current phase, the Sun, constellation figures and names, the Milky Way and the brightest galaxies and nebulae. Hills, mountains or plains run along the horizon, or nothing at all. Everything is computed on the kiosk from bundled data, so the screensaver needs no internet connection.
+
+Celestial needs to know where the kiosk is. Pick where that comes from under **Location**:
+
+* **GPS** reads the device's GPS receiver, whether or not **Report location** is on in ESPHome. Most tablets have no receiver. It needs the **Location** permission with precise location, shown under **Required system permissions** right below the Location group, on the device and in the remote admin. On Android 12 and later, approximate location is not enough, and **Grant** asks to change it to precise. Once Android stops asking, **Grant** opens the app's page in the Android settings.
+* **Home Assistant home** (the default) uses the home zone set in Home Assistant.
+* **Home Assistant entity** uses a person, device tracker or zone you pick.
+* **Manual** takes a latitude and longitude you type, like `40.71, -74.01`.
+
+With **GPS**, the sky follows the device's live position while the screensaver runs, so a kiosk that travels keeps the right sky. The kiosk remembers the last GPS fix, so the sky starts there while the receiver looks for a new one, indoors too. Until the very first fix, the screensaver says it is waiting for one.
+
+A **Current location** row shows the coordinates the source found, or why it has none, such as a device without a GPS receiver or an entity without a location. If the chosen source has no position, the screensaver shows a black screen that asks you to choose another.
+
+Turn on **Point at the sky** to make the kiosk a sky viewer on a device with a compass, which Android fuses with the tilt sensors into its rotation vector sensor. Hold the device up and the sky on screen turns with it, roll included, so whatever is in front of you is named on screen. It works with any location source. A pinch still zooms and a double tap still closes the screensaver. While it runs, motion, face, person and proximity detection do not close the screensaver, since moving the device around would trigger them. On a device without a compass, the view stays on touch. A compass that has not moved for a while can be far off, even facing the wrong way. While Android reports it as uncalibrated, a note asks you to move the device in a figure eight, and it goes away once the compass settles.
+
+Drag to look around the sky and pinch to zoom in or out. A single tap does nothing but show a reminder, and a double tap closes the screensaver. The kiosk remembers where you left the view and starts there next time. Until you move it, the view faces the equator with the horizon near the bottom of the screen.
+
+Any touch also brings up a quiet status bar along the bottom of the screen, dim enough for dark-adapted eyes, which goes away after 5 seconds without a touch. Widgets and the At a Glance row step aside while the controls are up. Each control has its own switch under **Controls**:
+
+* **Position** shows the latitude and longitude the sky is seen from.
+* **Azimuth** and **Altitude** show the compass direction the center of the screen faces and how high above the horizon it is.
+* **Field of view** shows how much of the sky the screen spans, in degrees across its long side.
+* **Time** shows the time of the sky. After a timelapse, **Now** returns the sky to the present.
+* **Timelapse** speeds up time so you can watch the sky turn. Tap its button to step through 60×, 600× and 3600×, which is one minute, ten minutes and one hour of sky per second, then back to off. Turning it off keeps the sky at the time it reached.
+* **Point at the sky switch** is a button that turns Point at the sky on and off. It shows only on devices with a compass.
+* **Moon phase** shows the phase of the Moon and how much of it is lit.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Location | Home Assistant home | Where the sky is seen from: **GPS**, **Home Assistant home**, **Home Assistant entity** or **Manual**. |
+| Entity | empty | With **Home Assistant entity**, the person, device tracker or zone to follow. |
+| Coordinates | empty | With **Manual**, the latitude and longitude of the kiosk. |
+| Landscape | Hills | The ground along the horizon: **Hills**, **Mountains** or **Plains**. **None** leaves out the ground, so the whole screen shows the sky, stars below the horizon included. The air no longer dims stars near the horizon, and the Sun stays hidden while it is down. |
+| Point at the sky | off | The view turns with the device's compass and tilt. Needs a compass sensor. |
+| Daytime sky | on | Brightens the sky and fades the stars while the Sun is up. Turn it off to show the night sky all day, with the Sun drawn where it is. |
+| Milky Way | on | The glow of our galaxy, from NASA's Deep Star Maps. |
+| Planets | on | Mercury to Neptune, each shown only when it is bright enough to see. |
+| Galaxies and nebulae | on | Soft glows for the Andromeda and Triangulum galaxies and the Orion, Lagoon and Carina nebulae, with names for them and a few star clusters. |
+| Light pollution | 0% | Simulates the glow of city lights. Higher values hide the fainter stars, then the Milky Way, and warm the sky near the horizon. At 100% only stars brighter than about magnitude 2 remain, as in a city center. |
+| Twinkling stars | on | The stars shimmer, most of all near the horizon. Turn it off to save power: the sky then redraws only every 10 seconds and when you move it. |
+| Larger Moon | on | Draws the Moon at three times its real size and the Sun at twice. Off shows both at their true size. |
+| Constellation lines | on | Connects the stars of each constellation. The lines are clearest in the middle of the screen and fade out toward its edges. |
+| Constellation names | on | Names the constellations. More appear as you zoom in, and names fade out toward the edges of the screen like the lines. |
+| Star and planet names | on | Names the Sun, the Moon, the planets, the brightest stars and the galaxies. More stars get names as you zoom in. |
+| Compass points | on | Marks north, east, south and west on the horizon. |
+| Label size | 100% | Scales the labels on the sky from 50 to 200 percent. |
+| Controls | all on | The controls a touch brings up: **Position**, **Azimuth**, **Altitude**, **Field of view**, **Time**, **Timelapse**, **Point at the sky switch** and **Moon phase**. |
+| Controls size | 100% | Scales the controls from 50 to 200 percent. |
+
+Positions come from orbital elements and are accurate to a few arcminutes, about a pixel at the closest zoom. Each star is drawn from its apparent magnitude, so brightness and size follow what you would see. Stars dim and redden near the horizon the way the air dims them, and moonlight, twilight and light pollution wash out the fainter ones. The sky follows the clock in real time, unless a timelapse runs.
+
+Constellation names follow the interface language in Spanish, German, French, Russian and Chinese and use the Latin names in the other languages. Star names are the official IAU names.
+
+### Calendar
+
+Shows the [calendar](calendar.md) as the screensaver, on today, with the calendars, colors and hidden chips set up for it. Selecting the mode reveals the **Calendar screensaver** group with one row, **Calendar view**, which picks Day, Week (the default), Month or Schedule. It is separate from the calendar's own **Default view**, so the kiosk menu can open the calendar on one view while the screensaver shows another.
+
+The calendar stays usable while it is the screensaver: tap an event, switch views, move between days and hide calendars with their chips as usual. A tap does not dismiss it. Use the X button in the top corner instead. The calendar's **Close when idle** does not apply, and widgets and the At a Glance row stay off it. Motion, face, proximity and person detection, the wake word, the brightness settings, the schedule and **Turn screen off after** work as in the other modes. Like the open calendar, the screensaver keeps the calendars live from Home Assistant while it shows.
 
 ### Dim
 
@@ -110,8 +171,14 @@ Changes apply live while the clock is running, and writing an empty value clears
 | Hide background photo | Disabled by default. Hides the photo while Night mode is active so the clock uses the Night background color. Works with every clock face and restores the photo when the room brightens. Changes apply immediately. |
 | Hide widgets and At a Glance | Disabled by default. Hides the corner widgets and the At a Glance row while Night mode is active, leaving only the clock. Both come back when the room brightens. Changes apply immediately. |
 | Night card color | Flip Clock face only. Sets the card color in the dark (near-black by default). |
+| Turn screen off at night after | Configurable from 0 to 60 minutes (0 by default, which keeps the screen on). Turns the screen off once Night mode has lasted the set time and back on when the room brightens. A warning comes up when it is first moved off 0, because some devices misbehave with the display off. Needs the Device Administrator permission, shown under **Required system permissions** at the end of the page. |
+| Use a black screen instead | Disabled by default. Shows a black screen at zero brightness instead of powering off the display. No Device Administrator permission is needed. |
 
 **Let alarms take over** (on by default) makes a ringing [alarm](alarms.md) show on the Clock screensaver in its own style: the date line becomes the alarm's label and Snooze and Stop come in under the clock in the clock's colors, Night mode included. Turn it off to ring on the alarm's own screen instead.
+
+**Turn screen off at night after** only applies while the Clock screensaver is showing, including when a schedule picks it. A voice conversation, a ringing alarm, the Now Playing view or another app keeps the screen on and the countdown starts over afterwards. Every wake that leaves the screensaver up also starts the countdown over. The screen comes back on once the light rises past **Light level** by a quarter, or when the slider is set to 0 or Night mode is turned off. A screen turned off by hand or by **Turn screen off after** stays off.
+
+Some light sensors stop reporting while the display is off. On those devices the screen cannot come back on by itself in the morning, so use **Use a black screen instead**. If the Device Administrator permission is missing, the screen stays on and no permission prompt appears at night.
 
 ### Home Assistant Media
 
@@ -165,7 +232,7 @@ Shows a Home Assistant dashboard view as the screensaver. Selecting the mode rev
 
 The view opens in the dashboard's own web view with the same in-page navigation view rotation uses, so Home Assistant does not reload and the Voice Satellite integration keeps running. When the screensaver ends, the dashboard goes back to the view it was on before. With **Return to home dashboard view** on it goes to the home view instead. If something in Home Assistant navigated the dashboard while the screensaver was up, it stays where that navigation left it.
 
-A tap anywhere dismisses the screensaver without pressing the card under the finger. Motion, face, proximity and person detection, the brightness settings, the schedule, widgets and the At a Glance row work as in the other modes. When no view is picked the screensaver keeps whatever the dashboard shows. Like Dim, this mode keeps the dashboard rendering, so **Pause dashboard during screensaver** does not apply.
+A tap anywhere dismisses the screensaver without pressing the card under the finger. Turn on **Double tap to dismiss** to use the dashboard while the screensaver is up. Single taps then press buttons, move sliders and open popups, and a double tap dismisses the screensaver. Motion, face, proximity and person detection, the brightness settings, the schedule, widgets and the At a Glance row work as in the other modes. When no view is picked the screensaver keeps whatever the dashboard shows. Like Dim, this mode keeps the dashboard rendering, so **Pause dashboard during screensaver** does not apply.
 
 ## Slideshow Behavior
 
@@ -196,7 +263,7 @@ Widgets hold corner priority over the photo metadata overlay of Immich Media, Ho
 
 ### Small Clock
 
-Displays a corner clock over any screensaver mode except Clock and WebRTC Camera:
+Displays a corner clock over any screensaver mode except Clock, Calendar and Camera Streams:
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -210,7 +277,7 @@ Renders over a soft vignette for legibility and supports pixel shift adjustments
 
 ### Weather
 
-Displays real-time weather data pulled from a Home Assistant `weather` entity over any mode except Camera Streams. The widget layout displays top-to-bottom: location name, current temperature with units (e.g., "28°C"), condition text with a matching icon, humidity, wind speed, and visibility. Units are provided directly by the Home Assistant entity, and icons render in a monochrome style matching the widget color.
+Displays real-time weather data pulled from a Home Assistant `weather` entity over any mode except Calendar and Camera Streams. The widget layout displays top-to-bottom: location name, current temperature with units (e.g., "28°C"), condition text with a matching icon, humidity, wind speed, and visibility. Units are provided directly by the Home Assistant entity, and icons render in a monochrome style matching the widget color.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -226,7 +293,7 @@ Data updates automatically via a live Home Assistant subscription while the scre
 
 ### Battery
 
-Displays the device's physical battery status in a display corner over any mode except Camera Streams. Renders an adaptive battery icon, a lightning bolt indicator during external charging, and the current charge percentage.
+Displays the device's physical battery status in a display corner over any mode except Calendar and Camera Streams. Renders an adaptive battery icon, a lightning bolt indicator during external charging, and the current charge percentage.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -239,22 +306,33 @@ Reads hardware battery state directly from Android rather than a Home Assistant 
 
 ### Next alarm
 
-Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours, and the snooze while one runs, over any mode except Camera Streams. The corner stays empty the rest of the time. A tap on the widget opens the alarm list.
+Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours, and the snooze while one runs, over any mode except Calendar and Camera Streams. The corner stays empty the rest of the time. A tap on the widget opens the alarm list.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Corner | First free corner | Displays in the first available corner. |
 | Color | White | Applies to the icon and the time. |
 
+### Up next
+
+Shows what is still to come today on the [calendar](calendar.md), over any mode except Calendar and Camera Streams: a dot in each event's calendar color, the start time and the title. Calendars hidden with their chips are left out. The corner stays empty once nothing else is on today. A tap on the widget opens the calendar on the Schedule view.
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Corner | First free corner | Displays in the first available corner. |
+| Color | White | Applies to the times and titles. |
+| Events shown | 3 | How many coming events it lists, 1 to 5. |
+
 ### Entity
 
-Displays a single Home Assistant entity in a display corner over any mode except Camera Streams. Styled similarly to the widget family, the layout features the entity icon and value on a single line with the entity name centered underneath. Ideal for displaying specific metrics, such as a room temperature sensor over an Immich photo slideshow.
+Displays a single Home Assistant entity in a display corner over any mode except Calendar and Camera Streams. Styled similarly to the widget family, the layout features the entity icon and value on a single line with the entity name centered underneath. Ideal for displaying specific metrics, such as a room temperature sensor over an Immich photo slideshow.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Entity | None | Selected by entity name or ID via the picker. The widget remains hidden until assigned. |
 | Name | Empty | Custom label displayed under the value. If left empty, the default Home Assistant entity name displays. |
 | Displayed value | State | Selects whether to display the primary entity state or a specific attribute value. |
+| Visible states | Empty | A comma separated list of values. The widget only shows when its value matches one of them, such as `Open` or `on`. The list matches the displayed value or the raw Home Assistant value and ignores case. Leave it empty to always show the widget. |
 | Corner | First free corner | Displays in the first available corner. |
 | Color | White | Applies to icon, value, and label text. |
 | Show name | On | Disabling this hides the bottom label, displaying only the icon and value. |
@@ -396,7 +474,7 @@ What a detection does once the display has turned off is decided by **Wake to sc
 
 The standard method for launching the screensaver is the idle timeout clock. Manual launch options include selecting **Start Screensaver** in the kiosk menu, triggering a mapped [gesture](gestures.md), toggling the ESPHome **Screensaver active** switch, or sending the `startScreensaver` command via the [remote API](remote-api.md) or [JavaScript API](js-api.md).
 
-Touch interactions instantly dismiss the screensaver and reset the idle clock. The one exception is a tap on the left or right fifth of a photo slideshow with **Tap edges to change slides** on, which steps the slide instead (see [Slideshow behavior](#slideshow-behavior)). Additional dismissal triggers include:
+Touch interactions instantly dismiss the screensaver and reset the idle clock. There are four exceptions. A tap on the left or right fifth of a photo slideshow with **Tap edges to change slides** on steps the slide instead (see [Slideshow behavior](#slideshow-behavior)). The [Celestial](#celestial) screensaver takes a double tap, since a drag there looks around the sky. The [Website](#website) and [Home Assistant Dashboard](#home-assistant-dashboard) screensavers take a double tap when their **Double tap to dismiss** is on. The [Calendar](#calendar) screensaver stays until its X button is pressed. Additional dismissal triggers include:
 
 * **Wake Word**: Dismisses the screensaver immediately and pauses the idle clock for the entire voice turn so the display remains active during conversation.
 * **Camera Motion**: Triggers wake when Dismiss on motion is active.
@@ -419,7 +497,7 @@ When using the Voice Satellite integration on the dashboard, the **Turn off the 
 
 ## At a Glance
 
-The **At a glance** feature displays a live status row containing up to four Home Assistant entity states across all screensaver modes except the Camera Streams grid. Data updates over an independent Home Assistant subscription while the screensaver is active. Full setup details are available in the [At a Glance](at-a-glance.md) guide.
+The **At a glance** feature displays a live status row containing up to four Home Assistant entity states across all screensaver modes except Calendar and the Camera Streams grid. Data updates over an independent Home Assistant subscription while the screensaver is active. Full setup details are available in the [At a Glance](at-a-glance.md) guide.
 
 ## Home Assistant
 

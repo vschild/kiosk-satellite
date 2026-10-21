@@ -1,5 +1,6 @@
 import '../wake_word/engine.dart';
 import '../wake_word/model_source.dart';
+import '../wake_word/pryon/pryon_catalog.dart';
 
 /// The wake words native Voice Satellite can listen for: the models bundled
 /// with the app per engine, the microWakeWord models Home Assistant offers
@@ -15,6 +16,7 @@ const voiceEngines = <String, WakeWordEngineType>{
   'vswakeword': WakeWordEngineType.vsWakeWord,
   'microwakeword': WakeWordEngineType.microWakeWord,
   'openwakeword': WakeWordEngineType.openWakeWord,
+  'pryon': WakeWordEngineType.pryon,
 };
 
 /// Bundled model ids per engine, in the order the wake word selects offer
@@ -87,6 +89,7 @@ String engineFolder(WakeWordEngineType engine) => switch (engine) {
   WakeWordEngineType.vsWakeWord => 'vswakeword',
   WakeWordEngineType.microWakeWord => 'microwakeword',
   WakeWordEngineType.openWakeWord => 'openwakeword',
+  WakeWordEngineType.pryon => 'pryon',
 };
 
 /// Where a bundled model is: a `.json` manifest for vsWakeWord and
@@ -163,7 +166,16 @@ List<OfferedWakeWord> offeredWakeWords(
   WakeWordEngineType engine, {
   List<ExternalWakeWord> external = const [],
   List<CustomWakeWord> custom = const [],
+  String pryonLocale = '',
 }) {
+  // Amazon's engine listens only with the models the Echo Dot image has for
+  // [pryonLocale] (PryonCatalog.resolveLocale).
+  if (engine == WakeWordEngineType.pryon) {
+    return [
+      for (final w in PryonCatalog.wakeWordsFor(pryonLocale))
+        OfferedWakeWord(w.id, wakeWordPhraseFor(w.id), w.url),
+    ];
+  }
   final local = [
     for (final w in custom)
       if (w.engine == engine) w,
@@ -213,6 +225,27 @@ const _owwWakeOffsets = {'slightly': 0.10, 'moderately': 0.0, 'very': -0.10};
 const _owwStopOffsets = {'slightly': 0.05, 'moderately': 0.0, 'very': -0.05};
 const _energyWake = {'slightly': 0.12, 'moderately': 0.06, 'very': 0.025};
 
+// Amazon's engine accepted spoken "Alexa"s on a Dot at 0.927 to 0.983 against
+// its own 0.923, and reports anything above 0.69 as a near miss. So
+// "Slightly sensitive" asks a little more of an accept and "Very sensitive"
+// takes the near misses closest to the line as well.
+const _pryonOffsets = {'slightly': 0.02, 'moderately': 0.0, 'very': -0.06};
+
+// Amazon's stop word is made for "Alexa, stop". A plain "stop" scored 0.20
+// to 0.41 on a Dot, so the Echo Dot image has the engine accept it from
+// 0.18. "Very sensitive" also takes the near misses just under that, which
+// arrive about a second later.
+const _pryonStopOffsets = {
+  'slightly': 0.04,
+  'moderately': 0.0,
+  'very': -0.03,
+};
+
+/// What Amazon's engine adds to its own threshold, which it reports with
+/// each detection.
+double pryonThresholdOffsetFor(String sensitivity, {bool stop = false}) =>
+    (stop ? _pryonStopOffsets : _pryonOffsets)[sensitivity] ?? 0.0;
+
 /// The factor every confidence gate of a model is multiplied by.
 double confidenceScaleFor(String sensitivity, {bool stop = false}) =>
     (stop ? _stopConfFactors : _confFactors)[sensitivity] ?? 1.0;
@@ -257,10 +290,17 @@ WakeWordConfig buildWakeConfig({
   required bool stopWord,
   List<ExternalWakeWord> external = const [],
   List<CustomWakeWord> custom = const [],
+  String pryonLocale = '',
 }) {
-  final offered = offeredWakeWords(engine, external: external, custom: custom);
+  final offered = offeredWakeWords(
+    engine,
+    external: external,
+    custom: custom,
+    pryonLocale: pryonLocale,
+  );
   final models = listenedWakeWords(activeIds, offered);
   final oww = engine == WakeWordEngineType.openWakeWord;
+  final pryon = engine == WakeWordEngineType.pryon;
   WakeWordModelRef ref(OfferedWakeWord w, {bool stop = false}) =>
       WakeWordModelRef(
         id: w.id,
@@ -268,20 +308,35 @@ WakeWordConfig buildWakeConfig({
         manifestUrl: w.manifestUrl,
         confidenceScale: confidenceScaleFor(sensitivity, stop: stop),
         cutoff: oww ? owwCutoffFor(sensitivity, stop: stop) : null,
+        thresholdOffset: pryon
+            ? pryonThresholdOffsetFor(sensitivity, stop: stop)
+            : 0.0,
       );
-  final stopId = _stopIds[engine]!;
+  // Amazon's stop word is part of each model: the one of the first wake
+  // word's model, so listening needs no other model.
+  final pryonStop = pryon && models.isNotEmpty
+      ? PryonCatalog.stopWordFor(
+          PryonCatalog.byUrl(models.first.manifestUrl)?.model ?? '',
+        )
+      : null;
+  final OfferedWakeWord? stopModel = pryon
+      ? pryonStop == null
+            ? null
+            : OfferedWakeWord(
+                pryonStop.id,
+                wakeWordPhraseFor(pryonStop.id),
+                pryonStop.url,
+              )
+      : OfferedWakeWord(
+          _stopIds[engine]!,
+          wakeWordPhraseFor(_stopIds[engine]!),
+          bundledModelManifest(engine, _stopIds[engine]!),
+        );
   return WakeWordConfig(
     engine: engine,
     models: [for (final w in models) ref(w)],
-    stopModel: stopWord
-        ? ref(
-            OfferedWakeWord(
-              stopId,
-              wakeWordPhraseFor(stopId),
-              bundledModelManifest(engine, stopId),
-            ),
-            stop: true,
-          )
+    stopModel: stopWord && stopModel != null
+        ? ref(stopModel, stop: true)
         : null,
     energyGate: energyGateFor(sensitivity, enabled: noiseGate),
   );

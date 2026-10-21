@@ -22,6 +22,7 @@ import 'wake_diagnostics.dart';
 import 'mww/mww_engine.dart';
 import 'mww/mww_probe.dart';
 import 'oww/oww_engine.dart';
+import 'pryon/pryon_engine.dart';
 import 'oww/oww_probe.dart';
 import 'vsww/benchmark.dart';
 import 'vsww/model_store.dart';
@@ -92,6 +93,10 @@ class WakeWordManager extends Manager
     WakeWordEngineType.openWakeWord => _engines.putIfAbsent(
       type,
       () => OwwEngine(log),
+    ),
+    WakeWordEngineType.pryon => _engines.putIfAbsent(
+      type,
+      () => PryonEngine(log),
     ),
   };
 

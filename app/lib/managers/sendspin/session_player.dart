@@ -189,6 +189,16 @@ class SessionPlayer implements RemotePlayer {
     }
   }
 
+  /// Whether another app's session is playing right now. False without
+  /// "Notification access", as nothing can be read then.
+  static Future<bool> anyPlaying() async {
+    try {
+      return await channel.invokeMethod<bool>('anyPlaying') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// A cover a snapshot named by a mediasession:// URL.
   static Future<Uint8List?> artwork(String url) async {
     try {

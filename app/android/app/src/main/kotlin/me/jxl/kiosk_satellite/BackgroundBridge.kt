@@ -449,6 +449,7 @@ class BackgroundBridge(
                 "volumeClaim" -> result.success(
                     Headless.active(context) && Headless.volumeClaim,
                 )
+                "pryon" -> result.success(Headless.active(context) && Headless.pryon)
                 "bringToFront" -> result.success(bringToFront())
                 "isBehindAnotherApp" -> result.success(!ActivityState.frontmost)
                 // "Screen on" from the admin or the screensaver: light a

@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'alarm_ring_overlay.dart';
 import 'alarms_overlay.dart';
+import 'calendar_overlay.dart';
 import '../core/permissions.dart';
 
 import '../app_container.dart';
@@ -204,6 +205,7 @@ class _KioskScreenState extends State<KioskScreen>
         !c.launcher.visible.value &&
         !c.intercom.rosterVisible.value &&
         !c.alarms.visible.value &&
+        !c.calendar.visible.value &&
         c.camera.activeViewId.value == null &&
         !c.kiosk.lockdownActive &&
         (c.plugins.windows.value.isNotEmpty || c.plugins.backOverlay != null)) {
@@ -226,7 +228,8 @@ class _KioskScreenState extends State<KioskScreen>
       launcherVisible:
           c.launcher.visible.value ||
           c.intercom.rosterVisible.value ||
-          c.alarms.visible.value,
+          c.alarms.visible.value ||
+          c.calendar.visible.value,
       overlayUp: c.browser.overlayUrl.value != null,
       cameraViewUp: c.camera.activeViewId.value != null,
       cameraFocused: c.camera.focusedCameraId.value != null,
@@ -253,6 +256,7 @@ class _KioskScreenState extends State<KioskScreen>
         c.launcher.visible.value = false;
         c.intercom.rosterVisible.value = false;
         c.alarms.visible.value = false;
+        c.calendar.visible.value = false;
       case BackAction.dismissOverlay:
         // A link or rotation page covers the dashboard: back uncovers it.
         c.browser.dismissOverlay();
@@ -336,7 +340,7 @@ class _KioskScreenState extends State<KioskScreen>
             (c.settings.get(defs.sendspinFullscreen) &&
                 c.settings.get(defs.sendspinFullscreenShortcut)));
     final hasApps =
-        c.settings.get(defs.launcherEnabled) && c.launcher.apps.isNotEmpty;
+        c.settings.get(defs.launcherEnabled) && c.launcher.kioskApps.isNotEmpty;
     final hasHold = c.settings.get(defs.haHoldMenu);
     return c.plugins.drawerActions.isNotEmpty ||
         c.settings.get(defs.kioskAllowDashboard) ||
@@ -353,15 +357,35 @@ class _KioskScreenState extends State<KioskScreen>
             c.settings.get(defs.lockdownMenu)) ||
         (c.settings.get(defs.kioskAllowApps) && hasApps) ||
         (c.settings.get(defs.kioskAllowAlarms) &&
-            c.settings.get(defs.alarmsMenu));
+            c.settings.get(defs.alarmsMenu)) ||
+        (c.settings.get(defs.kioskAllowCalendar) &&
+            c.settings.get(defs.calendarMenu));
   }
 
   /// Pull-to-refresh as the user experiences it: the Web Browsing toggle,
   /// minus the kiosk protection that switches the gesture off while the
-  /// device is locked.
+  /// device is locked, and minus the screensaver. With Double tap to
+  /// dismiss, the Home Assistant Dashboard screensaver lets touches
+  /// through to the page (discussion #1069), and a pull there must not
+  /// reload it.
   bool get _ptrEnabled =>
       c.settings.get(defs.pullToRefresh) &&
-      !(c.kiosk.locked && c.settings.get(defs.kioskDisablePullRefresh));
+      !(c.kiosk.locked && c.settings.get(defs.kioskDisablePullRefresh)) &&
+      !c.screensaver.isActive;
+
+  /// The dashboard carousel as the page runs it: the setting, off while
+  /// the screensaver is up for the same reason as [_ptrEnabled]. A swipe
+  /// must not take the screensaver's view away.
+  bool get _carouselEnabled =>
+      c.settings.get(defs.haDashboardCarousel) && !c.screensaver.isActive;
+
+  /// Push the current effective carousel state onto the live page. The
+  /// sync call makes the script act on it now: build the preview strip, or
+  /// tear a disabled one down instead of leaving it mounted.
+  Future<void> _syncCarousel() => c.browser.runJs(
+    'window.__ksCarouselEnabled = $_carouselEnabled;'
+    'if (window.__ksCarouselSync) window.__ksCarouselSync();',
+  );
 
   /// Push the current effective pull-to-refresh state onto the live WebView:
   /// the native wrapper and the JS probe both hold their own copy.
@@ -498,14 +522,9 @@ class _KioskScreenState extends State<KioskScreen>
       return;
     }
     // The carousel's document-start seed is frozen at WebView creation;
-    // flip the live flag so the toggle applies without a reload. The sync
-    // call makes the script act on it now: build the preview strip, or
-    // tear a disabled one down instead of leaving it mounted.
+    // flip the live flag so the toggle applies without a reload.
     if (e.key == defs.haDashboardCarousel.key) {
-      await c.browser.runJs(
-        'window.__ksCarouselEnabled = ${e.value == true};'
-        'if (window.__ksCarouselSync) window.__ksCarouselSync();',
-      );
+      await _syncCarousel();
       return;
     }
     // Same live-flag contract; read only on the touch path, so there is
@@ -610,6 +629,7 @@ class _KioskScreenState extends State<KioskScreen>
         c.launcher.visible.value = false;
         c.intercom.rosterVisible.value = false;
         c.alarms.visible.value = false;
+        c.calendar.visible.value = false;
       }
       return;
     }
@@ -641,6 +661,8 @@ class _KioskScreenState extends State<KioskScreen>
         e.key == defs.kioskAllowIntercom.key ||
         e.key == defs.kioskAllowAlarms.key ||
         e.key == defs.alarmsMenu.key ||
+        e.key == defs.kioskAllowCalendar.key ||
+        e.key == defs.calendarMenu.key ||
         e.key == defs.remoteEnabled.key ||
         e.key == defs.remoteFleetDiscovery.key) {
       setState(() {});
@@ -808,9 +830,12 @@ class _KioskScreenState extends State<KioskScreen>
       _syncNavCapture();
     });
     // The screensaver takes the keys the moment it shows (any of them
-    // dismisses it) and hands them back when it goes.
+    // dismisses it) and hands them back when it goes. The page's swipe and
+    // pull gestures stand down with it.
     _saverSub = c.bus.on<ScreensaverStateChanged>().listen((_) {
       _syncNavCapture();
+      unawaited(_syncPullToRefresh());
+      unawaited(_syncCarousel());
     });
     _dreamSub = c.bus.on<SystemDreamChanged>().listen((event) {
       final error = event.error;
@@ -837,6 +862,7 @@ class _KioskScreenState extends State<KioskScreen>
       c.launcher.visible.value = false;
       c.intercom.rosterVisible.value = false;
       c.alarms.visible.value = false;
+      c.calendar.visible.value = false;
       if (c.browser.overlayUrl.value != null) c.browser.dismissOverlay();
       if (c.camera.activeViewId.value != null) {
         c.camera.hideView(returnToPreviousApp: false);
@@ -853,6 +879,7 @@ class _KioskScreenState extends State<KioskScreen>
     c.launcher.visible.addListener(_onOverlayChanged);
     c.intercom.rosterVisible.addListener(_onOverlayChanged);
     c.alarms.visible.addListener(_onOverlayChanged);
+    c.calendar.visible.addListener(_onOverlayChanged);
     c.plugins.windows.addListener(_onOverlayChanged);
     c.plugins.installed.addListener(_onOverlayChanged);
     c.homeLauncher.roleHeld.addListener(_onOverlayChanged);
@@ -1097,8 +1124,7 @@ class _KioskScreenState extends State<KioskScreen>
     // needs no reload.
     UserScript(
       source:
-          'window.__ksCarouselEnabled = '
-          '${c.settings.get(defs.haDashboardCarousel)};'
+          'window.__ksCarouselEnabled = $_carouselEnabled;'
           'window.__ksCarouselOverCards = '
           '${c.settings.get(defs.haCarouselOverCards)};',
       injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
@@ -1272,6 +1298,7 @@ class _KioskScreenState extends State<KioskScreen>
         c.launcher.visible.value ||
         c.intercom.rosterVisible.value ||
         c.alarms.visible.value ||
+        c.calendar.visible.value ||
         c.camera.activeViewId.value != null ||
         c.plugins.windows.value.isNotEmpty;
     if (capture == _lastNavCapture) return;
@@ -1384,6 +1411,7 @@ class _KioskScreenState extends State<KioskScreen>
           c.launcher.visible.value ||
           c.intercom.rosterVisible.value ||
           c.alarms.visible.value ||
+          c.calendar.visible.value ||
           c.browser.overlayUrl.value != null ||
           c.camera.activeViewId.value != null,
       // Any route above this one: settings, and every dialog — the exit
@@ -1541,6 +1569,7 @@ class _KioskScreenState extends State<KioskScreen>
     c.launcher.visible.removeListener(_onOverlayChanged);
     c.intercom.rosterVisible.removeListener(_onOverlayChanged);
     c.alarms.visible.removeListener(_onOverlayChanged);
+    c.calendar.visible.removeListener(_onOverlayChanged);
     c.plugins.windows.removeListener(_onOverlayChanged);
     c.plugins.installed.removeListener(_onOverlayChanged);
     c.homeLauncher.roleHeld.removeListener(_onOverlayChanged);
@@ -1689,7 +1718,10 @@ class _KioskScreenState extends State<KioskScreen>
                             builder: (context, frozen, child) => Offstage(
                               // Skip platform view compositing only after the
                               // browser confirms it is safe to hide the dashboard.
-                              offstage: view == 'weather_mood' && frozen,
+                              offstage:
+                                  (view == 'weather_mood' ||
+                                      view == 'celestial') &&
+                                  frozen,
                               child: child,
                             ),
                           ),
@@ -1769,6 +1801,9 @@ class _KioskScreenState extends State<KioskScreen>
                   // The alarm list, the launcher's twin again: full
                   // screen, below the screensaver.
                   AlarmsOverlay(container: c),
+                  // The family calendar, the launcher's twin as well:
+                  // full screen, below the screensaver.
+                  CalendarOverlay(container: c),
                   // The screensaver covers both planes — it owns the whole
                   // display, drawer open or not.
                   // Paused under the native voice overlay, which
@@ -2137,8 +2172,7 @@ class _KioskScreenState extends State<KioskScreen>
       // loaded later.
       c.browser.runJs('window.__ksPtrEnabled = $_ptrEnabled;');
       c.browser.runJs(
-        'window.__ksCarouselEnabled = '
-        '${c.settings.get(defs.haDashboardCarousel)};'
+        'window.__ksCarouselEnabled = $_carouselEnabled;'
         'window.__ksCarouselOverCards = '
         '${c.settings.get(defs.haCarouselOverCards)};',
       );

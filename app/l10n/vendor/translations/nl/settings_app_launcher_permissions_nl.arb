@@ -5,5 +5,8 @@
   "launcherOverlayRemote": "Zonder deze toestemming kan de kiosk niet automatisch terugkeren en worden aanrakingen in de andere app niet gedetecteerd. Het toestemmingsscherm verschijnt op de tablet.",
   "launcherBatteryMissing": "Android kan Kiosk Satellite achter de andere app pauzeren. Een gepauzeerde timer kan de kiosk niet terugbrengen.",
   "launcherBatteryRemote": "Android kan Kiosk Satellite achter de andere app pauzeren. Een gepauzeerde timer kan de kiosk niet terugbrengen. Het toestemmingsvenster verschijnt op de tablet.",
+  "launcherNotificationAccessHeld": "De kiosk keert niet terug zolang een andere app video of muziek afspeelt.",
+  "launcherNotificationAccessMissing": "Zonder dit weet de kiosk niet wanneer er video of muziek speelt en keert hij toch terug.",
+  "launcherNotificationAccessRemote": "Zonder dit weet de kiosk niet wanneer er video of muziek speelt en keert hij toch terug. Het toestemmingsscherm verschijnt op de tablet.",
   "launcherPermissionsSearch": "De toestemmingen die nodig zijn om automatisch terug te keren."
 }

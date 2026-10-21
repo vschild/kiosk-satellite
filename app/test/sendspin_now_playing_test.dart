@@ -155,6 +155,12 @@ class _FakeRemote extends MaRemotePlayer {
     super.label,
   });
 
+  /// Whether the source plays from a Music Assistant queue.
+  bool queue = true;
+
+  @override
+  bool get hasQueue => queue;
+
   @override
   void start() {}
 
@@ -855,6 +861,176 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(native.where((c) => c.method == 'rebasePosition'), hasLength(1));
     });
+
+    test(
+      'the local controls follow what the playing source can do',
+      () async {
+        // Music Assistant advertises every command to a Sendspin
+        // controller, a source with no controls (its AirPlay Receiver)
+        // included. The watcher says what the source can do.
+        await build(
+          extra: {
+            'ks.sendspin.player': '',
+            'ks.sendspin.player_source': '',
+            'ks.sendspin.enabled': true,
+            'ks.sendspin.client_id': 'abc123',
+          },
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        final native = <MethodCall>[];
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          native.add(call);
+          return call.method == 'getStatus' ? null : true;
+        });
+        const codec = StandardMethodCodec();
+        Future<void> fromNative(String method, Map<String, Object?> args) =>
+            messenger.handlePlatformMessage(
+              channel.name,
+              codec.encodeMethodCall(MethodCall(method, args)),
+              (_) {},
+            );
+        const all = [
+          'play',
+          'pause',
+          'stop',
+          'next',
+          'previous',
+          'volume',
+          'mute',
+          'repeat_off',
+          'repeat_one',
+          'repeat_all',
+          'shuffle',
+          'unshuffle',
+          'switch',
+          'seek',
+          'seek_relative',
+        ];
+        await fromNative('controllerChanged', {
+          'supportedCommands': all,
+          'shuffle': false,
+          'repeat': 'off',
+        });
+        await fromNative('metadataChanged', {'title': 'Song'});
+        await fromNative('playingChanged', {'playing': true});
+        List<Object?> shown() =>
+            sendspin.nowPlaying.value!['supportedCommands'] as List<Object?>;
+        Future<List<Object?>> status() async {
+          final res = await commands.execute('sendspinStatus', const {});
+          return (res.data as Map)['supportedCommands'] as List<Object?>;
+        }
+
+        List<Object?>? lastWithheld() {
+          final calls = native.where((c) => c.method == 'withholdCommands');
+          return calls.isEmpty
+              ? null
+              : (calls.last.arguments as Map)['commands'] as List<Object?>;
+        }
+
+        // A Music Assistant queue: everything stays.
+        fake!.onSnapshot({
+          'title': 'Song',
+          'playing': true,
+          'supportedCommands': MaRemotePlayer.commands,
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect(shown(), all);
+        expect(await status(), all);
+        expect(lastWithheld(), isNull);
+
+        // A source with no controls: stop and volume, and the rest the
+        // controller has that are not transport.
+        fake!.queue = false;
+        fake!.onSnapshot({
+          'title': 'Song',
+          'playing': true,
+          'supportedCommands': ['stop', 'volume'],
+        });
+        await Future<void>.delayed(Duration.zero);
+        const bare = ['stop', 'volume', 'mute', 'switch'];
+        expect(shown(), bare);
+        expect(await status(), bare);
+        expect(
+          lastWithheld(),
+          unorderedEquals([
+            'play',
+            'pause',
+            'next',
+            'previous',
+            'seek',
+            'seek_relative',
+            'repeat_off',
+            'repeat_one',
+            'repeat_all',
+            'shuffle',
+            'unshuffle',
+          ]),
+        );
+        // The engine's next word on the controller keeps the cut.
+        await fromNative('controllerChanged', {
+          'supportedCommands': all,
+          'shuffle': false,
+          'repeat': 'off',
+        });
+        expect(shown(), bare);
+
+        // A source with transport of its own and a seek bar: Music
+        // Assistant's controller seeks, repeats and shuffles a queue only.
+        fake!.onSnapshot({
+          'title': 'Song',
+          'playing': true,
+          'supportedCommands': [
+            'stop',
+            'play',
+            'pause',
+            'next',
+            'previous',
+            'seek',
+            'volume',
+          ],
+        });
+        await Future<void>.delayed(Duration.zero);
+        const transport = [
+          'play',
+          'pause',
+          'stop',
+          'next',
+          'previous',
+          'volume',
+          'mute',
+          'switch',
+        ];
+        expect(shown(), transport);
+        expect(await status(), transport);
+
+        // Back on the queue, everything comes back.
+        fake!.queue = true;
+        fake!.onSnapshot({
+          'title': 'Song',
+          'playing': true,
+          'supportedCommands': MaRemotePlayer.commands,
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect(shown(), all);
+        expect(await status(), all);
+        expect(lastWithheld(), isEmpty);
+
+        // No word from the watcher leaves the server's list alone.
+        fake!.queue = false;
+        fake!.onSnapshot({
+          'title': 'Song',
+          'playing': true,
+          'supportedCommands': ['stop'],
+        });
+        await Future<void>.delayed(Duration.zero);
+        fake!.onSnapshot(null);
+        await Future<void>.delayed(Duration.zero);
+        expect(shown(), all);
+        expect(lastWithheld(), isEmpty);
+      },
+    );
 
     test(
       'a previous lets the engine restart the bar after a re-base',

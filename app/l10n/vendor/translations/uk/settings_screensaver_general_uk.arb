@@ -55,6 +55,11 @@
   "screensaverModeDashboard": "Панель керування Home Assistant",
   "settingScreensaverDashboardViewTitle": "Вигляд панелі керування",
   "settingScreensaverDashboardViewDescription": "Вигляд панелі керування Home Assistant, який показує заставка.",
+  "settingScreensaverDashboardDoubleTapTitle": "Подвійний дотик для закриття",
+  "settingScreensaverDashboardDoubleTapDescription": "Одинарні дотики взаємодіють із панеллю керування замість закриття заставки.",
   "screensaverDashboardSection": "Заставка панелі керування Home Assistant",
-  "screensaverModeUrl": "URL-адреса зображення"
+  "screensaverModeUrl": "URL-адреса зображення",
+  "screensaverCalendarSection": "Заставка календаря",
+  "settingScreensaverCalendarViewTitle": "Вигляд календаря",
+  "settingScreensaverCalendarViewDescription": "Вигляд календаря, з яким відкривається заставка."
 }

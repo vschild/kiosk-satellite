@@ -12,6 +12,7 @@
   "cameraStreamsShowFailed": "Die Ansicht konnte nicht angezeigt werden",
   "cameraStreamsShowFailedRemote": "Die Ansicht konnte nicht angezeigt werden",
   "cameraStreamsEditView": "Ansicht bearbeiten",
+  "cameraStreamsViewId": "Ansichts-ID",
   "cameraStreamsShowNames": "Kameranamen anzeigen",
   "cameraStreamsShowNamesHelp": "Zeigt eine Beschriftung über jeder Kamera an.",
   "cameraStreamsGrid": "Raster",

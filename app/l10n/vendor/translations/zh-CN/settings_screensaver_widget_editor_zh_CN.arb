@@ -22,6 +22,8 @@
   "screensaverOverlayShowNameHelp": "数值下方的名称。",
   "screensaverOverlayShowIcon": "显示图标",
   "screensaverOverlayShowIconHelp": "数值旁边的图标。",
+  "screensaverOverlayVisibleStates": "可见状态",
+  "screensaverOverlayVisibleStatesHelp": "仅当数值为其中之一时显示此小组件，以逗号分隔。留空则始终显示。",
   "screensaverOverlayFontSystem": "系统",
   "screensaverOverlayFontSerif": "衬线",
   "screensaverOverlayFontCondensed": "窄体",

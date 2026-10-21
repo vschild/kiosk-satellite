@@ -37,6 +37,7 @@ class HeadlessSettings {
     'Lockdown',
     'Home',
     'Launcher',
+    'Calendar',
   };
 
   /// Single settings on pages that otherwise stay.

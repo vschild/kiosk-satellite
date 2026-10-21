@@ -2,6 +2,8 @@
 
 Kiosk Satellite can show your own HTML pages in place of a Home Assistant dashboard. A custom page is either a file in Home Assistant's `www` folder, which Home Assistant serves at `/local/`, or a page on another web server on your network. Once added, it shows up in every dashboard picker under **Custom Pages**, so it can be the kiosk's default dashboard, part of the dashboard view rotation, the screensaver's dashboard, a gesture's target or an option of the ESPHome dashboard selects.
 
+To show an app's web interface, such as Music Assistant, Node-RED or Panalume, you do not need a custom page. Turn on **Show in sidebar** on the app's page in Home Assistant and it shows up in every dashboard picker after the dashboards.
+
 ## Add a page
 
 1. Put the page where the kiosk can load it. For a page in Home Assistant, copy it into the `www` folder of your Home Assistant configuration, for example `/config/www/kitchen.html`. Home Assistant serves it at `/local/kitchen.html`. If the `www` folder did not exist before, restart Home Assistant once so it starts serving it.

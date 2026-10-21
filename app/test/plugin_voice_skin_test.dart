@@ -22,10 +22,12 @@ void main() {
   Map<String, Object?> plugin({
     String id = 'hello-world',
     bool running = true,
+    bool enabled = true,
     List<String> capabilities = const ['overlay', 'host.read', 'voice.skin'],
   }) => {
     'id': id,
     'name': 'Hello World',
+    'enabled': enabled,
     'running': running,
     'capabilities': capabilities,
   };
@@ -47,6 +49,7 @@ void main() {
   });
 
   test('plugins that declare voice.skin are named in the Skin setting', () {
+    plugins.enabled.value = true;
     plugins.installed.value = [
       plugin(),
       plugin(id: 'clock', capabilities: const ['overlay', 'host.read']),
@@ -58,6 +61,18 @@ void main() {
     expect(schema['options'], contains(skin));
     expect(schema['options'], isNot(contains('plugin:clock')));
     expect((schema['optionLabels'] as Map)[skin], 'Hello World');
+  });
+
+  test('a disabled plugin offers no skin', () {
+    plugins.enabled.value = true;
+    plugins.installed.value = [plugin(enabled: false)];
+    expect(plugins.voiceSkinOptions, isEmpty);
+    expect(settings.optionsFor(voiceSkin), isNot(contains(skin)));
+
+    // Plugins switched off as a whole hide every plugin skin.
+    plugins.installed.value = [plugin()];
+    plugins.enabled.value = false;
+    expect(plugins.voiceSkinOptions, isEmpty);
   });
 
   test('a picked plugin skin stays picked when the plugin goes', () async {

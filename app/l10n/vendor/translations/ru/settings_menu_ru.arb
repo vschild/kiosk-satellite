@@ -49,6 +49,7 @@
   "settingsGroupHomeAssistant": "Home Assistant",
   "settingsGroupDisplay": "Дисплей",
   "settingsGroupMediaCameras": "Медиа и камеры",
+  "settingsGroupHousehold": "Дом",
   "settingsGroupKiosk": "Киоск",
   "settingsGroupSystem": "Система",
   "settingsMenuMenu": "Меню",

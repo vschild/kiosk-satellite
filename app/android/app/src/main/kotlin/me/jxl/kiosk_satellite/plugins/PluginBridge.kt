@@ -214,9 +214,12 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val subscriptions = ConcurrentHashMap.newKeySet<String>()
         /** Keys of this session's Home Assistant subscriptions, so events for an ended one are dropped. */
         val haSubscriptions = ConcurrentHashMap.newKeySet<String>()
+        /** Keys of this session's Music Assistant subscriptions, likewise. */
+        val maSubscriptions = ConcurrentHashMap.newKeySet<String>()
         val commandBudget = PluginCommandBudget()
         /**
-         * Send a Home Assistant request to the app. Unlike KS commands, a failure keeps its data: HA's {code, message}.
+         * Send a Home Assistant or Music Assistant request to the app. Unlike KS commands, a failure keeps its data:
+         * the server's {code, message}.
          * Service calls can run a script to its end, so the wait is longer.
          */
         fun haRequest(method: String, arguments: Map<String, Any?>, callback: PluginHost.CommandCallback, done: (Boolean) -> Unit = {}) {
@@ -335,6 +338,24 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             override fun haUnsubscribe(key: String) {
                 check(alive.get() && "ha" in manifest.capabilities) { "SDK 1 ha access is required" }
                 if (haSubscriptions.remove(key)) emit("haUnsubscribe", mapOf("id" to id, "session" to token, "key" to key), alive)
+            }
+            override fun maCall(command: String, args: Map<String, Any>, callback: PluginHost.CommandCallback) {
+                check(alive.get() && "ma" in manifest.capabilities) { "SDK 1 ma access is required" }
+                require(command.length in 1..128) { "Music Assistant commands are 1 to 128 characters" }
+                haRequest("maCall", mapOf("command" to command, "args" to PluginHostPolicy.maMessage(args)), callback)
+            }
+            override fun maSubscribe(key: String, filter: Map<String, Any>, callback: PluginHost.CommandCallback) {
+                check(alive.get() && "ma" in manifest.capabilities) { "SDK 1 ma access is required" }
+                require(PluginHostPolicy.haKey(key)) { "Subscription keys are 1 to 64 letters, digits, dots, dashes or underscores" }
+                val copy = PluginHostPolicy.maMessage(filter)
+                require(maSubscriptions.size < 16 || key in maSubscriptions) { "At most 16 Music Assistant subscriptions per plugin" }
+                require(maSubscriptions.add(key)) { "Subscription $key is already active" }
+                try { haRequest("maSubscribe", mapOf("key" to key, "filter" to copy), callback) { ok -> if (!ok) maSubscriptions.remove(key) } }
+                catch (error: Throwable) { maSubscriptions.remove(key); throw error }
+            }
+            override fun maUnsubscribe(key: String) {
+                check(alive.get() && "ma" in manifest.capabilities) { "SDK 1 ma access is required" }
+                if (maSubscriptions.remove(key)) emit("maUnsubscribe", mapOf("id" to id, "session" to token, "key" to key), alive)
             }
             override fun openCamera(options: Map<String, Any>, listener: PluginHost.CameraListener) {
                 check(alive.get() && "camera" in manifest.capabilities) { "SDK 1 camera access is required" }
@@ -802,8 +823,10 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                             val session = sessions[args["id"]]
                             val event = args["event"] as? String
                             val haKey = event?.let(PluginHostPolicy::haSubscriptionKey)
+                            val maKey = event?.let(PluginHostPolicy::maSubscriptionKey)
                             if (session != null && session.alive.get() && session.token == args["session"] &&
-                                (event in session.subscriptions || (haKey != null && haKey in session.haSubscriptions))) {
+                                (event in session.subscriptions || (haKey != null && haKey in session.haSubscriptions) ||
+                                    (maKey != null && maKey in session.maSubscriptions))) {
                                 val payload = args["payload"] as? Map<String, Any?> ?: emptyMap()
                                 try { session.call { session.plugin!!.onEvent("ks.$event", payload) } }
                                 catch (error: Throwable) { fail(session.id, error); emit("changed", snapshot()); throw error }

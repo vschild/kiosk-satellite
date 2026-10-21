@@ -738,6 +738,15 @@ class EspEntitySurface {
           'icon': 'mdi:cctv',
         },
       ],
+      // The calendar's view, Closed while it is not up: the select both
+      // shows which view is up and opens or closes it.
+      {
+        'type': 'select',
+        'objectId': 'calendar_view',
+        'name': 'Calendar view',
+        'icon': 'mdi:calendar-month',
+        'options': [for (final (label, _) in _calendarViews) label],
+      },
       if (_dashboardViews.isNotEmpty) ...[
         {
           'type': 'select',
@@ -1009,7 +1018,7 @@ class EspEntitySurface {
             'name': e.value.$1,
             'icon': e.value.$2,
             'options': [
-              for (final option in e.value.$3.options ?? const <String>[])
+              for (final option in _settings.optionsFor(e.value.$3))
                 e.value.$3.optionLabels?[option] ?? option,
             ],
             'category': 1,
@@ -1269,6 +1278,7 @@ class EspEntitySurface {
     'show_music_assistant',
     'close_camera_view',
     'active_camera_view',
+    'calendar_view',
     'dashboard_view',
     'default_dashboard',
     'screenshot',
@@ -1280,6 +1290,20 @@ class EspEntitySurface {
     'panel_brightness',
     'url',
   };
+
+  /// The Calendar view select's options and the views they open, Closed
+  /// first (no view).
+  static const _calendarViews = <(String, String?)>[
+    ('Closed', null),
+    ('Day', 'day'),
+    ('Week', 'week'),
+    ('Month', 'month'),
+    ('Schedule', 'schedule'),
+  ];
+
+  static String _calendarViewLabel(String? view) => _calendarViews
+      .firstWhere((v) => v.$2 == view, orElse: () => _calendarViews.first)
+      .$1;
 
   static bool _headlessDrops(String objectId) {
     if (_headlessDropped.contains(objectId) ||
@@ -1884,6 +1908,11 @@ class EspEntitySurface {
       bus.on<PersonSensorChanged>().listen((e) => _sendPerson(e.present)),
     );
     _subs.add(
+      bus.on<CalendarViewChanged>().listen(
+        (e) => _send('calendar_view', _calendarViewLabel(e.view)),
+      ),
+    );
+    _subs.add(
       bus.on<CameraViewStateChanged>().listen((e) {
         _send('active_camera_view', e.viewName ?? 'none');
         _send('camera_view', e.viewName ?? 'Closed');
@@ -2045,7 +2074,7 @@ class EspEntitySurface {
       // automations outside HA can use the raw vocabulary.
       final text = '$value';
       String? stored;
-      for (final option in def.options ?? const <String>[]) {
+      for (final option in _settings.optionsFor(def)) {
         if (option == text || def.optionLabels?[option] == text) {
           stored = option;
           break;
@@ -2160,6 +2189,16 @@ class EspEntitySurface {
               'viewId': '${view['id']}',
             });
           }
+        }
+      case 'calendar_view':
+        final view = _calendarViews
+            .where((v) => v.$1 == '$value')
+            .map((v) => v.$2)
+            .firstOrNull;
+        if (view == null) {
+          await commands.execute('hideCalendar', const {});
+        } else {
+          await commands.execute('openCalendar', {'view': view});
         }
       case 'close_camera_view':
         await commands.execute('hideCameraView', const {});
@@ -2457,6 +2496,15 @@ class EspEntitySurface {
     // dashboard select derives from the page currently showing.
     await _send('camera_view', 'Closed');
     await _send('active_camera_view', 'none');
+    final calendar = await commands.execute('calendarStatus', const {});
+    await _send(
+      'calendar_view',
+      _calendarViewLabel(
+        calendar.ok && calendar.data is Map
+            ? (calendar.data as Map)['view'] as String?
+            : null,
+      ),
+    );
     await _sendDefaultDashboard();
     // The server (re)started: that IS a fresh sighting, and readable
     // connectivity is by definition on.

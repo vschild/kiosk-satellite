@@ -118,6 +118,28 @@ void main() {
     },
   );
 
+  test('a view is found by id, by name or as the default (#1058)', () {
+    final config = const CameraConfiguration(
+      views: [
+        CameraViewConfig(id: 'a1b2', name: 'RUE', cameraIds: ['c']),
+        CameraViewConfig(id: 'f00d', name: 'Front Door', cameraIds: ['c']),
+        CameraViewConfig(id: 'beef', name: 'front-door', cameraIds: ['c']),
+        CameraViewConfig(id: 'cafe', name: 'Back_Yard', cameraIds: ['c']),
+      ],
+    ).withDefaultView();
+    expect(config.findView('')?.id, CameraViewConfig.defaultId);
+    expect(config.findView('default')?.id, CameraViewConfig.defaultId);
+    expect(config.findView('a1b2')?.id, 'a1b2');
+    expect(config.findView('RUE')?.id, 'a1b2');
+    expect(config.findView('rue')?.id, 'a1b2');
+    // An exact name beats a looser match on another view.
+    expect(config.findView('Front Door')?.id, 'f00d');
+    expect(config.findView('front-door')?.id, 'beef');
+    expect(config.findView('back yard')?.id, 'cafe');
+    expect(config.findView('back-yard')?.id, 'cafe');
+    expect(config.findView('garage'), isNull);
+  });
+
   test('auto-dismiss stops keep every earlier value and reach an hour', () {
     final stops = defs.cameraAutoDismissStops;
     // Every value the old 30 s slider could save is still a stop.

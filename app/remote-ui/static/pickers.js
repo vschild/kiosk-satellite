@@ -2,6 +2,7 @@ import { launcherText, launcherError } from './localization.js';
 import { deviceText, screensaverText, immichError, t } from './localization.js';
 import { cmd } from './core.js';
 import { modalShell } from './widgets.js';
+import { appSpec, pickItems } from './entity_picker.js';
 
 function mediaPickerStatus(list, message) {
   const text = document.createElement('div');
@@ -146,80 +147,48 @@ export function openMediaBrowser() {
   });
 }
 
-// The launcher whitelist picker: every launchable app on the device with a
-// checkbox, resolving to the chosen [{package, label}] or null on cancel.
-// Saving rebuilds the value from the device's list, so labels refresh and
-// uninstalled leftovers drop out, same as the on-device picker.
-export function openLauncherAppsPicker(current) {
-  return new Promise((resolve) => {
-    const selected = new Set((current || []).map((a) => a.package));
-    let failure = null;
-    const renderError = () => {
-      if (failure !== null) list.firstChild.textContent = t('launcherListError', {error: launcherError(failure)});
-    };
-
-    const shell = modalShell({
-      title: launcherText('Apps'),
-      width: 520,
-      onDismiss: () => close(null),
+// The launcher whitelist through the shared picker, which keeps the order
+// the apps are arranged in (issue #1067). Resolves to the chosen
+// [{package, label}] or null on cancel. The device's list comes first, so
+// a failure says why. Saving rebuilds the value from that list, so labels
+// refresh and uninstalled leftovers drop out, same as the on-device picker.
+export async function openLauncherAppsPicker(current) {
+  let apps = null;
+  let failure = null;
+  try {
+    const r = await cmd('installedApps');
+    if (!r.ok) throw new Error(r.error || launcherText('listing failed'));
+    apps = Array.isArray(r.data) ? r.data : [];
+  } catch (e) {
+    failure = String(e);
+  }
+  if (failure !== null) {
+    await new Promise((resolve) => {
+      const shell = modalShell({
+        title: launcherText('Apps'),
+        width: 520,
+        onDismiss: () => close(),
+      });
+      const message = document.createElement('div');
+      message.className = 'desc';
+      message.style.color = 'var(--error)';
+      const paint = () => { message.textContent = t('launcherListError', {error: launcherError(failure)}); };
+      const close = () => { document.removeEventListener('ks-settings-cached', paint); shell.close(); resolve(); };
+      paint();
+      document.addEventListener('ks-settings-cached', paint);
+      shell.body.appendChild(message);
+      const cancel = document.createElement('button');
+      cancel.className = 'btn-text'; cancel.textContent = launcherText('Cancel');
+      cancel.addEventListener('click', close);
+      shell.foot.append(cancel);
     });
-    const close = (val) => { document.removeEventListener('ks-settings-cached', renderError); shell.close(); resolve(val); };
-    const list = shell.body;
-    list.innerHTML = '<div class="desc" style="color:var(--muted)"></div>';
-    list.firstChild.textContent = launcherText('Loading…');
-
-    const cancel = document.createElement('button');
-    cancel.className = 'btn-text'; cancel.textContent = launcherText('Cancel');
-    cancel.addEventListener('click', () => close(null));
-    const okBtn = document.createElement('button');
-    okBtn.className = 'btn-primary'; okBtn.textContent = launcherText('Save'); okBtn.disabled = true;
-    shell.foot.append(cancel, okBtn);
-
-    (async () => {
-      let apps = [];
-      try {
-        const r = await cmd('installedApps');
-        if (!r.ok) throw new Error(r.error || launcherText('listing failed'));
-        apps = r.data || [];
-      } catch (e) {
-        list.innerHTML = '<div class="desc" style="color:var(--error)"></div>';
-        failure = String(e);
-        document.addEventListener('ks-settings-cached', renderError);
-        renderError();
-        return;
-      }
-      list.innerHTML = '';
-      for (const app of apps) {
-        const r = document.createElement('label');
-        r.className = 'row';
-        r.style.cursor = 'pointer';
-        const info = document.createElement('div'); info.className = 'info';
-        info.innerHTML = `<div class="name"></div><div class="desc"></div>`;
-        info.querySelector('.name').textContent = app.label;
-        info.querySelector('.desc').textContent = app.package;
-        const box = document.createElement('input');
-        box.type = 'checkbox';
-        box.checked = selected.has(app.package);
-        box.addEventListener('change', () => {
-          if (box.checked) selected.add(app.package);
-          else selected.delete(app.package);
-        });
-        // The checkbox leads the row, the whole row toggles it.
-        r.append(box, info);
-        list.appendChild(r);
-      }
-      if (!apps.length) {
-        list.innerHTML = '<div class="desc" style="color:var(--muted)"></div>';
-        list.firstChild.textContent = launcherText('No launchable apps found.');
-        return;
-      }
-      okBtn.disabled = false;
-      okBtn.addEventListener('click', () => close(
-        apps.filter((a) => selected.has(a.package))
-          .map((a) => ({ package: a.package, label: a.label })),
-      ));
-    })();
-  });
+    return null;
+  }
+  const ids = await pickItems({ title: launcherText('Apps'), spec: appSpec(apps),
+    selected: (current || []).map((a) => a.package) });
+  if (!ids) return null;
+  return ids.map((id) => apps.find((a) => String(a.package) === id)).filter(Boolean)
+    .map((a) => ({ package: String(a.package), label: String(a.label) }));
 }
 
 

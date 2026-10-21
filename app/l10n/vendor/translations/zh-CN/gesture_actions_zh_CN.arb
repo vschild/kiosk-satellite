@@ -21,6 +21,7 @@
   "gestureLaunchApp": "打开其他应用",
   "gestureDeepLink": "打开应用链接",
   "gestureAndroidSettings": "打开 Android 设置",
+  "gestureOpenCalendar": "打开日历",
   "gestureService": "调用服务",
   "gestureScript": "运行脚本",
   "gestureAutomation": "触发自动化",

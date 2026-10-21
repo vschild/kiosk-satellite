@@ -140,6 +140,13 @@ class MaRemotePlayer implements RemotePlayer {
   Map? _player;
   bool _usingPlayerMedia = false;
 
+  /// The player a protocol player plays for: the one that names it among
+  /// its output protocols, a universal player wrapping a Sendspin client
+  /// for one. Music Assistant lists the sources and what each can do only
+  /// on that one, so the protocol player's own list is empty.
+  String _ownerId = '';
+  Map? _owner;
+
   /// The server's provider names by instance id, read once a connection
   /// is up, for the audio quality to name its source.
   Map<String, String> _providerNames = const {};
@@ -223,12 +230,55 @@ class MaRemotePlayer implements RemotePlayer {
         _player = player;
         _readVolume(player);
         await _readGroup(session, player);
+        await _readOwner(session, player);
       }
     } catch (e) {
       log.warn(_name, '$label player lookup failed: $e');
     }
     if (_stopped || !identical(_session, session)) return;
     publishQueue(queue);
+  }
+
+  /// Follow the player [player] plays for while it is a protocol player
+  /// (see [_ownerId]), found once among all players and read again on
+  /// every refresh after that.
+  Future<void> _readOwner(MaSession session, Map player) async {
+    if (player['type'] != 'protocol') {
+      _ownerId = '';
+      _owner = null;
+      return;
+    }
+    try {
+      if (_ownerId.isEmpty) {
+        final players = await session.send('players/all', const {});
+        _ownerId = players is List ? ownerOf(players, playerId) : '';
+      }
+      if (_ownerId.isEmpty) return;
+      final owner = await session.send('players/get', {'player_id': _ownerId});
+      _owner = owner is Map ? owner : null;
+    } catch (e) {
+      log.warn(_name, '$label owner lookup failed: $e');
+    }
+  }
+
+  @visibleForTesting
+  set ownerId(String id) => _ownerId = id;
+
+  /// The id of the player in [players] that plays through [protocolId] as
+  /// one of its output protocols, or empty when none does.
+  @visibleForTesting
+  static String ownerOf(List players, String protocolId) {
+    for (final p in players) {
+      if (p is! Map || p['player_id'] == protocolId) continue;
+      final protocols = p['output_protocols'];
+      if (protocols is! List) continue;
+      for (final o in protocols) {
+        if (o is Map && o['output_protocol_id'] == protocolId) {
+          return '${p['player_id'] ?? ''}';
+        }
+      }
+    }
+    return '';
   }
 
   void _readVolume(Object? player) {
@@ -537,6 +587,8 @@ class MaRemotePlayer implements RemotePlayer {
     _session = null;
     _client = null;
     _player = null;
+    _owner = null;
+    _ownerId = '';
     _queue = null;
     _queueId = '';
     _groupLeader = '';
@@ -605,6 +657,13 @@ class MaRemotePlayer implements RemotePlayer {
         // another room or Music Assistant's own group slider.
         _readGroupVolume(data);
         _reemit();
+      case 'player_updated' when objectId == _ownerId && _ownerId.isNotEmpty:
+        // The owner's update carries the source list, what each source
+        // can do included.
+        if (data is Map) _owner = data;
+        if (_usingPlayerMedia || _hasExternalSource) {
+          _publishSnapshot(preservePosition: true);
+        }
       case 'player_removed' when objectId == playerId:
         _player = null;
         _queue = null;
@@ -776,11 +835,18 @@ class MaRemotePlayer implements RemotePlayer {
     final duration = media['media_type'] == 'radio' ? null : media['duration'];
     final durationMs = duration is num ? (duration * 1000).round() : 0;
     position = max(0, durationMs > 0 ? min(position, durationMs) : position);
+    // A protocol player lists no sources of its own: its owner's list
+    // says what the source can do.
     Map? source;
-    if (player['source_list'] case final List sources) {
-      for (final item in sources) {
-        if (item is Map && item['id'] == player['active_source']) source = item;
+    for (final holder in [player, _owner]) {
+      if (holder?['source_list'] case final List sources) {
+        for (final item in sources) {
+          if (item is Map && item['id'] == player['active_source']) {
+            source = item;
+          }
+        }
       }
+      if (source != null) break;
     }
     _emit({
       'title': title,

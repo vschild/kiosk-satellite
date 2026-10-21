@@ -193,8 +193,14 @@ const dashboardCarouselScript = '''
       var n = path[i];
       if (!(n instanceof Element)) continue;
       var name = n.localName || '';
+      // Some cards build sliders from plain divs and only name them in
+      // the class (Bubble Card's `bubble-range-slider` inside a
+      // `slider-container`), so the class and ARIA role count too.
+      var cls = n.getAttribute('class') || '';
       if (BLOCK.test(name) ||
           name.indexOf('slider') !== -1 ||
+          cls.indexOf('slider') !== -1 ||
+          n.getAttribute('role') === 'slider' ||
           name.indexOf('dialog') !== -1 ||
           name.indexOf('-map') !== -1) {
         return true;

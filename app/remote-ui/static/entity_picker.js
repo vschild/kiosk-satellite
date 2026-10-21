@@ -1,4 +1,4 @@
-import { gestureText, haText, mediaError, mediaText, screensaverText, t } from './localization.js';
+import { gestureText, haText, launcherText, mediaError, mediaText, screensaverText, t } from './localization.js';
 import { cmd } from './core.js';
 import { modalShell, queueEdgeFades } from './widgets.js';
 
@@ -15,6 +15,7 @@ const ICONS = {
   speakers: 'M14,10A3,3 0 0,0 11,13A3,3 0 0,0 14,16A3,3 0 0,0 17,13A3,3 0 0,0 14,10M14,18A5,5 0 0,1 9,13A5,5 0 0,1 14,8A5,5 0 0,1 19,13A5,5 0 0,1 14,18M14,2A2,2 0 0,1 16,4A2,2 0 0,1 14,6A2,2 0 0,1 12,4A2,2 0 0,1 14,2M19,0H9A2,2 0 0,0 7,2V18A2,2 0 0,0 9,20H19A2,2 0 0,0 21,18V2A2,2 0 0,0 19,0M5,22H17V24H5A2,2 0 0,1 3,22V4H5',
   session: 'M19.1,8.7C20.9,10.5 20.9,13.3 19.1,15.2L20.1,16.2C22.6,13.9 22.6,10.1 20.1,7.7L19.1,8.7M18,9.8L17,10.8C17.5,11.5 17.5,12.4 17,13.1L18,14.1C19.2,12.9 19.2,11.1 18,9.8M14,1H4A2,2 0 0,0 2,3V21A2,2 0 0,0 4,23H14A2,2 0 0,0 16,21V3A2,2 0 0,0 14,1M14,20H4V4H14V20Z',
   warn: 'M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z',
+  app: 'M21 2H3C1.9 2 1 2.9 1 4V20C1 21.1 1.9 22 3 22H21C22.1 22 23 21.1 23 20V4C23 2.9 22.1 2 21 2M21 20H3V6H21V20Z',
   chevron: 'M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z',
   back: 'M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z',
   up: 'M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z',
@@ -202,6 +203,30 @@ async function loadPillPlayers() {
   return {
     items: [...ma.items.map(under(maGroup)), ...sonos.items.map(under('Sonos'))],
     notes: maNote ? { [maGroup]: maNote } : {},
+  };
+}
+
+// The device's launchable apps from installedApps, alphabetical, for the
+// app launcher's picks (issue #1067). The caller lists them first, so a
+// failure can say why.
+export function appSpec(apps) {
+  return {
+    key: 'apps',
+    loader: async () => ({
+      items: apps.map((a) => ({
+        id: String(a.package),
+        name: String(a.label),
+        sub: String(a.package),
+        subMono: true,
+        iconPath: ICONS.app,
+        group: '',
+        available: true,
+        raw: a,
+      })),
+      notes: {},
+    }),
+    searchHint: launcherText('Search apps'),
+    noGroup: '', chips: false, headings: false, byGroupName: false, keep: null,
   };
 }
 

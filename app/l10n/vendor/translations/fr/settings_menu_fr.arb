@@ -49,6 +49,7 @@
   "settingsGroupHomeAssistant": "Home Assistant",
   "settingsGroupDisplay": "Affichage",
   "settingsGroupMediaCameras": "Média et caméras",
+  "settingsGroupHousehold": "Foyer",
   "settingsGroupKiosk": "Kiosque",
   "settingsGroupSystem": "Système",
   "settingsMenuMenu": "Menu",

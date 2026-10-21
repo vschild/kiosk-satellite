@@ -25,5 +25,8 @@
   "settingKioskAllowAppsTitle": "Apps",
   "settingKioskAllowAppsDescription": "Open de appstarter. Als Thuisknop uitschakelen actief is, wordt de kiosk bij het openen van een app losgemaakt totdat de app terugkeert.",
   "kioskAllowedActions": "Toegestane acties",
-  "kioskAllowedHelp": "De snelle acties die in het kioskmenu beschikbaar zijn"
+  "kioskAllowedHelp": "De snelle acties die in het kioskmenu beschikbaar zijn",
+  "settingKioskAllowedAppsTitle": "Toegestane apps",
+  "settingKioskAllowedAppsDescription": "De apps van de appstarter die beschikbaar zijn terwijl de kioskmodus aan staat.",
+  "kioskAllowedAppsEmpty": "Voeg eerst apps toe in Instellingen > Appstarter."
 }
