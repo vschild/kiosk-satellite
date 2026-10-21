@@ -176,8 +176,12 @@ bool clockNightActive({
 /// with background listening on, the process (and its camera,
 /// carried by the camera-type foreground service) keeps running behind the
 /// dark panel, so motion, the ESPHome dismiss and the wake word can all light
-/// it back up. The session stays active across the power-off, which is what
-/// routes every dismiss source through [stop] and its screenOn.
+/// it back up. The Android screensaver leaves the kiosk behind another
+/// screen even while the panel is lit, so that session attaches the
+/// microphone type itself before the dream starts and keeps it until the
+/// dashboard returns, screen off included. The session stays active across
+/// the power-off, which is what routes every dismiss source through [stop]
+/// and its screenOn.
 class ScreensaverManager extends Manager with WidgetsBindingObserver {
   ScreensaverManager(
     super.bus,
@@ -619,11 +623,15 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     // timer until the turn actually finishes. Arming it here — as a touch would
     // — is wrong: the countdown would run through the user speaking and the
     // spoken reply, and the screensaver could reappear mid-conversation.
+    // Before the wake word's own screen-on. That screen-on is source app
+    // and would otherwise start a parked dream again.
+    bus.on<WakeWordHeard>().listen((_) {
+      if (!_androidSession || _active) return;
+      _androidDismissing = true;
+    });
     bus.on<WakeWordDetected>().listen((_) {
       _voiceTurn = true;
       if (_androidSession) {
-        // Ahead of the wake that bringToFront is about to publish, so
-        // that screen-on relaunches nothing.
         _androidDismissing = true;
         log.debug(name, 'dismissed by wake word');
         unawaited(
@@ -1859,8 +1867,12 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// wait briefly to see whether anything actually covered the kiosk.
   Future<void> _launchSystemDream() async {
     if (_systemDream) return;
+    // While this activity is still the foreground. The dream takes that
+    // away, and a microphone type added afterwards is refused on Android 14.
+    await _setDreamMicrophone(true);
     final result = await commands.execute('startSystemDream', const {});
     if (!result.ok) {
+      await _setDreamMicrophone(false);
       log.warn(name, 'Android screensaver did not start: ${result.error}');
       bus.publish(SystemDreamChanged(active: false, error: result.error));
       // A relaunch is still inside [_relaunching], so the broadcast above
@@ -2018,6 +2030,28 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     log.info(name, 'schedule: ${at ?? 'no entry'} takes over');
   }
 
+  /// The microphone foreground-service type for this Android session.
+  /// Idempotent. A missing command (tests, desktop) is not a failed dream.
+  bool _dreamMicrophone = false;
+
+  Future<void> _setDreamMicrophone(bool hold) async {
+    if (_dreamMicrophone == hold) return;
+    _dreamMicrophone = hold;
+    final result = await commands.execute('holdDreamMicrophone', {
+      'hold': hold,
+    });
+    if (result.ok) return;
+    _dreamMicrophone = !hold;
+    final error = result.error ?? '';
+    if (!error.startsWith('unknown command:')) {
+      log.warn(
+        name,
+        'could not ${hold ? 'hold' : 'release'} the wake word microphone: '
+        '$error',
+      );
+    }
+  }
+
   /// End the Android screensaver session and, when the dream is still up,
   /// wake it. The dashboard's brightness and view are restored when this
   /// session blanked them.
@@ -2025,6 +2059,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     if (_closingAndroid) return;
     _closingAndroid = true;
     try {
+      await _setDreamMicrophone(false);
       final announce = _androidAnnounced;
       final blanked = _blanked;
       final dark = _panelDark;

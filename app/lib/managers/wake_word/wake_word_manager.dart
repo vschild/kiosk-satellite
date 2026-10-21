@@ -1768,6 +1768,10 @@ class WakeWordManager extends Manager
       setActive(true);
       return;
     }
+    // Ahead of the screen-on. The Android screensaver treats this wake as
+    // a dismissal; without the flag, lighting a parked dream starts it
+    // again instead of opening the dashboard.
+    bus.publish(const WakeWordHeard());
     // A dark panel wakes first, before anything else about the turn:
     // someone spoke to the device, and the UI the turn is about to show
     // must land on a lit screen. Covers the screensaver's screen-off timer

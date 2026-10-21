@@ -60,8 +60,9 @@
          connections the kiosk holds open regardless of features. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
-    <!-- Attached while background listening is on: the type that makes the
-         microphone real rather than silent off screen. -->
+    <!-- Attached while background listening is on, and while the Android
+         screensaver session is up: the type that makes the microphone real
+         rather than silent once the kiosk is no longer the foreground. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
     <!-- Keeps motion detection's camera alive when the panel powers off.
          Newer Android revokes camera access from apps that are not visible

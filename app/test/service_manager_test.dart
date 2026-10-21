@@ -87,6 +87,26 @@ void main() {
     ]);
   });
 
+  test(
+    'the Android screensaver holds the microphone without background listening',
+    () async {
+      await build();
+      await settings.set(defs.wakeWordBackground, false);
+      await Future<void>.delayed(Duration.zero);
+      expect(ids(), isNot(contains('listening')));
+      await service.holdDreamMicrophone(true);
+      expect(ids(), contains('listening'));
+      expect(service.neededGrants()['microphone'], isTrue);
+      expect(
+        service.reasons.firstWhere((reason) => reason.id == 'listening').title,
+        'Wake word during Android screensaver',
+      );
+      await service.holdDreamMicrophone(false);
+      expect(ids(), isNot(contains('listening')));
+      expect(service.neededGrants()['microphone'], isFalse);
+    },
+  );
+
   test('background listening counts as soon as its switch is on', () async {
     await build();
     // Detection itself is always on (the retired master switch is forced
