@@ -21,6 +21,7 @@ void main() {
   late List<String?> dreamErrors;
   late List<String> screenCalls;
   late List<bool> saverActive;
+  late List<bool> micHolds;
   var dreamStart = const CommandResult.ok({
     'ok': true,
     'method': 'somnambulator',
@@ -49,12 +50,23 @@ void main() {
     dreamErrors = [];
     screenCalls = [];
     saverActive = [];
+    micHolds = [];
     bus.on<SystemDreamChanged>().listen((event) {
       if (event.error != null) dreamErrors.add(event.error);
     });
     bus.on<ScreensaverStateChanged>().listen((event) {
       saverActive.add(event.active);
     });
+    commands.register(
+      Command(
+        name: 'holdDreamMicrophone',
+        description: 'Record the microphone foreground-service hold',
+        handler: (params) async {
+          micHolds.add(params['hold'] == true);
+          return const CommandResult.ok();
+        },
+      ),
+    );
     commands.register(
       Command(
         name: 'startSystemDream',
@@ -159,6 +171,7 @@ void main() {
       dreams.clear();
       saver.start();
       async.flushMicrotasks();
+      expect(micHolds, [true]);
       expect(dreams, ['start']);
       expect(saver.isActive, isFalse);
       expect(saver.activeView.value, isNull);
@@ -166,6 +179,7 @@ void main() {
       async.elapse(const Duration(seconds: 4));
       async.flushMicrotasks();
       expect(dreams, ['start', 'stop']);
+      expect(micHolds, [true, false]);
       expect(dreamErrors, ['did_not_start']);
       saver.dispose();
     });
@@ -201,6 +215,7 @@ void main() {
       saver.start();
       async.flushMicrotasks();
       expect(dreams, isEmpty);
+      expect(micHolds, isEmpty);
       expect(saver.isActive, isTrue);
       expect(saver.activeView.value, 'clock');
       expect(brightness, isEmpty);
@@ -405,6 +420,56 @@ void main() {
       async.flushMicrotasks();
       expect(dreams, ['start']);
       expect(screenCalls, ['screenOff', 'screenOn']);
+      saver.dispose();
+    });
+  });
+
+  test('a wake word on a dark panel opens the dashboard, not the dream', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 5,
+        'ks.screensaver.screen_off_wake_to_screensaver': '["motion"]',
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      dreams.clear();
+      async.elapse(const Duration(milliseconds: 50));
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff']);
+      // The wake word says it was heard before its own screen-on, so the
+      // panel coming back does not start the dream again.
+      bus.publish(const WakeWordHeard());
+      bus.publish(const ScreenStateChanged(on: true, source: 'app'));
+      async.flushMicrotasks();
+      expect(dreams, isEmpty);
+      bus.publish(
+        const WakeWordDetected(model: 'okay_nabu', phrase: 'okay nabu'),
+      );
+      async.flushMicrotasks();
+      expect(dreams, isEmpty);
+      expect(saverActive.last, isFalse);
+      expect(micHolds, [true, false]);
+      saver.dispose();
+    });
+  });
+
+  test('the microphone hold stays while the panel is off', () {
+    fakeAsync((async) {
+      build({
+        'ks.screensaver.mode': 'android',
+        'ks.screensaver.screen_off_minutes': 5,
+      }, screenOffUnit: const Duration(milliseconds: 10));
+      async.flushMicrotasks();
+      saver.start();
+      async.flushMicrotasks();
+      confirmDream(async);
+      async.elapse(const Duration(milliseconds: 50));
+      async.flushMicrotasks();
+      expect(screenCalls, ['screenOff']);
+      expect(micHolds, [true]);
       saver.dispose();
     });
   });

@@ -732,6 +732,16 @@ class ScreenshotTaken extends AppEvent {
 
 // ── Wake word ──────────────────────────────────────────────────────────
 
+/// The wake word was accepted and the panel is about to be lit.
+///
+/// Internal. Published before screen-on, so the Android screensaver can
+/// mark the wake as a dismissal before that screen-on would start the
+/// dream again. The turn itself still waits for [WakeWordDetected], after
+/// the panel is lit.
+class WakeWordHeard extends AppEvent {
+  const WakeWordHeard();
+}
+
 class WakeWordDetected extends AppEvent {
   const WakeWordDetected({required this.model, required this.phrase});
   final String model;

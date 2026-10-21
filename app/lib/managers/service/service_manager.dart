@@ -63,6 +63,14 @@ class ServiceManager extends Manager {
 
   List<ServiceReason> _reasons = const [];
 
+  /// The Android screensaver is about to cover the kiosk, or already has,
+  /// including the stretch after Turn screen off after parks the dream.
+  /// The microphone type has to be on the service before that happens:
+  /// Android 14 refuses a microphone type added once the app is no longer
+  /// the foreground, and without the type the capture goes silent the
+  /// moment the dream (or a dark panel) takes the app out of TOP.
+  bool _dreamMicrophone = false;
+
   /// What the service is currently being kept alive for, in display order.
   /// Computed on demand until the first sync has run, so a reader never
   /// sees an empty list: the base reason is always there.
@@ -97,6 +105,21 @@ class ServiceManager extends Manager {
   Future<void> init() async {
     commands.register(
       Command(
+        name: 'holdDreamMicrophone',
+        description:
+            'Keep the microphone foreground-service type while Android\'s '
+            'screensaver covers the kiosk or the panel is off under that '
+            'session. Must be called before the dream starts.',
+        params: const {'hold': 'true to attach the type, false to release it'},
+        quiet: true,
+        handler: (p) async {
+          await holdDreamMicrophone(p['hold'] == true);
+          return const CommandResult.ok();
+        },
+      ),
+    );
+    commands.register(
+      Command(
         name: 'getServiceStatus',
         description:
             'The Kiosk Satellite Service, the foreground service that keeps '
@@ -123,8 +146,8 @@ class ServiceManager extends Manager {
     _subs.clear();
   }
 
-  /// The reasons the current settings call for. Pure, so tests can read it
-  /// off a settings store without a platform.
+  /// The reasons the current settings call for, plus the Android screensaver's
+  /// microphone hold when that session asked for it.
   List<ServiceReason> compute() {
     final s = _settings;
     return [
@@ -134,12 +157,18 @@ class ServiceManager extends Manager {
         'Keeps the dashboard session and its websocket open while the '
             'screen is off.',
       ),
-      if (s.get(defs.wakeWordEnabled) && s.get(defs.wakeWordBackground))
-        const ServiceReason(
+      if (s.get(defs.wakeWordEnabled) &&
+          (s.get(defs.wakeWordBackground) || _dreamMicrophone))
+        ServiceReason(
           'listening',
-          'Background listening',
-          'Keeps the wake word engine and its microphone running behind '
-              'other apps.',
+          s.get(defs.wakeWordBackground)
+              ? 'Background listening'
+              : 'Wake word during Android screensaver',
+          s.get(defs.wakeWordBackground)
+              ? 'Keeps the wake word engine and its microphone running behind '
+                    'other apps.'
+              : 'Keeps the wake word listening while Android\'s screensaver '
+                    'is up, including while the panel is off.',
         ),
       if (s.get(defs.cameraEnabled) &&
           s.get(defs.cameraRtspEnabled) &&
@@ -221,6 +250,15 @@ class ServiceManager extends Manager {
       'camera': ids.contains('camera'),
       'bluetooth': ids.contains('bluetooth'),
     };
+  }
+
+  /// Hold or release the microphone foreground-service type for the Android
+  /// screensaver. The caller must do this while the kiosk is still in
+  /// front, before the dream starts.
+  Future<void> holdDreamMicrophone(bool hold) async {
+    if (_dreamMicrophone == hold) return;
+    _dreamMicrophone = hold;
+    await sync();
   }
 
   /// Recompute the reasons and push them, with the wake-lock preference,
