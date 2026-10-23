@@ -83,6 +83,8 @@ Map<String, Object?>? kioskLinkAction(String url) {
         'schedule' => {'type': 'calendar', 'view': arg},
         _ => null,
       };
+    case 'music-library':
+      return arg == null ? const {'type': 'music_library'} : null;
   }
   return null;
 }

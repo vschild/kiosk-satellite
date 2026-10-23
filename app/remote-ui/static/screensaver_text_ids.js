@@ -110,6 +110,7 @@ export const screensaverTextMessageIds = {
   "Digital Clock": "screensaverStyleDigital",
   "Flip Clock": "screensaverStyleFlip",
   "Roller Clock": "screensaverStyleRoller",
+  "Hand Clock": "screensaverStyleHand",
   "Default": "screensaverFontDefault",
   "Light": "screensaverFontLight",
   "Regular": "screensaverFontRegular",

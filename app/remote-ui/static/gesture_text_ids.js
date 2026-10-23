@@ -207,5 +207,6 @@ export const gestureTextMessageIds = {
   "Double press": "gestureDoublePress",
   "Hold": "gestureHoldPress",
   "A button press no gesture claims keeps its own job: Action answers, stops or dismisses what is ringing and otherwise starts a voice command, Microphone mutes Voice Satellite and the volume buttons change the volume.": "gestureButtonDefaults",
-  "Open the calendar": "gestureOpenCalendar"
+  "Open the calendar": "gestureOpenCalendar",
+  "Open Music Library": "gestureOpenMusicLibrary"
 };

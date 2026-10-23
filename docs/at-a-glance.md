@@ -55,7 +55,7 @@ A colored circle always indicates activity. The text itself never changes color;
 
 Enabling **Hide names** removes the name text from every entity and enlarges the value text to fill the space. This is ideal for smaller screens read from across a room, where the icon alone provides enough context. (Your custom names are saved and will return if you toggle this setting off later).
 
-Enabling **Floating text style** reverts the row to its original, minimalist look: floating text in a single muted tone, without the chip background or state colors. On the Clock screensaver, this text matches the clock's digit color (Clock color for Digital; digit colors for Flip and Roller) to ensure readability against any background. However, over photos, this text-only style can be harder to read depending on the image behind it—which is exactly why the chip style is now the default.
+Enabling **Floating text style** reverts the row to its original, minimalist look: floating text in a single muted tone, without the chip background or state colors. On the Clock screensaver, this text matches the clock's digit color (Clock color for Digital and Hand; digit colors for Flip and Roller) to ensure readability against any background. However, over photos, this text-only style can be harder to read depending on the image behind it—which is exactly why the chip style is now the default.
 
 States are displayed exactly as they appear in Home Assistant, capitalized (e.g., `Open`, `Locked`, `Closed`), with the appropriate unit appended for numeric sensors.
 

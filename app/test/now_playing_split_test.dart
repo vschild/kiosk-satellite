@@ -264,6 +264,25 @@ void main() {
     await c.screensaver.dispose();
   });
 
+  testWidgets('speaker pill grows with Text scale but never shrinks', (
+    tester,
+  ) async {
+    await boot(tester);
+    final icon = find.byIcon(Icons.speaker_outlined);
+    expect(tester.getSize(icon).width, closeTo(20, 0.01));
+    await c.settings.set(defs.sendspinFullscreenTextScale, 150);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.getSize(icon).width, closeTo(30, 0.01));
+    await c.settings.set(defs.sendspinFullscreenTextScale, 50);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.getSize(icon).width, closeTo(20, 0.01));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await c.screensaver.dispose();
+  });
+
   testWidgets('shared controls start at full size and honor Button scale', (
     tester,
   ) async {
@@ -425,6 +444,47 @@ void main() {
       },
     );
   }
+
+  testWidgets('speaker menu scales at 70% of its pill', (tester) async {
+    await boot(
+      tester,
+      prefs: {
+        'ks.sendspin.ma_url': 'http://ma.local',
+        'ks.sendspin.ma_token': 'test',
+        'ks.sendspin.client_id': 'tablet',
+        'ks.sendspin.fullscreen_text_scale': 150,
+      },
+    );
+    c.sendspin.apiFactory = ({required baseUrl, required token}) => _GroupApi();
+    final pane = tester.getRect(player);
+    await tester.tapAt(pane.topLeft + const Offset(8, 120));
+    await tester.pump();
+    await tester.tap(
+      find.ancestor(
+        of: find.byIcon(Icons.expand_more_rounded),
+        matching: find.byType(InkWell),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      tester.getSize(find.byIcon(Icons.speaker_group_outlined)).width,
+      closeTo(27, 0.01),
+    );
+    expect(
+      tester
+          .getSize(find.byIcon(Icons.check_box_outline_blank_rounded).first)
+          .width,
+      closeTo(32.4, 0.01),
+    );
+    expect(
+      tester.widget<Text>(find.text('Speaker 0')).style!.fontSize,
+      closeTo(20.25, 0.01),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await c.screensaver.dispose();
+  });
 
   testWidgets('widget text shadow switches live independently of metadata', (
     tester,

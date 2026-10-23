@@ -259,4 +259,66 @@ void main() {
     }
     expect(calls.every((call) => call.method == 'state'), isTrue);
   });
+
+  test('commands run only on a ready Shizuku and name what to fix', () async {
+    final log = Logger(), bus = EventBus();
+    final commands = CommandRegistry(log);
+    final manager = ShizukuManager(bus, commands, log);
+    final calls = <MethodCall>[];
+    var state = <String, Object?>{'status': 'unavailable', 'installed': false};
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(ShizukuManager.channel, (call) async {
+      calls.add(call);
+      if (call.method == 'runCommand') {
+        return {
+          'exitCode': 1,
+          'stdout': '',
+          'stderr': 'not found',
+          'timedOut': false,
+          'truncated': false,
+        };
+      }
+      return state;
+    });
+    try {
+      await manager.init();
+      Future<CommandResult> run(Map<String, Object?> args) =>
+          commands.execute('runShizukuCommand', args);
+      final expected = {
+        {'status': 'unavailable', 'installed': false}:
+            'Shizuku is not installed on this device',
+        {'status': 'unavailable', 'installed': true}:
+            'Shizuku is not running. Start it in the Shizuku app',
+        {'status': 'unsupported'}: 'Update Shizuku to version 13 or later',
+        {'status': 'permission_required'}:
+            'Kiosk Satellite is not allowed in Shizuku. Tap Shizuku access '
+            'under Settings > Device > Shizuku',
+      };
+      for (final entry in expected.entries) {
+        state = entry.key;
+        final result = await run({'command': 'id'});
+        expect(result.ok, isFalse);
+        expect(result.error, entry.value);
+      }
+      expect(calls.where((c) => c.method == 'runCommand'), isEmpty);
+      expect((await run({'command': '  '})).error, 'command is empty');
+
+      state = {'status': 'ready', 'granted': true};
+      final ran = await run({'command': ' cmd foo ', 'timeout': 90});
+      expect(ran.ok, isTrue);
+      expect(calls.last.arguments, {'command': 'cmd foo', 'timeoutMs': 25000});
+      expect(ran.data, {
+        'exit_code': 1,
+        'stdout': '',
+        'stderr': 'not found',
+        'timed_out': false,
+        'truncated': false,
+      });
+      await run({'command': 'id', 'timeout': 0});
+      expect((calls.last.arguments as Map)['timeoutMs'], 10000);
+    } finally {
+      messenger.setMockMethodCallHandler(ShizukuManager.channel, null);
+    }
+  });
 }

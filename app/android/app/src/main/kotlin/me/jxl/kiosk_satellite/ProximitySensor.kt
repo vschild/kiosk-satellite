@@ -5,9 +5,14 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.util.Locale
 
 /**
  * The proximity sensor as a stream of near/far transitions, so the
@@ -29,10 +34,19 @@ import io.flutter.plugin.common.MethodChannel
  * Some panels (the NSPanel Pro) report raw reflected-light counts that
  * rise as something comes closer, far past the advertised range. See
  * [ProximityClassifier] for how those are read.
+ * The NSPanel Pro's kernels differ by model (#1081): the 86P reports the
+ * raw count, the 120P a 0/1 flag where 1 means near, and both advertise
+ * the same range and resolution. Where a Rockchip Sensortek driver is
+ * bound (see [findSensortekDriver]) the raw count is read from its sysfs
+ * file instead, so every model goes through the same raw-count path, and
+ * the sensor stays registered only to keep the driver polling.
  * Each event carries the raw reading so the log shows a sensor's shape.
  * The first sample after registering is the resting state (flagged
  * `initial`), not an approach: something resting on the sensor must not
  * wake the screensaver every time it starts.
+ *
+ * Diagnostics ride the same stream as `diagnostic` events, so the app log
+ * shows which source a session used and a summary of what it read.
  *
  * TYPE_PROXIMITY needs no permission on any Android version.
  */
@@ -43,7 +57,11 @@ class ProximitySensor(context: Context, messenger: BinaryMessenger) {
     private val methods = MethodChannel(messenger, "kiosk_satellite/proximity_sensor")
     private val events = EventChannel(messenger, "kiosk_satellite/proximity_sensor_stream")
 
-    private var listener: SensorEventListener? = null
+    private val main = Handler(Looper.getMainLooper())
+    private var session: Session? = null
+
+    /** Probed once: the bound drivers cannot change while the app runs. */
+    private val sensortek: SensortekDriver? by lazy { findSensortekDriver() }
 
     /** The default TYPE_PROXIMITY sensor, else the first dynamic one. */
     private fun findSensor(): Sensor? =
@@ -62,6 +80,8 @@ class ProximitySensor(context: Context, messenger: BinaryMessenger) {
             "vendor" to s.vendor,
             "maximumRange" to s.maximumRange,
             "resolution" to s.resolution,
+            "driver" to sensortek?.name,
+            "rawFile" to sensortek?.rawFile?.path,
         )
     }
 
@@ -80,33 +100,143 @@ class ProximitySensor(context: Context, messenger: BinaryMessenger) {
                     return
                 }
                 detach()
-                val classifier = ProximityClassifier(s.maximumRange, s.resolution)
-                var last: Boolean? = null
-                val l = object : SensorEventListener {
-                    override fun onSensorChanged(event: SensorEvent) {
-                        val distance = event.values.firstOrNull() ?: return
-                        val near = classifier.near(distance, event.timestamp)
-                        val initial = last == null
-                        if (!initial && near == last) return
-                        last = near
-                        sink.success(
-                            mapOf("near" to near, "initial" to initial, "distance" to distance),
-                        )
-                    }
-
-                    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                }
-                listener = l
-                sensorManager.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL)
+                session = Session(s, sink).also { it.start() }
             }
 
             override fun onCancel(args: Any?) = detach()
         })
     }
 
+    /**
+     * One registration. Everything runs on the main looper: the listener is
+     * registered from it without a handler, the raw file is polled on it
+     * and the channel callbacks arrive on it, so nothing here needs locking.
+     */
+    private inner class Session(
+        private val sensor: Sensor,
+        private val sink: EventChannel.EventSink,
+    ) : SensorEventListener {
+        private val driver = sensortek
+        private val classifier = ProximityClassifier(
+            sensor.maximumRange,
+            sensor.resolution,
+            risingCounts = driver != null,
+        )
+        private var last: Boolean? = null
+        private var polling = driver?.rawFile != null
+
+        // Counters for the periodic summary.
+        private var windowStart = SystemClock.elapsedRealtime()
+        private var summaryAt = windowStart + FIRST_SUMMARY_MS
+        private var samples = 0
+        private var lowest = Float.MAX_VALUE
+        private var highest = -Float.MAX_VALUE
+        private var sensorEvents = 0
+        private var lastSensorValue: Float? = null
+
+        private val poll = object : Runnable {
+            override fun run() {
+                val file = driver?.rawFile ?: return
+                val value = try {
+                    parseRawCount(file.readText())
+                } catch (e: Exception) {
+                    polling = false
+                    diagnostic(
+                        "raw file ${file.path} unreadable (${e.message}), " +
+                            "reading sensor events instead",
+                        warning = true,
+                    )
+                    return
+                }
+                sample(value, SystemClock.elapsedRealtimeNanos())
+                main.postDelayed(this, RAW_POLL_MS)
+            }
+        }
+
+        fun start() {
+            diagnostic(describeSource())
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+            // The file holds the last session's reading until the driver
+            // polls again, so give it a few polls before the resting sample.
+            if (polling) main.postDelayed(poll, RAW_FIRST_READ_MS)
+        }
+
+        fun stop() {
+            main.removeCallbacks(poll)
+            sensorManager.unregisterListener(this)
+        }
+
+        private fun describeSource(): String = when {
+            driver == null -> "source: sensor events"
+            polling -> "source: raw counts from ${driver.rawFile?.path} " +
+                "(driver ${driver.name}), polled every $RAW_POLL_MS ms"
+            else -> "source: sensor events as rising raw counts " +
+                "(driver ${driver.name}, no raw file)"
+        }
+
+        override fun onSensorChanged(event: SensorEvent) {
+            val value = event.values.firstOrNull() ?: return
+            sensorEvents++
+            lastSensorValue = value
+            if (polling) {
+                summarize()
+                return
+            }
+            sample(value, event.timestamp)
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+        private fun sample(value: Float, nanos: Long) {
+            samples++
+            if (value < lowest) lowest = value
+            if (value > highest) highest = value
+            val near = classifier.near(value, nanos)
+            val initial = last == null
+            if (initial || near != last) {
+                last = near
+                val resting = classifier.restingLevel
+                sink.success(
+                    buildMap {
+                        put("near", near)
+                        put("initial", initial)
+                        put("distance", value)
+                        if (resting != null) put("resting", resting)
+                    },
+                )
+            }
+            summarize()
+        }
+
+        /** What the session read since the last summary, for follow-up reports. */
+        private fun summarize() {
+            if (driver == null) return
+            val now = SystemClock.elapsedRealtime()
+            if (now < summaryAt) return
+            summaryAt = now + SUMMARY_MS
+            val range = if (samples > 0) "min $lowest, max $highest" else "no readings"
+            val resting = classifier.restingLevel?.let { ", resting %.1f".format(Locale.ROOT, it) } ?: ""
+            diagnostic(
+                "last ${(now - windowStart) / 1000} s: $samples readings, $range$resting; " +
+                    "$sensorEvents sensor events, last ${lastSensorValue ?: "none"}",
+            )
+            windowStart = now
+            samples = 0
+            lowest = Float.MAX_VALUE
+            highest = -Float.MAX_VALUE
+            sensorEvents = 0
+        }
+
+        private fun diagnostic(message: String, warning: Boolean = false) {
+            sink.success(
+                mapOf("diagnostic" to message, "level" to if (warning) "warn" else "info"),
+            )
+        }
+    }
+
     private fun detach() {
-        listener?.let { sensorManager.unregisterListener(it) }
-        listener = null
+        session?.stop()
+        session = null
     }
 
     fun dispose() {
@@ -114,7 +244,58 @@ class ProximitySensor(context: Context, messenger: BinaryMessenger) {
         methods.setMethodCallHandler(null)
         events.setStreamHandler(null)
     }
+
+    private companion object {
+        /** How often the raw file is read, the rate the listener is registered at. */
+        const val RAW_POLL_MS = 200L
+
+        /** How long after registering the raw file is first read. */
+        const val RAW_FIRST_READ_MS = 400L
+
+        /** When a session's first summary is logged, so a short test still shows one. */
+        const val FIRST_SUMMARY_MS = 30_000L
+
+        /** How often a session's summary is logged after the first. */
+        const val SUMMARY_MS = 300_000L
+    }
 }
+
+/** A bound Rockchip Sensortek proximity driver and its raw count file, if it has one. */
+internal data class SensortekDriver(val name: String, val rawFile: File?)
+
+private val SENSORTEK_DRIVERS = setOf("ps_stk3a5x", "ps_stk3x3x")
+
+/**
+ * The Rockchip Sensortek proximity driver bound on this device, or null on
+ * every other device.
+ *
+ * The NSPanel Pro's kernels name their I2C clients after the driver: the
+ * 120P has `ps_stk3a5x`, the 86P either that or `ps_stk3x3x` depending on
+ * the board. Both drivers report a value that rises as something comes
+ * closer, raw counts on the 86P and a 0/1 flag on the 120P. Their 4.x
+ * kernels also publish the raw count in [rawFile], world-readable, which
+ * the driver creates only once its chip has answered. Requiring a bound
+ * driver as well keeps a leftover file from passing for a live one.
+ * Anything unreadable (a stricter SELinux policy elsewhere) reads as no
+ * driver, so other devices keep the sensor's own events.
+ */
+internal fun findSensortekDriver(
+    devices: File = File("/sys/bus/i2c/devices"),
+    rawFile: File = File("/sys/class/st_psensor/psensor_value"),
+): SensortekDriver? = try {
+    val name = devices.listFiles()?.firstNotNullOfOrNull { device ->
+        val name = File(device, "name").takeIf { it.isFile }?.readText()?.trim()
+        name?.takeIf { it in SENSORTEK_DRIVERS && File(device, "driver").exists() }
+    }
+    name?.let { SensortekDriver(it, rawFile.takeIf { f -> f.isFile && f.canRead() }) }
+} catch (_: Exception) {
+    null
+}
+
+/** The raw file's text, a decimal count and a newline. */
+internal fun parseRawCount(text: String): Float =
+    text.trim().toIntOrNull()?.takeIf { it >= 0 }?.toFloat()
+        ?: throw IllegalArgumentException("not a count: \"${text.trim().take(16)}\"")
 
 internal fun proximityNearThreshold(maximumRange: Float, resolution: Float): Float = when {
     maximumRange <= 0f -> 0.5f
@@ -138,20 +319,31 @@ internal fun proximityNearThreshold(maximumRange: Float, resolution: Float): Flo
  * as near and held it there. A near that lasts [STUCK_NEAR_NANOS] is taken
  * for a new resting level, so a shift in the readings cannot hold the
  * sensor near for good.
+ *
+ * [risingCounts] starts in that mode for a sensor known to read higher as
+ * something comes closer (see [findSensortekDriver]). Such a sensor may rest
+ * at 0 and blip to a few counts, which would otherwise read as near and far
+ * flags (#980).
  */
 internal class ProximityClassifier(
     private val maximumRange: Float,
     resolution: Float,
+    risingCounts: Boolean = false,
 ) {
     private val nearBelow = proximityNearThreshold(maximumRange, resolution)
-    private var counts = false
+    private var counts = risingCounts
     private var baseline = 0f
     private var previous: Float? = null
     private var near = false
     private var nearSince = 0L
 
+    /** The resting level in raw-count mode, null while reading distances. */
+    val restingLevel: Float?
+        get() = if (counts) baseline else null
+
     /** [nanos] is the sample's timestamp, any monotonic clock in nanoseconds. */
     fun near(value: Float, nanos: Long): Boolean {
+        if (counts && previous == null) baseline = value
         if (!counts && maximumRange > 0f && value > maximumRange * 2f) {
             counts = true
             // The reading before the jump is the resting level, so a hand
@@ -166,7 +358,7 @@ internal class ProximityClassifier(
             near = false
             return false
         }
-        val margin = maxOf(baseline * COUNTS_RISE, COUNTS_MIN_RISE)
+        val margin = (baseline * COUNTS_RISE).coerceIn(COUNTS_MIN_RISE, COUNTS_MAX_RISE)
         val wasNear = near
         near = if (near) {
             value >= baseline + margin / 2f
@@ -187,6 +379,13 @@ internal class ProximityClassifier(
 
         /** The smallest rise that reads as near, clear of resting noise. */
         const val COUNTS_MIN_RISE = 15f
+
+        /**
+         * The largest rise needed to read as near. The 120P's own driver
+         * calls 50 over its lowest reading near, and some panels rest at
+         * 1000 to 4000 counts, where a quarter would miss a hand.
+         */
+        const val COUNTS_MAX_RISE = 50f
 
         /** How fast the resting level follows lower far readings. */
         const val COUNTS_DRIFT_DOWN = 0.1f

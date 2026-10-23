@@ -59,6 +59,8 @@ export const SEARCH_EXTRAS = [
     desc: 'Needs the Kiosk Satellite calendar blueprint and an LLM conversation agent in Home Assistant.', anchor: 'x:calendar_voice' },
   { tab: 'alarms', title: 'Manage alarms using Voice Satellite',
     desc: 'Needs the Kiosk Satellite alarms blueprint and an LLM conversation agent in Home Assistant.', anchor: 'x:alarms_voice' },
+  { tab: 'sendspin', title: 'Manage music using Voice Satellite', sub: 'Music Library',
+    desc: 'Needs the Kiosk Satellite music blueprint and an LLM conversation agent in Home Assistant.', anchor: 'x:library_voice' },
   { tab: 'device', title: 'Learn how we process your data',
     desc: 'What Kiosk Satellite Analytics sends and what it never sends.', sub: 'Kiosk Satellite Analytics', anchor: 'x:analytics_docs' },
   { tab: 'device', title: 'Install from file',

@@ -108,6 +108,14 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
          */
         @Volatile private var provenFallback: Pair<Int, Shape>? = null
 
+        /**
+         * Shapes whose capture went from zeros back to audio without a
+         * reopen: the HAL gates a quiet room to exact silence there (a
+         * Rockchip HAL's own gain control does), so silence on them is not
+         * a dead microphone and never walks the ladder again.
+         */
+        @Volatile private var gatingShapes: Set<Shape> = emptySet()
+
         private fun sourceName(source: Int): String = when (source) {
             MediaRecorder.AudioSource.MIC -> "mic"
             MediaRecorder.AudioSource.VOICE_RECOGNITION -> "voice_recognition"
@@ -281,10 +289,13 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
         val channelIdx = wantChannel - 1
         worker = thread(name = "vsww-mic") {
             var cur = opened
-            val walk = CaptureWalk(ladder.size, step)
+            val walk = CaptureWalk(ladder.size, step, ladder.indices.filter { ladder[it] in gatingShapes }.toSet())
             var shape = ladder[walk.step]
             var decimator = if (shape.rateHz == HARDWARE_RATE) CaptureConvert.Decimator3() else null
             var announcedAudio = false
+            // Whether the picked source delivered audio. A fallback source
+            // is remembered only for a pick that never did.
+            var pickedAudible = gatingShapes.any { it.source == source }
             // Rolling, not since-open: a capture can emit a startup
             // transient before going silent, so any single nonzero frame
             // must not disarm the watchdog for good. Both runs count 16 kHz
@@ -502,21 +513,34 @@ class MicRecorder(context: Context, messenger: BinaryMessenger) : EventChannel.S
                     val limit = walk.zeroLimitBytes
                     if (zeroRun >= limit) {
                         zeroRun = 0
+                        if (walk.gating) {
+                            // Silence on a gating rung is a quiet room.
+                            // Reopening in place still frees a wedged record.
+                            tryOpen(walk.step)?.let {
+                                Log.i(TAG, "$shape read only zeros for ${limit / (SAMPLE_RATE * 2)}s; reopening it in place")
+                                swapTo(it, walk.step)
+                            }
+                            continue
+                        }
                         // Held off (a trusted rung in a quiet room inside
                         // the backoff): nothing to say, silence is not news.
                         advance("capture read only zeros for ${limit / (SAMPLE_RATE * 2)}s")
                         continue
                     }
                 } else {
-                    zeroRun = 0
                     if (!silent) {
-                        walk.audible()
-                        if (shape.source != source) provenFallback = source to shape
+                        if (walk.audible(zeroRun)) {
+                            gatingShapes = gatingShapes + shape
+                            Log.i(TAG, "$shape gates quiet audio to zeros; silence no longer walks the ladder from it")
+                        }
+                        if (shape.source == source) pickedAudible = true
+                        if (shape.source != source && !pickedAudible) provenFallback = source to shape
                         if (walk.step > 0 && !announcedAudio) {
                             announcedAudio = true
                             Log.i(TAG, "$shape capture is delivering audio")
                         }
                     }
+                    zeroRun = 0
                 }
                 val chunk = when {
                     decimator != null -> decimator!!.process(mono ?: buf, monoLen)

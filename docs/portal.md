@@ -102,6 +102,8 @@ Kiosk Satellite exposes this hardware feature in two places, both exclusive to P
 
 Dismiss activates when a person arrives. If Postpone is disabled, a screensaver that activates while someone is already present will remain active until that person leaves and approaches again.
 
+Portal OS also turns the screen back on by itself when it sees someone after **Turn screen off after** has powered it off. Pick **Person** under **Wake to screensaver** to keep the screensaver for these wakes, with or without Dismiss on person. Kiosk Satellite tells them apart from the power button through the system log, so this needs the same Log access grant as the sensor.
+
 Person detection operates independently of camera-based Motion Detection and Face Detection, allowing both systems to run simultaneously.
 
 | Feature | Person Detection | Face Detection |

@@ -153,6 +153,7 @@ void main() {
         'kiosk_satellite_alarm',
         'kiosk_satellite_calendar',
         'kiosk_satellite_intercom',
+        'kiosk_satellite_music',
       });
     });
 

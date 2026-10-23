@@ -343,6 +343,11 @@ class CameraMotion(
     private var onvifDiscovery: CameraOnvifDiscovery? = null
     private var onvifMulticastLock: android.net.wifi.WifiManager.MulticastLock? = null
     private var onvifDiscoveryError: String? = null
+    // Motion events for ONVIF clients (issue #1098): kept here, outside the
+    // stream config, so they reach each new listener without restarting it.
+    private var onvifService: CameraOnvifService? = null
+    private var onvifEvents = false
+    private var onvifMotion = false
     private var rtspAudio: RtspAudioEncoder? = null
     private var rtspEncoder: CameraRtspEncoder? = null
     private var rtspConfig: Map<*, *> = emptyMap<Any, Any>()
@@ -568,6 +573,13 @@ class CameraMotion(
                     setRtspAudio(call.arguments == true)
                     result.success(null)
                 }
+                "onvifEvents" -> {
+                    val args = call.arguments as? Map<*, *>
+                    onvifEvents = args?.get("enabled") == true
+                    onvifMotion = args?.get("motion") == true
+                    onvifService?.updateEvents(onvifEvents, onvifMotion)
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -606,14 +618,20 @@ class CameraMotion(
         }
         setRtspAudio(false)
         val generation = ++rtspGeneration
-        listenerSession = CameraDiagnostics.session("rtsp")
+        // Dart resends the configuration to every new Activity and at
+        // startup. With streaming off and no listener, that changes
+        // nothing and is not worth a log line.
+        if (config["enabled"] == true || existing != null) {
+            listenerSession = CameraDiagnostics.session("rtsp")
+            CameraDiagnostics.record(listenerSession, "configure", "enabled=${config["enabled"]}, port=${config["port"]}, " +
+                "video=${config["width"]}x${config["height"]}, fps=${config["fps"]}, bitrate=${config["bitrate"]}, " +
+                "authentication=${config["auth"]}")
+        }
         val listenerId = listenerSession
-        CameraDiagnostics.record(listenerId, "configure", "enabled=${config["enabled"]}, port=${config["port"]}, " +
-            "video=${config["width"]}x${config["height"]}, fps=${config["fps"]}, bitrate=${config["bitrate"]}, " +
-            "authentication=${config["auth"]}")
         stopOnvifDiscovery()
         rtsp?.close()
         rtsp = null
+        onvifService = null
         if (config != rtspConfig) capturePolicy.reset()
         rtspConfig = config
         rtspError = null
@@ -651,7 +669,11 @@ class CameraMotion(
                     deviceId, context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "",
                     deviceName = deviceName,
                     tls = config["tls"] == true,
+                    h264Profile = preferences.getString("h264_profile", null) ?: "Baseline",
+                    onH264Profile = { preferences.edit().putString("h264_profile", it).apply() },
                 ) else null
+                onvif?.updateEvents(onvifEvents, onvifMotion)
+                onvifService = onvif
                 val tls = if (config["tls"] == true) {
                     TlsMaterial.parse(config["certificate"] as? String ?: "", config["privateKey"] as? String ?: "").sslContext()
                 } else null
@@ -761,6 +783,8 @@ class CameraMotion(
         "protocol" to (rtspConfig["protocol"] ?: "rtsp"),
         "tls" to (rtspConfig["tls"] == true),
         "onvifDiscoveryError" to (onvifDiscoveryError ?: onvifDiscovery?.error),
+        "onvifEvents" to onvifEvents,
+        "onvifMotion" to onvifMotion,
         "onvifUrls" to if (rtspConfig["protocol"] == "onvif" && rtsp?.listening == true)
             CameraOnvifDiscovery.localAddresses().map { "${if (rtspConfig["tls"] == true) "https" else "http"}://$it:${rtsp?.localPort}/onvif/device_service" }
             else emptyList<String>(),
@@ -2107,6 +2131,7 @@ class CameraMotion(
         stopOnvifDiscovery()
         rtsp?.close()
         rtsp = null
+        onvifService = null
         cancelPending?.let { mainHandler.removeCallbacks(it) }
         releaseCamera()
         eventChannel.setStreamHandler(null)

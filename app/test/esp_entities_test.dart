@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
+import 'package:kiosk_satellite/core/headless.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/btproxy/esp_entities.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
@@ -26,6 +27,11 @@ void main() {
   var cameraPresent = true;
   // Null for a device without a battery (issue #367).
   int? battery = 73;
+  // Null for a battery whose HAL has no temperature sensor.
+  double? batteryTemp = 31.46;
+  // Null where no CPU load source is readable (issue #824).
+  double? cpuUsage = 12.4;
+  double? cpuClock = 1785.6;
   var cameraFacings = <String>['front', 'back'];
   var bluetooth = <String, Object?>{};
   var vsState = <String, Object?>{};
@@ -48,6 +54,9 @@ void main() {
       'releaseUrl': 'https://example/r',
     };
     battery = 73;
+    batteryTemp = 31.46;
+    cpuUsage = 12.4;
+    cpuClock = 1785.6;
     storage = {'free': 16384 * 1024 * 1024, 'total': 32768 * 1024 * 1024};
     dashboardsUnreachable = false;
     catalogChanges = 0;
@@ -135,8 +144,10 @@ void main() {
         handler: (_) async => CommandResult.ok({
           'battery': battery,
           'charging': true,
-          'cpu': 12.4,
+          'cpu': cpuUsage,
+          'cpuClock': cpuClock,
           'temp': 41,
+          'batteryTemp': batteryTemp,
         }),
       ),
     );
@@ -258,6 +269,7 @@ void main() {
       'bringToFront',
       'showAppLauncher',
       'showMusicAssistant',
+      'openMusicLibrary',
       'hideCameraView',
       'showCameraView',
       'haNavigate',
@@ -1042,7 +1054,9 @@ void main() {
         'battery',
         'charging',
         'cpu',
+        'cpu_clock',
         'cpu_temp',
+        'battery_temp',
         'ram_free',
         'ram_total',
         'storage_free',
@@ -1320,6 +1334,22 @@ void main() {
     expect(executed.map((e) => e.$1).toList(), ['showMusicAssistant']);
   });
 
+  test('the Music Library button needs a source to browse', () async {
+    await settings.set(defs.haUrl, '');
+    await settings.set(defs.sendspinMaUrl, '');
+    var ids = [for (final d in await surface.build()) '${d['objectId']}'];
+    expect(ids, isNot(contains('show_music_library')));
+
+    await settings.set(defs.sendspinMaUrl, '192.168.1.10:8095');
+    await settings.set(defs.sendspinMaToken, 'token');
+    ids = [for (final d in await surface.build()) '${d['objectId']}'];
+    expect(ids, contains('show_music_library'));
+
+    executed.clear();
+    await surface.handleCommand('show_music_library', null);
+    expect(executed.map((e) => e.$1).toList(), ['openMusicLibrary']);
+  });
+
   test('the Restart device button follows the restart support ask', () async {
     // No owner, no Shizuku: no button, the app restart stays.
     var ids = [for (final d in await surface.build()) '${d['objectId']}'];
@@ -1339,6 +1369,90 @@ void main() {
     executed.clear();
     await surface.handleCommand('restart_device', null);
     expect(executed.map((e) => e.$1).toList(), ['rebootDevice']);
+  });
+
+  group('the LED Control Idle entities', () {
+    void lights() => commands.register(
+      Command(
+        name: 'ledStatus',
+        description: 'ledStatus',
+        handler: (_) async => CommandResult.ok({'scene': null}),
+      ),
+    );
+
+    test('are listed only with lights and LED Control on', () async {
+      var ids = [for (final d in await surface.build()) '${d['objectId']}'];
+      expect(ids, isNot(contains('led_idle')));
+      expect(ids, isNot(contains('led_idle_effect')));
+
+      lights();
+      final catalog = await surface.build();
+      ids = [for (final d in catalog) '${d['objectId']}'];
+      expect(ids, containsAll(['led_idle', 'led_idle_effect']));
+      final light = catalog.firstWhere((d) => d['objectId'] == 'led_idle');
+      expect(light['type'], 'light');
+      expect(light['name'], 'LED Control Idle');
+      expect(light['colorCapable'], true);
+      expect(light['category'], 1);
+      final effect = catalog.firstWhere(
+        (d) => d['objectId'] == 'led_idle_effect',
+      );
+      expect(effect['name'], 'LED Control Idle Effect');
+      expect(effect['options'], ['Solid', 'Breathing']);
+
+      await settings.set(defs.ledEnabled, false);
+      ids = [for (final d in await surface.build()) '${d['objectId']}'];
+      expect(ids, isNot(contains('led_idle')));
+      expect(ids, isNot(contains('led_idle_effect')));
+    });
+
+    test('the light drives the Idle group and reports it back', () async {
+      lights();
+      await surface.build();
+      await attach();
+      Object? led() => pushed.lastWhere((p) => p.$1 == 'led_idle').$2;
+      expect(led(), {
+        'on': false,
+        'brightness': 0.1,
+        'red': 1.0,
+        'green': 1.0,
+        'blue': 1.0,
+      });
+
+      await surface.handleCommand('led_idle', {
+        'on': true,
+        'brightness': 0.52,
+        'red': 1.0,
+        'green': 0.5,
+        'blue': 0.0,
+      });
+      expect(settings.get(defs.ledIdleEnabled), isTrue);
+      expect(settings.get(defs.ledIdleBrightness), 50);
+      expect(settings.get(defs.ledIdleLightColor), '255,128,0');
+      expect(led(), {
+        'on': true,
+        'brightness': 0.5,
+        'red': 1.0,
+        'green': 128 / 255,
+        'blue': 0.0,
+      });
+
+      // Dimmed all the way down, the lights still show at the lowest step.
+      await surface.handleCommand('led_idle', {'brightness': 0.0});
+      expect(settings.get(defs.ledIdleBrightness), 5);
+
+      await surface.handleCommand('led_idle', {'on': false});
+      expect(settings.get(defs.ledIdleEnabled), isFalse);
+    });
+
+    test('the effect select speaks in labels, stores the value', () async {
+      lights();
+      await surface.build();
+      await surface.handleCommand('led_idle_effect', 'Breathing');
+      expect(settings.get(defs.ledIdleStyle), 'breathe');
+      await surface.handleCommand('led_idle_effect', 'solid');
+      expect(settings.get(defs.ledIdleStyle), 'solid');
+    });
   });
 
   test('IPv6 leads with the routable address, without its scope id', () async {
@@ -1378,6 +1492,61 @@ void main() {
     },
   );
 
+  test(
+    'a battery with no temperature sensor gets no Battery temperature entity',
+    () async {
+      batteryTemp = null;
+      final catalog = await surface.build();
+      final byObject = {for (final d in catalog) '${d['objectId']}': d};
+      expect(byObject.containsKey('battery_temp'), isFalse);
+      expect(byObject.containsKey('battery'), isTrue);
+      await attach();
+      final byId = {for (final (id, value) in pushed) id: value};
+      expect(byId.containsKey('battery_temp'), isFalse);
+    },
+  );
+
+  test(
+    'a device with no CPU load source gets CPU clock but no CPU usage',
+    () async {
+      cpuUsage = null;
+      final catalog = await surface.build();
+      final byObject = {for (final d in catalog) '${d['objectId']}': d};
+      expect(byObject.containsKey('cpu'), isFalse);
+      expect(byObject.containsKey('cpu_clock'), isTrue);
+      await attach();
+      final byId = {for (final (id, value) in pushed) id: value};
+      expect(byId.containsKey('cpu'), isFalse);
+      expect(byId['cpu_clock'], 1786);
+    },
+  );
+
+  test('a device without cpufreq gets no CPU clock entity', () async {
+    cpuClock = null;
+    final catalog = await surface.build();
+    final byObject = {for (final d in catalog) '${d['objectId']}': d};
+    expect(byObject.containsKey('cpu_clock'), isFalse);
+    expect(byObject.containsKey('cpu'), isTrue);
+  });
+
+  test('CPU clock is a frequency diagnostic in MHz', () async {
+    final catalog = await surface.build();
+    final entity = catalog.firstWhere((d) => d['objectId'] == 'cpu_clock');
+    expect(entity['deviceClass'], 'frequency');
+    expect(entity['unit'], 'MHz');
+    expect(entity['category'], 2);
+    expect(entity['stateClass'], 1);
+  });
+
+  test('Battery temperature is a one-decimal temperature diagnostic', () async {
+    final catalog = await surface.build();
+    final entity = catalog.firstWhere((d) => d['objectId'] == 'battery_temp');
+    expect(entity['deviceClass'], 'temperature');
+    expect(entity['unit'], '°C');
+    expect(entity['category'], 2);
+    expect(entity['accuracyDecimals'], 1);
+  });
+
   test('attach pushes an initial snapshot from the live sources', () async {
     await surface.build();
     await attach();
@@ -1385,7 +1554,9 @@ void main() {
     expect(byId['battery'], 73);
     expect(byId['charging'], true);
     expect(byId['cpu'], 12);
+    expect(byId['cpu_clock'], 1786);
     expect(byId['cpu_temp'], 41);
+    expect(byId['battery_temp'], 31.5);
     expect(byId['ram_free'], 512);
     expect(byId['ram_total'], 4096);
     expect(byId['storage_free'], 16384);
@@ -1560,6 +1731,116 @@ void main() {
         pushed.lastWhere((p) => p.$1 == 'update').$2 as Map<String, Object?>;
     expect(state['inProgress'], true);
     expect(state['progress'], closeTo(42, 1e-9));
+  });
+
+  group('Firmware entity', () {
+    var systemStatus = <String, Object?>{};
+
+    setUp(() {
+      systemStatus = {
+        'supported': true,
+        'currentVersion': '2026.10.4',
+        'availableVersion': '2026.10.5',
+        'availableNotes': '# Version 2026.10.5\n\n- **A fix.** Details.',
+        'releaseUrl':
+            'https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite/releases/tag/2026.10.5',
+        'state': 'idle',
+        'progress': null,
+      };
+      commands.register(
+        Command(
+          name: 'getSystemUpdateStatus',
+          description: 'stub',
+          handler: (_) async => CommandResult.ok(systemStatus),
+        ),
+      );
+      for (final name in ['installSystemUpdate', 'checkSystemUpdateNow']) {
+        commands.register(
+          Command(
+            name: name,
+            description: 'stub',
+            handler: (p) async {
+              executed.add((name, Map<String, Object?>.from(p)));
+              return const CommandResult.ok(null);
+            },
+          ),
+        );
+      }
+    });
+
+    tearDown(() {
+      Headless.debugActive = false;
+      Headless.debugSystemUpdate = false;
+    });
+
+    Future<Map<String, Object?>> firmwareState() async {
+      await surface.build();
+      await attach();
+      pushed.clear();
+      bus.publish(const SystemUpdateStateChanged());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return pushed.lastWhere((p) => p.$1 == 'firmware').$2
+          as Map<String, Object?>;
+    }
+
+    test('is listed only on the Echo Dot image', () async {
+      var ids = (await surface.build()).map((e) => e['objectId']);
+      expect(ids, isNot(contains('firmware')));
+      Headless.debugActive = true;
+      Headless.debugSystemUpdate = true;
+      final catalog = await surface.build();
+      final firmware = catalog.singleWhere((e) => e['objectId'] == 'firmware');
+      expect(firmware['type'], 'update');
+      expect(firmware['name'], 'Firmware');
+      expect(firmware['deviceClass'], 'firmware');
+      ids = catalog.map((e) => e['objectId']);
+      expect(ids, contains('update'));
+    });
+
+    test('install and check reach the system update commands', () async {
+      Headless.debugActive = true;
+      Headless.debugSystemUpdate = true;
+      await surface.build();
+      await attach();
+      executed.clear();
+      await surface.handleCommand('firmware', 'install');
+      await surface.handleCommand('firmware', 'check');
+      expect(executed.map((e) => e.$1).toList(), [
+        'installSystemUpdate',
+        'checkSystemUpdateNow',
+      ]);
+    });
+
+    test('carries the versions, the notes and the release page', () async {
+      Headless.debugActive = true;
+      Headless.debugSystemUpdate = true;
+      final state = await firmwareState();
+      expect(state['current'], '2026.10.4');
+      expect(state['latest'], '2026.10.5');
+      expect(state['summary'], '# Version 2026.10.5\n\n- **A fix.** Details.');
+      expect(state['url'], systemStatus['releaseUrl']);
+      expect(state['inProgress'], false);
+      expect(state.containsKey('progress'), isFalse);
+    });
+
+    test('a download carries a percentage, the install none', () async {
+      Headless.debugActive = true;
+      Headless.debugSystemUpdate = true;
+      systemStatus['state'] = 'downloading';
+      systemStatus['progress'] = 0.42;
+      var state = await firmwareState();
+      expect(state['inProgress'], true);
+      expect(state['progress'], closeTo(42, 1e-9));
+      systemStatus['state'] = 'installing';
+      systemStatus['progress'] = null;
+      bus.publish(const SystemUpdateStateChanged());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      state =
+          pushed.lastWhere((p) => p.$1 == 'firmware').$2
+              as Map<String, Object?>;
+      expect(state['inProgress'], true);
+      expect(state.containsKey('progress'), isFalse);
+    });
   });
 
   // Issue #819: Home Assistant shows the summary as the full release

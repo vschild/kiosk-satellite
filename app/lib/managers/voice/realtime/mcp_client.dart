@@ -59,7 +59,8 @@ class McpClient {
 
   /// The Home Assistant device the calls act for. Home Assistant offers
   /// the timer tools only to a device that can run timers, and starts the
-  /// timers on it. Null for any other server.
+  /// timers on it. Scripts get it as [scriptDeviceArgument]. Null for any
+  /// other server.
   final Future<String?> Function()? deviceId;
 
   static const protocolVersion = '2025-06-18';
@@ -94,20 +95,54 @@ class McpClient {
     await _notify('notifications/initialized');
   }
 
-  Future<Map<String, Object?>?> _meta() async {
-    String? device;
+  /// The script variable that carries [deviceId] into every Home Assistant
+  /// script the model runs, so a script knows which kiosk asked. Home
+  /// Assistant passes a script call's arguments on as its variables,
+  /// declared as fields or not.
+  static const scriptDeviceArgument = 'ks_device_id';
+
+  /// Home Assistant's MCP Server names the tool of each exposed script
+  /// this way.
+  static bool isScriptTool(String name) => name.startsWith('script__');
+
+  Future<String?> _device() async {
     try {
-      device = await deviceId?.call();
+      final device = await deviceId?.call();
+      return device == null || device.isEmpty ? null : device;
     } catch (_) {
-      // Without a device the tools still work, only the timers are left out.
+      // Without a device the tools still work, only the timers and the
+      // scripts' device are left out.
+      return null;
     }
-    return device == null || device.isEmpty ? null : {deviceMetaKey: device};
+  }
+
+  static Map<String, Object?>? _metaFor(String? device) =>
+      device == null ? null : {deviceMetaKey: device};
+
+  /// [schema] without the device field, for a script that declares it: the
+  /// kiosk fills it in, so the model must not.
+  static Map<String, Object?> _withoutDeviceField(Map<String, Object?> schema) {
+    final properties = schema['properties'];
+    if (properties is! Map || !properties.containsKey(scriptDeviceArgument)) {
+      return schema;
+    }
+    final required = schema['required'];
+    return {
+      ...schema,
+      'properties': {...properties}..remove(scriptDeviceArgument),
+      if (required is List)
+        'required': [
+          for (final field in required)
+            if (field != scriptDeviceArgument) field,
+        ],
+    };
   }
 
   /// Every tool the server offers, following its pages.
   Future<List<McpTool>> listTools() async {
     await _initialize();
-    final meta = await _meta();
+    final device = await _device();
+    final meta = _metaFor(device);
     final tools = <McpTool>[];
     String? cursor;
     for (var page = 0; page < 20; page++) {
@@ -121,14 +156,17 @@ class McpClient {
           if (raw is! Map) continue;
           final name = '${raw['name'] ?? ''}';
           if (name.isEmpty) continue;
-          final schema = raw['inputSchema'];
+          final declared = raw['inputSchema'];
+          final schema = declared is Map
+              ? declared.cast<String, Object?>()
+              : const <String, Object?>{'type': 'object', 'properties': {}};
           tools.add(
             McpTool(
               name: name,
               description: '${raw['description'] ?? ''}',
-              inputSchema: schema is Map
-                  ? schema.cast<String, Object?>()
-                  : const {'type': 'object', 'properties': {}},
+              inputSchema: device != null && isScriptTool(name)
+                  ? _withoutDeviceField(schema)
+                  : schema,
             ),
           );
         }
@@ -145,12 +183,23 @@ class McpClient {
     Map<String, Object?> arguments,
   ) async {
     await _initialize();
-    final meta = await _meta();
-    final result = await _request('tools/call', {
-      'name': name,
-      'arguments': arguments,
-      '_meta': ?meta,
-    });
+    final device = await _device();
+    final meta = _metaFor(device);
+    Future<Map<String, Object?>> call(Map<String, Object?> args) => _request(
+      'tools/call',
+      {'name': name, 'arguments': args, '_meta': ?meta},
+    );
+    Map<String, Object?> result;
+    if (device != null && isScriptTool(name)) {
+      result = await call({...arguments, scriptDeviceArgument: device});
+      if (result['isError'] == true && _refusedExtraKey(result)) {
+        // A Home Assistant that checks script arguments against the fields
+        // refuses the undeclared one: run the script without it.
+        result = await call(arguments);
+      }
+    } else {
+      result = await call(arguments);
+    }
     final parts = <String>[];
     final content = result['content'];
     if (content is List) {
@@ -161,6 +210,14 @@ class McpClient {
     final structured = result['structuredContent'];
     if (parts.isEmpty && structured != null) parts.add(jsonEncode(structured));
     return McpResult(parts.join('\n'), error: result['isError'] == true);
+  }
+
+  /// Whether the call was refused for the device argument before the
+  /// script ran. Any other error stands, so a script never runs twice.
+  static bool _refusedExtraKey(Map<String, Object?> result) {
+    final text = jsonEncode(result['content']);
+    return text.contains('extra keys not allowed') &&
+        text.contains(scriptDeviceArgument);
   }
 
   Future<void> _notify(String method) async {

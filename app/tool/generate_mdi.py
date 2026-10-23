@@ -38,7 +38,9 @@ def fetch(url: str) -> str:
 
 
 def kebab(export_name: str) -> str:
-    """mdiWashingMachine -> washing-machine, the name Home Assistant uses."""
+    """mdiWashingMachine -> washing-machine. Only a fallback: digits lose
+    their hyphen this way (mdiBattery10 would read battery10), so names come
+    from the metadata whenever it lists the icon."""
     stem = export_name[3:]
     out = []
     for index, char in enumerate(stem):
@@ -48,27 +50,42 @@ def kebab(export_name: str) -> str:
     return "".join(out)
 
 
+def export_name(name: str) -> str:
+    """battery-10 -> mdiBattery10, the way @mdi/js names its exports."""
+    return "mdi" + "".join(part[:1].upper() + part[1:] for part in name.split("-"))
+
+
 def main() -> None:
     source = fetch(PATHS_URL)
     version = re.search(r"Material Design Icons v([\d.]+)", source)
-    paths = {
-        kebab(name): path
-        for name, path in re.findall(
-            r'export var (mdi[A-Za-z0-9]+)\s*=\s*"([^"]+)"', source
-        )
-    }
-    if not paths:
+    exports = dict(
+        re.findall(r'export var (mdi[A-Za-z0-9]+)\s*=\s*"([^"]+)"', source)
+    )
+    if not exports:
         raise SystemExit("no icons parsed; the upstream format changed")
+    meta = json.loads(fetch(META_URL))
+
+    # The metadata holds the names Home Assistant uses, such as battery-10
+    # and cpu-64-bit. An export it does not list falls back to its own name.
+    paths: dict[str, str] = {}
+    for icon in meta:
+        path = exports.pop(export_name(icon["name"]), None)
+        if path is not None:
+            paths[icon["name"]] = path
+    for name, path in exports.items():
+        paths.setdefault(kebab(name), path)
 
     # Aliases are how renamed icons keep working: someone's dashboard may
     # still say mdi:radiobox-marked years after it became mdi:record-circle.
     # They are stored as "@name" pointers rather than a second copy of the
     # path, which is most of a megabyte across the set.
     aliases = 0
-    for icon in json.loads(fetch(META_URL)):
+    for icon in meta:
         if icon["name"] not in paths:
             continue
-        for alias in icon.get("aliases", []):
+        # Earlier builds dropped the hyphen before digits, so a picker could
+        # have saved mdi:battery10. Those keep drawing as aliases too.
+        for alias in [*icon.get("aliases", []), kebab(export_name(icon["name"]))]:
             if alias not in paths:
                 paths[alias] = "@" + icon["name"]
                 aliases += 1

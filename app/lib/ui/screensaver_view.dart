@@ -809,7 +809,7 @@ class ScreensaverBlankOverlay extends StatelessWidget {
 /// The font is the Font setting's pick (issue #391), Rubik by default, so
 /// out of the box the screensaver never looks like a different app from the
 /// settings behind it; clockFontFamily (clock_faces.dart) does the mapping
-/// for all three faces.
+/// for all four faces.
 class ClockScreensaver extends StatefulWidget {
   const ClockScreensaver({
     super.key,
@@ -862,7 +862,7 @@ class _ClockScreensaverState extends State<ClockScreensaver>
 
   /// The settings the face reads at build and applies the moment they
   /// change, rather than at the next minute tick: the background and its
-  /// refresh, the font, and every color of the three faces, so an
+  /// refresh, the font, and every color of the four faces, so an
   /// automation writing a color through the remote API (a trash-day
   /// reminder turning the clock green) shows it on the clock already on
   /// screen, the way the Night mode keys do through the overlay.
@@ -883,6 +883,9 @@ class _ClockScreensaverState extends State<ClockScreensaver>
     defs.screensaverFlipBackdropColor.key,
     defs.screensaverRollerDigitColor.key,
     defs.screensaverRollerBgColor.key,
+    defs.screensaverHandNumbers.key,
+    defs.screensaverHandColor.key,
+    defs.screensaverHandBgColor.key,
   };
 
   /// Bounds a URL fetch: a host that accepts the connection and never
@@ -914,6 +917,14 @@ class _ClockScreensaverState extends State<ClockScreensaver>
         // copy of a URL, or of a file replaced under its old name.
         _bgKey = null;
         _armBackgroundRefresh();
+      }
+      // The seconds hand sets the tick rate, so turning it on must not
+      // leave the hand parked until the next minute.
+      if (e.key == defs.screensaverHandSeconds.key) {
+        _tick?.cancel();
+        _now = DateTime.now();
+        _scheduleTick();
+        setState(() {});
       }
       if (_liveKeys.contains(e.key)) setState(() {});
     });
@@ -983,14 +994,17 @@ class _ClockScreensaverState extends State<ClockScreensaver>
   void _scheduleTick() {
     if (!_awake) return;
     final now = DateTime.now();
-    // Seconds only exist on the digital face. The flip face changes once a
-    // minute, so ticking it per second would be 60x the wakeups (and 60x
-    // the flip animations) for identical output; the roller runs its own
-    // per-frame ticker and ignores this timer entirely.
+    // Seconds only exist on the digital face and the hand clock's seconds
+    // hand. The flip face changes once a minute, so ticking it per second
+    // would be 60x the wakeups (and 60x the flip animations) for identical
+    // output; the roller runs its own per-frame ticker and ignores this
+    // timer entirely.
     final s = widget.container.settings;
-    final secs =
-        s.get(defs.screensaverClockStyle) == 'digital' &&
-        s.get(defs.screensaverClockSeconds);
+    final secs = switch (s.get(defs.screensaverClockStyle)) {
+      'digital' => s.get(defs.screensaverClockSeconds),
+      'hand' => s.get(defs.screensaverHandSeconds),
+      _ => false,
+    };
     final delay = secs
         ? Duration(milliseconds: 1000 - now.millisecond)
         : Duration(milliseconds: 60000 - now.second * 1000 - now.millisecond);
@@ -1242,6 +1256,21 @@ class _ClockScreensaverState extends State<ClockScreensaver>
         vertical: vertical,
       );
     }
+    if (style == 'hand') {
+      return HandClockFace(
+        now: _now,
+        color:
+            _nightColor() ??
+            _rgb(defs.screensaverHandColor, const Color(0xFFFAFAFA)),
+        scale: scale,
+        fontFamily: fontFamily,
+        allNumbers:
+            widget.container.settings.get(defs.screensaverHandNumbers) == 'all',
+        seconds: widget.container.settings.get(defs.screensaverHandSeconds),
+        weight: weight,
+        opticalSize: opticalSize,
+      );
+    }
     return RollerClockFace(
       use24h: widget.container.settings.get(defs.screensaverClock24h),
       digitColor:
@@ -1287,9 +1316,11 @@ class _ClockScreensaverState extends State<ClockScreensaver>
     final glanceScale = min(1.0, size.height / 480).clamp(0.75, 1.0);
     final clockShrink = glance ? 0.72 : 1.0;
     // Vertical mode (issue #767) stacks the digital and flip faces; the
-    // roller has nothing to stack, so a switch left on from another style
-    // does nothing there.
-    final vertical = style != 'roller' && s.get(defs.screensaverClockVertical);
+    // roller and the dial have nothing to stack, so a switch left on from
+    // another style does nothing there.
+    final vertical =
+        (style == 'digital' || style == 'flip') &&
+        s.get(defs.screensaverClockVertical);
     final lines = DigitalClockFace.linesFor(
       seconds: s.get(defs.screensaverClockSeconds),
     );
@@ -1306,6 +1337,7 @@ class _ClockScreensaverState extends State<ClockScreensaver>
         switch (style) {
           'roller' => _rgb(defs.screensaverRollerBgColor, Colors.black),
           'flip' => _rgb(defs.screensaverFlipBackdropColor, Colors.black),
+          'hand' => _rgb(defs.screensaverHandBgColor, Colors.black),
           _ => _rgb(defs.screensaverClockBgColor, Colors.black),
         };
     final Widget face = style != 'digital'
@@ -1332,6 +1364,7 @@ class _ClockScreensaverState extends State<ClockScreensaver>
             defs.screensaverRollerDigitColor,
             const Color(0xFFFAFAFA),
           ),
+          'hand' => _rgb(defs.screensaverHandColor, const Color(0xFFFAFAFA)),
           _ => color,
         };
 
@@ -1377,6 +1410,10 @@ class _ClockScreensaverState extends State<ClockScreensaver>
                   ),
                   'roller' => _rgb(
                     defs.screensaverRollerDigitColor,
+                    const Color(0xFFFAFAFA),
+                  ),
+                  'hand' => _rgb(
+                    defs.screensaverHandColor,
                     const Color(0xFFFAFAFA),
                   ),
                   _ => _color(),

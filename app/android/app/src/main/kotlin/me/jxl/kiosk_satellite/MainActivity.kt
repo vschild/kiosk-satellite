@@ -111,6 +111,24 @@ class MainActivity : FlutterActivity() {
         // shared_preferences mirror here means the window never flashes the
         // wrong shape.
         val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        // Which bars stay hidden decides the content padding below (issues
+        // #1076 and #1102): the Hide status bar and Hide navigation bar
+        // settings, overruled by kiosk mode and lockdown, as hidesStatusBar
+        // in kiosk_manager.dart has it. Until Dart migrates it on the first
+        // launch after the update, the old Full screen switch stands in.
+        val kioskHides = prefs.getBoolean("flutter.ks.kiosk.enabled", false) ||
+            prefs.getBoolean("flutter.ks.lockdown.enabled", false)
+        val fullScreen = prefs.getBoolean("flutter.ks.screen.full_screen", true)
+        SystemBars.hideStatus = kioskHides ||
+            prefs.getBoolean("flutter.ks.screen.hide_status_bar", fullScreen)
+        SystemBars.hideNavigation = kioskHides ||
+            prefs.getBoolean("flutter.ks.screen.hide_navigation_bar", fullScreen)
+        // Show over lock screen (discussion #1105): an Activity recreated
+        // while the device is locked comes back over the lock screen, not
+        // behind it, before Dart has pushed anything.
+        if (prefs.getBoolean("flutter.ks.screen.show_on_lock_screen", false)) {
+            KioskLock.showWhenLocked(this, true)
+        }
         val mode = prefs.getString("flutter.ks.browser.cutout_mode", null) ?: "always"
         CutoutLayout.apply(this, mode)
         findViewById<View>(FLUTTER_VIEW_ID)?.let {

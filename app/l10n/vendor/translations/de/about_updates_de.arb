@@ -8,5 +8,10 @@
   "aboutDownloadProgress": "Wird heruntergeladen ... {percent}%",
   "aboutDownloadFailed": "Update fehlgeschlagen: {error}",
   "aboutAlreadyCurrent": "Die Anwendung ist bereits auf dem neuesten Stand",
-  "aboutInstallHelp": "Der Download erfolgt auf dem Tablet. Die Installation muss auf dem Tablet bestätigt werden."
+  "aboutInstallHelp": "Der Download erfolgt auf dem Tablet. Die Installation muss auf dem Tablet bestätigt werden.",
+  "aboutSystem": "System",
+  "aboutSystemVersion": "ROM-Version",
+  "aboutSystemVerifying": "Wird geprüft ...",
+  "aboutSystemInstalling": "Wird installiert ...",
+  "aboutSystemInstallHelp": "Der Dot startet zur Installation des Updates zweimal neu und ist dabei jedes Mal etwa anderthalb Minuten offline."
 }

@@ -283,6 +283,13 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
     final showPlayerChip =
         c.settings.get(defs.sendspinSpeakerPill) &&
         c.sendspin.playerChipName.isNotEmpty;
+    // The way into the music library, beside the close button.
+    final showLibrary =
+        controls &&
+        !widget.alongsideScreensaver &&
+        c.settings.get(defs.libraryNowPlayingButton) &&
+        c.settings.get(defs.kioskAllowMusicLibrary) &&
+        c.musicLibrary.available.isNotEmpty;
     // The queue panel (controls only: its button lives there) and the
     // lyrics share one slot, the queue winning while it is open. Either
     // takes whatever spare axis the panel has: a second column on a
@@ -388,7 +395,7 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
 
       final horizontalPadding = (screen.width * 0.04).clamp(32.0, 48.0);
       // Only the close button needs clearance. The speaker pill floats
-      // over the content briefly after interaction.
+      // over the content, artwork included, briefly after interaction.
       final verticalPadding = showClose ? 64.0 : 24.0;
       Widget half(String key, Widget child, {bool centered = true}) => Expanded(
         child: SizedBox.expand(
@@ -871,7 +878,15 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
                 visibilityKey: const ValueKey('speaker-pill-visibility'),
                 child: _PlayerChip(
                   container: c,
-                  maxWidth: max(80, screen.width - (showClose ? 80 : 24)),
+                  maxWidth: max(
+                    80,
+                    screen.width -
+                        (showClose ? 80 : 24) -
+                        (showLibrary ? 58 : 0),
+                  ),
+                  // It follows the text up but never shrinks below its
+                  // touch target.
+                  scale: max(1.0, textScale),
                 ),
               ),
             ),
@@ -880,6 +895,38 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
         // explicit: the same floating close the page overlays wear. It
         // reports its own source so the manager can tell it from the
         // touches it is holding.
+        if (showLibrary)
+          Positioned(
+            top: 12,
+            right: showClose ? 70 : 12,
+            child: SafeArea(
+              child: transientInArtOnly(
+                _ControlTouch(
+                  container: c,
+                  child: Material(
+                    color: Colors.black45,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      focusColor: Colors.white24,
+                      onTap: () => unawaited(
+                        c.commands.execute('openMusicLibrary', const {}),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.library_music_outlined,
+                          color: Colors.white,
+                          size: 24,
+                          semanticLabel: l10n(context).libraryTitle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (showClose)
           Positioned(
             top: 12,
@@ -1964,15 +2011,23 @@ class _TransientOnActivityState extends State<_TransientOnActivity> {
 /// a checkbox. Reports its touches as control touches so a tap on it is
 /// never a step of the double-tap dismiss chain.
 class _PlayerChip extends StatelessWidget {
-  const _PlayerChip({required this.container, required this.maxWidth});
+  const _PlayerChip({
+    required this.container,
+    required this.maxWidth,
+    required this.scale,
+  });
 
   final AppContainer container;
   final double maxWidth;
+
+  /// The Now Playing text scale, so the chip grows with the title.
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     final c = container;
     final grouping = c.sendspin.groupAvailable;
+    final iconSize = 20 * scale;
     return _ControlTouch(
       container: c,
       child: Material(
@@ -1980,10 +2035,19 @@ class _PlayerChip extends StatelessWidget {
         shape: const StadiumBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: grouping ? () => _GroupMenu.show(context, c) : null,
+          onTap: grouping
+              // The menu grows at 70% of the chip's rate, so the list
+              // keeps room for more rows.
+              ? () => _GroupMenu.show(context, c, 1 + (scale - 1) * 0.7)
+              : null,
           focusColor: Colors.white24,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(12, 8, grouping ? 10 : 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              12 * scale,
+              8 * scale,
+              (grouping ? 10 : 16) * scale,
+              8 * scale,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1993,30 +2057,33 @@ class _PlayerChip extends StatelessWidget {
                       ? l10n(context).mediaSpeakerSelection
                       : null,
                   color: Colors.white70,
-                  size: 20,
+                  size: iconSize,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8 * scale),
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: min(240, max(0, maxWidth - (grouping ? 74 : 56))),
+                    maxWidth: min(
+                      240 * scale,
+                      max(0, maxWidth - (grouping ? 74 : 56) * scale),
+                    ),
                   ),
                   child: Text(
                     c.sendspin.playerChipName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 15,
+                      fontSize: 15 * scale,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 if (grouping) ...[
-                  const SizedBox(width: 4),
-                  const Icon(
+                  SizedBox(width: 4 * scale),
+                  Icon(
                     Icons.expand_more_rounded,
                     color: Colors.white70,
-                    size: 20,
+                    size: iconSize,
                   ),
                 ],
               ],
@@ -2038,13 +2105,21 @@ class _GroupMenu extends StatefulWidget {
     required this.container,
     required this.anchor,
     required this.panelWidth,
+    required this.scale,
   });
 
   final AppContainer container;
   final Rect anchor;
   final double panelWidth;
 
-  static Future<void> show(BuildContext context, AppContainer container) {
+  /// The chip's scale, slowed down by [_PlayerChip].
+  final double scale;
+
+  static Future<void> show(
+    BuildContext context,
+    AppContainer container,
+    double scale,
+  ) {
     final box = context.findRenderObject()! as RenderBox;
     final overlay =
         Navigator.of(
@@ -2062,6 +2137,7 @@ class _GroupMenu extends StatefulWidget {
         container: container,
         anchor: anchor,
         panelWidth: panelWidth,
+        scale: scale,
       ),
     );
   }
@@ -2175,24 +2251,34 @@ class _GroupMenuState extends State<_GroupMenu> {
   /// player's name [indent] in. Sent when the finger lifts, as the view's
   /// slider does.
   Widget _volume(String id, int level, double indent) {
+    final scale = widget.scale;
     final value = _levels[id] ?? level.toDouble();
     return Padding(
-      padding: EdgeInsets.fromLTRB(indent - 14, 0, 16, 4),
+      padding: EdgeInsets.fromLTRB(
+        (indent - 14) * scale,
+        0,
+        16 * scale,
+        4 * scale,
+      ),
       child: SizedBox(
-        height: 32,
+        height: 32 * scale,
         child: Row(
           children: [
             Expanded(
               child: SliderTheme(
-                data: const SliderThemeData(
-                  trackHeight: 3,
+                data: SliderThemeData(
+                  trackHeight: 3 * scale,
                   activeTrackColor: Colors.white,
                   inactiveTrackColor: Colors.white24,
                   thumbColor: Colors.white,
                   overlayColor: Colors.white24,
-                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-                  overlayShape: RoundSliderOverlayShape(overlayRadius: 14),
-                  trackShape: RectangularSliderTrackShape(),
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: 6 * scale,
+                  ),
+                  overlayShape: RoundSliderOverlayShape(
+                    overlayRadius: 14 * scale,
+                  ),
+                  trackShape: const RectangularSliderTrackShape(),
                 ),
                 child: Slider(
                   key: ValueKey('group-volume-$id'),
@@ -2208,11 +2294,11 @@ class _GroupMenuState extends State<_GroupMenu> {
               ),
             ),
             SizedBox(
-              width: 40,
+              width: 40 * scale,
               child: Text(
                 '${value.round()}%',
                 textAlign: TextAlign.right,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: Colors.white54, fontSize: 13 * scale),
               ),
             ),
           ],
@@ -2227,20 +2313,29 @@ class _GroupMenuState extends State<_GroupMenu> {
     final group = _group;
     final members = _members;
     final isLocal = widget.container.sendspin.followedPlayerName.isEmpty;
-    const titleStyle = TextStyle(
+    final scale = widget.scale;
+    final titleStyle = TextStyle(
       color: Colors.white,
-      fontSize: 16,
+      fontSize: 16 * scale,
       fontWeight: FontWeight.w600,
     );
-    const rowStyle = TextStyle(color: Colors.white, fontSize: 15);
+    final rowStyle = TextStyle(color: Colors.white, fontSize: 15 * scale);
     Widget note(String text) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: EdgeInsets.fromLTRB(
+        16 * scale,
+        12 * scale,
+        16 * scale,
+        16 * scale,
+      ),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white54, fontSize: 14),
+        style: TextStyle(color: Colors.white54, fontSize: 14 * scale),
       ),
     );
-    final width = min(340.0, min(widget.panelWidth - 24, screen.width - 24));
+    final width = min(
+      340.0 * scale,
+      min(widget.panelWidth - 24, screen.width - 24),
+    );
     final left = widget.anchor.left.clamp(12.0, screen.width - width - 12);
     final top = widget.anchor.bottom + 8;
     return Align(
@@ -2273,15 +2368,20 @@ class _GroupMenuState extends State<_GroupMenu> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                  padding: EdgeInsets.fromLTRB(
+                    16 * scale,
+                    14 * scale,
+                    16 * scale,
+                    10 * scale,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.speaker_group_outlined,
                         color: Colors.white70,
-                        size: 20,
+                        size: 20 * scale,
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10 * scale),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2300,7 +2400,7 @@ class _GroupMenuState extends State<_GroupMenu> {
                                 mediaText(context, 'Leads the group'),
                                 style: TextStyle(
                                   color: Colors.white54,
-                                  fontSize: 13,
+                                  fontSize: 13 * scale,
                                 ),
                               ),
                           ],
@@ -2316,13 +2416,13 @@ class _GroupMenuState extends State<_GroupMenu> {
                   _volume(group!.leaderId, level, 46),
                 const Divider(height: 1, color: Colors.white12),
                 if (_loading)
-                  const Padding(
-                    padding: EdgeInsets.all(20),
+                  Padding(
+                    padding: EdgeInsets.all(20 * scale),
                     child: Center(
                       child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
+                        width: 22 * scale,
+                        height: 22 * scale,
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white70,
                         ),
@@ -2337,7 +2437,7 @@ class _GroupMenuState extends State<_GroupMenu> {
                   Flexible(
                     child: ListView(
                       shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: EdgeInsets.symmetric(vertical: 6 * scale),
                       children: [
                         for (final (i, m) in members.indexed) ...[
                           InkWell(
@@ -2345,22 +2445,23 @@ class _GroupMenuState extends State<_GroupMenu> {
                             focusColor: Colors.white12,
                             onTap: () => _toggle(m),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14 * scale,
+                                vertical: 10 * scale,
                               ),
                               child: Row(
                                 children: [
                                   SizedBox(
-                                    width: 24,
-                                    height: 24,
+                                    width: 24 * scale,
+                                    height: 24 * scale,
                                     child: _pending.contains(m.id)
-                                        ? const Padding(
-                                            padding: EdgeInsets.all(3),
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white70,
-                                            ),
+                                        ? Padding(
+                                            padding: EdgeInsets.all(3 * scale),
+                                            child:
+                                                const CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Colors.white70,
+                                                ),
                                           )
                                         : Icon(
                                             m.inGroup
@@ -2370,9 +2471,10 @@ class _GroupMenuState extends State<_GroupMenu> {
                                             color: m.inGroup
                                                 ? Colors.white
                                                 : Colors.white54,
+                                            size: 24 * scale,
                                           ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: 12 * scale),
                                   Expanded(
                                     child: Text(
                                       m.available
@@ -2393,12 +2495,12 @@ class _GroupMenuState extends State<_GroupMenu> {
                                   // name the source may spell its own
                                   // way: unchecking it is leaving.
                                   if (m.id == group?.selfId && isLocal) ...[
-                                    const SizedBox(width: 10),
+                                    SizedBox(width: 10 * scale),
                                     Text(
                                       mediaText(context, 'This device'),
                                       style: TextStyle(
                                         color: Colors.white54,
-                                        fontSize: 13,
+                                        fontSize: 13 * scale,
                                       ),
                                     ),
                                   ],

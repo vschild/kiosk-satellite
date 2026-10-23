@@ -132,8 +132,11 @@ void main() {
           'x:plugins:master',
         );
         expect(container.plugins.enabled.value, false);
+        // settingsPage only tells the plugin its page opened and closed.
         expect(
-          calls.every((call) => ['list', 'state'].contains(call)),
+          calls.every(
+            (call) => ['list', 'state', 'settingsPage'].contains(call),
+          ),
           true,
           reason: calls.toString(),
         );

@@ -262,6 +262,59 @@
       ]
     }
   },
+  "aboutSystem": "Система",
+  "@aboutSystem": {
+    "context": "Remote administration > About > System",
+    "description": "Title of the group about the Echo Dot's system image, shown above the App group.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System"
+      ]
+    }
+  },
+  "aboutSystemVersion": "Версия ROM",
+  "@aboutSystemVersion": {
+    "context": "Remote administration > About > System",
+    "description": "Row with the installed release of the Echo Dot's ROM, the system image. Clicking the number checks for updates. Keep ROM as is.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System"
+      ]
+    }
+  },
+  "aboutSystemVerifying": "Проверка…",
+  "@aboutSystemVerifying": {
+    "context": "Remote administration > About > System",
+    "description": "Installation button label while the signature of the downloaded system update is checked.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
+  },
+  "aboutSystemInstalling": "Установка…",
+  "@aboutSystemInstalling": {
+    "context": "Remote administration > About > System",
+    "description": "Installation button label while the system update installs. The device restarts twice meanwhile.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
+  },
+  "aboutSystemInstallHelp": "Dot дважды перезагружается для установки обновления и каждый раз около полутора минут не в сети.",
+  "@aboutSystemInstallHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
+  },
   "alarmsTitle": "Будильники",
   "@alarmsTitle": {
     "context": "Alarms",
@@ -7348,6 +7401,19 @@
       ]
     }
   },
+  "gestureOpenMusicLibrary": "Открыть музыкальную библиотеку",
+  "@gestureOpenMusicLibrary": {
+    "context": "Settings > Gestures > Add gesture > Choose an action",
+    "description": "Gesture action that opens the Music Library.",
+    "x-locations": {
+      "device": [
+        "Settings > Gestures > Add gesture > Choose an action"
+      ],
+      "remoteAdmin": [
+        "Gestures > Add gesture > Choose an action"
+      ]
+    }
+  },
   "gestureService": "Вызвать службу",
   "@gestureService": {
     "context": "Settings > Gestures > Add gesture > Choose an action",
@@ -10992,6 +11058,1013 @@
       ]
     },
     "x-notes": "Translate the app controls and notices only. Log lines, JavaScript code and returned results stay unchanged."
+  },
+  "libraryTitle": "Музыкальная библиотека",
+  "@libraryTitle": {
+    "context": "Music Library",
+    "description": "Name of the Music Library feature: the kiosk menu entry, the overlay's eyebrow and the Allowed Actions switch.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Settings > Media Player > Music Library"
+      ]
+    }
+  },
+  "librarySource": "Источник",
+  "@librarySource": {
+    "context": "Music Library",
+    "description": "Label of the picker for where the library lists music from: Music Assistant, Home Assistant or Sonos.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceMa": "Music Assistant",
+  "@librarySourceMa": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceHa": "Home Assistant",
+  "@librarySourceHa": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceSonos": "Sonos",
+  "@librarySourceSonos": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceMaHint": "Библиотека, поиск и радио",
+  "@librarySourceMaHint": {
+    "context": "Music Library",
+    "description": "What the Music Assistant source offers, under its name in the source picker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceHaHint": "Медиа каждого динамика",
+  "@librarySourceHaHint": {
+    "context": "Music Library",
+    "description": "What the Home Assistant source offers: the media the picked speaker's integration lists.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceSonosHint": "Избранное и плейлисты",
+  "@librarySourceSonosHint": {
+    "context": "Music Library",
+    "description": "What the Sonos source offers: My Sonos favorites, Sonos playlists and the indexed music library.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryDiscover": "Обзор",
+  "@libraryDiscover": {
+    "context": "Music Library",
+    "description": "Navigation entry and page title: recommendations and recently played music.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearch": "Поиск",
+  "@librarySearch": {
+    "context": "Music Library",
+    "description": "Navigation entry: search the source.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryBrowse": "Обзор папок",
+  "@libraryBrowse": {
+    "context": "Music Library",
+    "description": "Navigation entry and page title: the source's own folders.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryLibrary": "Библиотека",
+  "@libraryLibrary": {
+    "context": "Music Library",
+    "description": "Navigation entry and sidebar heading over the library lists (artists, albums and so on).",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryArtists": "Исполнители",
+  "@libraryArtists": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAlbums": "Альбомы",
+  "@libraryAlbums": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTracks": "Треки",
+  "@libraryTracks": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlaylists": "Плейлисты",
+  "@libraryPlaylists": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRadio": "Радио",
+  "@libraryRadio": {
+    "context": "Music Library",
+    "description": "Library list and search filter: radio stations.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPodcasts": "Подкасты",
+  "@libraryPodcasts": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAudiobooks": "Аудиокниги",
+  "@libraryAudiobooks": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryFavorites": "Избранное",
+  "@libraryFavorites": {
+    "context": "Music Library",
+    "description": "Sonos library list: My Sonos favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySonosPlaylists": "Плейлисты Sonos",
+  "@librarySonosPlaylists": {
+    "context": "Music Library",
+    "description": "Sonos library list: playlists saved in the Sonos app.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRecentlyPlayed": "Недавно прослушанное",
+  "@libraryRecentlyPlayed": {
+    "context": "Music Library",
+    "description": "Discover shelf title.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRecentlyAdded": "Недавно добавленное",
+  "@libraryRecentlyAdded": {
+    "context": "Music Library",
+    "description": "Discover shelf title.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryMoreResults": "Другие результаты",
+  "@libraryMoreResults": {
+    "context": "Music Library",
+    "description": "Search results shelf for entries of other kinds.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTopTracks": "Популярные треки",
+  "@libraryTopTracks": {
+    "context": "Music Library",
+    "description": "Heading over an artist's most played tracks.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindArtist": "Исполнитель",
+  "@libraryKindArtist": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindAlbum": "Альбом",
+  "@libraryKindAlbum": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindTrack": "Трек",
+  "@libraryKindTrack": {
+    "context": "Music Library",
+    "description": "What a search result is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindPlaylist": "Плейлист",
+  "@libraryKindPlaylist": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindRadio": "Радио",
+  "@libraryKindRadio": {
+    "context": "Music Library",
+    "description": "What a search result is: a radio station.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindPodcast": "Подкаст",
+  "@libraryKindPodcast": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindEpisode": "Эпизод",
+  "@libraryKindEpisode": {
+    "context": "Music Library",
+    "description": "What a search result is: a podcast episode.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindAudiobook": "Аудиокнига",
+  "@libraryKindAudiobook": {
+    "context": "Music Library",
+    "description": "What a search result is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryOneTrack": "1 трек",
+  "@libraryOneTrack": {
+    "context": "Music Library",
+    "description": "Album facts: an album with one track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTrackCount": "Треков: {count}",
+  "@libraryTrackCount": {
+    "context": "Music Library",
+    "description": "Album facts: how many tracks.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "How many tracks, 2 or more."
+      }
+    }
+  },
+  "libraryMinutes": "{minutes} мин",
+  "@libraryMinutes": {
+    "context": "Music Library",
+    "description": "Album facts: total length under an hour.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "minutes": {
+        "type": "String",
+        "description": "Whole minutes."
+      }
+    }
+  },
+  "libraryHoursMinutes": "{hours} ч {minutes} мин",
+  "@libraryHoursMinutes": {
+    "context": "Music Library",
+    "description": "Album facts: total length of an hour or more.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "hours": {
+        "type": "String",
+        "description": "Whole hours."
+      },
+      "minutes": {
+        "type": "String",
+        "description": "Minutes past the hour."
+      }
+    }
+  },
+  "librarySearchHint": "Исполнители, альбомы, треки",
+  "@librarySearchHint": {
+    "context": "Music Library",
+    "description": "Placeholder of the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchClear": "Очистить поиск",
+  "@librarySearchClear": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that empties the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchAll": "Все",
+  "@librarySearchAll": {
+    "context": "Music Library",
+    "description": "Search filter chip: every kind of result.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchPrompt": "Ищите исполнителей, альбомы, треки и многое другое.",
+  "@librarySearchPrompt": {
+    "context": "Music Library",
+    "description": "Shown before anything is typed in the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryEmpty": "Здесь пока ничего нет.",
+  "@libraryEmpty": {
+    "context": "Music Library",
+    "description": "A list, folder or search with no entries.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryLoadFailed": "Не удалось загрузить.",
+  "@libraryLoadFailed": {
+    "context": "Music Library",
+    "description": "A list or page failed to load. The error follows on the next line.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryNoSource": "Настройте Music Assistant, Home Assistant или динамик Sonos, чтобы просматривать музыку.",
+  "@libraryNoSource": {
+    "context": "Music Library",
+    "description": "No source is configured on this device.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryHaPickSpeaker": "Выберите динамик, чтобы увидеть медиа, которые он может воспроизвести.",
+  "@libraryHaPickSpeaker": {
+    "context": "Music Library",
+    "description": "Home Assistant source with no speaker picked: the media tree belongs to the speaker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryChooseSpeaker": "Выберите динамик",
+  "@libraryChooseSpeaker": {
+    "context": "Music Library",
+    "description": "Speaker pill label and button when no speaker of the source is picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPickSpeakerHint": "Выберите динамик для воспроизведения.",
+  "@libraryPickSpeakerHint": {
+    "context": "Music Library",
+    "description": "Prompt over the Speakers sheet when a play needs a speaker first.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlay": "Воспроизвести",
+  "@libraryPlay": {
+    "context": "Music Library",
+    "description": "Button: play the album, playlist or artist, replacing the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryOpenNowPlaying": "Открыть «Сейчас играет»",
+  "@libraryOpenNowPlaying": {
+    "context": "Music Library",
+    "description": "Player bar button.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryNothingPlaying": "Ничего не воспроизводится",
+  "@libraryNothingPlaying": {
+    "context": "Music Library",
+    "description": "Player bar with no track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryMore": "Другие действия",
+  "@libraryMore": {
+    "context": "Music Library",
+    "description": "Tooltip of the menu button on a row or a page.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayNow": "Воспроизвести сейчас",
+  "@libraryPlayNow": {
+    "context": "Music Library",
+    "description": "Menu action: play now, keeping the rest of the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayNext": "Воспроизвести следующим",
+  "@libraryPlayNext": {
+    "context": "Music Library",
+    "description": "Menu action: play after the current track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddToQueue": "Добавить в очередь",
+  "@libraryAddToQueue": {
+    "context": "Music Library",
+    "description": "Menu action: add to the end of the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryStartRadio": "Запустить радио",
+  "@libraryStartRadio": {
+    "context": "Music Library",
+    "description": "Menu action and button: play and keep going with similar music.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryGoToArtist": "Перейти к исполнителю",
+  "@libraryGoToArtist": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddFavorite": "Добавить в избранное",
+  "@libraryAddFavorite": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRemoveFavorite": "Удалить из избранного",
+  "@libraryRemoveFavorite": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddedFavorite": "Добавлено в избранное",
+  "@libraryAddedFavorite": {
+    "context": "Music Library",
+    "description": "Toast after Add to favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRemovedFavorite": "Удалено из избранного",
+  "@libraryRemovedFavorite": {
+    "context": "Music Library",
+    "description": "Toast after Remove from favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryFavoriteFailed": "Не удалось изменить избранное",
+  "@libraryFavoriteFailed": {
+    "context": "Music Library",
+    "description": "Toast when the favorite change failed.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlaysNext": "Воспроизведётся следующим",
+  "@libraryPlaysNext": {
+    "context": "Music Library",
+    "description": "Toast after Play next.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddedToQueue": "Добавлено в очередь",
+  "@libraryAddedToQueue": {
+    "context": "Music Library",
+    "description": "Toast after Add to queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryView": "Показать",
+  "@libraryView": {
+    "context": "Music Library",
+    "description": "Toast action: open Now Playing with the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayFailed": "Не удалось воспроизвести",
+  "@libraryPlayFailed": {
+    "context": "Music Library",
+    "description": "Toast when a play failed. The error follows.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySpeakers": "Динамики",
+  "@librarySpeakers": {
+    "context": "Music Library",
+    "description": "Title of the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryPlayingOn": "Воспроизводится на",
+  "@libraryPlayingOn": {
+    "context": "Music Library",
+    "description": "Label over the name of the speaker the music plays on, in the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryOtherSpeakers": "Другие динамики",
+  "@libraryOtherSpeakers": {
+    "context": "Music Library",
+    "description": "Heading over the speakers that can be picked instead.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryNoOtherSpeakers": "Других динамиков нет.",
+  "@libraryNoOtherSpeakers": {
+    "context": "Music Library",
+    "description": "The source has no other speakers to pick.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryThisDevice": "Это устройство",
+  "@libraryThisDevice": {
+    "context": "Music Library",
+    "description": "Under the name of this device's own player in the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryUnavailable": "Недоступен",
+  "@libraryUnavailable": {
+    "context": "Music Library",
+    "description": "Under the name of a speaker that is offline.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroup": "Группировать",
+  "@libraryGroup": {
+    "context": "Music Library",
+    "description": "Button that opens the list of speakers to group with the playing one.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupAll": "Группа",
+  "@libraryGroupAll": {
+    "context": "Music Library",
+    "description": "Label of the volume slider for the whole group.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupWith": "Группировать с {speaker}",
+  "@libraryGroupWith": {
+    "context": "Music Library",
+    "description": "Title of the grouping dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    },
+    "placeholders": {
+      "speaker": {
+        "type": "String",
+        "description": "The speaker the others join."
+      }
+    }
+  },
+  "libraryGroupHint": "Сгруппированные динамики синхронно воспроизводят одну и ту же музыку.",
+  "@libraryGroupHint": {
+    "context": "Music Library",
+    "description": "Text in the grouping dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupName": "{speaker} + {count}",
+  "@libraryGroupName": {
+    "context": "Music Library",
+    "description": "A group's name: the leading speaker and how many others play with it.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    },
+    "placeholders": {
+      "speaker": {
+        "type": "String",
+        "description": "The leading speaker."
+      },
+      "count": {
+        "type": "String",
+        "description": "How many others."
+      }
+    }
+  },
+  "settingLibraryMenuDescription": "Добавить пункт «Музыкальная библиотека» в меню киоска.",
+  "@settingLibraryMenuDescription": {
+    "context": "Music Library",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingKioskAllowMusicLibraryDescription": "Просматривать музыку и воспроизводить её на динамике.",
+  "@settingKioskAllowMusicLibraryDescription": {
+    "context": "Music Library",
+    "description": "Allowed Actions switch description.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk > Allowed Actions"
+      ],
+      "remoteAdmin": [
+        "Kiosk > Allowed Actions"
+      ]
+    }
+  },
+  "libraryPageHint": "Просмотр музыки и воспроизведение на динамике",
+  "@libraryPageHint": {
+    "context": "Music Library",
+    "description": "Hint under the Music Library entry on the Media Player settings page.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySourceDescription": "Откуда библиотека берёт музыку. «Автоматически» начинает с источника динамика, за которым следит «Сейчас играет».",
+  "@settingLibrarySourceDescription": {
+    "context": "Music Library",
+    "description": "Setting description. Automatic is the first choice of the Source setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryNowPlayingButtonTitle": "Показывать в «Сейчас играет»",
+  "@settingLibraryNowPlayingButtonTitle": {
+    "context": "Music Library",
+    "description": "Setting label: the Music Library button on the Now Playing view.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryNowPlayingButtonDescription": "Добавить кнопку «Музыкальная библиотека» рядом с кнопкой закрытия.",
+  "@settingLibraryNowPlayingButtonDescription": {
+    "context": "Music Library",
+    "description": "Setting description. The close button is the one on the Now Playing view.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryQueueTitle": "Очередь",
+  "@libraryQueueTitle": {
+    "context": "Music Library",
+    "description": "Title of the queue panel in the Music Library.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryCloseQueue": "Закрыть очередь",
+  "@libraryCloseQueue": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that closes the queue panel.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClear": "Очистить",
+  "@libraryClear": {
+    "context": "Music Library",
+    "description": "Button that empties the queue, and the confirm button of its dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClearQueueTitle": "Очистить очередь?",
+  "@libraryClearQueueTitle": {
+    "context": "Music Library",
+    "description": "Title of the dialog that confirms emptying the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClearQueueMessage": "Музыка остановится, а все треки будут удалены из очереди.",
+  "@libraryClearQueueMessage": {
+    "context": "Music Library",
+    "description": "Text of the dialog that confirms emptying the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryRemoveFromQueue": "Удалить из очереди",
+  "@libraryRemoveFromQueue": {
+    "context": "Music Library",
+    "description": "Menu action on a queue row.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryReorder": "Перетащите, чтобы изменить порядок",
+  "@libraryReorder": {
+    "context": "Music Library",
+    "description": "Accessibility label of the handle that moves a queue row.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryQueueFailed": "Не удалось изменить очередь",
+  "@libraryQueueFailed": {
+    "context": "Music Library",
+    "description": "Toast when moving, removing or clearing failed.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryVoiceSection": "Голосовое управление",
+  "@libraryVoiceSection": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Heading of the group about playing music by voice.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryVoiceManage": "Управление музыкой через Voice Satellite",
+  "@libraryVoiceManage": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Row that opens the guide to playing music by voice. Keep Voice Satellite unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryVoiceHint": "Требуются Blueprint музыки Kiosk Satellite и диалоговый LLM-агент в Home Assistant.",
+  "@libraryVoiceHint": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Description under that row. Keep Kiosk Satellite and Home Assistant unchanged. A blueprint is a Home Assistant template for a script.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
   },
   "offlineDashboard": "Панель недоступна",
   "@offlineDashboard": {
@@ -15214,6 +16287,34 @@
       }
     }
   },
+  "overviewSystemUpdate": "Доступно обновление системы",
+  "@overviewSystemUpdate": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "A newer release of the Echo Dot's system image can be installed.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "overviewSystemUpdateHelp": "Версия {version} образа Echo Dot готова к установке. Для этого Dot дважды перезагрузится.",
+  "@overviewSystemUpdateHelp": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+      }
+    }
+  },
   "overviewQuick": "Быстрые действия",
   "@overviewQuick": {
     "context": "Remote admin > Overview > Quick controls",
@@ -19195,6 +20296,149 @@
       ]
     }
   },
+  "cameraMotionEventsHeading": "События движения",
+  "@cameraMotionEventsHeading": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Section heading.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "settingCameraOnvifEventsTitle": "Отправлять события движения",
+  "@settingCameraOnvifEventsTitle": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "settingCameraOnvifEventsDescription": "Сообщать клиентам ONVIF, например NVR, об обнаруженном движении.",
+  "@settingCameraOnvifEventsDescription": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "settingCameraOnvifEventsSourceTitle": "Источник движения",
+  "@settingCameraOnvifEventsSourceTitle": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "settingCameraOnvifEventsSourceDescription": "Датчик, который отправляет события движения.",
+  "@settingCameraOnvifEventsSourceDescription": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsSourceCamera": "Датчик движения камеры",
+  "@cameraOnvifEventsSourceCamera": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Choice in the Motion source picker.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsSourcePerson": "Датчик присутствия",
+  "@cameraOnvifEventsSourcePerson": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Choice in the Motion source picker.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsSourceEntity": "Датчик Home Assistant",
+  "@cameraOnvifEventsSourceEntity": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Choice in the Motion source picker.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsMotionSensorOff": "Датчик движения камеры выключен. Включите его в разделе Камера > Датчик движения.",
+  "@cameraOnvifEventsMotionSensorOff": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Warning below the Motion source picker. Camera > Motion Sensor is the settings page to open.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsAnalysisOff": "Анализ движения при стриминге выключен, поэтому камера не может обнаруживать движение, пока подключён зритель.",
+  "@cameraOnvifEventsAnalysisOff": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Warning below the Motion source picker. Motion analysis while streaming is the setting of that name on this page.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
+  "cameraOnvifEventsPersonSensorOff": "Датчик присутствия выключен. Включите его в разделе Камера > Датчик присутствия.",
+  "@cameraOnvifEventsPersonSensorOff": {
+    "context": "Settings > Camera > RTSP & ONVIF Streaming > Motion Events",
+    "description": "Warning below the Motion source picker. Camera > Person Sensor is the settings page to open.",
+    "x-locations": {
+      "device": [
+        "Settings > Camera > RTSP & ONVIF Streaming > Motion Events"
+      ],
+      "remoteAdmin": [
+        "Camera > RTSP & ONVIF Streaming > Motion Events"
+      ]
+    }
+  },
   "cameraOverlaysHeading": "Наложения",
   "@cameraOverlaysHeading": {
     "context": "Settings > Camera > RTSP & ONVIF Streaming > Overlays",
@@ -22044,6 +23288,16 @@
       ]
     }
   },
+  "deviceCpuClock": "Частота ЦП",
+  "@deviceCpuClock": {
+    "context": "Settings:Device:Hardware / Home Assistant / WebView",
+    "description": "Label or explanation on this Device settings page.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Device > Hardware / Home Assistant / WebView"
+      ]
+    }
+  },
   "deviceCpuTemp": "Температура ЦП",
   "@deviceCpuTemp": {
     "context": "Settings:Device:Hardware / Home Assistant / WebView",
@@ -22056,6 +23310,16 @@
   },
   "deviceBatteryLevel": "Уровень заряда",
   "@deviceBatteryLevel": {
+    "context": "Settings:Device:Hardware / Home Assistant / WebView",
+    "description": "Label or explanation on this Device settings page.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Device > Hardware / Home Assistant / WebView"
+      ]
+    }
+  },
+  "deviceBatteryTemp": "Температура аккумулятора",
+  "@deviceBatteryTemp": {
     "context": "Settings:Device:Hardware / Home Assistant / WebView",
     "description": "Label or explanation on this Device settings page.",
     "x-locations": {
@@ -37845,6 +39109,84 @@
       ]
     }
   },
+  "settingScreenHideStatusBarTitle": "Скрывать строку состояния",
+  "@settingScreenHideStatusBarTitle": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
+  "settingScreenHideStatusBarDescription": "Выключите, чтобы часы и значки уведомлений оставались вверху экрана. Режим киоска всегда её скрывает.",
+  "@settingScreenHideStatusBarDescription": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
+  "settingScreenHideNavigationBarTitle": "Скрывать панель навигации",
+  "@settingScreenHideNavigationBarTitle": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
+  "settingScreenHideNavigationBarDescription": "Выключите, чтобы кнопки навигации оставались на экране вместе с панелью задач на планшетах. Режим киоска всегда её скрывает.",
+  "@settingScreenHideNavigationBarDescription": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
+  "settingScreenShowOnLockScreenTitle": "Показывать поверх экрана блокировки",
+  "@settingScreenShowOnLockScreenTitle": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
+  "settingScreenShowOnLockScreenDescription": "Показывает панель поверх экрана блокировки с PIN-кодом, графическим ключом или паролем. Остальное устройство остаётся заблокированным.",
+  "@settingScreenShowOnLockScreenDescription": {
+    "context": "Settings:Screen & Audio:Screen",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Screen"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Screen"
+      ]
+    }
+  },
   "settingKeepScreenOnTitle": "Не выключать экран",
   "@settingKeepScreenOnTitle": {
     "context": "Settings:Screen & Audio:Screen",
@@ -39972,6 +41314,110 @@
       ]
     }
   },
+  "settingScreensaverHandNumbersTitle": "Цифры",
+  "@settingScreensaverHandNumbersTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandNumbersDescription": "Какие часы циферблат показывает цифрами.",
+  "@settingScreensaverHandNumbersDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandSecondsTitle": "Показывать секундную стрелку",
+  "@settingScreensaverHandSecondsTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandSecondsDescription": "Рисовать секундную стрелку на циферблате.",
+  "@settingScreensaverHandSecondsDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandColorTitle": "Цвет часов",
+  "@settingScreensaverHandColorTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandColorDescription": "Цвет стрелок, цифр и делений.",
+  "@settingScreensaverHandColorDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandBgColorTitle": "Цвет фона",
+  "@settingScreensaverHandBgColorTitle": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "settingScreensaverHandBgColorDescription": "Цвет позади часов.",
+  "@settingScreensaverHandBgColorDescription": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
   "settingScreensaverClockNightTitle": "Ночной режим",
   "@settingScreensaverClockNightTitle": {
     "context": "Settings:Screensaver:Clock screensaver",
@@ -40208,6 +41654,45 @@
   },
   "screensaverStyleRoller": "Часы с прокруткой",
   "@screensaverStyleRoller": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Label, status or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "screensaverStyleHand": "Стрелочные часы",
+  "@screensaverStyleHand": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Label, status or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "screensaverHandNumbersQuarters": "12, 3, 6 и 9",
+  "@screensaverHandNumbersQuarters": {
+    "context": "Settings:Screensaver:Clock screensaver",
+    "description": "Label, status or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Clock screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Clock screensaver"
+      ]
+    }
+  },
+  "screensaverHandNumbersAll": "Все часы",
+  "@screensaverHandNumbersAll": {
     "context": "Settings:Screensaver:Clock screensaver",
     "description": "Label, status or guidance in this section.",
     "x-locations": {

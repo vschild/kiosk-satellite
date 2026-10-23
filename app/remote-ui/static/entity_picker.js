@@ -1,6 +1,6 @@
 import { gestureText, haText, launcherText, mediaError, mediaText, screensaverText, t } from './localization.js';
 import { cmd } from './core.js';
-import { modalShell, queueEdgeFades } from './widgets.js';
+import { centerInRow, dragScroll, modalShell, queueEdgeFades } from './widgets.js';
 
 /* The entity picker, the device's ItemPicker in the browser: a source's
    rows (Home Assistant's entities, one source's media players) grouped
@@ -398,6 +398,7 @@ function buildPicker({ title, spec, selected = [], multiple = false, max = null,
   });
   head.append(bar, search);
   const chipsRow = el('div', 'ep-chips edge-fade-x');
+  dragScroll(chipsRow);
   const content = el('div', 'dp-content');
   const columns = el('div', 'ep-columns');
   const showing = el('div', 'ep-showing');
@@ -462,7 +463,9 @@ function buildPicker({ title, spec, selected = [], multiple = false, max = null,
     }
     const out = [];
     for (const g of order) {
-      if (spec.headings && (order.length > 1 || g)) {
+      // Rows outside every group go without a heading when the source has
+      // no name for them.
+      if (spec.headings && (order.length > 1 || g) && (g || spec.noGroup)) {
         out.push({ heading: g || spec.noGroup, count: groups.get(g).length });
       }
       if (notes[g] != null) out.push({ note: spec.noteText ? spec.noteText(notes[g]) : notes[g] });
@@ -471,6 +474,8 @@ function buildPicker({ title, spec, selected = [], multiple = false, max = null,
     return out;
   }
 
+  // A picked chip slides to the middle of the row once it is drawn again.
+  let centerPicked = false;
   function renderChips(chips) {
     chipsRow.replaceChildren();
     chipsRow.hidden = !spec.chips || chips.length < 2;
@@ -478,11 +483,14 @@ function buildPicker({ title, spec, selected = [], multiple = false, max = null,
     const chip = (label, value) => {
       const b = el('button', 'ep-chip' + (st.chip === value ? ' active' : ''), label);
       b.type = 'button';
-      b.addEventListener('click', () => { st.chip = value; st.limit = PAGE; render(); });
+      b.addEventListener('click', () => { st.chip = value; st.limit = PAGE; centerPicked = true; render(); });
       chipsRow.appendChild(b);
     };
     chip(haText('All'), null);
     chips.forEach((c) => chip(c, c));
+    const active = chipsRow.querySelector('.ep-chip.active');
+    if (centerPicked && active) centerInRow(chipsRow, active);
+    centerPicked = false;
   }
 
   function renderShowing() {
@@ -586,7 +594,7 @@ function buildPicker({ title, spec, selected = [], multiple = false, max = null,
       const list = onShow();
       fresh = !!before && (before.query !== st.query || before.chip !== st.chip);
       if (!list.length) {
-        node = stateMessage(haText('Nothing matches'));
+        node = stateMessage(!st.list.items.length && spec.emptyText ? spec.emptyText : haText('Nothing matches'));
       } else {
         node = el('div', 'dp-list edge-fade');
         let firstPick = null;

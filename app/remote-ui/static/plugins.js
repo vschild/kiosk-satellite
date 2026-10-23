@@ -8,7 +8,7 @@ import { updatePluginCharts } from './plugin-charts.js';
 import { updatePluginReadings } from './plugin-readings.js';
 import { currentPath, showTab, subpageEntry } from './tabs.js';
 import { dashboardField } from './dashboard_picker.js';
-import { cameraViewSpec, fieldVisible, iconField, listSetting } from './plugin_lists.js';
+import { cameraViewSpec, fieldVisible, iconField, listSetting, numberControl } from './plugin_lists.js';
 import { choiceControl, refreshPluginSetup, setupButtonRow } from './plugin_setup.js';
 import { hintRow, introRow, messageBox, modalShell, showToast, swatch } from './widgets.js';
 import { SUBPAGE_ICONS, subpageIcon } from './icons.js';
@@ -567,9 +567,277 @@ function actionOptionsDialog(action, options) {
   });
 }
 
+// One setting's row or the block of a list setting, keyed by its setting
+// key. pluginValue holds the saved value it was drawn with, so an update in
+// place can tell when it no longer shows the saved one. [save] saves a
+// value and runs its last argument once the value is saved.
+function settingElement(plugin, setting, values, alone, save) {
+  const value = values[setting.key];
+  let node;
+  if (setting.type === 'list') {
+    node = listSetting({ setting, rows: value ?? setting.default ?? [], showTitle: !alone, plugin,
+      onChange: (rows) => save(setting.key, rows, node) });
+    node.pluginAlone = alone;
+  } else node = settingRow(plugin, setting, value, save);
+  node.dataset.searchId = `plugin:${plugin.id}:setting:${setting.key}`;
+  node.dataset.settingKey = setting.key;
+  node.pluginValue = JSON.stringify(value);
+  return node;
+}
+
+function settingRow(plugin, setting, value, save) {
+  const settingRow = element('div', undefined, 'row');
+  settingRow.append(info(setting.title, setting.description));
+  const input = element('input'); input.setAttribute('aria-label', setting.title);
+  if (setting.type === 'boolean') {
+    input.type = 'checkbox'; input.checked = value ?? setting.default;
+    input.onchange = () => save(setting.key, input.checked, input);
+    const toggle = element('label', undefined, 'switch'); toggle.append(input, element('span', undefined, 'slider')); settingRow.append(toggle);
+  } else if (setting.type === 'number' && setting.input === 'field') {
+    // A typed number saves once it is done, like a text setting, and
+    // only a value the setting takes. The reason shows under the name.
+    let saved = value ?? setting.default;
+    const number = numberControl(setting, String(saved), () => {});
+    number.input.onchange = () => {
+      const typed = Number(number.input.value);
+      if (!number.check() && typed !== saved) save(setting.key, typed, number.input, () => { saved = typed; });
+    };
+    number.input.onkeydown = (event) => { if (event.key === 'Enter') number.input.blur(); };
+    settingRow.firstElementChild.append(number.error);
+    settingRow.append(number.control);
+  } else if (setting.type === 'number') {
+    input.type = 'range'; input.min = setting.min; input.max = setting.max; input.step = setting.step || 1;
+    input.value = value ?? setting.default;
+    const control = element('div', undefined, 'plugin-range');
+    const output = element('span', `${input.value} ${setting.unit || ''}`.trim(), 'desc');
+    input.oninput = () => { output.textContent = `${input.value} ${setting.unit || ''}`.trim(); };
+    input.onchange = () => save(setting.key, Number(input.value), input);
+    control.append(input, output); settingRow.append(control);
+  } else if (setting.type === 'entity') {
+    // The entity picker, narrowed to the plugin's domain when it
+    // declares one; Clear empties the setting.
+    let current = value ?? setting.default ?? '';
+    const domains = Array.isArray(setting.domain) ? setting.domain.map(String)
+      : (setting.domain ? [String(setting.domain)] : []);
+    const spec = entitySpec({ domains });
+    const field = pickField({
+      spec, value: current,
+      onClick: async () => {
+        const out = await pickItem({ title: setting.title, spec,
+          selected: current || null, allowClear: true });
+        if (!out) return;
+        current = out.id ?? '';
+        await save(setting.key, current, field.el);
+        field.setValue(current);
+      },
+    });
+    settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
+    settingRow.classList.add('dp-field-row');
+  } else if (setting.type === 'icon' || setting.type === 'dashboard' || setting.type === 'cameraView') {
+    const current = value ?? setting.default ?? '';
+    let field;
+    if (setting.type === 'icon') {
+      field = iconField({ value: current, title: setting.title, onPick: (picked) => save(setting.key, picked, field.el) });
+    } else if (setting.type === 'dashboard') {
+      field = dashboardField({ value: current, title: setting.title, onPick: (path) => save(setting.key, path, field.el) });
+    } else {
+      const spec = cameraViewSpec();
+      let picked = current;
+      field = pickField({
+        spec, value: current, placeholder: pluginText('Choose a camera view'),
+        onClick: async () => {
+          const out = await pickItem({ title: setting.title, spec, selected: picked || null, allowClear: true });
+          if (!out) return;
+          picked = out.id ?? '';
+          await save(setting.key, picked, field.el);
+          field.setValue(picked);
+        },
+      });
+    }
+    settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
+    settingRow.classList.add('dp-field-row');
+  } else if (setting.type === 'string' && setting.choices === 'plugin') {
+    // The plugin lists the choices. The setting stores the picked ID.
+    const choice = choiceControl(plugin, setting, value ?? setting.default ?? '', settled,
+      (picked, trigger) => save(setting.key, picked, trigger));
+    const text = info(setting.title, setting.description || ''); text.append(...choice.lines);
+    settingRow.replaceChildren(text, choice.control);
+    settingRow.classList.add('dp-field-row');
+    choice.attach(settingRow);
+  } else if (setting.type === 'select') {
+    const select = element('select'); select.setAttribute('aria-label', setting.title);
+    for (const choice of setting.options) { const option = element('option', choice); option.value = choice; select.append(option); }
+    select.value = value ?? setting.default;
+    select.onchange = () => save(setting.key, select.value, select); settingRow.append(select);
+  } else if (setting.type === 'color') {
+    const hex = value ?? setting.default;
+    const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(',');
+    settingRow.append(swatch(rgb, setting.title, (selected) => {
+      save(setting.key, '#' + selected.split(',').map((c) => Number(c).toString(16).padStart(2, '0')).join('').toUpperCase(), settingRow.querySelector('button'));
+    }));
+  } else if (setting.type === 'secret') {
+    // The listing reads __set__ for a saved secret, never the value.
+    // Typing replaces it. The eye shows what is being typed.
+    input.type = 'password'; input.maxLength = 512; input.autocomplete = 'new-password';
+    input.placeholder = value === '__set__' ? deviceText('•••••• (set)') : deviceText('Not set');
+    const reveal = iconButton(pluginText('Show password'), EYE);
+    const show = (shown) => {
+      input.type = shown ? 'text' : 'password';
+      const label = pluginText(shown ? 'Hide password' : 'Show password');
+      reveal.title = label; reveal.setAttribute('aria-label', label);
+      reveal.querySelector('path').setAttribute('d', shown ? EYE_OFF : EYE);
+    };
+    // Blur saves, since switching the field's type drops its change
+    // event. A saved secret leaves the field empty and hidden again.
+    input.onblur = () => input.value && save(setting.key, input.value, input, () => {
+      input.value = ''; show(false); reveal.hidden = true;
+    });
+    input.onkeydown = (event) => { if (event.key === 'Enter') input.blur(); };
+    // Pressing the eye keeps focus in the field, so it does not save
+    // and redraw the row halfway through typing.
+    reveal.onmousedown = (event) => event.preventDefault();
+    reveal.onclick = () => show(input.type === 'password');
+    // The eye appears only with typed text, since the saved value is
+    // never shown. An emptied field hides its text again.
+    reveal.hidden = true;
+    input.oninput = () => { reveal.hidden = !input.value; if (!input.value) show(false); };
+    const control = element('div', undefined, 'plugin-secret'); control.append(input, reveal);
+    settingRow.append(control);
+  } else {
+    input.type = 'text'; input.maxLength = 512; input.value = value ?? setting.default;
+    input.onchange = () => save(setting.key, input.value, input);
+    input.onkeydown = (event) => { if (event.key === 'Enter') input.blur(); }; settingRow.append(input);
+  }
+  return settingRow;
+}
+
+// The chart and reading boxes of a group or of the page with no group.
+function outputBoxes(group = '') {
+  const charts = element('div', undefined, 'plugin-charts'); charts.hidden = true; charts.dataset.pluginGroup = group;
+  const readings = element('div', undefined, 'plugin-readings'); readings.hidden = true; readings.dataset.pluginGroup = group;
+  return [charts, readings];
+}
+
+// A group's title and card, then its charts and readings when it has any.
+function groupNodes(page, plugin, group) {
+  const panel = element('div', undefined, 'card');
+  const nodes = [heading(group === 'Settings' && !plugin.groups?.some(entry => entry.title === group) && !plugin.settings?.some(entry => entry.group === group) && !plugin.buttons?.some(entry => entry.group === group) ? pluginText('Settings') : group), panel];
+  if (page.pluginGroups.some((entry) => entry.title === group && (entry.charts?.length || entry.readings?.length))) nodes.push(...outputBoxes(group));
+  return { panel, nodes };
+}
+
+// Puts [nodes] in order after [anchor] or first in [parent] without one.
+// Only a node out of place moves, since moving one drops its focus.
+function placeAfter(parent, anchor, nodes) {
+  for (const node of nodes) {
+    const at = anchor ? anchor.nextElementSibling : parent.firstElementChild;
+    if (at !== node) { if (anchor) anchor.after(node); else parent.prepend(node); }
+    anchor = node;
+  }
+}
+
+// Whether the person is typing in a control inside [node].
+function editing(node) {
+  const active = document.activeElement;
+  return !!active && node.contains(active) && (active.tagName === 'TEXTAREA'
+    || (active.tagName === 'INPUT' && !['checkbox', 'range'].includes(active.type)));
+}
+
+// The plugin's status and error under its intro and why it is not running.
+function paintPluginStatus(page, plugin, pluginsEnabled) {
+  const shown = JSON.stringify([plugin.status, plugin.statusError, plugin.error, pluginsEnabled, plugin.enabled]);
+  if (page.pluginStatusShown === shown) return;
+  page.pluginStatusShown = shown;
+  const description = page.pluginStatus;
+  description.replaceChildren(description.firstElementChild);
+  if (plugin.status) {
+    const status = hintRow(plugin.status, { warn: plugin.statusError === true });
+    status.classList.add('plugin-runtime-status'); description.append(status);
+  }
+  if (plugin.error) description.append(hintRow(pluginError(plugin.error), { warn: true }));
+  if (!pluginsEnabled) description.append(hintRow(pluginText('Enable Plugins to run this plugin.')));
+  else if (!plugin.enabled) description.append(hintRow(pluginText('Enable this plugin from its entry row to run it.')));
+}
+
+// Brings a plugin page in line with the plugin's saved values. A setting
+// or button whose condition now holds goes in at its place, one whose
+// condition fails comes out and a row whose saved value changed is drawn
+// again, unless the person is typing in it. Every other row keeps its
+// node. [force] names a setting to draw again anyway. The first render
+// draws the groups and rows this way too.
+function reconcilePluginPage(page, plugin, force = null) {
+  const values = { ...plugin.values };
+  const settings = plugin.settings || [];
+  // A setting whose condition does not hold stays off the page. Its
+  // saved value is kept.
+  const shown = settings.filter((setting) => fieldVisible(setting, values, settings));
+  // Buttons close their group, shown by the settings they name.
+  const buttons = (plugin.buttons || []).filter((entry) => fieldVisible(entry, values, settings));
+  // The declared groups always show, then the rest in the order their
+  // first setting or button names them.
+  const titles = [...new Set([...(plugin.groups || []).map((group) => group.title),
+    ...[...shown, ...buttons].map((entry) => entry.group || 'Settings')])];
+  const groups = page.pluginGroupCards;
+  for (const [title, group] of groups) {
+    if (!titles.includes(title)) { group.nodes.forEach((node) => node.remove()); groups.delete(title); }
+  }
+  let anchor = page.pluginLead;
+  for (const title of titles) {
+    if (!groups.has(title)) groups.set(title, groupNodes(page, plugin, title));
+    const { panel, nodes } = groups.get(title);
+    placeAfter(page, anchor, nodes);
+    anchor = nodes[nodes.length - 1];
+    const members = shown.filter((setting) => (setting.group || 'Settings') === title);
+    const current = [...panel.children];
+    const rows = members.map((setting) => {
+      const alone = members.length === 1;
+      const row = current.find((node) => node.dataset.settingKey === setting.key);
+      if (row && (editing(row) || (setting.key !== force && row.pluginValue === JSON.stringify(values[setting.key])
+        && (setting.type !== 'list' || row.pluginAlone === alone)))) return row;
+      const fresh = settingElement(plugin, setting, values, alone, page.pluginSave);
+      row?.replaceWith(fresh);
+      return fresh;
+    });
+    for (const button of buttons.filter((entry) => (entry.group || 'Settings') === title)) {
+      rows.push(current.find((node) => node.dataset.setupTarget === `button:${button.id}`) || setupButtonRow(plugin, button, settled));
+    }
+    for (const node of current) if (!rows.includes(node)) node.remove();
+    placeAfter(panel, null, rows);
+  }
+}
+
+// What a full render draws apart from setting values and status lines.
+// Runtime lists such as entities and charts are read on their own.
+const PAGE_FIELDS = ['id', 'name', 'description', 'version', 'sha256', 'icon', 'source', 'enabled', 'running',
+  'fleetManaged', 'capabilities', 'groups', 'settings', 'buttons', 'commands', 'actionOptions'];
+const pageStructure = (state) => JSON.stringify([state.enabled === true,
+  (state.plugins || []).map((plugin) => PAGE_FIELDS.map((field) => plugin[field] ?? null))]);
+let renderedStructure = '';
+
+// Applies [state] to the plugin pages already drawn when only setting
+// values and status lines changed, keeping scroll, focus and any open
+// dialog. False when anything else changed, such as an install, an update
+// or a plugin starting, for the caller to draw the whole tab. [force]
+// names a plugin's setting to draw again, one whose save failed.
+function patchPlugins(root, state, force = null) {
+  if (pageStructure(state) !== renderedStructure) return false;
+  const pages = new Map([...root.querySelectorAll(':scope > .subpage')].map((page) => [page.dataset.subpage, page]));
+  const plugins = state.enabled === true ? state.plugins || [] : [];
+  if (plugins.some((plugin) => !pages.get(plugin.id)?.pluginGroupCards)) return false;
+  for (const plugin of plugins) {
+    const page = pages.get(plugin.id);
+    paintPluginStatus(page, plugin, true);
+    reconcilePluginPage(page, plugin, force?.id === plugin.id ? force.key : null);
+  }
+  renderedState = JSON.stringify(state);
+  pluginSearchState = state;
+  return true;
+}
+
 let renderedState = '';
 function render(root, state) {
   renderedState = JSON.stringify(state);
+  renderedStructure = pageStructure(state);
   pluginSearchState = state;
   const plugins = state.plugins || [];
   const pluginsEnabled = state.enabled === true;
@@ -749,13 +1017,8 @@ function render(root, state) {
       const img = element('img'); img.alt = ''; img.src = src;
       intro.querySelector('.intro-icon').replaceChildren(img);
     });
-    if (plugin.status) {
-      const status = hintRow(plugin.status, { warn: plugin.statusError === true });
-      status.classList.add('plugin-runtime-status'); description.append(status);
-    }
-    if (plugin.error) description.append(hintRow(pluginError(plugin.error), { warn: true }));
-    if (!pluginsEnabled) description.append(hintRow(pluginText('Enable Plugins to run this plugin.')));
-    else if (!plugin.enabled) description.append(hintRow(pluginText('Enable this plugin from its entry row to run it.')));
+    page.pluginStatus = description;
+    paintPluginStatus(page, plugin, pluginsEnabled);
     page.append(description);
     if (plugin.capabilities?.includes('shizuku')) {
       const access = element('div', undefined, 'card plugin-shizuku');
@@ -775,168 +1038,31 @@ function render(root, state) {
       row.append(button); access.append(row, hintRow(pluginText('Shizuku grants Kiosk Satellite shell or root access. Installed plugins run inside KS, so only grant access if you trust them.')));
       page.append(access);
     }
+    // The groups follow the intro or the Shizuku card under it.
+    page.pluginLead = page.lastElementChild;
     page.pluginGroups = plugin.groups || [];
-    const groups = new Map();
-    const appendOutput = (group = '') => {
-      const charts = element('div', undefined, 'plugin-charts'); charts.hidden = true; charts.dataset.pluginGroup = group;
-      const readings = element('div', undefined, 'plugin-readings'); readings.hidden = true; readings.dataset.pluginGroup = group;
-      page.append(charts, readings);
-    };
-    const ensureGroup = (group) => {
-      if (groups.has(group)) return groups.get(group);
-      const panel = element('div', undefined, 'card'); groups.set(group, panel);
-      page.append(heading(group === 'Settings' && !plugin.groups?.some(entry => entry.title === group) && !plugin.settings?.some(entry => entry.group === group) && !plugin.buttons?.some(entry => entry.group === group) ? pluginText('Settings') : group), panel);
-      if (page.pluginGroups.some((entry) => entry.title === group && (entry.charts?.length || entry.readings?.length))) appendOutput(group);
-      return panel;
-    };
-    for (const group of plugin.groups || []) ensureGroup(group.title);
-    const values = { ...plugin.values };
-    // Only the changed setting, so a value the plugin saved meanwhile stays.
-    const saveSetting = (key, value, trigger) => run(async () => {
+    page.pluginGroupCards = new Map();
+    // Only the changed setting, so a value the plugin saved meanwhile
+    // stays. The page then follows the saved values in place. A row
+    // whose save failed goes back to the saved value.
+    page.pluginSave = (key, value, trigger, saved) => run(async () => {
+      let failed = true;
       try {
         await command('configurePlugin', { id: plugin.id, values: { [key]: value }, patch: true });
+        failed = false;
+        saved?.();
+        // A control already shows the value it saved, so its row stays.
+        // A list draws its rows again and a secret its placeholder.
+        const type = plugin.settings?.find((setting) => setting.key === key)?.type;
+        const row = [...page.querySelectorAll('[data-setting-key]')].find((node) => node.dataset.settingKey === key);
+        if (row && type !== 'list' && type !== 'secret') row.pluginValue = JSON.stringify(value);
       } finally {
-        await refresh();
+        const next = await command('getPluginState');
+        if (!patchPlugins(root, next, failed ? { id: plugin.id, key } : null)) render(root, next);
       }
     }, trigger);
-    // A setting whose condition does not hold stays off the page. Its
-    // saved value is kept.
-    const shown = (plugin.settings || []).filter((setting) => fieldVisible(setting, values, plugin.settings));
-    for (const setting of shown) {
-      const group = setting.group || 'Settings';
-      const panel = ensureGroup(group);
-      if (setting.type === 'list') {
-        const alone = shown.filter((entry) => (entry.group || 'Settings') === group).length === 1;
-        const block = listSetting({ setting, rows: values[setting.key] ?? setting.default ?? [], showTitle: !alone,
-          onChange: (rows) => saveSetting(setting.key, rows, block) });
-        block.dataset.searchId = `plugin:${plugin.id}:setting:${setting.key}`;
-        panel.append(block);
-        continue;
-      }
-      const settingRow = element('div', undefined, 'row');
-      settingRow.dataset.searchId = `plugin:${plugin.id}:setting:${setting.key}`;
-      settingRow.append(info(setting.title, setting.description));
-      const input = element('input'); input.setAttribute('aria-label', setting.title);
-      if (setting.type === 'boolean') {
-        input.type = 'checkbox'; input.checked = values[setting.key] ?? setting.default;
-        input.onchange = () => saveSetting(setting.key, input.checked, input);
-        const toggle = element('label', undefined, 'switch'); toggle.append(input, element('span', undefined, 'slider')); settingRow.append(toggle);
-      } else if (setting.type === 'number') {
-        input.type = 'range'; input.min = setting.min; input.max = setting.max; input.step = setting.step || 1;
-        input.value = values[setting.key] ?? setting.default;
-        const control = element('div', undefined, 'plugin-range');
-        const output = element('span', `${input.value} ${setting.unit || ''}`.trim(), 'desc');
-        input.oninput = () => { values[setting.key] = Number(input.value); output.textContent = `${input.value} ${setting.unit || ''}`.trim(); };
-        input.onchange = () => saveSetting(setting.key, Number(input.value), input);
-        control.append(input, output); settingRow.append(control);
-      } else if (setting.type === 'entity') {
-        // The entity picker, narrowed to the plugin's domain when it
-        // declares one; Clear empties the setting.
-        let current = values[setting.key] ?? setting.default ?? '';
-        const domains = Array.isArray(setting.domain) ? setting.domain.map(String)
-          : (setting.domain ? [String(setting.domain)] : []);
-        const spec = entitySpec({ domains });
-        const field = pickField({
-          spec, value: current,
-          onClick: async () => {
-            const out = await pickItem({ title: setting.title, spec,
-              selected: current || null, allowClear: true });
-            if (!out) return;
-            current = out.id ?? '';
-            await saveSetting(setting.key, current, field.el);
-            field.setValue(current);
-          },
-        });
-        settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
-        settingRow.classList.add('dp-field-row');
-      } else if (setting.type === 'icon' || setting.type === 'dashboard' || setting.type === 'cameraView') {
-        const current = values[setting.key] ?? setting.default ?? '';
-        let field;
-        if (setting.type === 'icon') {
-          field = iconField({ value: current, title: setting.title, onPick: (picked) => saveSetting(setting.key, picked, field.el) });
-        } else if (setting.type === 'dashboard') {
-          field = dashboardField({ value: current, title: setting.title, onPick: (path) => saveSetting(setting.key, path, field.el) });
-        } else {
-          const spec = cameraViewSpec();
-          let picked = current;
-          field = pickField({
-            spec, value: current, placeholder: pluginText('Choose a camera view'),
-            onClick: async () => {
-              const out = await pickItem({ title: setting.title, spec, selected: picked || null, allowClear: true });
-              if (!out) return;
-              picked = out.id ?? '';
-              await saveSetting(setting.key, picked, field.el);
-              field.setValue(picked);
-            },
-          });
-        }
-        settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
-        settingRow.classList.add('dp-field-row');
-      } else if (setting.type === 'string' && setting.choices === 'plugin') {
-        // The plugin lists the choices. The setting stores the picked ID.
-        const choice = choiceControl(plugin, setting, values[setting.key] ?? setting.default ?? '', settled,
-          (picked, trigger) => saveSetting(setting.key, picked, trigger));
-        const text = info(setting.title, setting.description || ''); text.append(...choice.lines);
-        settingRow.replaceChildren(text, choice.control);
-        settingRow.classList.add('dp-field-row');
-        choice.attach(settingRow);
-      } else if (setting.type === 'select') {
-        const select = element('select'); select.setAttribute('aria-label', setting.title);
-        for (const choice of setting.options) { const option = element('option', choice); option.value = choice; select.append(option); }
-        select.value = values[setting.key] ?? setting.default;
-        select.onchange = () => saveSetting(setting.key, select.value, select); settingRow.append(select);
-      } else if (setting.type === 'color') {
-        const hex = values[setting.key] ?? setting.default;
-        const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(',');
-        settingRow.append(swatch(rgb, setting.title, (selected) => {
-          saveSetting(setting.key, '#' + selected.split(',').map((c) => Number(c).toString(16).padStart(2, '0')).join('').toUpperCase(), settingRow.querySelector('button'));
-        }));
-      } else if (setting.type === 'secret') {
-        // The listing reads __set__ for a saved secret, never the value.
-        // Typing replaces it. The eye shows what is being typed.
-        const saved = values[setting.key] === '__set__';
-        input.type = 'password'; input.maxLength = 512; input.autocomplete = 'new-password';
-        input.placeholder = saved ? deviceText('•••••• (set)') : deviceText('Not set');
-        const reveal = iconButton(pluginText('Show password'), EYE);
-        const show = (shown) => {
-          input.type = shown ? 'text' : 'password';
-          const label = pluginText(shown ? 'Hide password' : 'Show password');
-          reveal.title = label; reveal.setAttribute('aria-label', label);
-          reveal.querySelector('path').setAttribute('d', shown ? EYE_OFF : EYE);
-        };
-        // Blur saves, since switching the field's type drops its change
-        // event. A saved secret leaves the field empty and hidden again.
-        input.onblur = () => input.value && run(async () => {
-          try {
-            await command('configurePlugin', { id: plugin.id, values: { [setting.key]: input.value }, patch: true });
-            input.value = ''; show(false); reveal.hidden = true;
-          } finally {
-            await refresh();
-          }
-        }, input);
-        input.onkeydown = (event) => { if (event.key === 'Enter') input.blur(); };
-        // Pressing the eye keeps focus in the field, so it does not save
-        // and redraw the row halfway through typing.
-        reveal.onmousedown = (event) => event.preventDefault();
-        reveal.onclick = () => show(input.type === 'password');
-        // The eye appears only with typed text, since the saved value is
-        // never shown. An emptied field hides its text again.
-        reveal.hidden = true;
-        input.oninput = () => { reveal.hidden = !input.value; if (!input.value) show(false); };
-        const control = element('div', undefined, 'plugin-secret'); control.append(input, reveal);
-        settingRow.append(control);
-      } else {
-        input.type = 'text'; input.maxLength = 512; input.value = values[setting.key] ?? setting.default;
-        input.onchange = () => saveSetting(setting.key, input.value, input);
-        input.onkeydown = (event) => { if (event.key === 'Enter') input.blur(); }; settingRow.append(input);
-      }
-      panel.append(settingRow);
-    }
-    // Buttons close their group, shown by the settings they name.
-    for (const button of (plugin.buttons || []).filter((entry) => fieldVisible(entry, values, plugin.settings || []))) {
-      ensureGroup(button.group || 'Settings').append(setupButtonRow(plugin, button, settled));
-    }
-    appendOutput();
+    reconcilePluginPage(page, plugin);
+    page.append(...outputBoxes());
     if (plugin.commands?.length) {
       const actions = element('div', undefined, 'card');
       for (const action of plugin.commands) {
@@ -980,6 +1106,16 @@ function updatePluginShizuku(container, state) {
   button.textContent = status === 'permission_required' ? pluginText('Grant access') : pluginText('Set up');
 }
 
+// The group whose [kind] claims [key], or null when none does. A group
+// naming the key wins over one claiming its whole type with "sensor.*",
+// which wins over one claiming the rest with "*".
+function outputGroup(layouts, kind, key) {
+  const claimedBy = (reference) => layouts.find((entry) => (entry[kind] || []).includes(reference))?.title;
+  const dot = key.indexOf('.');
+  return claimedBy(key) ?? (kind === 'readings' && dot > 0 ? claimedBy(`${key.slice(0, dot)}.*`) : undefined)
+    ?? claimedBy('*') ?? null;
+}
+
 function updateGroupedPluginOutput(page, kind, items) {
   const layouts = page.pluginGroups || [];
   items = Array.isArray(items) ? items : [];
@@ -987,9 +1123,7 @@ function updateGroupedPluginOutput(page, kind, items) {
   for (const target of page.querySelectorAll(`.plugin-${kind}`)) {
     const group = target.dataset.pluginGroup;
     const layout = layouts.find((entry) => entry.title === group);
-    const selected = items.filter((item) => group
-      ? (layout?.[kind] || []).includes(key(item))
-      : !layouts.some((entry) => (entry[kind] || []).includes(key(item))));
+    const selected = items.filter((item) => (outputGroup(layouts, kind, key(item)) ?? '') === (group || ''));
     if (kind === 'charts') updatePluginCharts(target, selected, group ? '' : pluginText('Charts'));
     else updatePluginReadings(target, selected, layout?.readingsTitle || pluginText('Readings'));
   }
@@ -1012,19 +1146,42 @@ watchUpdates(['plugins'], async () => {
       const result = await cmd(command, { id }, { timeoutMs: 5000 });
       if (target?.isConnected && currentPath === `plugins/${id}` && result.ok) update(target, result.data);
     });
-    // Settings buttons and plugin choices follow their runs.
-    if (page.querySelector('[data-setup-target]')) outputs.push(refreshPluginSetup(id));
+    // Settings buttons and plugin choices follow their runs, and list rows
+    // follow the choices they show by label.
+    if (page.querySelector('[data-setup-target], [data-plugin-choices]')) outputs.push(refreshPluginSetup(id));
     await Promise.allSettled(outputs);
   } catch (_) { /* Reconnect reads the latest plugin output. */ }
   finally { runtimeLoading = false; }
 }, { visible: () => currentPath.startsWith('plugins/'), intervalMs: 1000 });
 
+// The plugin hears while its settings page is open in this browser, so it
+// can keep the page fresh. KS counts the page closed 5 seconds after the
+// last check in, so a tab that goes away without a word closes it too.
+const pageViewer = Math.random().toString(36).slice(2);
+let shownPluginPage = '';
+function checkInPluginPage() {
+  const [tab, id] = currentPath.split('/');
+  const shown = tab === 'plugins' && id && id !== DIRECTORY_PAGE && !document.hidden
+    && !document.querySelector('#app')?.classList.contains('hidden') ? id : '';
+  if (shownPluginPage && shownPluginPage !== shown) {
+    cmd('setPluginPageOpen', { id: shownPluginPage, viewer: pageViewer, open: false }).catch(() => {});
+  }
+  shownPluginPage = shown;
+  if (shown) cmd('setPluginPageOpen', { id: shown, viewer: pageViewer }, { timeoutMs: 5000 }).catch(() => {});
+}
+setInterval(checkInPluginPage, 2000);
+document.addEventListener('ks-route', checkInPluginPage);
+document.addEventListener('visibilitychange', checkInPluginPage);
+
 // Settings and installation changes are separate from frequent readings.
+// Values a plugin saved itself, such as after a settings button, update
+// the page in place.
 watchUpdates(['plugin-settings'], async () => {
   if (busy) return;
   const next = await refreshPluginSearchState();
   if (busy || JSON.stringify(next) === renderedState) return;
   const root = document.getElementById('tab-plugins');
+  if (patchPlugins(root, next)) return;
   const restoreDraft = preserveDraft(root, 'data-search-id');
   try { render(root, next); }
   finally { restoreDraft(); }

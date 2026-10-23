@@ -72,6 +72,7 @@ const Map<String, Object> subpageIcons = {
   'Floating Player': Icons.picture_in_picture_alt_outlined,
   'Now Playing': Icons.fullscreen,
   'Lyrics': Icons.lyrics_outlined,
+  'Music Library': Icons.library_music_outlined,
   // ESPHome.
   'Notifications': Icons.notifications_outlined,
   'Announcements': Icons.campaign_outlined,

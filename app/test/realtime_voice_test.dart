@@ -466,6 +466,137 @@ void main() {
       }
     });
 
+    group('the device rides script calls', () {
+      late List<Map<String, Object?>> calls;
+      late Map<String, Object?> Function(Map<String, Object?> args) answer;
+
+      MockClient server() => MockClient((request) async {
+        final json = (jsonDecode(request.body) as Map).cast<String, Object?>();
+        final method = '${json['method']}';
+        if (method.startsWith('notifications/')) return http.Response('', 202);
+        final params = ((json['params'] ?? {}) as Map).cast<String, Object?>();
+        final result = switch (method) {
+          'tools/list' => {
+            'tools': [
+              for (final name in ['script__probe', 'HassTurnOn'])
+                {
+                  'name': name,
+                  'description': '',
+                  'inputSchema': {
+                    'type': 'object',
+                    'properties': {
+                      'room': {'type': 'string'},
+                      McpClient.scriptDeviceArgument: {'type': 'string'},
+                    },
+                    'required': ['room', McpClient.scriptDeviceArgument],
+                  },
+                },
+            ],
+          },
+          'tools/call' => answer(
+            (calls..add(params)).last['arguments']! as Map<String, Object?>,
+          ),
+          _ => <String, Object?>{},
+        };
+        return http.Response(
+          jsonEncode({'jsonrpc': '2.0', 'id': json['id'], 'result': result}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      Map<String, Object?> text(String text, {bool error = false}) => {
+        'content': [
+          {'type': 'text', 'text': text},
+        ],
+        'isError': error,
+      };
+
+      setUp(() {
+        calls = [];
+        answer = (_) => text('done');
+      });
+
+      test('as an argument the model never sees', () async {
+        final mcp = McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceId: () async => 'dev1',
+        );
+        final tools = {for (final t in await mcp.listTools()) t.name: t};
+        // A script that declares the field gets it from the kiosk.
+        final script = tools['script__probe']!.inputSchema;
+        expect((script['properties']! as Map).keys, ['room']);
+        expect(script['required'], ['room']);
+        // Any other tool is left as the server sent it.
+        expect(
+          (tools['HassTurnOn']!.inputSchema['properties']! as Map).keys,
+          contains(McpClient.scriptDeviceArgument),
+        );
+
+        // The kiosk's device wins over one the model made up.
+        await mcp.callTool('script__probe', {
+          'room': 'Kitchen',
+          McpClient.scriptDeviceArgument: 'made_up',
+        });
+        await mcp.callTool('HassTurnOn', {'name': 'Kitchen'});
+        expect(calls[0]['arguments'], {
+          'room': 'Kitchen',
+          McpClient.scriptDeviceArgument: 'dev1',
+        });
+        expect(calls[1]['arguments'], {'name': 'Kitchen'});
+      });
+
+      test('not on a server without a device', () async {
+        final mcp = McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+        );
+        final tools = await mcp.listTools();
+        expect(
+          (tools.first.inputSchema['properties']! as Map).keys,
+          contains(McpClient.scriptDeviceArgument),
+        );
+        await mcp.callTool('script__probe', {'room': 'Kitchen'});
+        expect(calls.single['arguments'], {'room': 'Kitchen'});
+      });
+
+      test(
+        'runs the script again without it only when it was refused',
+        () async {
+          answer = (args) => args.containsKey(McpClient.scriptDeviceArgument)
+              ? text(
+                  'Error calling tool: extra keys not allowed @ '
+                  "data['${McpClient.scriptDeviceArgument}']",
+                  error: true,
+                )
+              : text('done');
+          final mcp = McpClient(
+            url: Uri.parse('http://ha/api/mcp'),
+            client: server(),
+            deviceId: () async => 'dev1',
+          );
+          final result = await mcp.callTool('script__probe', {
+            'room': 'Kitchen',
+          });
+          expect(result.text, 'done');
+          expect(result.error, isFalse);
+          expect(calls.last['arguments'], {'room': 'Kitchen'});
+          expect(calls, hasLength(2));
+
+          // A script that failed on its own is never run twice.
+          calls.clear();
+          answer = (_) => text(
+            'Error calling tool: no device ${McpClient.scriptDeviceArgument}',
+            error: true,
+          );
+          final failed = await mcp.callTool('script__probe', {'room': 'Hall'});
+          expect(failed.error, isTrue);
+          expect(calls, hasLength(1));
+        },
+      );
+    });
+
     test('an HTTP error says so', () async {
       final mcp = McpClient(
         url: Uri.parse('http://ha/api/mcp'),

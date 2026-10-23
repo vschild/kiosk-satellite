@@ -27,6 +27,54 @@ export function updateEdgeFade(el) {
   setEdgeFadeVar(el, '--fade-top', top);
   setEdgeFadeVar(el, '--fade-bottom', bottom);
 }
+// Lets a mouse drag scroll a row that only scrolls sideways, the way a
+// finger already does: a chip row has no scrollbar to grab and a wheel
+// only scrolls it with Shift. A press that moves past a few pixels turns
+// into a drag, and the click that ends it is swallowed so no chip under
+// the pointer gets picked.
+export function dragScroll(el) {
+  let start = null;
+  let dragged = false;
+  el.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    start = { x: event.clientX, left: el.scrollLeft, id: event.pointerId };
+    dragged = false;
+  });
+  el.addEventListener('pointermove', (event) => {
+    if (!start || event.pointerId !== start.id) return;
+    const dx = event.clientX - start.x;
+    if (!dragged && Math.abs(dx) < 5) return;
+    if (!dragged) {
+      dragged = true;
+      el.setPointerCapture(event.pointerId);
+      el.classList.add('dragging');
+    }
+    el.scrollLeft = start.left - dx;
+  });
+  const end = () => {
+    if (!start) return;
+    start = null;
+    el.classList.remove('dragging');
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('click', (event) => {
+    if (!dragged) return;
+    dragged = false;
+    event.stopPropagation();
+    event.preventDefault();
+  }, true);
+}
+
+// Scrolls a sideways row so [child] sits in its middle, as far as the
+// row's ends allow.
+export function centerInRow(row, child, behavior = 'smooth') {
+  const box = row.getBoundingClientRect();
+  const own = child.getBoundingClientRect();
+  const left = row.scrollLeft + own.left - box.left - (row.clientWidth - own.width) / 2;
+  row.scrollTo({ left: Math.max(0, left), behavior });
+}
+
 export function setEdgeFadeVar(el, name, px) {
   const value = px > 0 ? px.toFixed(1) + 'px' : '0px';
   if (el.style.getPropertyValue(name) !== value) {

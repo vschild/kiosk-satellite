@@ -3,10 +3,15 @@ package me.jxl.kiosk_satellite.plugins
 import java.io.File
 import org.json.JSONObject
 
-/** Rendering documents belong to one live session. Animation stays in the renderer. */
-internal class PluginScreensavers(private val directory: File? = null, private val clock: () -> Long = System::nanoTime) {
-    private val items = linkedMapOf<String, Map<String, String>>()
+/**
+ * Rendering documents belong to one live session. Animation stays in the renderer. A native renderer is a view
+ * factory instead of a document. Each publication of one gets a new generation, so Flutter builds a fresh view.
+ */
+internal class PluginScreensavers<F : Any>(private val directory: File? = null, private val clock: () -> Long = System::nanoTime) {
+    private val items = linkedMapOf<String, Map<String, Any>>()
+    private val factories = hashMapOf<String, F>()
     private var closed = false
+    private var generation = 0
     private var window = clock()
     private var changes = 0
 
@@ -24,6 +29,7 @@ internal class PluginScreensavers(private val directory: File? = null, private v
         require(html.isNotBlank() && html.toByteArray(Charsets.UTF_8).size <= 524288) { "Screensaver HTML must be at most 512 KiB" }
         require(items.containsKey(key) || items.size < 4) { "At most four screensavers are supported" }
         budget()
+        factories.remove(key)
         items[key] = mapOf("key" to key, "title" to title, "html" to html)
     }
 
@@ -39,10 +45,24 @@ internal class PluginScreensavers(private val directory: File? = null, private v
         require(json.toByteArray(Charsets.UTF_8).size <= 32768) { "Screensaver data exceeds 32 KB" }
         require(items.containsKey(key) || items.size < 4) { "At most four screensavers are supported" }
         budget()
+        factories.remove(key)
         items[key] = mapOf("key" to key, "title" to title, "entry" to entry, "dataJson" to json)
     }
 
-    @Synchronized fun remove(key: String) { budget(); items.remove(key) }
-    @Synchronized fun snapshot(): List<Map<String, String>> = items.values.toList()
-    @Synchronized fun close() { closed = true; items.clear() }
+    @Synchronized fun publishView(key: String, title: String, factory: F) {
+        require(key.matches(Regex("[a-z][a-z0-9_]{0,39}"))) { "Invalid screensaver key" }
+        require(title.isNotBlank() && title.length <= 80) { "Invalid screensaver title" }
+        require(items.containsKey(key) || items.size < 4) { "At most four screensavers are supported" }
+        budget()
+        factories[key] = factory
+        items[key] = mapOf("key" to key, "title" to title, "view" to true, "generation" to ++generation)
+    }
+
+    /** The factory of a native renderer, only while it is still the generation Flutter asked for. */
+    @Synchronized fun view(key: String, generation: Int): F? =
+        factories[key]?.takeIf { !closed && items[key]?.get("generation") == generation }
+
+    @Synchronized fun remove(key: String) { budget(); items.remove(key); factories.remove(key) }
+    @Synchronized fun snapshot(): List<Map<String, Any>> = items.values.toList()
+    @Synchronized fun close() { closed = true; items.clear(); factories.clear() }
 }

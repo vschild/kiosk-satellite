@@ -2,12 +2,15 @@ package me.jxl.kiosk_satellite
 
 /** Idle residency in microseconds, timed against the CPU's awake clock. */
 internal class CpuIdleSnapshot(
-    val elapsedNanos: Long,
-    val awakeNanos: Long,
+    override val elapsedNanos: Long,
+    override val awakeNanos: Long,
     val idleUs: Map<String, Long>,
     val entries: Map<String, Long>,
     val online: Map<String, Boolean>,
-) {
+) : CpuSnapshot {
+    override fun usageSince(before: CpuSnapshot): Double? =
+        if (before is CpuIdleSnapshot) usageSince(before) else null
+
     /**
      * CPU utilization while awake, averaged over cores. Suspend advances
      * elapsed time without advancing the idle counters, so it must not be

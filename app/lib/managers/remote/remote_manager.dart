@@ -898,7 +898,11 @@ class RemoteManager extends Manager {
       'screen': det['screen'],
       'ram': det['ram'],
       'storage': det['storage'],
-      'cpu': {'usage': info['cpu'], 'temp': info['temp']},
+      'cpu': {
+        'usage': info['cpu'],
+        'clock': info['cpuClock'],
+        'temp': info['temp'],
+      },
       // The system WebView updates itself out from under the app, so it is
       // the first suspect when one panel renders unlike its neighbors.
       'webview': det['webview'],
@@ -1400,7 +1404,7 @@ class RemoteManager extends Manager {
       FleetChanged() => {'fleet'},
       FleetSyncChanged() => {'fleetsync'},
       IntercomStateChanged() => {'intercom'},
-      UpdateStateChanged() => {'update'},
+      UpdateStateChanged() || SystemUpdateStateChanged() => {'update'},
       BluetoothLinksChanged() => {'bluetooth'},
       AudioDevicesChanged() => {'audio'},
       ActivityAttached() || AmbientDisplayChanged() => {'service'},

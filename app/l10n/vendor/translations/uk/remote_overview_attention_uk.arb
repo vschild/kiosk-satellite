@@ -21,5 +21,7 @@
   "overviewWakeReleased": "Рушій розпізнавання вивільнено.",
   "overviewOpenVoice": "Відкрити Voice Satellite",
   "overviewOpenService": "Відкрити службу",
-  "overviewPermissionMissing": "Відсутній дозвіл: {permission}"
+  "overviewPermissionMissing": "Відсутній дозвіл: {permission}",
+  "overviewSystemUpdate": "Доступне оновлення системи",
+  "overviewSystemUpdateHelp": "Версія {version} образу Echo Dot готова до встановлення. Для цього Dot двічі перезапуститься."
 }

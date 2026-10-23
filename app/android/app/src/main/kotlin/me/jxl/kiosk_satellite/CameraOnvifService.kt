@@ -11,7 +11,11 @@ import java.util.TimeZone
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 
-/** Read-only ONVIF device and Media1 services for the shared camera stream. */
+/**
+ * Read-only ONVIF device and Media1 services for the shared camera stream,
+ * plus an event service that reports motion over PullPoint subscriptions
+ * while motion events are on (issue #1098).
+ */
 class CameraOnvifService(
     private var width: Int,
     private var height: Int,
@@ -27,12 +31,42 @@ class CameraOnvifService(
     private val networkInfo: (String) -> NetworkInfo? = ::networkInfoFor,
     deviceName: String = "Kiosk Satellite",
     private val tls: Boolean = false,
+    private var h264Profile: String = "Baseline",
+    private val onH264Profile: (String) -> Unit = {},
+    private val clock: () -> Long = System::currentTimeMillis,
 ) {
-    data class Response(val status: String, val body: String)
+    data class Response(val status: String, val body: String, val operation: String = "", val fault: String? = null)
     data class NetworkInfo(val name: String, val enabled: Boolean, val hardwareAddress: String?, val mtu: Int?)
     private val name = deviceName.trim().ifEmpty { "Kiosk Satellite" }
     private val scopes = scopes(name)
     private val usedTokens = mutableMapOf<String, Long>()
+
+    // Event state has a lock of its own: a PullMessages waits on it for up
+    // to a minute and must not hold up the device and media requests.
+    private class Subscription(var expires: Long) { val messages = ArrayDeque<String>() }
+    private val events = Object()
+    private val subscriptions = mutableMapOf<Int, Subscription>()
+    private var nextSubscription = 1
+    @Volatile private var eventsEnabled = false
+    private var motion = false
+    private var closed = false
+
+    /** Turn the event service on or off, and tell every subscription when motion changes. */
+    fun updateEvents(enabled: Boolean, motion: Boolean) = synchronized(events) {
+        val changed = motion != this.motion
+        this.motion = motion
+        eventsEnabled = enabled
+        if (!enabled) subscriptions.clear()
+        else if (changed) subscriptions.values.forEach { queue(it, "Changed") }
+        events.notifyAll()
+    }
+
+    /** Release any PullMessages still waiting when the server goes away. */
+    fun close() = synchronized(events) {
+        closed = true
+        subscriptions.clear()
+        events.notifyAll()
+    }
 
     @Synchronized fun updateVideo(width: Int, height: Int, fps: Int, bitrate: Int) {
         this.width = width
@@ -41,9 +75,21 @@ class CameraOnvifService(
         this.bitrate = bitrate
     }
 
-    @Synchronized fun respond(path: String, bytes: ByteArray, host: String, port: Int): Response {
-        if (path !in listOf("/onvif/device_service", "/onvif/media_service")) {
-            return Response("404 Not Found", "")
+    /** Encoders pick their own profile, so report the one in the stream's SPS. */
+    @Synchronized fun updateParameterSet(sps: ByteArray) {
+        val profile = h264ProfileOf(sps) ?: return
+        if (profile == h264Profile) return
+        h264Profile = profile
+        onH264Profile(profile)
+    }
+
+    fun respond(path: String, bytes: ByteArray, host: String, port: Int): Response {
+        val subscription = SUBSCRIPTION_PATH.matchEntire(path)?.groupValues?.get(1)?.toIntOrNull()
+        val namespaces = when {
+            path == "/onvif/device_service" -> listOf(DEVICE)
+            path == "/onvif/media_service" -> listOf(MEDIA)
+            path == "/onvif/event_service" || subscription != null -> listOf(EVENTS, NOTIFICATION)
+            else -> return Response("404 Not Found", "")
         }
         val document = try { parse(bytes) } catch (_: Exception) {
             return fault("ter:InvalidArgVal", "Invalid SOAP request", "400 Bad Request")
@@ -53,11 +99,16 @@ class CameraOnvifService(
         val operation = body?.let { node ->
             (0 until node.childNodes.length).map { node.childNodes.item(it) }.filterIsInstance<Element>().singleOrNull()
         } ?: return fault("ter:InvalidArgVal", "Expected one SOAP operation", "400 Bad Request")
-        val namespace = if (path.endsWith("device_service")) DEVICE else MEDIA
-        if (envelope.namespaceURI != SOAP || envelope.localName != "Envelope" || operation.namespaceURI != namespace) {
+        if (envelope.namespaceURI != SOAP || envelope.localName != "Envelope" || operation.namespaceURI !in namespaces) {
             return fault("ter:ActionNotSupported", "Unsupported service")
         }
         val name = operation.localName
+        val response = if (namespaces.first() == EVENTS) answerEvents(name, envelope, operation, subscription, host, port)
+            else synchronized(this) { answer(name, namespaces.first(), envelope, operation, host, port) }
+        return response.copy(operation = name)
+    }
+
+    private fun answer(name: String, namespace: String, envelope: Element, operation: Element, host: String, port: Int): Response {
         // ONVIF clients obtain UTC before constructing their UsernameToken.
         if (name != "GetSystemDateAndTime" && !authenticated(envelope)) {
             return fault("ter:NotAuthorized", "Authentication required", "400 Bad Request")
@@ -84,11 +135,14 @@ class CameraOnvifService(
             }
             "GetSystemDateAndTime" -> dateAndTime()
             "GetServices" -> service("tds", DEVICE, "$base/device_service", operation) +
-                service("trt", MEDIA, "$base/media_service", operation)
+                service("trt", MEDIA, "$base/media_service", operation) +
+                (if (eventsEnabled) service("tev", EVENTS, "$base/event_service", operation) else "")
             "GetCapabilities" -> {
                 val category = operation.child(DEVICE, "Category")?.textContent ?: "All"
-                if (category !in listOf("All", "Device", "Media")) return fault("ter:ActionNotSupported", "Unsupported capability")
-                "<tds:Capabilities>" + (if (category != "Media")
+                if (category !in listOf("All", "Device", "Media") && !(category == "Events" && eventsEnabled)) {
+                    return fault("ter:ActionNotSupported", "Unsupported capability")
+                }
+                "<tds:Capabilities>" + (if (category in listOf("All", "Device"))
                     "<tt:Device><tt:XAddr>$base/device_service</tt:XAddr>" +
                     "<tt:Network><tt:IPFilter>false</tt:IPFilter><tt:ZeroConfiguration>false</tt:ZeroConfiguration>" +
                     "<tt:IPVersion6>false</tt:IPVersion6><tt:DynDNS>false</tt:DynDNS></tt:Network>" +
@@ -100,7 +154,12 @@ class CameraOnvifService(
                     "<tt:OnboardKeyGeneration>false</tt:OnboardKeyGeneration><tt:AccessPolicyConfig>false</tt:AccessPolicyConfig>" +
                     "<tt:X.509Token>false</tt:X.509Token><tt:SAMLToken>false</tt:SAMLToken>" +
                     "<tt:KerberosToken>false</tt:KerberosToken><tt:RELToken>false</tt:RELToken></tt:Security></tt:Device>" else "") +
-                    (if (category != "Device") "<tt:Media><tt:XAddr>$base/media_service</tt:XAddr>" +
+                    (if (category in listOf("All", "Events") && eventsEnabled) "<tt:Events><tt:XAddr>$base/event_service</tt:XAddr>" +
+                        "<tt:WSSubscriptionPolicySupport>false</tt:WSSubscriptionPolicySupport>" +
+                        "<tt:WSPullPointSupport>true</tt:WSPullPointSupport>" +
+                        "<tt:WSPausableSubscriptionManagerInterfaceSupport>false</tt:WSPausableSubscriptionManagerInterfaceSupport>" +
+                        "</tt:Events>" else "") +
+                    (if (category in listOf("All", "Media")) "<tt:Media><tt:XAddr>$base/media_service</tt:XAddr>" +
                         "<tt:StreamingCapabilities><tt:RTPMulticast>false</tt:RTPMulticast>" +
                         "<tt:RTP_TCP>false</tt:RTP_TCP><tt:RTP_RTSP_TCP>true</tt:RTP_RTSP_TCP>" +
                         "</tt:StreamingCapabilities></tt:Media>" else "") + "</tds:Capabilities>"
@@ -138,6 +197,13 @@ class CameraOnvifService(
                 if (operation.child(MEDIA, "ConfigurationToken")?.textContent != "video_encoder") return noConfiguration()
                 videoEncoder("trt:Configuration")
             }
+            "GetVideoEncoderConfigurationOptions" -> {
+                if (operation.child(MEDIA, "ConfigurationToken")?.textContent.let { it != null && it != "video_encoder" }) return noConfiguration()
+                if (operation.child(MEDIA, "ProfileToken")?.textContent.let { it != null && it != "camera" }) {
+                    return fault("ter:InvalidArgVal", "Unknown profile token", subcode = "ter:NoProfile")
+                }
+                videoEncoderOptions()
+            }
             "GetAudioSources" -> if (audio) "<trt:AudioSources token=\"microphone\"><tt:Channels>1</tt:Channels></trt:AudioSources>" else ""
             "GetAudioSourceConfigurations", "GetCompatibleAudioSourceConfigurations" -> if (audio) audioSource("trt:Configurations") else ""
             "GetAudioEncoderConfigurations", "GetCompatibleAudioEncoderConfigurations" -> if (audio) audioEncoder("trt:Configurations") else ""
@@ -153,6 +219,137 @@ class CameraOnvifService(
         }
         val prefix = if (namespace == DEVICE) "tds" else "trt"
         return Response("200 OK", envelope("<$prefix:${name}Response>$content</$prefix:${name}Response>"))
+    }
+
+    /**
+     * The event service and its subscriptions. Motion is a property: each
+     * subscription starts with its current value (Initialized) and then
+     * gets every change, on two topics because NVRs listen for either.
+     */
+    private fun answerEvents(name: String, envelope: Element, operation: Element, id: Int?, host: String, port: Int): Response {
+        if (!authenticated(envelope)) return fault("ter:NotAuthorized", "Authentication required", "400 Bad Request")
+        if (!eventsEnabled) return fault("ter:ActionNotSupported", "Motion events are off")
+        val now = clock()
+        if (id == null) {
+            val content = when (name) {
+                "GetServiceCapabilities" -> eventCapabilities()
+                "GetEventProperties" -> eventProperties()
+                "CreatePullPointSubscription" -> synchronized(events) {
+                    expire(now)
+                    // A client that reconnects without unsubscribing must not
+                    // lock the others out, so the one closest to expiring goes.
+                    if (subscriptions.size >= MAX_SUBSCRIPTIONS) {
+                        subscriptions.remove(subscriptions.minByOrNull { it.value.expires }!!.key)
+                    }
+                    val number = nextSubscription++
+                    val subscription = Subscription(terminationTime(operation.child(EVENTS, "InitialTerminationTime")?.textContent, now))
+                    queue(subscription, "Initialized")
+                    subscriptions[number] = subscription
+                    "<tev:SubscriptionReference><wsa:Address>${if (tls) "https" else "http"}://${xml(host)}:$port/onvif/subscription/$number" +
+                        "</wsa:Address></tev:SubscriptionReference><wsnt:CurrentTime>${utc(now)}</wsnt:CurrentTime>" +
+                        "<wsnt:TerminationTime>${utc(subscription.expires)}</wsnt:TerminationTime>"
+                }
+                else -> return fault("ter:ActionNotSupported", "Unsupported event operation: ${xml(name)}")
+            }
+            return eventResponse(name, "$EVENTS/EventPortType", "tev", content)
+        }
+        return when (name) {
+            "PullMessages" -> {
+                val wait = operation.child(EVENTS, "Timeout")?.textContent?.let(::duration)?.coerceIn(0, MAX_PULL_WAIT) ?: MAX_PULL_WAIT
+                val limit = operation.child(EVENTS, "MessageLimit")?.textContent?.trim()?.toIntOrNull()?.coerceIn(1, MAX_QUEUED) ?: MAX_QUEUED
+                val (messages, expires) = synchronized(events) {
+                    expire(now)
+                    val subscription = subscriptions[id] ?: return unknownSubscription()
+                    // A client that keeps pulling keeps its subscription, renewed or not.
+                    subscription.expires = maxOf(subscription.expires, now + wait + 60_000)
+                    val deadline = now + wait
+                    while (subscription.messages.isEmpty() && !closed && subscriptions[id] === subscription) {
+                        val left = deadline - clock()
+                        if (left <= 0) break
+                        events.wait(left)
+                    }
+                    if (subscriptions[id] !== subscription) return unknownSubscription()
+                    List(minOf(limit, subscription.messages.size)) { subscription.messages.removeFirst() } to subscription.expires
+                }
+                eventResponse(name, "$EVENTS/PullPointSubscription", "tev",
+                    "<tev:CurrentTime>${utc(clock())}</tev:CurrentTime><tev:TerminationTime>${utc(expires)}</tev:TerminationTime>" +
+                        messages.joinToString(""))
+            }
+            "SetSynchronizationPoint" -> synchronized(events) {
+                expire(now)
+                queue(subscriptions[id] ?: return unknownSubscription(), "Initialized")
+                events.notifyAll()
+                eventResponse(name, "$EVENTS/PullPointSubscription", "tev", "")
+            }
+            "Renew" -> synchronized(events) {
+                expire(now)
+                val subscription = subscriptions[id] ?: return unknownSubscription()
+                subscription.expires = terminationTime(operation.child(NOTIFICATION, "TerminationTime")?.textContent, now)
+                eventResponse(name, SUBSCRIPTION_MANAGER, "wsnt",
+                    "<wsnt:TerminationTime>${utc(subscription.expires)}</wsnt:TerminationTime><wsnt:CurrentTime>${utc(now)}</wsnt:CurrentTime>")
+            }
+            "Unsubscribe" -> synchronized(events) {
+                subscriptions.remove(id) ?: return unknownSubscription()
+                events.notifyAll()
+                eventResponse(name, SUBSCRIPTION_MANAGER, "wsnt", "")
+            }
+            else -> fault("ter:ActionNotSupported", "Unsupported subscription operation: ${xml(name)}")
+        }
+    }
+
+    private fun eventResponse(name: String, actionBase: String, prefix: String, content: String) =
+        Response("200 OK", envelope("<$prefix:${name}Response>$content</$prefix:${name}Response>", "$actionBase/${name}Response"))
+
+    private fun unknownSubscription() = fault("ter:InvalidArgVal", "Unknown or expired subscription")
+
+    private fun expire(now: Long) {
+        subscriptions.entries.removeAll { it.value.expires < now }
+    }
+
+    private fun queue(subscription: Subscription, operation: String) {
+        val time = utc(clock())
+        subscription.messages.addLast(notification("tns1:RuleEngine/CellMotionDetector/Motion", time, operation,
+            "<tt:SimpleItem Name=\"VideoSourceConfigurationToken\" Value=\"video_source\"/>" +
+                "<tt:SimpleItem Name=\"VideoAnalyticsConfigurationToken\" Value=\"analytics\"/>" +
+                "<tt:SimpleItem Name=\"Rule\" Value=\"MotionDetectorRule\"/>", "IsMotion"))
+        subscription.messages.addLast(notification("tns1:VideoSource/MotionAlarm", time, operation,
+            "<tt:SimpleItem Name=\"Source\" Value=\"camera\"/>", "State"))
+        while (subscription.messages.size > MAX_QUEUED) subscription.messages.removeFirst()
+    }
+
+    private fun notification(topic: String, time: String, operation: String, source: String, item: String) =
+        "<wsnt:NotificationMessage><wsnt:Topic Dialect=\"$CONCRETE_SET\">$topic</wsnt:Topic><wsnt:Message>" +
+            "<tt:Message UtcTime=\"$time\" PropertyOperation=\"$operation\"><tt:Source>$source</tt:Source>" +
+            "<tt:Data><tt:SimpleItem Name=\"$item\" Value=\"$motion\"/></tt:Data></tt:Message></wsnt:Message></wsnt:NotificationMessage>"
+
+    private fun eventCapabilities() = "<tev:Capabilities WSSubscriptionPolicySupport=\"false\" WSPullPointSupport=\"true\" " +
+        "WSPausableSubscriptionManagerInterfaceSupport=\"false\" MaxNotificationProducers=\"0\" " +
+        "MaxPullPoints=\"$MAX_SUBSCRIPTIONS\" PersistentNotificationStorage=\"false\"/>"
+
+    private fun eventProperties(): String {
+        fun description(source: List<Pair<String, String>>, data: String) = "<tt:MessageDescription IsProperty=\"true\"><tt:Source>" +
+            source.joinToString("") { (item, type) -> "<tt:SimpleItemDescription Name=\"$item\" Type=\"$type\"/>" } +
+            "</tt:Source><tt:Data><tt:SimpleItemDescription Name=\"$data\" Type=\"xs:boolean\"/></tt:Data></tt:MessageDescription>"
+        return "<tev:TopicNamespaceLocation>http://www.onvif.org/onvif/ver10/topics/topicns.xml</tev:TopicNamespaceLocation>" +
+            "<wsnt:FixedTopicSet>true</wsnt:FixedTopicSet><wstop:TopicSet>" +
+            "<tns1:RuleEngine><CellMotionDetector><Motion wstop:topic=\"true\">" +
+            description(listOf("VideoSourceConfigurationToken" to "tt:ReferenceToken",
+                "VideoAnalyticsConfigurationToken" to "tt:ReferenceToken", "Rule" to "xs:string"), "IsMotion") +
+            "</Motion></CellMotionDetector></tns1:RuleEngine>" +
+            "<tns1:VideoSource><MotionAlarm wstop:topic=\"true\">" +
+            description(listOf("Source" to "tt:ReferenceToken"), "State") +
+            "</MotionAlarm></tns1:VideoSource></wstop:TopicSet>" +
+            "<wsnt:TopicExpressionDialect>$CONCRETE_SET</wsnt:TopicExpressionDialect>" +
+            "<wsnt:TopicExpressionDialect>http://docs.oasis-open.org/wsnt/t-1/TopicExpression/ConcreteSet</wsnt:TopicExpressionDialect>" +
+            "<tev:MessageContentFilterDialect>http://www.onvif.org/ver10/tev/messageContentFilter/ItemFilter</tev:MessageContentFilterDialect>" +
+            "<tev:MessageContentSchemaLocation>http://www.onvif.org/onvif/ver10/schema/onvif.xsd</tev:MessageContentSchemaLocation>"
+    }
+
+    /** A termination time sent as a duration from now or as a time, held between 10 seconds and a day away. */
+    private fun terminationTime(text: String?, now: Long): Long {
+        val value = text?.trim().orEmpty()
+        val at = duration(value)?.let { now + it } ?: instant(value) ?: (now + 60_000)
+        return at.coerceIn(now + 10_000, now + 86_400_000)
     }
 
     private fun authenticated(envelope: Element): Boolean {
@@ -196,8 +393,16 @@ class CameraOnvifService(
         "<tt:Encoding>H264</tt:Encoding><tt:Resolution><tt:Width>$width</tt:Width><tt:Height>$height</tt:Height></tt:Resolution>" +
         "<tt:Quality>5</tt:Quality><tt:RateControl><tt:FrameRateLimit>$fps</tt:FrameRateLimit>" +
         "<tt:EncodingInterval>1</tt:EncodingInterval><tt:BitrateLimit>${bitrate / 1000}</tt:BitrateLimit></tt:RateControl>" +
-        "<tt:H264><tt:GovLength>$fps</tt:GovLength><tt:H264Profile>Baseline</tt:H264Profile></tt:H264>" +
+        "<tt:H264><tt:GovLength>$fps</tt:GovLength><tt:H264Profile>$h264Profile</tt:H264Profile></tt:H264>" +
         multicast() + "<tt:SessionTimeout>PT60S</tt:SessionTimeout></$tag>"
+
+    // The stream is set up in Kiosk Satellite, so the only options are the current settings.
+    private fun videoEncoderOptions() = "<trt:Options><tt:QualityRange><tt:Min>5</tt:Min><tt:Max>5</tt:Max></tt:QualityRange>" +
+        "<tt:H264><tt:ResolutionsAvailable><tt:Width>$width</tt:Width><tt:Height>$height</tt:Height></tt:ResolutionsAvailable>" +
+        "<tt:GovLengthRange><tt:Min>$fps</tt:Min><tt:Max>$fps</tt:Max></tt:GovLengthRange>" +
+        "<tt:FrameRateRange><tt:Min>$fps</tt:Min><tt:Max>$fps</tt:Max></tt:FrameRateRange>" +
+        "<tt:EncodingIntervalRange><tt:Min>1</tt:Min><tt:Max>1</tt:Max></tt:EncodingIntervalRange>" +
+        "<tt:H264ProfilesSupported>$h264Profile</tt:H264ProfilesSupported></tt:H264></trt:Options>"
 
     private fun audioSource(tag: String) = "<$tag token=\"audio_source\"><tt:Name>Microphone</tt:Name><tt:UseCount>1</tt:UseCount>" +
         "<tt:SourceToken>microphone</tt:SourceToken></$tag>"
@@ -212,7 +417,11 @@ class CameraOnvifService(
     private fun service(prefix: String, namespace: String, address: String, request: Element): String =
         "<tds:Service><tds:Namespace>$namespace</tds:Namespace><tds:XAddr>$address</tds:XAddr>" +
             (if (request.child(DEVICE, "IncludeCapability")?.textContent in listOf("true", "1"))
-                "<tds:Capabilities>${if (prefix == "tds") deviceCapabilities() else mediaCapabilities()}</tds:Capabilities>" else "") +
+                "<tds:Capabilities>${when (prefix) {
+                    "tds" -> deviceCapabilities()
+                    "trt" -> mediaCapabilities()
+                    else -> eventCapabilities()
+                }}</tds:Capabilities>" else "") +
             "<tds:Version><tt:Major>2</tt:Major><tt:Minor>0</tt:Minor></tds:Version></tds:Service>"
 
     private fun deviceCapabilities() = "<tds:Capabilities><tds:Network IPFilter=\"false\" ZeroConfiguration=\"false\" IPVersion6=\"false\" DynDNS=\"false\"/>" +
@@ -236,7 +445,8 @@ class CameraOnvifService(
     private fun fault(code: String, reason: String, status: String = "500 Internal Server Error", subcode: String? = null) =
         Response(status, envelope("<s:Fault><s:Code><s:Value>s:Sender</s:Value><s:Subcode><s:Value>$code</s:Value>" +
             (if (subcode != null) "<s:Subcode><s:Value>$subcode</s:Value></s:Subcode>" else "") +
-            "</s:Subcode></s:Code><s:Reason><s:Text xml:lang=\"en\">$reason</s:Text></s:Reason></s:Fault>"))
+            "</s:Subcode></s:Code><s:Reason><s:Text xml:lang=\"en\">$reason</s:Text></s:Reason></s:Fault>"),
+            fault = "${subcode ?: code}: $reason")
 
     companion object {
         const val SOAP = "http://www.w3.org/2003/05/soap-envelope"
@@ -246,6 +456,38 @@ class CameraOnvifService(
         const val SECURITY = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
         const val UTILITY = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
         const val SCOPES = "onvif://www.onvif.org/Profile/Streaming onvif://www.onvif.org/type/video_encoder"
+        const val EVENTS = "http://www.onvif.org/ver10/events/wsdl"
+        const val NOTIFICATION = "http://docs.oasis-open.org/wsn/b-2"
+        const val ADDRESSING = "http://www.w3.org/2005/08/addressing"
+        const val TOPICS = "http://docs.oasis-open.org/wsn/t-1"
+        const val CONCRETE_SET = "http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet"
+        private const val SUBSCRIPTION_MANAGER = "http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager"
+        private val SUBSCRIPTION_PATH = Regex("/onvif/subscription/([0-9]{1,9})")
+        private const val MAX_SUBSCRIPTIONS = 8
+        private const val MAX_QUEUED = 100
+        private const val MAX_PULL_WAIT = 60_000L
+
+        /** An xs:duration such as PT60S or PT1M30S, in milliseconds. */
+        fun duration(text: String): Long? {
+            val match = Regex("P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+(?:\\.[0-9]+)?)S)?)?")
+                .matchEntire(text.trim()) ?: return null
+            if (match.groupValues.drop(1).all { it.isEmpty() }) return null
+            val (days, hours, minutes, seconds) = match.destructured
+            return ((days.toLongOrNull() ?: 0) * 86_400_000 + (hours.toLongOrNull() ?: 0) * 3_600_000 +
+                (minutes.toLongOrNull() ?: 0) * 60_000 + ((seconds.toDoubleOrNull() ?: 0.0) * 1000).toLong())
+        }
+
+        /** An xs:dateTime, in UTC milliseconds. */
+        fun instant(text: String): Long? = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX").firstNotNullOfOrNull { pattern ->
+            try {
+                val format = SimpleDateFormat(pattern, Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC"); isLenient = false }
+                val position = java.text.ParsePosition(0)
+                format.parse(text, position)?.takeIf { position.index == text.length }?.time
+            } catch (_: Exception) { null }
+        }
+
+        fun utc(millis: Long): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            .apply { timeZone = TimeZone.getTimeZone("UTC") }.format(java.util.Date(millis))
 
         fun scopes(deviceName: String): String = SCOPES + " onvif://www.onvif.org/name/" +
             java.net.URLEncoder.encode(deviceName.trim().ifEmpty { "Kiosk Satellite" }, "UTF-8").replace("+", "%20")
@@ -262,6 +504,18 @@ class CameraOnvifService(
             if (bytes == null || bytes.size != 6 || bytes[0].toInt() and 1 != 0) return null
             val mac = bytes.joinToString(":") { "%02X".format(it.toInt() and 255) }
             return mac.takeUnless { it == "00:00:00:00:00:00" || it == "02:00:00:00:00:00" }
+        }
+
+        /** ONVIF only names Baseline, Main, Extended and High, so every High variant reports as High. */
+        fun h264ProfileOf(sps: ByteArray): String? {
+            if (sps.size < 2 || sps[0].toInt() and 31 != 7) return null
+            return when (sps[1].toInt() and 255) {
+                66 -> "Baseline"
+                77 -> "Main"
+                88 -> "Extended"
+                100, 110, 122, 244 -> "High"
+                else -> null
+            }
         }
 
         fun xml(text: String): String = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -282,8 +536,12 @@ class CameraOnvifService(
         fun Element.child(namespace: String, name: String): Element? = (0 until childNodes.length)
             .map { childNodes.item(it) }.filterIsInstance<Element>().firstOrNull { it.namespaceURI == namespace && it.localName == name }
 
-        fun envelope(body: String) = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        fun envelope(body: String, action: String? = null) = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<s:Envelope xmlns:s=\"$SOAP\" xmlns:tds=\"$DEVICE\" xmlns:trt=\"$MEDIA\" xmlns:tt=\"$SCHEMA\" " +
-            "xmlns:ter=\"http://www.onvif.org/ver10/error\"><s:Body>$body</s:Body></s:Envelope>"
+            "xmlns:ter=\"http://www.onvif.org/ver10/error\" xmlns:tev=\"$EVENTS\" xmlns:wsnt=\"$NOTIFICATION\" " +
+            "xmlns:wsa=\"$ADDRESSING\" xmlns:wstop=\"$TOPICS\" xmlns:tns1=\"http://www.onvif.org/ver10/topics\" " +
+            "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" +
+            (if (action != null) "<s:Header><wsa:Action>$action</wsa:Action></s:Header>" else "") +
+            "<s:Body>$body</s:Body></s:Envelope>"
     }
 }

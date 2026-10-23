@@ -129,6 +129,8 @@ export const CAMERA_ICONS = {
   snooze: '<circle cx="12" cy="13" r="8"/><path d="M5 3 2 6M19 3l3 3M9.5 10h5l-5 6h5"/>',
   // A page of a calendar: Open the calendar.
   calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/>',
+  // A list with a note: Open Music Library.
+  queueMusic: '<path d="M4 6h12M4 11h12M4 16h7"/><path d="M18 9v8"/><circle cx="16" cy="17" r="2"/><path d="M18 9l3-1"/>',
   // The voice actions: a microphone, struck through for the mute.
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
   micOff: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/>',

@@ -21,5 +21,7 @@
   "overviewWakeReleased": "De engine is vrijgegeven.",
   "overviewOpenVoice": "Voice Satellite openen",
   "overviewOpenService": "Service openen",
-  "overviewPermissionMissing": "Toestemming ontbreekt: {permission}"
+  "overviewPermissionMissing": "Toestemming ontbreekt: {permission}",
+  "overviewSystemUpdate": "Systeemupdate beschikbaar",
+  "overviewSystemUpdateHelp": "Versie {version} van de Echo Dot-image staat klaar om te installeren. De Dot start daarvoor twee keer opnieuw op."
 }

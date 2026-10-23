@@ -61,10 +61,17 @@ class LogAccess {
 /// treats the heartbeat's liveness as presence: a beat within [absentAfter]
 /// is someone there, longer than that is the room empty.
 ///
-/// It runs for either of two consumers: the Person Sensor switch under
+/// It runs for any of three consumers: the Person Sensor switch under
 /// Camera, which exposes the state to Home Assistant with no screensaver
-/// behavior attached (issue #734), and Dismiss on person under
-/// Screensaver.
+/// behavior attached (issue #734), Dismiss on person under Screensaver,
+/// and Person picked under Wake to screensaver (issue #1092).
+///
+/// The Portal also turns its own screen on when its detector sees someone
+/// under a dark panel, by a wake lock Meta's presence service holds, and
+/// that wake reaches the app as one it did not ask for, the same as the
+/// power button. PowerManagerService logs the wake lock behind every wake,
+/// so its tag is tailed as well and [wakeSource] says which wakes were the
+/// presence service's.
 ///
 /// Every fresh beat is published as [PersonDetected], which the
 /// screensaver consumes for Dismiss on person and Postpone on person the
@@ -151,7 +158,20 @@ class PersonSensorManager extends Manager {
     'aloha.CameraServiceController:I',
     'aloha.TrackAndHoldAiDirectorDefaultNudgeMovement:I',
     'aloha.TrackAndHoldAiDirector:I',
+    'PowerManagerService:I',
   ];
+
+  /// The wake lock Meta's presence service turns the screen on with, as
+  /// PowerManagerService names it in its wake line:
+  /// `Waking up from Dozing (uid=10058, reason=WAKE_REASON_APPLICATION,
+  /// details=Full_Wakeup_PresenceManager)...`.
+  static const _presenceWakeLock = 'full_wakeup_presencemanager';
+
+  /// How long [wakeSource] waits for the wake line of a wake the app has
+  /// already heard about. Android writes it before the screen turns on,
+  /// so it is normally already in; the wait only covers a slow tail, and
+  /// running out means a dead one.
+  static const wakeLineWithin = Duration(seconds: 2);
 
   /// What the framing director says about a tracked person: the subject's
   /// box crossing the framing boundary, or its distance from the framing
@@ -233,14 +253,19 @@ class PersonSensorManager extends Manager {
   /// Why the page is hidden, once known.
   String? get hint => _support?.hint;
 
-  /// Whether the sensor should be read right now: the Person Sensor switch
-  /// or Dismiss on person on, on a device that has one. The screensaver
-  /// applies its own gates on the way out (lockdown, the postpone rule,
-  /// the Now Playing gate), the same ones it applies to proximity.
+  /// Whether the sensor should be read right now: the Person Sensor switch,
+  /// Dismiss on person or Person under Wake to screensaver on, on a device
+  /// that has one. The screensaver applies its own gates on the way out
+  /// (lockdown, the postpone rule, the Now Playing gate), the same ones it
+  /// applies to proximity.
   bool get wanted =>
       (_settings.get(defs.personSensorEnabled) ||
-          (_schedulePolicy ??
-              _settings.get(defs.screensaverDismissOnPerson))) &&
+          (_schedulePolicy ?? _settings.get(defs.screensaverDismissOnPerson)) ||
+          defs
+              .decodeWakeToScreensaver(
+                _settings.get(defs.screensaverScreenOffWakeToScreensaver),
+              )
+              .contains('person')) &&
       !knownUnsupported;
 
   /// The active schedule entry's override (issue #437): true/false wins
@@ -275,6 +300,13 @@ class PersonSensorManager extends Manager {
   /// The last state of the grant this manager read.
   LogAccess get logAccess => _access;
 
+  /// Whether a wake line came in since the panel last went dark, and
+  /// what it named: 'person' for the presence service's wake lock, null
+  /// for anything else.
+  bool _woke = false;
+  String? _wakeSource;
+  final _wakeWaiters = <Completer<String?>>[];
+
   StreamSubscription<String>? _sub;
   Timer? _check;
   Timer? _hold;
@@ -296,6 +328,7 @@ class PersonSensorManager extends Manager {
         ..add(defs.screensaverDismissOnPerson.key)
         ..add(defs.screensaverDismissOnPersonScreenOffOnly.key)
         ..add(defs.screensaverPostponeOnPerson.key);
+      defs.deviceHiddenOptions[defs.cameraOnvifEventsSource.key] = {'person'};
     }
     await _guardSupport();
 
@@ -306,10 +339,17 @@ class PersonSensorManager extends Manager {
       _schedulePolicy = e.dismissOnPerson;
       _sync();
     });
+    // Each wake line answers for the wake after the panel last went dark.
+    bus.on<ScreenStateChanged>().listen((e) {
+      if (e.on) return;
+      _woke = false;
+      _wakeSource = null;
+    });
     bus.on<SettingChanged>().listen((e) {
       if (e.key != defs.personSensorEnabled.key &&
           e.key != defs.screensaverDismissOnPerson.key &&
-          e.key != defs.screensaverPostponeOnPerson.key) {
+          e.key != defs.screensaverPostponeOnPerson.key &&
+          e.key != defs.screensaverScreenOffWakeToScreensaver.key) {
         return;
       }
       if (knownUnsupported &&
@@ -403,6 +443,36 @@ class PersonSensorManager extends Manager {
   /// calls it after a grant, and a restart is what makes a grant
   /// effective, so this is mostly for the status to refresh at once.
   void sync() => _sync();
+
+  /// What turned the screen on, for a wake the app did not ask for:
+  /// 'person' when PowerManagerService's line for it names the presence
+  /// service's wake lock, null for any other wake, or when the tail is
+  /// not attached and nothing can say. A wake whose line is not in yet
+  /// waits for it, so the answer never depends on which of the line and
+  /// the screen-on broadcast arrived first.
+  Future<String?> wakeSource() async {
+    if (_woke) return _wakeSource;
+    if (_sub == null) return null;
+    final waiter = Completer<String?>();
+    _wakeWaiters.add(waiter);
+    return waiter.future.timeout(
+      wakeLineWithin,
+      onTimeout: () {
+        _wakeWaiters.remove(waiter);
+        return null;
+      },
+    );
+  }
+
+  void _onWakeLine(String message) {
+    _woke = true;
+    _wakeSource = message.contains(_presenceWakeLock) ? 'person' : null;
+    if (_wakeSource != null) log.debug(name, 'screen turned on by presence');
+    for (final waiter in _wakeWaiters) {
+      waiter.complete(_wakeSource);
+    }
+    _wakeWaiters.clear();
+  }
 
   /// Keeps the switches off where the device has no person sensor: at
   /// boot, and whenever something turns one on.
@@ -514,6 +584,14 @@ class PersonSensorManager extends Manager {
         .toLowerCase();
     // The tag sits between the level letter and the colon.
     final head = sep < 0 ? '' : trimmed.substring(0, sep).toLowerCase();
+    // Never a beat: the presence service's wake line names its wake lock,
+    // which contains the word.
+    if (head.contains('powermanagerservice')) {
+      if (lower.startsWith('waking up from') && lower.contains('details=')) {
+        _onWakeLine(lower);
+      }
+      return;
+    }
     if (head.contains('trackandhold')) {
       if (_containsAny(lower, _framingMarkers)) {
         _beat(now, line);
@@ -614,6 +692,10 @@ class PersonSensorManager extends Manager {
     _sub = null;
     if (sub != null) unawaited(sub.cancel());
     _attachedAt = null;
+    for (final waiter in _wakeWaiters) {
+      waiter.complete(null);
+    }
+    _wakeWaiters.clear();
   }
 
   void _stop() {

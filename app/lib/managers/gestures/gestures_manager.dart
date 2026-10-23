@@ -474,6 +474,10 @@ class GesturesManager extends Manager {
         return _run('openCalendar', {
           if (a['view'] is String) 'view': a['view'],
         });
+      case 'music_library':
+        // Like the calendar, not behind the kiosk menu's switches. It
+        // fails with nothing to browse: no source is set up.
+        return _run('openMusicLibrary', const {});
       case 'ha_script':
         return _runHa(a, 'haCallService', {
           'domain': 'script',

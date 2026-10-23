@@ -40,8 +40,15 @@ plugin = {
     'values': {'host': '', 'token': '__set__', 'device': 'lamp-2'},
 }
 installed = [copy.deepcopy(plugin)]
-setup = {'runs': {}, 'choices': {}}
+setup = {'runs': {}, 'choices': {}, 'choiceRevisions': {}, 'choicesOff': []}
 requests = []
+served = []
+
+
+def list_choices(key, choices):
+    # Like the host, every new list gets a new revision.
+    setup['choices'][key] = choices
+    setup['choiceRevisions'][key] = setup['choiceRevisions'].get(key, 0) + 1
 
 
 def api(route):
@@ -54,7 +61,12 @@ def api(route):
         installed[0]['values'] = {**(installed[0]['values'] if params.get('patch') else {}), **params['values']}
         result = installed
     elif name == 'getPluginSetup':
-        result = setup
+        # A caller holding a list's revision does not get it again.
+        held = params.get('choiceRevisions')
+        result = {'runs': setup['runs'], 'choiceRevisions': setup['choiceRevisions'], 'choicesOff': setup['choicesOff'],
+                  'choices': {k: v for k, v in setup['choices'].items()
+                              if held is None or held.get(k) != setup['choiceRevisions'][k]}}
+        served.append(result['choices'])
     elif name == 'runPluginSetup':
         target = f"{params['target']}:{params['key']}"
         setup['runs'][target] = {'run': f'run-{len(requests)}', 'state': 'running', 'message': '', 'code': '',
@@ -152,7 +164,14 @@ try:
         # the list lacks is flagged.
         choice_row = root.locator('[data-setup-target="choices:device"]')
         expect(choice_row).to_contain_text('No choices yet. Refresh to look for them.')
-        setup['choices']['device'] = [{'id': 'lamp-1', 'label': 'Kitchen'}, {'id': 'lamp-3', 'label': 'lamp-3'}]
+        # Before the plugin lists any, the picker says so instead of a
+        # Home Assistant connection error.
+        choice_row.locator('.dp-field').click()
+        card = page.locator('.dash-picker-card')
+        expect(card).to_contain_text('No choices yet. Refresh to look for them.')
+        expect(card).not_to_contain_text('Could not reach Home Assistant')
+        card.get_by_role('button', name='Cancel').click()
+        list_choices('device', [{'id': 'lamp-1', 'label': 'Kitchen'}, {'id': 'lamp-3', 'label': 'lamp-3'}])
         refresh_setup()
         expect(choice_row.locator('.dp-missing')).to_be_visible()
         choice_row.get_by_role('button', name='Refresh').click()
@@ -167,6 +186,55 @@ try:
         expect(choice_row.locator('.dp-field')).to_contain_text('Kitchen')
         assert calls('configurePlugin')[-1] == {'id': 'bridge', 'values': {'device': 'lamp-1'}, 'patch': True}
         expect(choice_row.locator('.dp-missing')).to_be_hidden()
+
+        # An unchanged list is not sent again.
+        refresh_setup()
+        assert calls('getPluginSetup')[-1]['choiceRevisions'] == {'device': 1}, calls('getPluginSetup')[-1]
+        assert served[-1] == {}, served[-1]
+        expect(choice_row.locator('.dp-field')).to_contain_text('Kitchen')
+
+        # The plugin can turn the choice off, such as while its device is
+        # unreachable: the picker and Refresh stop opening, the choice stays.
+        setup['choicesOff'] = ['device']
+        refresh_setup()
+        expect(choice_row.locator('.dp-field')).to_be_disabled()
+        expect(choice_row.get_by_role('button', name='Refresh')).to_be_disabled()
+        expect(choice_row.locator('.dp-field')).to_contain_text('Kitchen')
+        setup['choicesOff'] = []
+        refresh_setup()
+        expect(choice_row.locator('.dp-field')).to_be_enabled()
+        expect(choice_row.get_by_role('button', name='Refresh')).to_be_enabled()
+
+        # Groups head their choices in the order they appear. A detail is the
+        # second line and search finds it. A choice without a group has no heading.
+        list_choices('device', [
+            {'id': 'lamp-1', 'label': 'Kitchen', 'group': 'Downstairs', 'detail': 'On, 80%'},
+            {'id': 'lamp-4', 'label': 'Bedroom', 'group': 'Upstairs', 'detail': 'Off'},
+            {'id': 'lamp-5', 'label': 'Porch'},
+            {'id': 'lamp-6', 'label': 'Hall', 'group': 'Downstairs'},
+        ])
+        refresh_setup()
+        assert served[-1] == {'device': setup['choices']['device']}, served[-1]
+        choice_row.locator('.dp-field').click()
+        picker = page.locator('.dash-picker-card')
+        expect(picker.locator('.ep-heading')).to_have_count(2)
+        expect(picker.locator('.ep-heading').first).to_contain_text('Downstairs')
+        text = picker.inner_text()
+        assert text.index('Downstairs') < text.index('Upstairs'), text
+        assert text.index('Hall') < text.index('Upstairs'), text
+        expect(picker).to_contain_text('On, 80%')
+        expect(picker).not_to_contain_text('lamp-4')
+        picker.get_by_role('searchbox').fill('80%')
+        expect(picker).to_contain_text('Kitchen')
+        expect(picker).not_to_contain_text('Bedroom')
+        picker.get_by_role('searchbox').fill('upstairs')
+        expect(picker).to_contain_text('Bedroom')
+        expect(picker).not_to_contain_text('Kitchen')
+        # Picking the saved choice again saves nothing.
+        picker.get_by_role('searchbox').fill('kitchen')
+        picker.get_by_text('Kitchen', exact=True).click()
+        expect(picker).to_have_count(0)
+        assert calls('configurePlugin')[-1] == {'id': 'bridge', 'values': {'device': 'lamp-1'}, 'patch': True}
 
         # Filling in the host brings its button. A text edit saves before the
         # button press reaches the plugin.
@@ -201,6 +269,6 @@ try:
         assert button['x'] + button['width'] <= 380, button
         assert errors == [], errors
         browser.close()
-    print('PASS: settings buttons, confirmations, plugin questions, cancel, timeouts, plugin choices, patch saves and narrow layout.')
+    print('PASS: settings buttons, confirmations, plugin questions, cancel, timeouts, plugin choices, choice revisions, groups and details, patch saves and narrow layout.')
 finally:
     server.shutdown()

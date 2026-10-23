@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -821,6 +822,91 @@ void main() {
       final surface = EspEntitySurface(bus, commands, Logger(), settings);
       expect(await surface.handleService('close_url', const {}), isEmpty);
       expect(calls.map((c) => c.$1), ['hideOverlayPage']);
+    });
+  });
+
+  group('ESPHome shizuku_command', () {
+    late List<Map<String, Object?>> calls;
+    late CommandResult answer;
+
+    setUp(() {
+      calls = [];
+      answer = const CommandResult.ok({
+        'exit_code': 0,
+        'stdout': 'uid=2000(shell)\n',
+        'stderr': '',
+        'timed_out': false,
+        'truncated': false,
+      });
+      commands.register(
+        Command(
+          name: 'runShizukuCommand',
+          description: 'stub',
+          handler: (p) async {
+            calls.add(p);
+            return answer;
+          },
+        ),
+      );
+    });
+
+    test('is listed with a command and a timeout', () {
+      final surface = EspEntitySurface(bus, commands, Logger(), settings);
+      final action = surface.buildServices().singleWhere(
+        (s) => s['name'] == 'shizuku_command',
+      );
+      expect(action['supportsResponse'], isTrue);
+      expect(action['args'], [
+        {'name': 'command', 'type': 'string'},
+        {'name': 'timeout', 'type': 'int'},
+      ]);
+    });
+
+    test('answers with the command output', () async {
+      final surface = EspEntitySurface(bus, commands, Logger(), settings);
+      final response = await surface.handleService('shizuku_command', {
+        'command': 'id',
+        'timeout': 5,
+      });
+      expect(calls.single, {'command': 'id', 'timeout': 5});
+      expect(response?['exit_code'], 0);
+      expect(response?['stdout'], 'uid=2000(shell)\n');
+    });
+
+    test('a Shizuku that cannot run the command is an error', () async {
+      answer = const CommandResult.fail(
+        'Shizuku is not installed on this device',
+      );
+      final surface = EspEntitySurface(bus, commands, Logger(), settings);
+      await expectLater(
+        surface.handleService('shizuku_command', {
+          'command': 'id',
+          'timeout': 0,
+        }),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            'Shizuku is not installed on this device',
+          ),
+        ),
+      );
+    });
+
+    test('long output is cut to fit one ESPHome frame', () {
+      final fitted = fitCommandResponse({
+        'exit_code': 0,
+        'stdout': '"\u0001é' * 12000,
+        'stderr': 'x' * 32768,
+        'timed_out': false,
+        'truncated': false,
+      });
+      expect(utf8.encode(jsonEncode(fitted)).length, lessThanOrEqualTo(48000));
+      expect((fitted['stderr'] as String).length, 4096);
+      expect((fitted['stdout'] as String), isNotEmpty);
+      expect(fitted['truncated'], isTrue);
+      final small = {'exit_code': 1, 'stdout': 'ok', 'stderr': 'no'};
+      expect(fitCommandResponse(small), small);
     });
   });
 }

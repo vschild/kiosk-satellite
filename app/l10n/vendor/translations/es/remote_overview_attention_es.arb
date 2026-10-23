@@ -21,5 +21,7 @@
   "overviewWakeReleased": "El motor se detuvo.",
   "overviewOpenVoice": "Abrir Voice Satellite",
   "overviewOpenService": "Abrir servicio",
-  "overviewPermissionMissing": "Falta el permiso: {permission}"
+  "overviewPermissionMissing": "Falta el permiso: {permission}",
+  "overviewSystemUpdate": "Actualización del sistema disponible",
+  "overviewSystemUpdateHelp": "La versión {version} de la imagen del Echo Dot está lista para instalarse. El Dot se reinicia dos veces para instalarla."
 }

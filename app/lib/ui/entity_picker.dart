@@ -120,6 +120,7 @@ class PickSpec {
     this.noteText,
     this.grid = false,
     this.limit,
+    this.emptyText,
   });
 
   final String key;
@@ -146,6 +147,11 @@ class PickSpec {
   /// Search finds the rest. For sources too big to draw whole, like the
   /// thousands of icons.
   final int? limit;
+
+  /// What an empty list says, for a source that can be empty without
+  /// failing, such as a plugin's choices before it lists any. Nothing
+  /// matches otherwise.
+  final String Function(BuildContext context)? emptyText;
 }
 
 /// Home Assistant's entities, all of them, filtered on the device per
@@ -618,7 +624,11 @@ class _ItemPickerState extends State<ItemPicker> {
     }
     return [
       for (final g in order) ...[
-        if (widget.spec.headings && (order.length > 1 || g.isNotEmpty))
+        // Rows outside every group go without a heading when the source
+        // has no name for them.
+        if (widget.spec.headings &&
+            (order.length > 1 || g.isNotEmpty) &&
+            (g.isNotEmpty || widget.spec.noGroup.isNotEmpty))
           _Entry.heading(
             g.isEmpty ? widget.spec.noGroup : g,
             groups[g]!.length,
@@ -808,9 +818,10 @@ class _ItemPickerState extends State<ItemPicker> {
     }
     final entries = _entries(kept);
     if (entries.isEmpty) {
+      final empty = _list!.items.isEmpty ? widget.spec.emptyText : null;
       return _Message(
         icon: Icons.search_off,
-        title: haText(context, 'Nothing matches'),
+        title: empty?.call(context) ?? haText(context, 'Nothing matches'),
       );
     }
     if (widget.spec.grid) {

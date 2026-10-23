@@ -96,6 +96,15 @@ class HomeLaunchTest {
     }
 
     @Test
+    fun portalDreamHomeIsNotAPress() {
+        assertFalse(HomeRole.isHomePress(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra("com.facebook.aloha.home.intent.extra.EXTRA_FROM_DREAMSERVICE", true),
+        ))
+    }
+
+    @Test
     fun updateUsesRegularAppWhenAnotherLauncherIsDefault() {
         HomeRole.setAliasEnabled(context, true)
         val launch = relaunch()

@@ -80,6 +80,22 @@ class UiStringsRu extends UiStrings {
       'Загрузка выполняется на планшете; установку нужно подтвердить на экране планшета.';
 
   @override
+  String get aboutSystem => 'Система';
+
+  @override
+  String get aboutSystemVersion => 'Версия ROM';
+
+  @override
+  String get aboutSystemVerifying => 'Проверка…';
+
+  @override
+  String get aboutSystemInstalling => 'Установка…';
+
+  @override
+  String get aboutSystemInstallHelp =>
+      'Dot дважды перезагружается для установки обновления и каждый раз около полутора минут не в сети.';
+
+  @override
   String get alarmsTitle => 'Будильники';
 
   @override
@@ -1899,6 +1915,9 @@ class UiStringsRu extends UiStrings {
   String get gestureOpenCalendar => 'Открыть календарь';
 
   @override
+  String get gestureOpenMusicLibrary => 'Открыть музыкальную библиотеку';
+
+  @override
   String get gestureService => 'Вызвать службу';
 
   @override
@@ -2843,6 +2862,306 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get logsUnknown => 'неизвестно';
+
+  @override
+  String get libraryTitle => 'Музыкальная библиотека';
+
+  @override
+  String get librarySource => 'Источник';
+
+  @override
+  String get librarySourceMa => 'Music Assistant';
+
+  @override
+  String get librarySourceHa => 'Home Assistant';
+
+  @override
+  String get librarySourceSonos => 'Sonos';
+
+  @override
+  String get librarySourceMaHint => 'Библиотека, поиск и радио';
+
+  @override
+  String get librarySourceHaHint => 'Медиа каждого динамика';
+
+  @override
+  String get librarySourceSonosHint => 'Избранное и плейлисты';
+
+  @override
+  String get libraryDiscover => 'Обзор';
+
+  @override
+  String get librarySearch => 'Поиск';
+
+  @override
+  String get libraryBrowse => 'Обзор папок';
+
+  @override
+  String get libraryLibrary => 'Библиотека';
+
+  @override
+  String get libraryArtists => 'Исполнители';
+
+  @override
+  String get libraryAlbums => 'Альбомы';
+
+  @override
+  String get libraryTracks => 'Треки';
+
+  @override
+  String get libraryPlaylists => 'Плейлисты';
+
+  @override
+  String get libraryRadio => 'Радио';
+
+  @override
+  String get libraryPodcasts => 'Подкасты';
+
+  @override
+  String get libraryAudiobooks => 'Аудиокниги';
+
+  @override
+  String get libraryFavorites => 'Избранное';
+
+  @override
+  String get librarySonosPlaylists => 'Плейлисты Sonos';
+
+  @override
+  String get libraryRecentlyPlayed => 'Недавно прослушанное';
+
+  @override
+  String get libraryRecentlyAdded => 'Недавно добавленное';
+
+  @override
+  String get libraryMoreResults => 'Другие результаты';
+
+  @override
+  String get libraryTopTracks => 'Популярные треки';
+
+  @override
+  String get libraryKindArtist => 'Исполнитель';
+
+  @override
+  String get libraryKindAlbum => 'Альбом';
+
+  @override
+  String get libraryKindTrack => 'Трек';
+
+  @override
+  String get libraryKindPlaylist => 'Плейлист';
+
+  @override
+  String get libraryKindRadio => 'Радио';
+
+  @override
+  String get libraryKindPodcast => 'Подкаст';
+
+  @override
+  String get libraryKindEpisode => 'Эпизод';
+
+  @override
+  String get libraryKindAudiobook => 'Аудиокнига';
+
+  @override
+  String get libraryOneTrack => '1 трек';
+
+  @override
+  String libraryTrackCount(String count) {
+    return 'Треков: $count';
+  }
+
+  @override
+  String libraryMinutes(String minutes) {
+    return '$minutes мин';
+  }
+
+  @override
+  String libraryHoursMinutes(String hours, String minutes) {
+    return '$hours ч $minutes мин';
+  }
+
+  @override
+  String get librarySearchHint => 'Исполнители, альбомы, треки';
+
+  @override
+  String get librarySearchClear => 'Очистить поиск';
+
+  @override
+  String get librarySearchAll => 'Все';
+
+  @override
+  String get librarySearchPrompt =>
+      'Ищите исполнителей, альбомы, треки и многое другое.';
+
+  @override
+  String get libraryEmpty => 'Здесь пока ничего нет.';
+
+  @override
+  String get libraryLoadFailed => 'Не удалось загрузить.';
+
+  @override
+  String get libraryNoSource =>
+      'Настройте Music Assistant, Home Assistant или динамик Sonos, чтобы просматривать музыку.';
+
+  @override
+  String get libraryHaPickSpeaker =>
+      'Выберите динамик, чтобы увидеть медиа, которые он может воспроизвести.';
+
+  @override
+  String get libraryChooseSpeaker => 'Выберите динамик';
+
+  @override
+  String get libraryPickSpeakerHint => 'Выберите динамик для воспроизведения.';
+
+  @override
+  String get libraryPlay => 'Воспроизвести';
+
+  @override
+  String get libraryOpenNowPlaying => 'Открыть «Сейчас играет»';
+
+  @override
+  String get libraryNothingPlaying => 'Ничего не воспроизводится';
+
+  @override
+  String get libraryMore => 'Другие действия';
+
+  @override
+  String get libraryPlayNow => 'Воспроизвести сейчас';
+
+  @override
+  String get libraryPlayNext => 'Воспроизвести следующим';
+
+  @override
+  String get libraryAddToQueue => 'Добавить в очередь';
+
+  @override
+  String get libraryStartRadio => 'Запустить радио';
+
+  @override
+  String get libraryGoToArtist => 'Перейти к исполнителю';
+
+  @override
+  String get libraryAddFavorite => 'Добавить в избранное';
+
+  @override
+  String get libraryRemoveFavorite => 'Удалить из избранного';
+
+  @override
+  String get libraryAddedFavorite => 'Добавлено в избранное';
+
+  @override
+  String get libraryRemovedFavorite => 'Удалено из избранного';
+
+  @override
+  String get libraryFavoriteFailed => 'Не удалось изменить избранное';
+
+  @override
+  String get libraryPlaysNext => 'Воспроизведётся следующим';
+
+  @override
+  String get libraryAddedToQueue => 'Добавлено в очередь';
+
+  @override
+  String get libraryView => 'Показать';
+
+  @override
+  String get libraryPlayFailed => 'Не удалось воспроизвести';
+
+  @override
+  String get librarySpeakers => 'Динамики';
+
+  @override
+  String get libraryPlayingOn => 'Воспроизводится на';
+
+  @override
+  String get libraryOtherSpeakers => 'Другие динамики';
+
+  @override
+  String get libraryNoOtherSpeakers => 'Других динамиков нет.';
+
+  @override
+  String get libraryThisDevice => 'Это устройство';
+
+  @override
+  String get libraryUnavailable => 'Недоступен';
+
+  @override
+  String get libraryGroup => 'Группировать';
+
+  @override
+  String get libraryGroupAll => 'Группа';
+
+  @override
+  String libraryGroupWith(String speaker) {
+    return 'Группировать с $speaker';
+  }
+
+  @override
+  String get libraryGroupHint =>
+      'Сгруппированные динамики синхронно воспроизводят одну и ту же музыку.';
+
+  @override
+  String libraryGroupName(String speaker, String count) {
+    return '$speaker + $count';
+  }
+
+  @override
+  String get settingLibraryMenuDescription =>
+      'Добавить пункт «Музыкальная библиотека» в меню киоска.';
+
+  @override
+  String get settingKioskAllowMusicLibraryDescription =>
+      'Просматривать музыку и воспроизводить её на динамике.';
+
+  @override
+  String get libraryPageHint => 'Просмотр музыки и воспроизведение на динамике';
+
+  @override
+  String get settingLibrarySourceDescription =>
+      'Откуда библиотека берёт музыку. «Автоматически» начинает с источника динамика, за которым следит «Сейчас играет».';
+
+  @override
+  String get settingLibraryNowPlayingButtonTitle =>
+      'Показывать в «Сейчас играет»';
+
+  @override
+  String get settingLibraryNowPlayingButtonDescription =>
+      'Добавить кнопку «Музыкальная библиотека» рядом с кнопкой закрытия.';
+
+  @override
+  String get libraryQueueTitle => 'Очередь';
+
+  @override
+  String get libraryCloseQueue => 'Закрыть очередь';
+
+  @override
+  String get libraryClear => 'Очистить';
+
+  @override
+  String get libraryClearQueueTitle => 'Очистить очередь?';
+
+  @override
+  String get libraryClearQueueMessage =>
+      'Музыка остановится, а все треки будут удалены из очереди.';
+
+  @override
+  String get libraryRemoveFromQueue => 'Удалить из очереди';
+
+  @override
+  String get libraryReorder => 'Перетащите, чтобы изменить порядок';
+
+  @override
+  String get libraryQueueFailed => 'Не удалось изменить очередь';
+
+  @override
+  String get libraryVoiceSection => 'Голосовое управление';
+
+  @override
+  String get libraryVoiceManage => 'Управление музыкой через Voice Satellite';
+
+  @override
+  String get libraryVoiceHint =>
+      'Требуются Blueprint музыки Kiosk Satellite и диалоговый LLM-агент в Home Assistant.';
 
   @override
   String get offlineDashboard => 'Панель недоступна';
@@ -3987,6 +4306,14 @@ class UiStringsRu extends UiStrings {
   }
 
   @override
+  String get overviewSystemUpdate => 'Доступно обновление системы';
+
+  @override
+  String overviewSystemUpdateHelp(String version) {
+    return 'Версия $version образа Echo Dot готова к установке. Для этого Dot дважды перезагрузится.';
+  }
+
+  @override
   String get overviewQuick => 'Быстрые действия';
 
   @override
@@ -5078,6 +5405,44 @@ class UiStringsRu extends UiStrings {
       'Другие размеры камеры недоступны в текущей настройке захвата.';
 
   @override
+  String get cameraMotionEventsHeading => 'События движения';
+
+  @override
+  String get settingCameraOnvifEventsTitle => 'Отправлять события движения';
+
+  @override
+  String get settingCameraOnvifEventsDescription =>
+      'Сообщать клиентам ONVIF, например NVR, об обнаруженном движении.';
+
+  @override
+  String get settingCameraOnvifEventsSourceTitle => 'Источник движения';
+
+  @override
+  String get settingCameraOnvifEventsSourceDescription =>
+      'Датчик, который отправляет события движения.';
+
+  @override
+  String get cameraOnvifEventsSourceCamera => 'Датчик движения камеры';
+
+  @override
+  String get cameraOnvifEventsSourcePerson => 'Датчик присутствия';
+
+  @override
+  String get cameraOnvifEventsSourceEntity => 'Датчик Home Assistant';
+
+  @override
+  String get cameraOnvifEventsMotionSensorOff =>
+      'Датчик движения камеры выключен. Включите его в разделе Камера > Датчик движения.';
+
+  @override
+  String get cameraOnvifEventsAnalysisOff =>
+      'Анализ движения при стриминге выключен, поэтому камера не может обнаруживать движение, пока подключён зритель.';
+
+  @override
+  String get cameraOnvifEventsPersonSensorOff =>
+      'Датчик присутствия выключен. Включите его в разделе Камера > Датчик присутствия.';
+
+  @override
   String get cameraOverlaysHeading => 'Наложения';
 
   @override
@@ -5815,10 +6180,16 @@ class UiStringsRu extends UiStrings {
   String get deviceCpuUsage => 'Загрузка ЦП';
 
   @override
+  String get deviceCpuClock => 'Частота ЦП';
+
+  @override
   String get deviceCpuTemp => 'Температура ЦП';
 
   @override
   String get deviceBatteryLevel => 'Уровень заряда';
+
+  @override
+  String get deviceBatteryTemp => 'Температура аккумулятора';
 
   @override
   String get deviceScreenBrightness => 'Яркость экрана';
@@ -10053,6 +10424,28 @@ class UiStringsRu extends UiStrings {
       'Принудительно держать экран в одной ориентации. Для устройства без датчика поворота или смонтированного так, что датчик ошибается.';
 
   @override
+  String get settingScreenHideStatusBarTitle => 'Скрывать строку состояния';
+
+  @override
+  String get settingScreenHideStatusBarDescription =>
+      'Выключите, чтобы часы и значки уведомлений оставались вверху экрана. Режим киоска всегда её скрывает.';
+
+  @override
+  String get settingScreenHideNavigationBarTitle => 'Скрывать панель навигации';
+
+  @override
+  String get settingScreenHideNavigationBarDescription =>
+      'Выключите, чтобы кнопки навигации оставались на экране вместе с панелью задач на планшетах. Режим киоска всегда её скрывает.';
+
+  @override
+  String get settingScreenShowOnLockScreenTitle =>
+      'Показывать поверх экрана блокировки';
+
+  @override
+  String get settingScreenShowOnLockScreenDescription =>
+      'Показывает панель поверх экрана блокировки с PIN-кодом, графическим ключом или паролем. Остальное устройство остаётся заблокированным.';
+
+  @override
   String get settingKeepScreenOnTitle => 'Не выключать экран';
 
   @override
@@ -10698,6 +11091,34 @@ class UiStringsRu extends UiStrings {
   String get settingScreensaverRollerBgColorDescription => 'Цвет позади цифр.';
 
   @override
+  String get settingScreensaverHandNumbersTitle => 'Цифры';
+
+  @override
+  String get settingScreensaverHandNumbersDescription =>
+      'Какие часы циферблат показывает цифрами.';
+
+  @override
+  String get settingScreensaverHandSecondsTitle =>
+      'Показывать секундную стрелку';
+
+  @override
+  String get settingScreensaverHandSecondsDescription =>
+      'Рисовать секундную стрелку на циферблате.';
+
+  @override
+  String get settingScreensaverHandColorTitle => 'Цвет часов';
+
+  @override
+  String get settingScreensaverHandColorDescription =>
+      'Цвет стрелок, цифр и делений.';
+
+  @override
+  String get settingScreensaverHandBgColorTitle => 'Цвет фона';
+
+  @override
+  String get settingScreensaverHandBgColorDescription => 'Цвет позади часов.';
+
+  @override
   String get settingScreensaverClockNightTitle => 'Ночной режим';
 
   @override
@@ -10764,6 +11185,15 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get screensaverStyleRoller => 'Часы с прокруткой';
+
+  @override
+  String get screensaverStyleHand => 'Стрелочные часы';
+
+  @override
+  String get screensaverHandNumbersQuarters => '12, 3, 6 и 9';
+
+  @override
+  String get screensaverHandNumbersAll => 'Все часы';
 
   @override
   String get screensaverFontDefault => 'По умолчанию';

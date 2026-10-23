@@ -46,6 +46,15 @@ void main() {
     expect(await MdiIcons.path('8-track'), isNotNull);
   });
 
+  test('names with numbers keep the hyphen Home Assistant uses', () async {
+    // Battery entities ask for these, and a plugin picks cpu-64-bit.
+    for (final name in ['battery-10', 'cpu-64-bit', 'numeric-1-box']) {
+      expect(await MdiIcons.path(name), isNotNull, reason: name);
+    }
+    // Earlier builds stored them without it, so old picks still draw.
+    expect(await MdiIcons.path('battery10'), await MdiIcons.path('battery-10'));
+  });
+
   test(
     'a name that is not an icon resolves to nothing, not an error',
     () async {

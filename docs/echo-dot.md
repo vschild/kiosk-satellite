@@ -111,6 +111,12 @@ The Dot can follow a [fleet](fleet.md) leader like any other kiosk, but give it 
 
 Then set up the Button gestures on the Dot's own remote admin. The other categories are safe to sync: the Dot ignores the leader's values for the settings it holds fixed, such as the screensaver switch.
 
+## System Updates
+
+Images newer than 2026.10.3 update themselves, and Kiosk Satellite shows these updates. In the remote admin, **About > System** shows the installed release of the image. Click the version to check for a newer one. When there is one, **Install** shows its release notes and starts the update. The Overview lists a new release under **Needs attention**. Home Assistant gets a **Firmware** update entity that checks and installs the same way, next to **Update** for Kiosk Satellite itself.
+
+The image downloads the release, checks its signature and then restarts twice to install it, once for each slot. The Dot is offline for about a minute and a half each time. Kiosk Satellite and its settings stay. The image checks for a new release a minute after every boot, and Kiosk Satellite asks it again twice a day. The image's [device commands](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite/blob/main/docs/device-commands.md#system-updates) do the same from adb.
+
 ## What to Know
 
 - **Updates.** Kiosk Satellite is the device owner on the image, so updates install silently, with no screen to confirm them on.

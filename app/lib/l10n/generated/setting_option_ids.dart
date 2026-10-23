@@ -66,7 +66,12 @@ const settingOptionMessageIds = <String, Map<String, String>>{
   "screensaver.clock_style": {
     "digital": "screensaverStyleDigital",
     "flip": "screensaverStyleFlip",
-    "roller": "screensaverStyleRoller"
+    "roller": "screensaverStyleRoller",
+    "hand": "screensaverStyleHand"
+  },
+  "screensaver.hand_numbers": {
+    "quarters": "screensaverHandNumbersQuarters",
+    "all": "screensaverHandNumbersAll"
   },
   "screensaver.clock_font_weight": {
     "default": "screensaverFontDefault",
@@ -478,6 +483,21 @@ const settingOptionMessageIds = <String, Map<String, String>>{
   },
   "voice.amazon_locale": {
     "": "voiceOptionAppLanguage"
+  },
+  "camera.onvif.events_source": {
+    "camera": "cameraOnvifEventsSourceCamera",
+    "person": "cameraOnvifEventsSourcePerson",
+    "entity": "cameraOnvifEventsSourceEntity"
+  },
+  "library.idle_close_minutes": {
+    "0": "calendarIdleNever",
+    "1": "calendarIdle1Minute",
+    "2": "calendarIdle2Minutes",
+    "5": "alarmsOption5Minutes",
+    "10": "alarmsOption10Minutes"
+  },
+  "library.source": {
+    "": "screenAudioAutomatic"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

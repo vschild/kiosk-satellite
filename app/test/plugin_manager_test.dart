@@ -1297,7 +1297,7 @@ void main() {
       expect(plugins.setup.value, isEmpty);
       expect(
         (await commands.execute('getPluginSetup', {'id': 'hello-world'})).data,
-        {'runs': {}, 'choices': {}},
+        {'runs': {}, 'choiceRevisions': {}, 'choicesOff': [], 'choices': {}},
       );
       final run = await commands.execute('runPluginSetup', {
         'id': 'hello-world',
@@ -1336,6 +1336,84 @@ void main() {
     },
   );
 
+  test(
+    'choice lists arrive once per revision and stay through run updates',
+    () async {
+      await native('hostSession', {
+        'id': 'hello-world',
+        'session': 's',
+        'capabilities': <String>[],
+      });
+      Future<void> publish(Map runs, Map revisions, [Map choices = const {}]) =>
+          native('setup', {
+            'id': 'hello-world',
+            'session': 's',
+            'setup': {
+              'runs': runs,
+              'choiceRevisions': revisions,
+              'choices': choices,
+            },
+          });
+      const lamps = [
+        {'id': 'lamp-1', 'label': 'Kitchen'},
+      ];
+      const sensors = [
+        {'id': 'cpu', 'label': 'CPU', 'group': 'Board', 'detail': '40 °C'},
+      ];
+      await publish(
+        const {},
+        {'device': 1, 'panels.sensor': 1},
+        {'device': lamps, 'panels.sensor': sensors},
+      );
+      var notified = 0;
+      void count() => notified++;
+      plugins.setup.addListener(count);
+      // A run update without lists keeps the ones held.
+      const running = {
+        'button:test': {
+          'run': 'r1',
+          'state': 'running',
+          'message': 'Scanning',
+          'code': '',
+          'origin': 'remote',
+          'confirm': null,
+        },
+      };
+      await publish(running, {'device': 1, 'panels.sensor': 1});
+      expect(notified, 1);
+      await publish(running, {'device': 1, 'panels.sensor': 1});
+      expect(notified, 1);
+      plugins.setup.removeListener(count);
+      expect(plugins.setup.value['hello-world']!['choices'], {
+        'device': lamps,
+        'panels.sensor': sensors,
+      });
+      // The remote page asks only for the lists that changed.
+      Future<Map> read([Map? held]) async =>
+          (await commands.execute('getPluginSetup', {
+                'id': 'hello-world',
+                'choiceRevisions': ?held,
+              })).data
+              as Map;
+      expect((await read())['choices'], {
+        'device': lamps,
+        'panels.sensor': sensors,
+      });
+      expect((await read({'device': 1, 'panels.sensor': 1}))['choices'], {});
+      await publish(
+        running,
+        {'device': 1, 'panels.sensor': 2},
+        {'panels.sensor': lamps},
+      );
+      final changed = await read({'device': 1, 'panels.sensor': 1});
+      expect(changed['choiceRevisions'], {'device': 1, 'panels.sensor': 2});
+      expect(changed['choices'], {'panels.sensor': lamps});
+      // A key the plugin no longer names is dropped.
+      await publish(running, {'panels.sensor': 2});
+      expect((await read())['choices'], {'panels.sensor': lamps});
+    },
+  );
+
   testWidgets('settings buttons and plugin choices run through the host', (
     tester,
   ) async {
@@ -1354,6 +1432,7 @@ void main() {
         'default': '',
         'choices': 'plugin',
         'group': 'Connection',
+        'emptyText': 'Press the button on the bridge, then Refresh.',
       },
     ];
     installed[0]['buttons'] = [
@@ -1471,6 +1550,20 @@ void main() {
     });
     await tester.pump();
     expect(find.text('The plugin did not answer in time.'), findsOneWidget);
+    // Before the plugin lists any, the picker says what the plugin's
+    // manifest tells it to instead of a Home Assistant connection error.
+    await tester.tap(find.byType(PickField));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(ItemPicker),
+        matching: find.text('Press the button on the bridge, then Refresh.'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Could not reach Home Assistant'), findsNothing);
+    await tester.tap(find.text('Cancel').last);
+    await tester.pumpAndSettle();
     // The choice shows its label once the plugin lists it, and a saved one
     // the list lacks is flagged.
     await publish(const {}, {
@@ -1498,7 +1591,142 @@ void main() {
     expect(save['patch'], isTrue);
     expect(find.text('This choice is no longer listed.'), findsNothing);
     expect(find.text('Kitchen'), findsOneWidget);
+    // The plugin can turn the choice off, such as while its device is
+    // unreachable: the picker and Refresh stop opening, the choice stays.
+    await native('setup', {
+      'id': 'hello-world',
+      'session': 's',
+      'setup': {
+        'runs': const {},
+        'choices': {
+          'device': [
+            {'id': 'lamp-1', 'label': 'Kitchen'},
+          ],
+        },
+        'choicesOff': ['device'],
+      },
+    });
+    await tester.pump();
+    expect(tester.widget<PickField>(find.byType(PickField)).enabled, isFalse);
+    expect(
+      tester
+          .widget<IconButton>(find.widgetWithIcon(IconButton, Icons.refresh))
+          .onPressed,
+      isNull,
+    );
+    expect(find.text('Kitchen'), findsOneWidget);
+    await native('setup', {
+      'id': 'hello-world',
+      'session': 's',
+      'setup': {
+        'runs': const {},
+        'choices': {
+          'device': [
+            {'id': 'lamp-1', 'label': 'Kitchen'},
+          ],
+        },
+        'choicesOff': [],
+      },
+    });
+    await tester.pump();
+    expect(tester.widget<PickField>(find.byType(PickField)).enabled, isTrue);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the plugin hears when its settings page opens and closes', (
+    tester,
+  ) async {
+    const opened = {'id': 'hello-world', 'open': true};
+    const closed = {'id': 'hello-world', 'open': false};
+    List<Object?> sent() => [
+      for (final call in calls)
+        if (call.method == 'settingsPage') call.arguments,
+    ];
+    Future<void> poll(String viewer, {bool open = true}) async {
+      final result = await commands.execute('setPluginPageOpen', {
+        'id': 'hello-world',
+        'viewer': viewer,
+        if (!open) 'open': false,
+      });
+      expect(result.ok, isTrue);
+    }
+
+    Future<void> session(String token) => native('hostSession', {
+      'id': 'hello-world',
+      'session': token,
+      'capabilities': <String>[],
+    });
+    final page = MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: PluginDetailPanel(plugins: plugins, id: 'hello-world'),
+        ),
+      ),
+    );
+    calls.clear();
+    // The kiosk page is open while it shows, a dialog over it included.
+    await tester.pumpWidget(page);
+    await tester.pump();
+    expect(sent(), [opened]);
+    final context = tester.element(find.byType(PluginDetailPanel));
+    unawaited(
+      showDialog<void>(context: context, builder: (_) => const Text('Dialog')),
+    );
+    await tester.pumpAndSettle();
+    expect(sent(), [opened]);
+    Navigator.of(context, rootNavigator: true).pop();
+    await tester.pumpAndSettle();
+    // A full page over it closes it until it shows again.
+    unawaited(
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const Text('Other page'))),
+    );
+    await tester.pumpAndSettle();
+    expect(sent(), [opened, closed]);
+    Navigator.of(context).pop();
+    await tester.pumpAndSettle();
+    expect(sent(), [opened, closed, opened]);
+    await tester.pumpWidget(const SizedBox());
+    expect(sent(), [opened, closed, opened, closed]);
+    // A remote admin page stays open while it checks in and closes about
+    // 5 seconds after the last time.
+    calls.clear();
+    await poll('a');
+    await tester.pump(const Duration(seconds: 4));
+    await poll('a');
+    await tester.pump(const Duration(seconds: 4));
+    expect(sent(), [opened]);
+    await tester.pump(const Duration(seconds: 2));
+    expect(sent(), [opened, closed]);
+    // Viewers together open the page once and close it once.
+    calls.clear();
+    await tester.pumpWidget(page);
+    await tester.pump();
+    await poll('a');
+    await poll('b');
+    await tester.pumpWidget(const SizedBox());
+    await poll('a', open: false);
+    expect(sent(), [opened]);
+    await tester.pump(const Duration(seconds: 6));
+    expect(sent(), [opened, closed]);
+    // A session that starts while the page is open hears it open. One that
+    // starts while it is closed hears nothing.
+    calls.clear();
+    await poll('a');
+    await session('next');
+    expect(sent(), [opened, opened]);
+    await tester.pump(const Duration(seconds: 6));
+    await session('last');
+    expect(sent(), [opened, opened, closed]);
+    expect(
+      (await commands.execute('setPluginPageOpen', {
+        'id': 'missing',
+        'viewer': 'a',
+      })).ok,
+      isFalse,
+    );
+    expect(sent(), [opened, opened, closed]);
   });
 
   test('native overlays are session scoped and keep their stacking', () async {
@@ -2608,6 +2836,306 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+  testWidgets('typed number settings save only a value the setting takes', (
+    tester,
+  ) async {
+    const limit = {
+      'key': 'limit',
+      'title': 'Hot above',
+      'description': 'Turns the tile red.',
+      'type': 'number',
+      'input': 'field',
+      'min': -50,
+      'max': 150,
+      'step': 0.5,
+      'default': 85,
+      'unit': '°C',
+    };
+    installed[0]['settings'] = [
+      limit,
+      {
+        'key': 'alerts',
+        'title': 'Alerts',
+        'type': 'list',
+        'group': 'Alerts',
+        'addTitle': 'Add alert',
+        'row': {'title': 'name', 'subtitle': 'above'},
+        'default': [],
+        'fields': [
+          {'key': 'name', 'title': 'Name', 'type': 'string', 'required': true},
+          {
+            'key': 'above',
+            'title': 'Above',
+            'type': 'number',
+            'input': 'field',
+            'min': 0,
+            'max': 100000,
+            'unit': 'fps',
+          },
+        ],
+      },
+    ];
+    installed[0]['values'] = {'limit': 85, 'alerts': []};
+    await plugins.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: PluginDetailPanel(plugins: plugins, id: 'hello-world'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    Object? saved(String key) =>
+        ((calls.lastWhere((c) => c.method == 'configure').arguments
+                as Map)['values']
+            as Map)[key];
+    FilledButton save() =>
+        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'));
+    // The value shows like a text setting's, with no slider.
+    expect(find.byType(Slider), findsNothing);
+    expect(find.text('85 °C'), findsOneWidget);
+
+    await tester.tap(find.text('Hot above'));
+    await tester.pumpAndSettle();
+    final field = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(TextField),
+    );
+    // A sign for the range below zero, a decimal point for the half steps.
+    final keyboard = tester.widget<TextField>(field).keyboardType;
+    expect(keyboard.signed, isTrue);
+    expect(keyboard.decimal, isTrue);
+    expect(find.text('°C'), findsOneWidget);
+    expect(find.text('Turns the tile red.'), findsOneWidget);
+    for (final (text, error) in [
+      ('hot', 'Expected a numeric setting'),
+      ('151', 'Numeric setting is outside its range'),
+      ('90.25', 'Numeric setting does not match its step'),
+    ]) {
+      await tester.enterText(field, text);
+      await tester.pump();
+      expect(find.text(error), findsOneWidget);
+      expect(save().onPressed, isNull);
+    }
+    expect(calls.where((c) => c.method == 'configure'), isEmpty);
+    await tester.enterText(field, '-12.5');
+    await tester.pump();
+    expect(save().onPressed, isNotNull);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(saved('limit'), -12.5);
+    // A whole value on a whole step saves as a whole number.
+    await tester.tap(find.text('Hot above'));
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '90');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(saved('limit'), 90);
+
+    // In the row editor, Save waits while the number is not valid.
+    await tester.tap(find.text('Add alert'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Frame rate');
+    final above = find.byType(TextFormField).last;
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(of: above, matching: find.byType(TextField)),
+          )
+          .keyboardType
+          .signed,
+      isFalse,
+    );
+    await tester.enterText(above, '100001');
+    await tester.pump();
+    expect(find.text('Numeric setting is outside its range'), findsOneWidget);
+    expect(find.textContaining('Required'), findsNothing);
+    expect(save().onPressed, isNull);
+    await tester.enterText(above, '60.5');
+    await tester.pump();
+    expect(
+      find.text('Numeric setting does not match its step'),
+      findsOneWidget,
+    );
+    expect(save().onPressed, isNull);
+    await tester.enterText(above, '60');
+    await tester.pump();
+    expect(find.text('Numeric setting does not match its step'), findsNothing);
+    expect(save().onPressed, isNotNull);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(saved('alerts'), [
+      {'name': 'Frame rate', 'above': 60},
+    ]);
+    // The row shows the number with its unit.
+    expect(find.text('60 fps'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('list row fields pick plugin choices and show their labels', (
+    tester,
+  ) async {
+    installed[0]['settings'] = [
+      {
+        'key': 'panels',
+        'title': 'Panels',
+        'type': 'list',
+        'group': 'Panels',
+        'row': {'title': 'sensor', 'subtitle': 'label'},
+        'default': [],
+        'fields': [
+          {'key': 'label', 'title': 'Label', 'type': 'string'},
+          {
+            'key': 'sensor',
+            'title': 'Sensor',
+            'type': 'string',
+            'choices': 'plugin',
+            'required': true,
+          },
+          {
+            'key': 'tiles',
+            'title': 'Tiles',
+            'type': 'list',
+            'fields': [
+              {
+                'key': 'sensor',
+                'title': 'Tile sensor',
+                'type': 'string',
+                'choices': 'plugin',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    installed[0]['values'] = {
+      'panels': [
+        {
+          'label': 'Main',
+          'sensor': 'cpu.temp',
+          'tiles': [
+            {'sensor': 'gpu.temp'},
+            {'sensor': 'board.temp'},
+          ],
+        },
+      ],
+    };
+    await plugins.refresh();
+    await native('hostSession', {
+      'id': 'hello-world',
+      'session': 's',
+      'capabilities': <String>[],
+    });
+    Future<void> publish(Map revisions, [Map choices = const {}]) =>
+        native('setup', {
+          'id': 'hello-world',
+          'session': 's',
+          'setup': {
+            'runs': const {},
+            'choiceRevisions': revisions,
+            'choices': choices,
+          },
+        });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: PluginDetailPanel(plugins: plugins, id: 'hello-world'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The row shows the raw ID until the plugin lists its choices.
+    expect(find.text('cpu.temp'), findsOneWidget);
+    expect(find.text('Main'), findsOneWidget);
+    await publish(
+      {'panels.sensor': 1, 'panels.tiles.sensor': 1},
+      {
+        'panels.sensor': [
+          {
+            'id': 'cpu.temp',
+            'label': 'CPU temperature',
+            'group': 'Processor',
+            'detail': '54 °C',
+          },
+          {'id': 'fan', 'label': 'Fan speed'},
+          {
+            'id': 'gpu.temp',
+            'label': 'GPU temperature',
+            'group': 'Graphics',
+            'detail': '61 °C',
+          },
+        ],
+        'panels.tiles.sensor': [
+          {'id': 'gpu.temp', 'label': 'Graphics heat'},
+        ],
+      },
+    );
+    await tester.pump();
+    expect(find.text('CPU temperature'), findsOneWidget);
+    // A run update without lists keeps the labels.
+    await publish({'panels.sensor': 1, 'panels.tiles.sensor': 1});
+    await tester.pump();
+    expect(find.text('CPU temperature'), findsOneWidget);
+
+    await tester.tap(find.text('CPU temperature'));
+    await tester.pumpAndSettle();
+    // The editor's title and field show the label too, over the row.
+    expect(find.text('CPU temperature'), findsNWidgets(3));
+    await tester.tap(find.byTooltip('Refresh'));
+    await tester.pump();
+    expect(calls.lastWhere((c) => c.method == 'setupRun').arguments, {
+      'id': 'hello-world',
+      'target': 'choices',
+      'key': 'panels.sensor',
+      'origin': 'device',
+    });
+    // Groups head their choices in the order they appear, a detail is the
+    // second line and a choice without a group has no heading.
+    await tester.tap(find.byType(PickField));
+    await tester.pumpAndSettle();
+    expect(find.text('Processor'), findsOneWidget);
+    expect(find.text('Graphics'), findsOneWidget);
+    expect(find.text('61 °C'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Processor')).dy,
+      lessThan(tester.getTopLeft(find.text('Graphics')).dy),
+    );
+    await tester.enterText(find.byType(TextField).last, '61');
+    await tester.pumpAndSettle();
+    expect(find.text('54 °C'), findsNothing);
+    await tester.tap(find.text('GPU temperature'));
+    await tester.pumpAndSettle();
+    expect(find.text('GPU temperature'), findsNWidgets(1));
+
+    // The nested rows show their own field's labels, or the ID it lacks.
+    expect(find.text('Graphics heat'), findsOneWidget);
+    expect(find.text('board.temp'), findsOneWidget);
+    await tester.tap(find.text('board.temp'));
+    await tester.pumpAndSettle();
+    expect(find.text('This choice is no longer listed.'), findsOneWidget);
+    await tester.tap(find.byTooltip('Refresh'));
+    await tester.pump();
+    expect(
+      (calls.lastWhere((c) => c.method == 'setupRun').arguments as Map)['key'],
+      'panels.tiles.sensor',
+    );
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final saved =
+        ((calls.lastWhere((c) => c.method == 'configure').arguments
+                    as Map)['values']
+                as Map)['panels']
+            as List;
+    expect((saved.single as Map)['sensor'], 'gpu.temp');
+    expect(find.text('GPU temperature'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('list settings edit rows in a modal and save the whole list', (
     tester,
   ) async {

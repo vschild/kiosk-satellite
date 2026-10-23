@@ -281,6 +281,7 @@ const Map<String, String> subpageHints = {
   'AirPlay': 'Play audio from an iPhone, iPad or Mac',
   'Floating Player': 'The small card over the dashboard',
   'Now Playing': 'Full-screen view while music plays',
+  'Music Library': 'Browse music and play it on a speaker',
   'Lyrics': 'Synchronized lyrics, their source and timing',
   // ESPHome.
   'Notifications': 'Transparency, blur, notification sound, test notification',
@@ -656,6 +657,59 @@ const screenOrientation = SettingDef<String>(
     'portrait': 'Portrait',
     'reverse_portrait': 'Reverse portrait',
   },
+);
+
+/// Whether the status bar stays hidden (issue #1102). Off, it stays up and
+/// the app sits below it. With [screenHideNavigationBar] this replaced the
+/// single Full screen switch of issue #1076 (screen.full_screen, migrated
+/// in SettingsManager). Kiosk mode and lockdown hide both bars whatever
+/// these say (see hidesStatusBar). Applied live through the kiosk_lock
+/// channel, and read natively from SharedPreferences at Activity creation
+/// so the window is right from the first frame.
+const screenHideStatusBar = SettingDef<bool>(
+  key: 'screen.hide_status_bar',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Hide status bar',
+  description:
+      'Turn off to keep the clock and notification icons at the top of the '
+      'screen. Kiosk mode always hides it.',
+  category: 'Screen & Audio',
+  section: 'Screen',
+);
+
+/// Whether the navigation bar stays hidden. Off, it stays up and the app
+/// sits above it, which keeps a tablet's taskbar one tap away (issue #1076).
+const screenHideNavigationBar = SettingDef<bool>(
+  key: 'screen.hide_navigation_bar',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Hide navigation bar',
+  description:
+      'Turn off to keep the navigation buttons on screen, along with the '
+      'taskbar on tablets. Kiosk mode always hides it.',
+  category: 'Screen & Audio',
+  section: 'Screen',
+);
+
+/// Whether the app shows over a secured lock screen (discussion #1105).
+/// Screen off is device-admin lockNow, which arms the lock screen, and a
+/// wake clears only one with no PIN, pattern or password behind it. On,
+/// MainActivity is flagged show-when-locked, so the dashboard comes back
+/// over the lock screen while Home, Recents and every other app still ask
+/// for the credential. Off by default: it opens the dashboard to anyone in
+/// front of a locked device. Applied live through the kiosk_lock channel,
+/// and read natively at Activity creation.
+const screenShowOnLockScreen = SettingDef<bool>(
+  key: 'screen.show_on_lock_screen',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Show over lock screen',
+  description:
+      'Show the dashboard on top of a PIN, pattern or password lock screen. '
+      'The rest of the device stays locked.',
+  category: 'Screen & Audio',
+  section: 'Screen',
 );
 
 const pinchToZoom = SettingDef<bool>(
@@ -1125,6 +1179,18 @@ const kioskAllowCalendar = SettingDef<bool>(
   defaultValue: true,
   title: 'Calendar',
   description: 'Open the family calendar from the kiosk menu.',
+  category: 'Kiosk',
+  section: 'Allowed Actions',
+  subpage: 'Allowed Actions',
+  dependsOn: 'kiosk.allow_drawer',
+);
+
+const kioskAllowMusicLibrary = SettingDef<bool>(
+  key: 'kiosk.allow_music_library',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Music Library',
+  description: 'Browse music and play it on a speaker.',
   category: 'Kiosk',
   section: 'Allowed Actions',
   subpage: 'Allowed Actions',
@@ -3063,9 +3129,10 @@ const screensaverBlackHideExtras = SettingDef<bool>(
 
 // The face the clock draws (issue #56). Digital is the original text clock;
 // Flip is the split-flap card clock; Roller is the oversized cropped digits
-// that roll upward as time advances (as on the Lenovo Smart Clock 2). The
-// digital-only rows (seconds, date, color) key their visibility off this,
-// and each of the other faces brings its own color pair.
+// that roll upward as time advances (as on the Lenovo Smart Clock 2); Hand
+// is a classic dial with hands, ticks and numbers. The digital-only rows
+// (seconds, date, color) key their visibility off this, and each of the
+// other faces brings its own color pair.
 const screensaverClockStyle = SettingDef<String>(
   key: 'screensaver.clock_style',
   type: SettingType.select,
@@ -3075,11 +3142,12 @@ const screensaverClockStyle = SettingDef<String>(
   category: 'Screensaver',
   section: 'Clock screensaver',
   subpage: 'Clock screensaver',
-  options: ['digital', 'flip', 'roller'],
+  options: ['digital', 'flip', 'roller', 'hand'],
   optionLabels: {
     'digital': 'Digital Clock',
     'flip': 'Flip Clock',
     'roller': 'Roller Clock',
+    'hand': 'Hand Clock',
   },
   dependsOn: 'screensaver.mode',
   dependsOnValue: 'clock',
@@ -3200,6 +3268,8 @@ const screensaverClockFontWeight = SettingDef<String>(
   dependsOnValue: 'clock',
 );
 
+// Every face but the hand clock, whose dial only goes around once in 12
+// hours.
 const screensaverClock24h = SettingDef<bool>(
   key: 'screensaver.clock_24h',
   type: SettingType.boolean,
@@ -3209,8 +3279,8 @@ const screensaverClock24h = SettingDef<bool>(
   category: 'Screensaver',
   section: 'Clock screensaver',
   subpage: 'Clock screensaver',
-  dependsOn: 'screensaver.mode',
-  dependsOnValue: 'clock',
+  dependsOn: 'screensaver.clock_style',
+  dependsOnValue: ['digital', 'flip', 'roller'],
 );
 
 // A 12-hour clock without the period (issue #1038): the room already
@@ -3455,6 +3525,63 @@ const screensaverRollerBgColor = SettingDef<String>(
   subpage: 'Clock screensaver',
   dependsOn: 'screensaver.clock_style',
   dependsOnValue: 'roller',
+);
+
+// The hand clock's own rows: which hours the dial numbers, the seconds
+// hand (on by default, unlike the digital face's seconds: a sweeping hand
+// is what makes a dial read as a clock) and its color pair.
+const screensaverHandNumbers = SettingDef<String>(
+  key: 'screensaver.hand_numbers',
+  type: SettingType.select,
+  defaultValue: 'quarters',
+  title: 'Numbers',
+  description: 'Which hours the dial shows as numbers.',
+  category: 'Screensaver',
+  section: 'Clock screensaver',
+  subpage: 'Clock screensaver',
+  options: ['quarters', 'all'],
+  optionLabels: {'quarters': '12, 3, 6 and 9', 'all': 'All hours'},
+  dependsOn: 'screensaver.clock_style',
+  dependsOnValue: 'hand',
+);
+
+const screensaverHandSeconds = SettingDef<bool>(
+  key: 'screensaver.hand_seconds',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Show seconds hand',
+  description: 'Draw a seconds hand on the dial.',
+  category: 'Screensaver',
+  section: 'Clock screensaver',
+  subpage: 'Clock screensaver',
+  dependsOn: 'screensaver.clock_style',
+  dependsOnValue: 'hand',
+);
+
+const screensaverHandColor = SettingDef<String>(
+  key: 'screensaver.hand_color',
+  type: SettingType.string,
+  defaultValue: '250,250,250',
+  title: 'Clock color',
+  description: 'The color of the hands, numbers and ticks.',
+  category: 'Screensaver',
+  section: 'Clock screensaver',
+  subpage: 'Clock screensaver',
+  dependsOn: 'screensaver.clock_style',
+  dependsOnValue: 'hand',
+);
+
+const screensaverHandBgColor = SettingDef<String>(
+  key: 'screensaver.hand_bg_color',
+  type: SettingType.string,
+  defaultValue: '0,0,0',
+  title: 'Background color',
+  description: 'The color behind the clock.',
+  category: 'Screensaver',
+  section: 'Clock screensaver',
+  subpage: 'Clock screensaver',
+  dependsOn: 'screensaver.clock_style',
+  dependsOnValue: 'hand',
 );
 
 // ── Night mode (issue #391) ──
@@ -6185,6 +6312,60 @@ const cameraRtspPassword = SettingDef<String>(
   subpage: 'RTSP & ONVIF Streaming',
   dependsOn: 'camera.rtsp.auth',
   secret: true,
+);
+
+// ── Camera: ONVIF Motion Events ─────────────────────────────────────────
+// Motion as ONVIF events (issue #1098), so an NVR such as UniFi Protect
+// can record on motion. The source is any one sensor the app already has:
+// the camera's motion sensor, the device's person sensor or a Home
+// Assistant sensor. Picking a source does not turn its sensor on; the
+// page says so under the picker instead (both UIs).
+const cameraOnvifEvents = SettingDef<bool>(
+  key: 'camera.onvif.events',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Send motion events',
+  description: 'Let ONVIF clients such as NVRs know when motion is detected.',
+  category: 'Camera',
+  section: 'Motion Events',
+  subpage: 'RTSP & ONVIF Streaming',
+  dependsOn: 'camera.rtsp.protocol',
+  dependsOnValue: 'onvif',
+);
+
+// Person is left out where the device has no person sensor
+// (deviceHiddenOptions, filled at boot by the person sensor manager).
+const cameraOnvifEventsSource = SettingDef<String>(
+  key: 'camera.onvif.events_source',
+  type: SettingType.select,
+  defaultValue: 'camera',
+  title: 'Motion source',
+  description: 'The sensor that sends motion events.',
+  category: 'Camera',
+  section: 'Motion Events',
+  subpage: 'RTSP & ONVIF Streaming',
+  dependsOn: 'camera.onvif.events',
+  options: ['camera', 'person', 'entity'],
+  optionLabels: {
+    'camera': 'Camera motion sensor',
+    'person': 'Person sensor',
+    'entity': 'Home Assistant sensor',
+  },
+);
+
+// Picked with the entity search on both UIs, never typed.
+const cameraOnvifEventsEntity = SettingDef<String>(
+  key: 'camera.onvif.events_entity',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Motion sensor entity',
+  description:
+      'The Home Assistant occupancy, motion or presence sensor to follow.',
+  category: 'Camera',
+  section: 'Motion Events',
+  subpage: 'RTSP & ONVIF Streaming',
+  dependsOn: 'camera.onvif.events_source',
+  dependsOnValue: 'entity',
 );
 
 const cameraRtspDateTime = SettingDef<bool>(
@@ -9815,6 +9996,77 @@ const sendspinLyricsOffset = SettingDef<num>(
   unit: 's',
 );
 
+// ── Music Library ─────────────────────────────────────────────────────
+// Browse and play music from Music Assistant, a Home Assistant speaker's
+// media or a Sonos household, on the player Now Playing follows.
+
+/// The Music Library entry in the kiosk menu. The restricted menu also
+/// needs Music Library under Kiosk Mode's Allowed Actions.
+const libraryMenu = SettingDef<bool>(
+  key: 'library.menu',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Show in the kiosk menu',
+  description: 'Add a Music Library entry to the kiosk menu.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'Music Library',
+);
+
+const libraryIdleCloseMinutes = SettingDef<String>(
+  key: 'library.idle_close_minutes',
+  type: SettingType.select,
+  defaultValue: '2',
+  title: 'Close when idle',
+  description: 'Returns to the dashboard after no touch for this long.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'Music Library',
+  options: ['0', '1', '2', '5', '10'],
+  optionLabels: {
+    '0': 'Never',
+    '1': '1 minute',
+    '2': '2 minutes',
+    '5': '5 minutes',
+    '10': '10 minutes',
+  },
+);
+
+/// The source the library opens on: ma, ha or sonos. Empty starts with
+/// the source of the player Now Playing follows, else the first one set
+/// up. Switching the source in the library writes it here too.
+const librarySource = SettingDef<String>(
+  key: 'library.source',
+  type: SettingType.select,
+  defaultValue: '',
+  title: 'Source',
+  description:
+      'Where the library lists music from. Automatic starts with the '
+      'source of the speaker Now Playing follows.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'Music Library',
+  options: ['', 'ma', 'ha', 'sonos'],
+  optionLabels: {
+    '': 'Automatic',
+    'ma': 'Music Assistant',
+    'ha': 'Home Assistant',
+    'sonos': 'Sonos',
+  },
+);
+
+/// The library button beside the close button on the Now Playing view.
+const libraryNowPlayingButton = SettingDef<bool>(
+  key: 'library.now_playing_button',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Show on Now Playing',
+  description: 'Add a Music Library button next to the close button.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'Music Library',
+);
+
 /// Timer group position as "x,y" fractions of the free area.
 /// Saved by dragging and kept local to this device.
 const voiceTimerPosition = SettingDef<String>(
@@ -12582,6 +12834,7 @@ const List<SettingDef<Object>> allSettings = [
   kioskAllowIntercom,
   kioskAllowAlarms,
   kioskAllowCalendar,
+  kioskAllowMusicLibrary,
   kioskAllowMusic,
   kioskAllowSendspinPlayer,
   kioskAllowScreensaver,
@@ -12610,6 +12863,9 @@ const List<SettingDef<Object>> allSettings = [
   defaultBrightness,
   browserCutoutMode,
   screenOrientation,
+  screenHideStatusBar,
+  screenHideNavigationBar,
+  screenShowOnLockScreen,
   // After the whole Screen group: the remote places a page's entry row
   // where its first definition sits, and the device puts the entry card
   // under the Screen card.
@@ -12742,6 +12998,10 @@ const List<SettingDef<Object>> allSettings = [
   screensaverFlipBackdropColor,
   screensaverRollerDigitColor,
   screensaverRollerBgColor,
+  screensaverHandNumbers,
+  screensaverHandSeconds,
+  screensaverHandColor,
+  screensaverHandBgColor,
   screensaverClockAlarmTakeover,
   screensaverClockNight,
   screensaverClockNightLux,
@@ -12907,6 +13167,9 @@ const List<SettingDef<Object>> allSettings = [
   cameraRtspAuth,
   cameraRtspUsername,
   cameraRtspPassword,
+  cameraOnvifEvents,
+  cameraOnvifEventsSource,
+  cameraOnvifEventsEntity,
   cameraRtspDateTime,
   cameraRtspDateTimeBackground,
   cameraRtspTls,
@@ -13072,6 +13335,10 @@ const List<SettingDef<Object>> allSettings = [
   sendspinMaZoom,
   sendspinSonosGroupVolume,
   sendspinSonosInputs,
+  librarySource,
+  libraryMenu,
+  libraryNowPlayingButton,
+  libraryIdleCloseMinutes,
   sendspinSonosHosts,
   sendspinShowPlayer,
   sendspinPlayerSize,

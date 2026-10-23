@@ -58,6 +58,7 @@
 ///  - alarm_snooze:     snooze the ringing alarm
 ///  - calendar:         open the calendar, on view? (day, week, month,
 ///                      schedule) when a ks:// link names one
+///  - music_library:    open the Music Library
 ///  - voice_wake:       start a voice command, as if the wake word fired
 ///  - voice_stop:       dismiss a ringing timer, else end the voice turn
 ///  - voice_mute:       mute or unmute Voice Satellite
@@ -324,6 +325,8 @@ String describeGestureAction(Map<String, Object?> action) {
       return 'Open the alarm list';
     case 'calendar':
       return 'Open the calendar';
+    case 'music_library':
+      return 'Open Music Library';
     case 'ha_service':
       return 'Call ${action['domain']}.${action['service']}';
     case 'ha_script':

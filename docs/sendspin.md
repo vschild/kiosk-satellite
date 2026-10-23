@@ -10,7 +10,7 @@ The device can also be an AirPlay speaker instead. An iPhone, iPad or Mac plays 
 
 Alternatively, the on screen interface can mirror a player located elsewhere: any Music Assistant player, any Home Assistant media player, or a Sonos speaker directly. This accommodates wall mounted displays intended to monitor and steer external speakers without generating local audio output.
 
-Media browsing and queue management occur in Music Assistant (or via its dashboard card), while voice control operates through Voice Satellite.
+Browse music and build the queue from the kiosk in the [Music Library](music-library.md), which plays on the player this page follows. Voice control operates through Voice Satellite.
 
 ## Setup
 

@@ -14,6 +14,10 @@ class ArtworkCache {
   int get bytes => _bytes;
   int get length => _entries.length;
 
+  /// The cover already held for [url], without waiting: a row scrolled
+  /// back into view draws it at once instead of its placeholder first.
+  Uint8List? peek(String url) => _entries[url];
+
   Future<Uint8List?> load(
     String url,
     Future<Uint8List?> Function(String) fetch,

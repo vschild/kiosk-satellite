@@ -19,6 +19,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Environment
 import android.os.Handler
+import android.os.HardwarePropertiesManager
 import android.os.Looper
 import android.os.Process
 import android.os.StatFs
@@ -506,6 +507,14 @@ class DeviceDetails(
      * kernel does not expose (0 on targets before Android 9), and the
      * plugin screens only -1, so a mains-powered box read "-2147483648%".
      * Null when the platform won't say, and the caller falls back.
+     *
+     * `temp` is the battery's own temperature in °C (EXTRA_TEMPERATURE, in
+     * tenths), which needs no permission and no sysfs read, so it answers
+     * on devices whose thermal zones the sandbox cannot see. A reading of
+     * exactly zero or outside -20..90 °C is a HAL with no sensor behind it
+     * and reads null. A battery at zero volts and zero degrees is not there
+     * at all: a mains-powered LineageOS Echo Show 8 reports one present at
+     * 100% with both at zero, so it counts as absent.
      */
     private fun battery(): Map<String, Any?>? {
         val intent = try {
@@ -513,7 +522,10 @@ class DeviceDetails(
         } catch (e: Exception) {
             null
         } ?: return null
-        val present = intent.getBooleanExtra(BatteryManager.EXTRA_PRESENT, true)
+        val tenths = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)
+        val volts = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)
+        val present = intent.getBooleanExtra(BatteryManager.EXTRA_PRESENT, true) &&
+            !(tenths == 0 && volts <= 0)
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         val percent = if (!present || level < 0 || scale <= 0) {
@@ -521,7 +533,12 @@ class DeviceDetails(
         } else {
             (level * 100 / scale).takeIf { it in 0..100 }
         }
-        return mapOf("present" to present, "level" to percent)
+        val temp = if (!present || tenths == 0 || tenths !in -200..900) {
+            null
+        } else {
+            tenths / 10.0
+        }
+        return mapOf("present" to present, "level" to percent, "temp" to temp)
     }
 
     /**
@@ -764,21 +781,19 @@ class DeviceDetails(
     }
 
     /**
-     * Live CPU load and temperature, both `null` when the platform won't answer.
+     * Live CPU load, clock and temperature, each `null` when the platform
+     * won't answer.
      *
-     * Neither comes from `/proc/stat`: an app can't read it (SELinux denies
-     * `proc_stat`), and on some kernels its idle field is broken anyway (an
-     * Echo Show 5 reports idle jumps of half a million seconds). What sysfs
-     * does let an untrusted app read, under the same label as the cpufreq
-     * files, is cpuidle: each core's cumulative residency in its idle states.
-     * Awake time not spent idle gives utilization, so the usage number
-     * is derived from that (see [cpuUsage]), with the old
-     * frequency-position estimate as the fallback where cpuidle is absent.
+     * `usage` is how busy the cores were, see [cpuUsage]. It is never the
+     * clock position: a governor that parks at a fast step while idle made
+     * that read 60 to 100% on a nearly idle Raspberry Pi. `clock` is the
+     * clock speed itself, in MHz, see [cpuClock].
      */
     private fun cpu(): Map<String, Any?> {
         val temp = cpuTemp()
         val out = mutableMapOf<String, Any?>(
             "usage" to cpuUsage(),
+            "clock" to cpuClock(),
             "temp" to temp,
         )
         // Field diagnosis for devices that report no temperature (issue
@@ -806,7 +821,86 @@ class DeviceDetails(
 
     /** The previous snapshot, so each report covers the window since the
      *  last one instead of blocking to measure a fresh window. */
-    private var lastIdle: CpuIdleSnapshot? = null
+    private var lastCpu: CpuSnapshot? = null
+
+    /** Each source latches off the first time it cannot answer, so an
+     *  enforcing policy is not asked again (and logs no denial) on every
+     *  poll. A policy does not change while the process lives. */
+    private var procStatBlocked = false
+    private var halBlocked = false
+
+    private val cpuCores: Int by lazy {
+        File("/sys/devices/system/cpu")
+            .listFiles { f -> f.name.matches(Regex("cpu[0-9]+")) }?.size
+            ?: Runtime.getRuntime().availableProcessors()
+    }
+
+    private val ticksPerSecond: Long by lazy {
+        Os.sysconf(OsConstants._SC_CLK_TCK).takeIf { it > 0 } ?: 100L
+    }
+
+    /**
+     * One reading from the best source this device lets the app read.
+     *
+     * `/proc/stat` is the kernel's own busy count. Android's policy denies
+     * it to apps (`proc_stat`), but a permissive ROM, such as LineageOS on
+     * a Raspberry Pi, an Echo Show or a rooted Portal, lets it through.
+     * Next is the thermal HAL's per-core count through
+     * HardwarePropertiesManager, which reads the same counters but only
+     * answers a device owner, and only where the vendor implemented it.
+     * Last is cpuidle residency ([idleSnapshot]), which any app can read
+     * but which reads a few points high, and high by more on kernels that
+     * hotplug cores between polls, since offline time is not idle time.
+     * With none of them, there is no load figure.
+     */
+    private fun cpuSnapshot(): CpuSnapshot? =
+        procStatSnapshot() ?: halSnapshot() ?: idleSnapshot()
+
+    private fun procStatSnapshot(): CpuBusySnapshot? {
+        if (procStatBlocked) return null
+        val text = try {
+            File("/proc/stat").readText()
+        } catch (e: Exception) {
+            null
+        }
+        val busy = text?.let { CpuBusySnapshot.parseProcStat(it) }
+        if (busy.isNullOrEmpty()) {
+            procStatBlocked = true
+            return null
+        }
+        return CpuBusySnapshot(
+            SystemClock.elapsedRealtimeNanos(), System.nanoTime(), cpuCores, busy,
+            ticksPerSecond = ticksPerSecond,
+        )
+    }
+
+    private fun halSnapshot(): CpuBusySnapshot? {
+        if (halBlocked || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
+        val usages = try {
+            context.getSystemService(HardwarePropertiesManager::class.java)?.cpuUsages
+        } catch (e: SecurityException) {
+            // Anything but a device owner.
+            null
+        } catch (e: Exception) {
+            // A system server hiccup, not an answer: ask again next time.
+            return null
+        }
+        val busy = HashMap<Int, Long>()
+        val total = HashMap<Int, Long>()
+        usages?.forEachIndexed { core, info ->
+            // Null for an offline core.
+            if (info == null) return@forEachIndexed
+            busy[core] = info.active
+            total[core] = info.total
+        }
+        if (usages.isNullOrEmpty() || total.isEmpty()) {
+            halBlocked = true
+            return null
+        }
+        return CpuBusySnapshot(
+            SystemClock.elapsedRealtimeNanos(), System.nanoTime(), usages.size, busy, total,
+        )
+    }
 
     private fun idleSnapshot(): CpuIdleSnapshot? {
         val cores = File("/sys/devices/system/cpu")
@@ -843,13 +937,8 @@ class DeviceDetails(
     }
 
     /**
-     * Utilization as 1 minus idle residency during awake time, averaged over cores.
-     *
-     * The previous estimate read each core's position between its min and max
-     * clock, which pins at 100% on any device whose governor parks the cores
-     * at max. LineageOS's interactive governor does exactly that, so Echo
-     * Shows and ThinkSmarts reported a flat 100% forever (issue #76). Idle
-     * residency is what the silicon actually did, whatever the clocks claim.
+     * Utilization over the window since the previous call, from
+     * [cpuSnapshot]'s source.
      *
      * The window covers awake time since the previous call (the admin polls
      * every few seconds, ESPHome once a minute). A first call, a window with
@@ -859,41 +948,39 @@ class DeviceDetails(
      */
     @Synchronized
     private fun cpuUsage(): Double? {
-        var first = lastIdle ?: idleSnapshot() ?: return frequencyLoad()
+        var first = lastCpu ?: cpuSnapshot() ?: return null
         val age = SystemClock.elapsedRealtimeNanos() - first.elapsedNanos
         val awakeAge = System.nanoTime() - first.awakeNanos
         if (awakeAge < 500_000_000L || age > 300_000_000_000L) {
-            first = idleSnapshot() ?: return frequencyLoad()
+            first = cpuSnapshot() ?: return null
             try {
                 Thread.sleep(500)
             } catch (_: InterruptedException) {
-                return frequencyLoad()
+                return null
             }
         }
-        val now = idleSnapshot() ?: return frequencyLoad()
-        lastIdle = now
-        return now.usageSince(first) ?: frequencyLoad()
+        val now = cpuSnapshot() ?: return null
+        lastCpu = now
+        return now.usageSince(first)
     }
 
     /**
-     * The old estimate, kept as the fallback for kernels without cpuidle
-     * sysfs: per core, how far the current clock sits between min and max.
+     * The average current clock of the online cores in MHz, so a
+     * big.LITTLE chip weighs each cluster by its core count. Offline cores
+     * have no cpufreq to read and are left out.
      */
-    private fun frequencyLoad(): Double? {
+    private fun cpuClock(): Double? {
         val cores = File("/sys/devices/system/cpu")
             .listFiles { f -> f.name.matches(Regex("cpu[0-9]+")) } ?: return null
-        var sum = 0.0
+        var sum = 0L
         var n = 0
         for (core in cores) {
-            val fq = File(core, "cpufreq")
-            val cur = readLong(File(fq, "scaling_cur_freq")) ?: continue
-            val min = readLong(File(fq, "cpuinfo_min_freq")) ?: continue
-            val max = readLong(File(fq, "cpuinfo_max_freq")) ?: continue
-            if (max <= min) continue
-            sum += ((cur - min).toDouble() / (max - min)).coerceIn(0.0, 1.0)
+            val khz = readLong(File(core, "cpufreq/scaling_cur_freq")) ?: continue
+            if (khz <= 0) continue
+            sum += khz
             n++
         }
-        return if (n == 0) null else sum / n * 100.0
+        return if (n == 0) null else sum / n / 1000.0
     }
 
     /** The hottest CPU thermal zone in °C, see [pickCpuTemp]. */

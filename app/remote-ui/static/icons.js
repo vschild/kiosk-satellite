@@ -134,6 +134,8 @@ export const SUBPAGE_ICONS = {
     + '<path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>'),
   'Lyrics': svg('<path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>'
     + '<path d="M9 8h6"/><path d="M9 11.5h4"/>'),
+  'Music Library': svg('<rect x="3" y="3" width="18" height="18" rx="2"/>'
+    + '<path d="M10 16.5V8l6-1.5v8.5"/><circle cx="8.5" cy="16.5" r="1.5"/><circle cx="14.5" cy="15" r="1.5"/>'),
   // ESPHome.
   'Notifications': svg('<path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/>'
     + '<path d="M10 20a2 2 0 0 0 4 0"/>'),

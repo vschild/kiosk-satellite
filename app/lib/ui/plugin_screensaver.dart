@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../app_container.dart';
 import '../core/events.dart';
 import 'package:kiosk_satellite/core/lifecycle.dart';
+import '../managers/plugins/plugin_manager.dart' show PluginNativeOverlay;
 import '../managers/settings/definitions.dart' as defs;
+import 'plugin_overlay.dart' show PluginNativeOverlays, pluginOverlayTheme;
+import 'ui_scale.dart' show UiScaleScope;
 
 /// An isolated rendering document. All input and screensaver policy stays in KS.
 String pluginScreensaverDocument(String html) =>
@@ -119,11 +123,18 @@ class _PluginScreensaverState extends State<PluginScreensaver> {
   ValueNotifier<Map<String, Map<String, Object?>>> get _renderers =>
       widget.container.plugins.screensavers;
 
+  /// The mode's renderer when it is a document. A native renderer has no
+  /// document to keep mounted.
+  Map<String, Object?>? get _document {
+    final renderer = _renderers.value[widget.mode];
+    return renderer?['view'] == true ? null : renderer;
+  }
+
   @override
   void initState() {
     super.initState();
     _renderers.addListener(_publish);
-    _documents.publish(_renderers.value[widget.mode]);
+    _documents.publish(_document);
   }
 
   @override
@@ -132,14 +143,14 @@ class _PluginScreensaverState extends State<PluginScreensaver> {
     if (oldWidget.mode != widget.mode) {
       _fallback?.cancel();
       _documents.publish(null);
-      _documents.publish(_renderers.value[widget.mode]);
+      _documents.publish(_document);
     }
   }
 
   void _publish() {
     if (!mounted) return;
     setState(() {
-      if (_documents.publish(_renderers.value[widget.mode])) {
+      if (_documents.publish(_document)) {
         // Swaps anyway when the replacement never reports its first paint,
         // such as one loading while the screen is off.
         _fallback?.cancel();
@@ -164,6 +175,15 @@ class _PluginScreensaverState extends State<PluginScreensaver> {
 
   @override
   Widget build(BuildContext context) {
+    final renderer = _renderers.value[widget.mode];
+    if (renderer?['view'] == true) {
+      return _NativeScreensaver(
+        // A republication builds a fresh view from the new factory.
+        key: ValueKey((widget.mode, renderer!['generation'])),
+        container: widget.container,
+        renderer: renderer,
+      );
+    }
     final shown = _documents.shown;
     if (shown == null) return const ColoredBox(color: Colors.black);
     final next = _documents.next;
@@ -413,6 +433,119 @@ class _DocumentState extends State<_Document> with WidgetsBindingObserver {
                 ),
               ),
             ),
+    );
+  }
+}
+
+/// A native renderer: the plugin's Android view, built through the plugin
+/// overlay platform view, filling the screensaver at the kiosk's theme and
+/// UI scale. Touches stay with KS and it moves with Pixel shift like the
+/// documents. Leaving disposes the platform view, which tells the plugin to
+/// stop drawing.
+class _NativeScreensaver extends StatefulWidget {
+  const _NativeScreensaver({
+    super.key,
+    required this.container,
+    required this.renderer,
+  });
+  final AppContainer container;
+  final Map<String, Object?> renderer;
+
+  @override
+  State<_NativeScreensaver> createState() => _NativeScreensaverState();
+}
+
+class _NativeScreensaverState extends State<_NativeScreensaver> {
+  StreamSubscription<ScreenStateChanged>? _screen;
+  StreamSubscription<SettingChanged>? _settings;
+  StreamSubscription<ActivityAttached>? _attached;
+  Timer? _shift;
+  Offset _offset = Offset.zero;
+  bool _screenOn = true;
+
+  /// A re-created Activity takes the platform view with it, so it is built
+  /// again, as overlays are.
+  int _epoch = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final bus = widget.container.bus;
+    _screen = bus.on<ScreenStateChanged>().listen((e) => _screenOn = e.on);
+    _attached = bus.on<ActivityAttached>().listen((_) {
+      if (mounted) setState(() => _epoch++);
+    });
+    _settings = bus.on<SettingChanged>().listen((e) {
+      if (e.key == defs.screensaverPixelShift.key &&
+          !widget.container.settings.get(defs.screensaverPixelShift) &&
+          mounted) {
+        setState(() => _offset = Offset.zero);
+      }
+    });
+    _shift = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted ||
+          !Lifecycle.onScreen ||
+          !_screenOn ||
+          !widget.container.settings.get(defs.screensaverPixelShift)) {
+        return;
+      }
+      final max = min(24.0, MediaQuery.sizeOf(context).width * .015);
+      final random = Random();
+      setState(
+        () => _offset = Offset(
+          (random.nextDouble() * 2 - 1) * max,
+          (random.nextDouble() * 2 - 1) * max,
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _screen?.cancel();
+    _settings?.cancel();
+    _attached?.cancel();
+    _shift?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Exempt from the Scale UI factor like the documents: the view gets a
+    // density that includes it instead, as overlays do.
+    final scale = UiScaleScope.of(context);
+    final theme = widget.container.plugins.overlayTheme(
+      pluginOverlayTheme(Theme.of(context)),
+    );
+    final renderer = widget.renderer;
+    return ColoredBox(
+      color: Colors.black,
+      child: ClipRect(
+        child: Transform.translate(
+          offset: _offset,
+          child: IgnorePointer(
+            child: AndroidView(
+              // The density is fixed when the view is built, so a new Scale
+              // UI factor builds it again.
+              key: ValueKey((scale, _epoch)),
+              viewType: PluginNativeOverlays.viewType,
+              creationParams: {
+                'kind': 'screensaver',
+                'id': renderer['pluginId'],
+                'session': renderer['session'],
+                'key': renderer['key'],
+                'generation': renderer['generation'],
+                'width': PluginNativeOverlay.fill,
+                'height': PluginNativeOverlay.fill,
+                'insets': const [0, 0, 0, 0],
+                'scale': scale,
+                'theme': theme,
+              },
+              creationParamsCodec: const StandardMessageCodec(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

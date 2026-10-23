@@ -22,13 +22,17 @@ import me.jxl.kiosk.plugins.OverlayFactory
  * Hosts plugin overlay views as Flutter platform views. Dart shows them as
  * texture-composited AndroidViews inside the kiosk's own stack, so the
  * menu, the screensaver and the lockdown shield cover them the way they
- * cover the dashboard, and they leave with the Activity. Everything here
- * runs on the main thread.
+ * cover the dashboard, and they leave with the Activity. Native plugin
+ * screensavers show through here too, with kind "screensaver". Everything
+ * here runs on the main thread.
  */
 internal class PluginOverlayViews(
     assets: AssetManager,
-    /** The live factory for a view request, or null once the overlay is gone. */
-    private val lookup: (id: String, session: String, key: String, generation: Int) -> OverlayFactory?,
+    /**
+     * The live factory for a view request, or null once the overlay is gone. screensaver asks for a native
+     * screensaver renderer instead of an overlay.
+     */
+    private val lookup: (id: String, session: String, key: String, generation: Int, screensaver: Boolean) -> OverlayFactory?,
     /** A plugin threw from its view code. KS disables it. */
     private val failed: (id: String, session: String, error: Throwable) -> Unit,
     /** A wrapped overlay measured a new size, in physical pixels. */
@@ -80,7 +84,7 @@ internal class PluginOverlayViews(
         val frame = OverlayFrame(context, wrapWidth, wrapHeight, insets, scale) { width, height ->
             measured(mapOf("id" to id, "session" to session, "key" to key, "generation" to generation, "width" to width, "height" to height))
         }
-        val factory = lookup(id, session, key, generation)
+        val factory = lookup(id, session, key, generation, params["kind"] == "screensaver")
             // Hidden or replaced between Dart building it and this request.
             ?: return object : PlatformView {
                 override fun getView(): View = frame

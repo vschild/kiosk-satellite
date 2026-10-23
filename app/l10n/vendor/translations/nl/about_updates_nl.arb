@@ -8,5 +8,10 @@
   "aboutDownloadProgress": "Downloaden… {percent}%",
   "aboutDownloadFailed": "Update mislukt: {error}",
   "aboutAlreadyCurrent": "De app is al bijgewerkt",
-  "aboutInstallHelp": "De download draait op de tablet; de installatie moet op het tabletscherm worden bevestigd."
+  "aboutInstallHelp": "De download draait op de tablet; de installatie moet op het tabletscherm worden bevestigd.",
+  "aboutSystem": "Systeem",
+  "aboutSystemVersion": "ROM-versie",
+  "aboutSystemVerifying": "Verifiëren…",
+  "aboutSystemInstalling": "Installeren…",
+  "aboutSystemInstallHelp": "De Dot start twee keer opnieuw op om de update te installeren en is elke keer ongeveer anderhalve minuut offline."
 }

@@ -89,6 +89,23 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
             val at = appScreenOffAt
             return at != 0L && SystemClock.elapsedRealtime() - at < 5_000
         }
+
+        /**
+         * Show the Activity over the lock screen, or stop. A secured lock
+         * screen stays armed underneath: Home, Recents and other apps still
+         * ask for the credential. Before Android 8.1 this is a window flag.
+         */
+        fun showWhenLocked(activity: Activity, show: Boolean) {
+            if (Build.VERSION.SDK_INT >= 27) {
+                activity.setShowWhenLocked(show)
+            } else if (show) {
+                @Suppress("DEPRECATION")
+                activity.window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
+            } else {
+                @Suppress("DEPRECATION")
+                activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
+            }
+        }
     }
 
     private val channel = MethodChannel(messenger, "kiosk_satellite/kiosk_lock")
@@ -134,6 +151,7 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
     private var barTicker: Runnable? = null
 
     private var wakeOnScreenOff = false
+    private var showOnLockScreen = false
     private var screenOffReceiver: BroadcastReceiver? = null
     private var shield: View? = null
 
@@ -160,6 +178,8 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
                     gestures.configure(
                         call.argument<List<Map<String, Any?>>>("gestures"))
                     setWakeOnScreenOff(call.argument<Boolean>("power") ?: false)
+                    setShowOnLockScreen(
+                        call.argument<Boolean>("showOnLockScreen") ?: false)
                     setShield(call.argument<Boolean>("statusBar") ?: false)
                     homeRolePin =
                         call.argument<Boolean>("homeRolePin") ?: false
@@ -193,6 +213,12 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
                     }
                     call.argument<String>("orientation")?.let {
                         ScreenOrientation.apply(activity, it)
+                    }
+                    val hideStatus = call.argument<Boolean>("hideStatusBar")
+                    val hideNavigation =
+                        call.argument<Boolean>("hideNavigationBar")
+                    if (hideStatus != null && hideNavigation != null) {
+                        SystemBars.apply(activity, hideStatus, hideNavigation)
                     }
                     result.success(null)
                 }
@@ -456,11 +482,8 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
     private fun setWakeOnScreenOff(enabled: Boolean) {
         if (enabled == wakeOnScreenOff) return
         wakeOnScreenOff = enabled
+        syncLockScreen()
         if (enabled) {
-            if (Build.VERSION.SDK_INT >= 27) {
-                activity.setShowWhenLocked(true)
-                activity.setTurnScreenOn(true)
-            }
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     // Not every screen-off is a power-button press: this app
@@ -487,11 +510,27 @@ class KioskLock(private val activity: Activity, messenger: BinaryMessenger) {
         } else {
             screenOffReceiver?.let { activity.unregisterReceiver(it) }
             screenOffReceiver = null
-            if (Build.VERSION.SDK_INT >= 27) {
-                activity.setShowWhenLocked(false)
-                activity.setTurnScreenOn(false)
-            }
         }
+    }
+
+    private fun setShowOnLockScreen(enabled: Boolean) {
+        if (enabled == showOnLockScreen) return
+        showOnLockScreen = enabled
+        syncLockScreen()
+    }
+
+    /**
+     * The Activity's lock screen flags, wanted by two settings: kiosk mode's
+     * power-button defence relights the panel and shows over the lock screen
+     * it finds, and Show over lock screen only shows over it (discussion
+     * #1105). Turning the screen on stays the defence's alone, so an
+     * Activity recreated while the panel sleeps does not light it.
+     */
+    private fun syncLockScreen() {
+        if (Build.VERSION.SDK_INT >= 27) {
+            activity.setTurnScreenOn(wakeOnScreenOff)
+        }
+        showWhenLocked(activity, wakeOnScreenOff || showOnLockScreen)
     }
 
     private fun setShield(enabled: Boolean) {

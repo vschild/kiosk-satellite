@@ -22,6 +22,7 @@
   "gestureDeepLink": "打开应用链接",
   "gestureAndroidSettings": "打开 Android 设置",
   "gestureOpenCalendar": "打开日历",
+  "gestureOpenMusicLibrary": "打开音乐库",
   "gestureService": "调用服务",
   "gestureScript": "运行脚本",
   "gestureAutomation": "触发自动化",

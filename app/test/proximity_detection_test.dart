@@ -157,6 +157,65 @@ void main() {
     expect(res.data, {...irSensor, 'maximumRange': 9.0, 'resolution': 9.0});
   });
 
+  test(
+    'an NSPanel Pro logs its driver, source, readings and summaries',
+    () async {
+      const panel = {
+        'supported': true,
+        'name': 'Proximity sensor',
+        'vendor': 'The Android Open Source Project',
+        'maximumRange': 9.0,
+        'resolution': 9.0,
+        'driver': 'ps_stk3a5x',
+        'rawFile': '/sys/class/st_psensor/psensor_value',
+      };
+      nativeAnswer = panel;
+      await build({'ks.screensaver.dismiss_on_proximity': true});
+      final res = await commands.execute('getProximitySupport', const {});
+      expect(res.data, panel);
+
+      bus.publish(const ScreensaverStateChanged(active: true));
+      await pump();
+      sink!.success({
+        'diagnostic':
+            'source: raw counts from /sys/class/st_psensor/'
+            'psensor_value (driver ps_stk3a5x), polled every 200 ms',
+        'level': 'info',
+      });
+      sink!.success({
+        'near': false,
+        'initial': true,
+        'distance': 1032.0,
+        'resting': 1032.0,
+      });
+      sink!.success({'near': true, 'distance': 1210.0, 'resting': 1031.5});
+      sink!.success({
+        'diagnostic':
+            'raw file /sys/class/st_psensor/psensor_value '
+            'unreadable (Permission denied), reading sensor events instead',
+        'level': 'warn',
+      });
+      await pump();
+
+      final lines = log.recent.where((e) => e.tag == 'proximity').toList();
+      expect(
+        lines.map((e) => e.message),
+        containsAll([
+          'sensor on (Proximity sensor, range 9.0, resolution 9.0, '
+              'driver ps_stk3a5x)',
+          'source: raw counts from /sys/class/st_psensor/psensor_value '
+              '(driver ps_stk3a5x), polled every 200 ms',
+          'resting far (1032.0, resting 1032.0)',
+          'near (1210.0, resting 1031.5)',
+        ]),
+      );
+      expect(
+        lines.where((e) => e.level == LogLevel.warn).map((e) => e.message),
+        contains(startsWith('raw file /sys/class/st_psensor/psensor_value')),
+      );
+    },
+  );
+
   test('no native answer counts as supported, never switching the feature '
       'off on a guess', () async {
     nativeAnswer = null;

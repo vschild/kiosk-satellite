@@ -248,14 +248,26 @@ class AioesphomeapiE2eTest {
             await asyncio.sleep(0.5)
             print("COMMANDS_OK", flush=True)
 
+            import base64
+
+            async def both_frames():
+                data = await asyncio.wait_for(images[by_obj["snap"].key], 10)
+                assert data == b"\x7a" * (6 * 1024 * 1024), (len(data), data[:2])
+                shot = await asyncio.wait_for(images[by_obj["shot"].key], 10)
+                assert shot == base64.b64decode(sys.argv[3]), len(shot)
+
+            # Subscribing alone brings a frame for each camera: Home
+            # Assistant keeps a camera unavailable after a reconnect until
+            # one arrives.
+            await both_frames()
+            print("CAMERA_SUBSCRIBE_OK", flush=True)
+
             # The keyless request asks every camera; each answers on its
             # own key, so both entities get their frame from one request.
+            for key in images:
+                images[key] = loop.create_future()
             cli.request_single_image()
-            data = await asyncio.wait_for(images[by_obj["snap"].key], 10)
-            assert data == b"\x7a" * (6 * 1024 * 1024), (len(data), data[:2])
-            shot = await asyncio.wait_for(images[by_obj["shot"].key], 10)
-            import base64
-            assert shot == base64.b64decode(sys.argv[3]), len(shot)
+            await both_frames()
             print("CAMERA_OK", flush=True)
 
             # Arguments travel positionally and untyped-by-name; the ints

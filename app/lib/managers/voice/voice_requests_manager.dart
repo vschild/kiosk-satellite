@@ -8,7 +8,8 @@ import 'ha_socket.dart';
 import 'voice_turns.dart';
 
 /// Requests from the Kiosk Satellite scripts in Home Assistant (blueprints
-/// in this repository): alarms, intercom calls and the calendar by voice. A script
+/// in this repository): alarms, intercom calls, the calendar and music by
+/// voice. A script
 /// exposed to Assist works with any LLM conversation agent, in any
 /// language, but never learns which satellite heard the request. So it
 /// fires an event, every kiosk hears it over its own Home Assistant
@@ -43,6 +44,10 @@ class VoiceRequestsManager extends Manager {
     'kiosk_satellite_alarm': (command: 'alarmsVoiceRequest', kiosk: 'kiosk'),
     'kiosk_satellite_calendar': (
       command: 'calendarVoiceRequest',
+      kiosk: 'kiosk',
+    ),
+    'kiosk_satellite_music': (
+      command: 'musicLibraryVoiceRequest',
       kiosk: 'kiosk',
     ),
     // The kiosk named in `kiosk` is the one to call, so the one placing
@@ -141,8 +146,8 @@ class VoiceRequestsManager extends Manager {
         _notAdmin = true;
         log.info(
           name,
-          'voice alarms, calls and calendar need an administrator token, '
-          'not listening',
+          'voice alarms, calls, calendar and music need an administrator '
+          'token, not listening',
         );
         await _socket.close();
         return;
