@@ -45,7 +45,11 @@ The Device page offers predefined actions. It does not accept arbitrary command 
 
 SDK 1 plugins can declare the optional `shizuku` capability and use the same authorized connection. See the [SDK Shizuku reference and example](https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/shizuku.md).
 
-The Shizuku permission belongs to KS. Installed plugins run inside KS and are not isolated from its privileges. Grant access only if you trust KS and your installed plugins. A plugin's own commands can do more than the predefined Device actions.
+The Shizuku permission belongs to KS. Installed plugins run inside KS and are not isolated from its privileges. Grant access only if you trust KS, your installed plugins and anyone who can run the kiosk's ESPHome actions in Home Assistant. A plugin's own commands can do more than the predefined Device actions.
+
+## Home Assistant
+
+With **Expose kiosk entities** on, the `shizuku_command` ESPHome action runs a shell command through this connection from a Home Assistant automation or script and answers with its exit code and output. See [Run a Shizuku command](esphome.md#run-a-shizuku-command).
 
 ## Remote API
 
@@ -56,7 +60,8 @@ Authenticated admin clients can use these commands:
 | `getShizukuState` | None | Availability, permission status and backend UID/version when connected. |
 | `requestShizukuPermission` | None | Requests the approval prompt on the kiosk and returns the current state. Read the state again after approval. |
 | `runShizukuAction` | `action` | Runs one of the actions below. |
+| `runShizukuCommand` | `command`, `timeout` | Runs a shell command line, as `adb shell` would, and returns `exit_code`, `stdout`, `stderr`, `timed_out` and `truncated`. `timeout` is in seconds, up to 25, and 0 is 10. It fails with the reason when Shizuku is not installed, not running, too old or not allowed. |
 
-Allowed action IDs are `identity`, `reboot`, `grantAll`, `microphone`, `batteryUnrestricted`, `camera`, `bluetooth`, `notification`, `displayOverOtherApps`, `writeSettings`, `uiGuard`, `deviceAdmin`, `allFiles`, `usageAccess`, `notificationAccess` and `location`. The batch includes all 13 permissions regardless of feature settings and skips existing grants. Callers cannot supply package names or shell commands.
+Allowed action IDs are `identity`, `reboot`, `grantAll`, `microphone`, `batteryUnrestricted`, `camera`, `bluetooth`, `notification`, `displayOverOtherApps`, `writeSettings`, `uiGuard`, `deviceAdmin`, `allFiles`, `usageAccess`, `notificationAccess` and `location`. The batch includes all 13 permissions regardless of feature settings and skips existing grants. `runShizukuAction` takes no package names or shell commands. Use `runShizukuCommand` for those.
 
 `identity` and `reboot` return `exitCode`, `stdout`, `stderr`, `timedOut` and `truncated`. `reboot` restarts the device through the shell user's `reboot` command. It is what the Restart Device drawer entry, the remote admin tile and the ESPHome button use on a kiosk that is not the device owner. A Shizuku started over ADB does not survive the reboot, so start it again afterwards. Permission actions return a `results` list with `key`, `ok` and `error` for each requested permission. An empty list means all permissions were already held. Inspect individual results because Android can reject some grants while accepting others. Fleet credentials cannot invoke these commands.

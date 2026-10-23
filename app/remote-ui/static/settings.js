@@ -39,6 +39,7 @@ import {
   updateImmichValidateRow,
   updatePlayerRow,
   updateSonosPage,
+  updateMusicLibraryPage,
   updateMaValidateRow,
 } from './panels.js';
 import { applyManagedBanners, renderFleetPage } from './fleetsync.js';
@@ -63,7 +64,7 @@ import {
 import { loadVsPermissions, renderVsControls } from './vs.js';
 import { REALTIME_PROVIDER_SETTINGS, VS_SELECT_SETTINGS, renderNativeVs, vsMigrationNotice } from './vs_native.js';
 import { mountWakeActivations } from './wake_activations.js';
-import { banner, copyBox, messageBox, showToast } from './widgets.js';
+import { banner, copyBox, hintRow, messageBox, showToast } from './widgets.js';
 
 // A sound setting's row as a dropdown over the device's sounds folder,
 // filled from the device's own listing so this page and the tablet always
@@ -1211,6 +1212,7 @@ async function renderSettings({ cached = false } = {}) {
   updateClockNightAdminRows();
   updateCelestialPermissionRows();
   updateRtspRows();
+  updateOnvifEventsRows();
   updateCelestialLocationRow();
 
   // ── Bluetooth Proxy nearby devices ───────────────────────────────────
@@ -1670,6 +1672,7 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
   updateMaValidateRow();
   updatePlayerRow();
   updateSonosPage();
+  updateMusicLibraryPage();
   // The Fleet Management tab, hand-built from the fleetStatus command.
   await renderFleetPage();
   // The Intercom tab: the definition rows the generic renderer drew,
@@ -3122,6 +3125,27 @@ function personSensorPage({ tab, subpage, key }) {
   paint();
 }
 
+
+/* Under the ONVIF motion events source (issue #1098), mirroring the
+   device: picking a sensor does not turn it on, so say where to.
+   Idempotent, so the save path re-runs it when any of its inputs flip. */
+export function updateOnvifEventsRows() {
+  const panel = document.querySelector('#tab-camera .subpage[data-subpage="RTSP & ONVIF Streaming"]');
+  panel?.querySelector('.onvif-events-notice')?.remove();
+  const anchor = panel?.querySelector('[data-key="camera.onvif.events_source"]');
+  if (!anchor) return;
+  const value = (key) => state.settings.find((s) => s.key === key)?.value;
+  const text = value('camera.onvif.events_source') === 'camera'
+    ? (!value('motion.sensor')
+      ? 'The camera motion sensor is off. Turn it on in Camera > Motion Sensor.'
+      : !value('camera.rtsp.analysis')
+        ? 'Motion analysis while streaming is off, so the camera cannot detect motion while a viewer is connected.'
+        : null)
+    : value('camera.onvif.events_source') === 'person' && !value('person.sensor')
+      ? 'The person sensor is off. Turn it on in Camera > Person Sensor.'
+      : null;
+  if (text) anchor.after(hintRow(cameraText(text), { warn: true, className: 'onvif-events-notice' }));
+}
 
 export function updateRtspRows() {
   clearInterval(window.__rtspTimer);

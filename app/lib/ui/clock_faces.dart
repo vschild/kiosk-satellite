@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// The non-digital clock screensaver faces (issue #56): the split-flap Flip
-/// Clock and the Roller Clock, whose oversized cropped digits roll upward as
-/// time advances. Both are driven by the same minute tick as the digital
-/// face — [ClockScreensaver] passes the current time in and each face
-/// animates only the digits that changed.
+/// Clock, the Roller Clock, whose oversized cropped digits roll upward as
+/// time advances, and the Hand Clock dial. Flip and Hand are driven by the
+/// same tick as the digital face — [ClockScreensaver] passes the current
+/// time in and each face redraws only what changed.
 ///
 /// The font family for a `screensaver.clock_font` value (issue #391).
 /// Besides Rubik and two bundled faces (Nunito, the rounded Apple StandBy
@@ -656,4 +656,199 @@ class _RollingDigitState extends State<_RollingDigit>
       ),
     );
   }
+}
+
+/// The angles of a dial's hands, in turns clockwise from 12: the hour hand
+/// creeps across its hour, the minute hand steps once a minute and the
+/// seconds hand once a second, the way a quartz movement ticks. With the
+/// seconds hand off the face only rebuilds once a minute, so the minute
+/// hand lands on its mark rather than creeping between ticks.
+({double hour, double minute, double second}) handAngles(DateTime now) => (
+  hour: (now.hour % 12 + now.minute / 60) / 12,
+  minute: now.minute / 60,
+  second: now.second / 60,
+);
+
+/// The Hand Clock: a round dial with a tick for every minute, heavier ones
+/// for the hours, numbers at 12, 3, 6 and 9 or at every hour, and the hour,
+/// minute and optional seconds hands. No disc is drawn: the dial sits
+/// straight on the backdrop, like the other faces' digits.
+///
+/// The dial and the hands paint on separate layers, the dial behind a
+/// RepaintBoundary, so a seconds tick only redraws three lines instead of
+/// laying out the numbers again.
+class HandClockFace extends StatelessWidget {
+  const HandClockFace({
+    super.key,
+    required this.now,
+    required this.color,
+    required this.scale,
+    required this.fontFamily,
+    this.allNumbers = false,
+    this.seconds = true,
+    this.weight,
+    this.opticalSize,
+  });
+
+  final DateTime now;
+
+  /// The hands, numbers and ticks all take this one color.
+  final Color color;
+  final double scale;
+  final String? fontFamily;
+
+  /// Every hour numbered rather than only 12, 3, 6 and 9.
+  final bool allNumbers;
+  final bool seconds;
+
+  /// The numbers' weight, or null for the dial's own regular.
+  final FontWeight? weight;
+
+  /// The font's optical size to ask for, where it has the axis.
+  final double? opticalSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final diameter = (min(size.width, size.height) * 0.86 * scale).clamp(
+      80.0,
+      4000.0,
+    );
+    return SizedBox.square(
+      dimension: diameter,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          RepaintBoundary(
+            child: CustomPaint(
+              painter: _DialPainter(
+                color: color,
+                allNumbers: allNumbers,
+                fontFamily: fontFamily,
+                weight: weight ?? FontWeight.w400,
+                opticalSize: opticalSize,
+              ),
+            ),
+          ),
+          CustomPaint(
+            painter: _HandsPainter(
+              angles: handAngles(now),
+              color: color,
+              seconds: seconds,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DialPainter extends CustomPainter {
+  _DialPainter({
+    required this.color,
+    required this.allNumbers,
+    required this.fontFamily,
+    required this.weight,
+    required this.opticalSize,
+  });
+
+  final Color color;
+  final bool allNumbers;
+  final String? fontFamily;
+  final FontWeight weight;
+  final double? opticalSize;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.shortestSide / 2;
+    final center = size.center(Offset.zero);
+    final paint = Paint()..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 60; i++) {
+      final hour = i % 5 == 0;
+      final a = i / 60 * 2 * pi;
+      final dir = Offset(sin(a), -cos(a));
+      paint
+        ..color = hour ? color : color.withValues(alpha: color.a * .45)
+        ..strokeWidth = r * (hour ? .022 : .008);
+      canvas.drawLine(
+        center + dir * r * (hour ? .86 : .9),
+        center + dir * r * .96,
+        paint,
+      );
+    }
+    // Twelve numbers have to share the ring, so they come in smaller than
+    // the four.
+    final fontSize = r * (allNumbers ? .15 : .19);
+    for (var h = 1; h <= 12; h++) {
+      if (!allNumbers && h % 3 != 0) continue;
+      final a = h / 12 * 2 * pi;
+      final painter = TextPainter(
+        text: TextSpan(
+          text: '$h',
+          style: TextStyle(
+            fontFamily: fontFamily,
+            color: color,
+            fontSize: fontSize,
+            fontWeight: weight,
+            fontVariations: clockFontVariations(opticalSize, weight),
+            height: 1.0,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final at = center + Offset(sin(a), -cos(a)) * r * .7;
+      painter.paint(canvas, at - Offset(painter.width / 2, painter.height / 2));
+      painter.dispose();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DialPainter old) =>
+      old.color != color ||
+      old.allNumbers != allNumbers ||
+      old.fontFamily != fontFamily ||
+      old.weight != weight ||
+      old.opticalSize != opticalSize;
+}
+
+class _HandsPainter extends CustomPainter {
+  _HandsPainter({
+    required this.angles,
+    required this.color,
+    required this.seconds,
+  });
+
+  final ({double hour, double minute, double second}) angles;
+  final Color color;
+  final bool seconds;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.shortestSide / 2;
+    final center = size.center(Offset.zero);
+    final paint = Paint()
+      ..color = color
+      ..strokeCap = StrokeCap.round;
+    // A hand runs from a short tail behind the pivot out to its tip.
+    void hand(double turns, double length, double tail, double width) {
+      final a = turns * 2 * pi;
+      final dir = Offset(sin(a), -cos(a));
+      canvas.drawLine(
+        center - dir * r * tail,
+        center + dir * r * length,
+        paint..strokeWidth = r * width,
+      );
+    }
+
+    // The minute and seconds hands reach past the numbers into the ticks,
+    // so a tip never stops on top of a number.
+    hand(angles.hour, .5, .06, .05);
+    hand(angles.minute, .82, .06, .034);
+    if (seconds) hand(angles.second, .9, .16, .012);
+    canvas.drawCircle(center, r * .045, paint);
+  }
+
+  @override
+  bool shouldRepaint(_HandsPainter old) =>
+      old.angles != angles || old.color != color || old.seconds != seconds;
 }

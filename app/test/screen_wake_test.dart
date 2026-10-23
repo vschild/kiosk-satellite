@@ -162,7 +162,8 @@ void main() {
     await settle();
     expect(warnings(), [
       'the panel lit on a secured lock screen; the kiosk stays behind it '
-          'until the device is unlocked',
+          'until the device is unlocked. Turn on Show over lock screen to '
+          'show it anyway',
     ]);
     // The panel is lit, whatever is on it.
     expect(screen.isScreenOn, isTrue);

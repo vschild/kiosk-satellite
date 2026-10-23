@@ -21,6 +21,11 @@ class PluginPackageTest {
         rejects { PluginManifest(grouped(JSONObject(group.toString()).put("readings", org.json.JSONArray().put("sensor.wave").put("sensor.wave")))) }
         rejects { PluginManifest(grouped(JSONObject(group.toString()).put("charts", org.json.JSONArray().put("Bad key")))) }
         rejects { PluginManifest(manifest().put("groups", org.json.JSONArray().put(group).put(group))) }
+        // Wildcards claim readings and charts whose keys only exist at runtime.
+        PluginManifest(grouped(JSONObject(group.toString()).put("readings", org.json.JSONArray().put("*").put("binary_sensor.*")).put("charts", org.json.JSONArray().put("*"))))
+        rejects { PluginManifest(grouped(JSONObject(group.toString()).put("readings", org.json.JSONArray().put("sensor.wave*")))) }
+        rejects { PluginManifest(grouped(JSONObject(group.toString()).put("readings", org.json.JSONArray().put("*.wave")))) }
+        rejects { PluginManifest(grouped(JSONObject(group.toString()).put("readings", org.json.JSONArray().put("*").put("*")))) }
     }
 
     @Test fun entitySettingsAndEventsAcceptOnlyExactEntityIds() {
@@ -185,6 +190,12 @@ class PluginPackageTest {
         rejects { PluginManifest(caps("voice.text")) }
         rejects { PluginManifest(caps("host.control", "voice.text")) }
         for (event in listOf("voice.text", "voice.level", "voice.overlay", "voice.skin", "voice.appearance")) assertTrue(PluginHostPolicy.validEvent(event))
+    }
+    @Test fun screensaverModeStandsOnItsOwn() {
+        fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
+        assertEquals(setOf("screensaver.mode"), PluginManifest(caps("screensaver.mode")).capabilities)
+        assertEquals(setOf("screensaver", "screensaver.mode"), PluginManifest(caps("screensaver", "screensaver.mode")).capabilities)
+        rejects { PluginManifest(caps("screensaver.modes")) }
     }
     @Test fun cameraAndBarcodeStandOnTheirOwn() {
         fun caps(vararg names: String) = manifest().put("capabilities", org.json.JSONArray(names.toList()))
@@ -466,6 +477,34 @@ class PluginPackageTest {
             "LICENSE" to "Apache-2.0".toByteArray(), "native/arm64-v8a/libtest.so" to elf)
         assertEquals(1, PluginPackage.extract(bytes, dir).apiVersion)
         assertEquals(1, PluginPackage.nativeFiles(dir).size)
+    }
+    @Test fun numbersTypedIntoAFieldTakeAWideRange() {
+        fun number(vararg changes: Pair<String, Any>) = manifest().put("settings", org.json.JSONArray().put(
+            JSONObject("""{"key":"limit","title":"Limit","type":"number","min":-1000000,"max":1000000,"step":0.5,"default":85}""")
+                .also { setting -> for ((key, value) in changes) setting.put(key, value) }))
+        val field = PluginManifest(number("input" to "field"))
+        assertEquals(123456.5, field.config(JSONObject().put("limit", 123456.5))["limit"])
+        assertEquals(-1000000, field.config(JSONObject().put("limit", -1000000))["limit"])
+        rejects { field.config(JSONObject().put("limit", 1000000.5)) }
+        rejects { field.config(JSONObject().put("limit", 85.25)) }
+        rejects { field.config(JSONObject().put("limit", "85")) }
+        // A slider keeps its 10000 stops, whether it says so or not.
+        rejects { PluginManifest(number()) }
+        rejects { PluginManifest(number("input" to "slider")) }
+        PluginManifest(number("input" to "slider", "min" to 0, "max" to 100, "step" to 1))
+        // A typed field still needs a default on a step, inside a real range.
+        rejects { PluginManifest(number("input" to "field", "step" to 0)) }
+        rejects { PluginManifest(number("input" to "field", "default" to 85.25)) }
+        rejects { PluginManifest(number("input" to "field", "max" to -1000000)) }
+        // Only a number takes an input, and only one of the two.
+        rejects { PluginManifest(number("input" to "box")) }
+        rejects { PluginManifest(number("input" to true)) }
+        rejects { PluginManifest(manifest().put("settings", org.json.JSONArray("""[{"key":"name","title":"Name","type":"string","default":"","input":"field"}]"""))) }
+        // A list row field takes it the same way.
+        val rows = PluginManifest(manifest().put("settings", org.json.JSONArray("""[
+          {"key":"alerts","title":"Alerts","type":"list","default":[],"fields":[{"key":"above","title":"Above","type":"number","min":0,"max":100000,"input":"field"}]}
+        ]""")))
+        assertEquals(listOf(mapOf("above" to 85000)), rows.config(JSONObject().put("alerts", org.json.JSONArray("""[{"above":85000}]""")))["alerts"])
     }
     @Test fun rgbStateRejectsUnknownOrInvalidFields() {
         val state = mapOf<String, Any>("on" to true, "brightness" to 0.5, "red" to 1.0, "green" to 0.0, "blue" to 0.2, "effect" to "Pulse")

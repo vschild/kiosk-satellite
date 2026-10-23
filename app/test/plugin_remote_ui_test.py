@@ -248,8 +248,15 @@ try:
         assert configured()['token'] == 'rotated'
         expect(root.locator('.plugin-secret').get_by_role('button', name='Show password')).to_be_hidden()
         assert page.url.endswith('#plugins/hello-world')
+        # The open page checks in so the plugin knows, and leaving it says so.
+        page_checks = lambda: [r[1] for r in requests if r[0] == 'setPluginPageOpen']
+        assert page_checks() and page_checks()[-1]['id'] == 'hello-world' and 'open' not in page_checks()[-1], page_checks()
         page.locator('#pageTitle').get_by_role('button', name='Back').click()
         expect(row).to_be_visible()
+        for _ in range(20):
+            if page_checks()[-1].get('open') is False: break
+            page.wait_for_timeout(100)
+        assert page_checks()[-1] == {**page_checks()[0], 'open': False}, page_checks()
         row.locator('label.switch').click()
         expect(row.get_by_role('checkbox')).to_be_checked()
         expect(root.get_by_role('button', name='Add plugin')).to_be_enabled()

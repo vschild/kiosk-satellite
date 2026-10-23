@@ -310,6 +310,28 @@ void main() {
     },
   );
 
+  test('getStats carries the CPU clock and battery temperature', () async {
+    register(
+      'getStats',
+      (_) async => const CommandResult.ok({
+        'battery': 64,
+        'charging': false,
+        'cpu': 18.5,
+        'cpuClock': 1324.8,
+        'temp': 44.0,
+        'batteryTemp': 31.8,
+        'memFree': 1073741824,
+        'memTotal': 4294967296,
+        'thermalZones': ['cpu-0'],
+      }),
+    );
+    final data = (await read('getStats'))['data'] as Map;
+    expect(data['batteryTemp'], 31.8);
+    expect(data['cpuClock'], 1324.8);
+    expect(data['temp'], 44.0);
+    expect(data.containsKey('thermalZones'), false);
+  });
+
   test(
     'missing capability, stale sessions and stopped reads are rejected',
     () async {
@@ -735,6 +757,136 @@ void main() {
       'capabilities': ['host.control', 'noise'],
     });
     expect((await read('getNoiseLevel'))['ok'], false);
+  });
+
+  group('screensaver mode', () {
+    late PluginHostApi modesApi;
+    late Map<String, String> holds;
+    const modes = [
+      {'id': 'clock', 'label': 'Clock'},
+      {'id': 'plugin:example:monitor', 'label': 'Monitor (Example)'},
+    ];
+
+    Future<Map<String, Object?>> run(
+      String command, {
+      Map<String, Object?> params = const {},
+      String id = 'example',
+    }) => modesApi.execute({
+      'id': id,
+      'session': 'one',
+      'command': command,
+      'arguments': params,
+    });
+
+    setUp(() {
+      holds = {};
+      modesApi = PluginHostApi(
+        commands,
+        bus,
+        (event) async {},
+        screensaverModes: PluginScreensaverModes(
+          read: () => {
+            'mode': holds.values.lastOrNull ?? 'clock',
+            'saved': 'clock',
+            'schedule': null,
+            'override': holds.values.lastOrNull,
+            'active': false,
+            'modes': modes,
+          },
+          hold: (owner, mode) {
+            if (!modes.any((m) => m['id'] == mode)) return false;
+            holds.remove(owner);
+            holds[owner] = mode;
+            return true;
+          },
+          release: holds.remove,
+        ),
+      );
+    });
+    tearDown(() => modesApi.dispose());
+
+    test('needs its own capability, with or without host access', () async {
+      modesApi.open({
+        ...session,
+        'capabilities': ['host.read', 'host.control'],
+      });
+      final plain = (await run('getHostApi'))['data'] as Map;
+      expect(plain['commands'], isNot(contains('getScreensaverMode')));
+      expect((await run('getScreensaverMode'))['ok'], false);
+      expect(
+        (await run('setScreensaverMode', params: {'mode': 'clock'}))['ok'],
+        false,
+      );
+      expect(holds, isEmpty);
+
+      // The capability alone opens a session, and only these commands.
+      modesApi.open({
+        ...session,
+        'capabilities': ['screensaver.mode'],
+      });
+      final catalog = (await run('getHostApi'))['data'] as Map;
+      expect(catalog['capabilities'], ['screensaver.mode']);
+      expect(catalog['commands'], [
+        'getHostApi',
+        ...PluginHostApi.screensaverModeCommandNames,
+      ]);
+      expect(catalog['events'], isEmpty);
+      expect((await run('isScreensaverActive'))['ok'], false);
+      final state = await run('getScreensaverMode');
+      expect(state['ok'], true);
+      expect((state['data'] as Map)['modes'], modes);
+      expect(executed, isEmpty);
+    });
+
+    test('holds a mode per session and lets go when it closes', () async {
+      modesApi.open({
+        ...session,
+        'capabilities': ['screensaver.mode'],
+      });
+      modesApi.open({
+        'id': 'other',
+        'session': 'one',
+        'capabilities': ['screensaver.mode'],
+      });
+      for (final params in [
+        <String, Object?>{},
+        {'mode': ''},
+        {'mode': true},
+        {'mode': 'clock', 'extra': 'x'},
+      ]) {
+        expect((await run('setScreensaverMode', params: params))['ok'], false);
+      }
+      expect(
+        (await run('clearScreensaverMode', params: {'x': 'y'}))['ok'],
+        false,
+      );
+      final unknown = await run('setScreensaverMode', params: {'mode': 'nope'});
+      expect(unknown['ok'], false);
+      expect(unknown['error'], 'Unknown screensaver mode');
+      expect(holds, isEmpty);
+
+      final set = await run(
+        'setScreensaverMode',
+        params: {'mode': 'plugin:example:monitor'},
+      );
+      expect(set['ok'], true);
+      expect(set.containsKey('data'), false);
+      await run('setScreensaverMode', params: {'mode': 'clock'}, id: 'other');
+      expect(holds, {
+        'example:one': 'plugin:example:monitor',
+        'other:one': 'clock',
+      });
+      expect(
+        ((await run('getScreensaverMode'))['data'] as Map)['override'],
+        'clock',
+      );
+
+      // Clearing touches only the caller's own hold.
+      expect((await run('clearScreensaverMode', id: 'other'))['ok'], true);
+      expect(holds, {'example:one': 'plugin:example:monitor'});
+      modesApi.close(session);
+      expect(holds, isEmpty);
+    });
   });
 
   test('events are opt-in, projected, coalesced and revoked on stop', () async {

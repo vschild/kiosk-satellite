@@ -291,9 +291,12 @@ export async function loadDeviceInfo() {
     // uptime; Android does not tell an app when the router associated.
     [deviceText('Network uptime'), dur(info?.uptime?.network)],
     [deviceText('CPU usage'), info?.cpu == null ? '-' : `${Math.round(info.cpu)}%`],
+    [deviceText('CPU clock'), info?.cpuClock == null ? '-' : `${Math.round(info.cpuClock)} MHz`],
     [deviceText('CPU temperature'), info?.temp == null ? '-' : `${Math.round(info.temp)}°C`],
     [deviceText('Battery level'), info?.battery == null ? '-'
       : `${info.battery}%${info.charging ? ` (${deviceText('plugged')})` : ''}`],
+    [deviceText('Battery temperature'), info?.batteryTemp == null ? '-'
+      : `${info.batteryTemp.toFixed(1)}°C`],
     [deviceText('Screen brightness'), info?.brightness == null ? '-'
       : `${Math.round(info.brightness * 100)}% (${Math.round(info.brightness * 255)}/255)`],
     [deviceText('Screen status'), yn(screenOn)],
@@ -557,60 +560,132 @@ export function attachUpdateInstall(btn, getUpdate) {
   btn.onclick = () => {
     const upd = getUpdate();
     if (!upd?.availableVersion) return;
-    const shell = modalShell({
-      title: t('drawerUpdateTo', {version: upd.availableVersion}),
-      width: 520,
-    });
-    setAboutLabel(shell.card.querySelector('.modal-title'), 'drawerUpdateTo', {version: upd.availableVersion});
-    const back = shell.back;
-    const notes = shell.body;
-    notes.style.cssText += 'font-size:13.5px; line-height:1.5;';
-    // Markdown-lite, DOM-built so the release body stays inert text:
-    // headings bold, list markers as bullets, emphasis/code/links stripped.
-    const inline = (s) => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/\*\*|__|`/g, '');
-    const body = (upd.availableNotes || '').trim();
-    if (!body) {
-      setAboutLabel(notes, 'drawerNoReleaseNotes');
-    } else {
-      for (const raw of body.split('\n')) {
-        const line = raw.trimEnd();
-        const p = document.createElement('div');
-        if (!line.trim()) {
-          p.style.height = '10px';
-        } else if (/^#+\s*/.test(line)) {
-          p.textContent = inline(line.replace(/^#+\s*/, ''));
-          p.style.cssText = 'font-weight:700; margin-bottom:4px;';
-        } else if (/^\s*[-*]\s+/.test(line)) {
-          p.textContent = `•  ${inline(line.replace(/^\s*[-*]\s+/, ''))}`;
-          p.style.marginBottom = '3px';
-        } else {
-          p.textContent = inline(line);
-        }
-        notes.appendChild(p);
-      }
-    }
-    // The hint stays visible under the notes, above the fixed actions.
-    const hint = document.createElement('div');
-    setAboutLabel(hint, 'aboutInstallHelp');
-    hint.style.cssText =
-      'flex:none; margin:14px 0 0; font-size:12.5px; color:var(--muted);';
-    shell.card.insertBefore(hint, shell.foot);
-    const cancel = document.createElement('button');
-    cancel.className = 'btn-text';
-    setAboutLabel(cancel, 'commonCancel');
-    cancel.addEventListener('click', () => back.remove());
-    const ok = document.createElement('button');
-    ok.className = 'btn-primary';
-    setAboutLabel(ok, 'drawerUpdate');
-    ok.addEventListener('click', () => { back.remove(); run(upd); });
-    shell.foot.append(cancel, ok);
+    releaseNotesModal(upd.availableVersion, upd.availableNotes, 'aboutInstallHelp', () => run(upd));
   };
   // A download already in flight when this tab renders (started from the
   // device, or the page reloaded mid-download): attach to it right away
   // rather than offering an Install button that would only error (#272).
   const upd = getUpdate();
   if (upd?.progress !== null && upd?.progress !== undefined) run(upd);
+}
+
+/* The release notes of an update about to be installed, with a hint
+   under them and Cancel and Update buttons. Update calls onOk. */
+function releaseNotesModal(version, notesText, hintId, onOk) {
+  const shell = modalShell({
+    title: t('drawerUpdateTo', {version}),
+    width: 520,
+  });
+  setAboutLabel(shell.card.querySelector('.modal-title'), 'drawerUpdateTo', {version});
+  const back = shell.back;
+  const notes = shell.body;
+  notes.style.cssText += 'font-size:13.5px; line-height:1.5;';
+  // Markdown-lite, DOM-built so the release body stays inert text:
+  // headings bold, list markers as bullets, emphasis/code/links stripped.
+  const inline = (s) => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*|__|`/g, '');
+  const body = (notesText || '').trim();
+  if (!body) {
+    setAboutLabel(notes, 'drawerNoReleaseNotes');
+  } else {
+    for (const raw of body.split('\n')) {
+      const line = raw.trimEnd();
+      const p = document.createElement('div');
+      if (!line.trim()) {
+        p.style.height = '10px';
+      } else if (/^#+\s*/.test(line)) {
+        p.textContent = inline(line.replace(/^#+\s*/, ''));
+        p.style.cssText = 'font-weight:700; margin-bottom:4px;';
+      } else if (/^\s*[-*]\s+/.test(line)) {
+        p.textContent = `•  ${inline(line.replace(/^\s*[-*]\s+/, ''))}`;
+        p.style.marginBottom = '3px';
+      } else {
+        p.textContent = inline(line);
+      }
+      notes.appendChild(p);
+    }
+  }
+  // The hint stays visible under the notes, above the fixed actions.
+  const hint = document.createElement('div');
+  setAboutLabel(hint, hintId);
+  hint.style.cssText =
+    'flex:none; margin:14px 0 0; font-size:12.5px; color:var(--muted);';
+  shell.card.insertBefore(hint, shell.foot);
+  const cancel = document.createElement('button');
+  cancel.className = 'btn-text';
+  setAboutLabel(cancel, 'commonCancel');
+  cancel.addEventListener('click', () => back.remove());
+  const ok = document.createElement('button');
+  ok.className = 'btn-primary';
+  setAboutLabel(ok, 'drawerUpdate');
+  ok.addEventListener('click', () => { back.remove(); onOk(); });
+  shell.foot.append(cancel, ok);
+}
+
+/* ---- System updates of the Echo Dot image ----
+   BiscuitService downloads the release, checks its signature and installs
+   it through TWRP, rebooting the Dot twice. The About page's System card and
+   the Overview's Needs attention row show it. The kiosk goes down with each
+   reboot, so a running update is polled until it settles, whatever the
+   connection does meanwhile. */
+export const systemUpdateBusy = (s) => ['downloading', 'verifying', 'installing'].includes(s?.state);
+
+function systemUpdateLabel(el, s) {
+  if (s?.state === 'downloading') {
+    setAboutLabel(el, 'aboutDownloadProgress', {percent: Math.round((s.progress || 0) * 100)});
+  } else if (s?.state === 'verifying') {
+    setAboutLabel(el, 'aboutSystemVerifying');
+  } else {
+    setAboutLabel(el, 'aboutSystemInstalling');
+  }
+}
+
+/* Shows the update's progress on el until it settles, then calls onSettled
+   with the last status. Stops when el leaves the page, which a re-rendered
+   tab does. Gives up after half an hour without a settled answer, which no
+   update takes. */
+export async function rideSystemUpdate(el, onSettled) {
+  const deadline = Date.now() + 30 * 60 * 1000;
+  let last = null;
+  systemUpdateLabel(el, {state: 'downloading', progress: 0});
+  while (Date.now() < deadline) {
+    const cur = (await cmd('getSystemUpdateStatus').catch(() => null))?.data;
+    // Checked after the first answer: the caller may still be placing el.
+    if (!el.isConnected) return;
+    // Nothing while the Dot restarts: the label stays on installing.
+    if (cur?.supported) {
+      last = cur;
+      if (!systemUpdateBusy(cur)) break;
+      systemUpdateLabel(el, cur);
+    } else if (last) {
+      systemUpdateLabel(el, {state: 'installing'});
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  onSettled(last);
+}
+
+/* The Install button of a system update: release notes, then the install,
+   ridden on the button. getStatus answers the status when clicked. */
+export function attachSystemUpdateInstall(btn, getStatus, onSettled) {
+  btn.onclick = () => {
+    const sys = getStatus();
+    if (!sys?.availableVersion) return;
+    releaseNotesModal(sys.availableVersion, sys.availableNotes, 'aboutSystemInstallHelp', async () => {
+      btn.disabled = true;
+      const res = await cmd('installSystemUpdate').catch(() => null);
+      if (!res?.ok) {
+        btn.disabled = false;
+        await messageBox({title: () => deviceText('Updates'), message: () => t('aboutDownloadFailed', {error: deviceOperationError(res?.error || supportText('device unreachable'))})});
+        return;
+      }
+      rideSystemUpdate(btn, onSettled);
+    });
+  };
+  if (systemUpdateBusy(getStatus())) {
+    btn.disabled = true;
+    rideSystemUpdate(btn, onSettled);
+  }
 }
 
 const githubMark = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 ' +
@@ -631,26 +706,36 @@ export async function loadAboutInfo() {
   // Everything is fetched before the container is cleared: an await between
   // clear and append lets a second invocation interleave and the tab ends up
   // rendered twice.
-  const [info, updRes] = await Promise.all([
+  const [info, updRes, sysRes] = await Promise.all([
     api('/api/info').then((r) => r.json()).catch(() => null),
     cmd('getUpdateStatus').catch(() => null),
+    isHeadless() ? cmd('getSystemUpdateStatus').catch(() => null) : null,
   ]);
   const upd = updRes?.data;
+  const sys = sysRes?.data?.supported ? sysRes.data : null;
   const or = (v, alt = '-') => (v === null || v === undefined || v === '' ? alt : v);
 
   root.innerHTML = '';
+  // A title or row name is the English text, or {id} for a message of
+  // its own. A description is the English text or a node.
+  const label = (el, text) => (typeof text === 'object'
+    ? setAboutLabel(el, text.id, text.values || {})
+    : setAboutLabel(el, supportTextMessageIds[text] || deviceTextMessageIds[text], {}, 'textContent', deviceText(text)));
   const card = (title, rows) => {
     const h = document.createElement('h2');
     h.className = 'card-title';
-    setAboutLabel(h, supportTextMessageIds[title] || deviceTextMessageIds[title], {}, 'textContent', deviceText(title));
+    label(h, title);
     root.appendChild(h);
     const c = document.createElement('div'); c.className = 'card';
     for (const [k, v, d] of rows) {
       const row = document.createElement('div'); row.className = 'row';
       const cell = document.createElement('div'); cell.className = 'info';
-      const n = document.createElement('div'); n.className = 'name'; setAboutLabel(n, supportTextMessageIds[k] || deviceTextMessageIds[k], {}, 'textContent', deviceText(k));
+      const n = document.createElement('div'); n.className = 'name'; label(n, k);
       cell.appendChild(n);
-      if (d) {
+      if (d instanceof Node) {
+        d.classList.add('desc');
+        cell.appendChild(d);
+      } else if (d) {
         const dd = document.createElement('div');
         dd.className = 'desc'; setAboutLabel(dd, supportTextMessageIds[d], {}, 'textContent', d);
         cell.appendChild(dd);
@@ -676,6 +761,51 @@ export async function loadAboutInfo() {
     a.target = '_blank'; a.rel = 'noreferrer';
     return a;
   };
+
+  // The Echo Dot image, above the app it runs: its release, the same tap
+  // to check for a newer one, and the update itself.
+  if (sys) {
+    const sysVersion = document.createElement('a');
+    sysVersion.textContent = or(sys.currentVersion);
+    sysVersion.href = '#';
+    setAboutLabel(sysVersion, 'aboutCheckNow', {}, 'title');
+    sysVersion.addEventListener('click', async (e) => {
+      e.preventDefault();
+      setAboutLabel(sysVersion, 'aboutChecking', {}, 'textContent');
+      const res = (await cmd('checkSystemUpdateNow').catch(() => null))?.data;
+      refreshUpdateBadge();
+      await loadAboutInfo();
+      if (!res?.reachable) {
+        alert(supportText("Update check failed. Can the device reach GitHub?"));
+      } else if (!res.availableVersion) {
+        messageBox({ title: deviceText('Updates'), message: supportText("You are on the latest version.") });
+      }
+    });
+    const failed = sys.lastError && !systemUpdateBusy(sys) ? document.createElement('div') : null;
+    if (failed) setAboutLabel(failed, 'aboutDownloadFailed', {error: sys.lastError});
+    let updateRow;
+    if (systemUpdateBusy(sys)) {
+      const progress = document.createElement('span');
+      rideSystemUpdate(progress, () => { refreshUpdateBadge(); loadAboutInfo(); });
+      updateRow = ['Updates', progress];
+    } else if (sys.availableVersion) {
+      const btn = document.createElement('button');
+      btn.className = 'btn-ghost';
+      setAboutLabel(btn, 'deviceInstallVersion', { version: sys.availableVersion });
+      attachSystemUpdateInstall(btn, () => sys, () => { refreshUpdateBadge(); loadAboutInfo(); });
+      updateRow = ['Update available', btn, failed];
+    } else {
+      updateRow = ['Updates', aboutStatus('drawerUpdateCurrent'), failed];
+    }
+    const image = link('jxlarrea/lineageos-biscuit-kiosk-satellite',
+      'https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite');
+    image.insertAdjacentHTML('afterbegin', githubMark);
+    card({id: 'aboutSystem'}, [
+      [{id: 'aboutSystemVersion'}, sysVersion],
+      updateRow,
+      ['Source code', image],
+    ]);
+  }
 
   // Which build this is decides where its logs go: a release build reports
   // to this page and stays silent on logcat.
@@ -810,11 +940,14 @@ export function renderLocalizationCredits() {
 // the About tab is where the Install button lives, and nothing else on
 // this page would say so.
 export async function refreshUpdateBadge() {
-  const upd = (await cmd('getUpdateStatus').catch(() => null))?.data;
+  const [upd, sys] = await Promise.all([
+    cmd('getUpdateStatus').catch(() => null).then((r) => r?.data),
+    isHeadless() ? cmd('getSystemUpdateStatus').catch(() => null).then((r) => r?.data) : null,
+  ]);
   const title = document.querySelector('button[data-tab="about"] .nav-title');
   if (!title) return;
   title.querySelector('.nav-dot')?.remove();
-  if (upd?.availableVersion) {
+  if (upd?.availableVersion || sys?.availableVersion) {
     const dot = document.createElement('span');
     dot.className = 'nav-dot';
     title.appendChild(dot);

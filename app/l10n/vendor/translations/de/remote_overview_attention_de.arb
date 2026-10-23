@@ -21,5 +21,7 @@
   "overviewWakeReleased": "Die Engine wurde beendet.",
   "overviewOpenVoice": "Voice Satellite öffnen",
   "overviewOpenService": "Dienst öffnen",
-  "overviewPermissionMissing": "Berechtigung fehlt: {permission}"
+  "overviewPermissionMissing": "Berechtigung fehlt: {permission}",
+  "overviewSystemUpdate": "Systemupdate verfügbar",
+  "overviewSystemUpdateHelp": "Version {version} des Echo-Dot-Images ist bereit zur Installation. Der Dot startet dafür zweimal neu."
 }

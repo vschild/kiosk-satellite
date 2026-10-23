@@ -15,7 +15,10 @@ import 'core/headless.dart';
 import 'core/ha_http_overrides.dart';
 import 'core/locale_dates.dart';
 import 'core/user_authorities.dart';
+import 'managers/kiosk/kiosk_manager.dart'
+    show hidesNavigationBar, hidesStatusBar;
 import 'managers/settings/definitions.dart' as defs;
+import 'managers/settings/settings_manager.dart';
 import 'managers/wake_word/pryon/pryon_catalog.dart';
 import 'ui/key_nav.dart';
 import 'ui/kiosk_screen.dart';
@@ -108,8 +111,10 @@ Future<void> main() async {
   // "swipe for status bar" hint pill on every touch, which is worse than
   // what it fixed. Sticky draws no hint; its transient bar is dismissed
   // early by KioskLock's hide() ticker while kiosk mode holds.
-  Future<void> applyImmersion() =>
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  //
+  // With Hide status bar or Hide navigation bar off (and no kiosk mode)
+  // that bar stays up instead; see applySystemBars.
+  Future<void> applyImmersion() => applySystemBars(container.settings);
   // Deliberately NOT awaited: this platform call can hang forever when the
   // process is restarted by the OS mid permission flow (the engine comes up
   // without an attached window), and awaiting it here stalled main() before
@@ -118,7 +123,12 @@ Future<void> main() async {
   // KioskLock re-assert it continuously.
   unawaited(applyImmersion());
   container.bus.on<SettingChanged>().listen((e) {
-    if (e.key == defs.kioskEnabled.key) applyImmersion();
+    if (e.key == defs.kioskEnabled.key ||
+        e.key == defs.lockdownEnabled.key ||
+        e.key == defs.screenHideStatusBar.key ||
+        e.key == defs.screenHideNavigationBar.key) {
+      applyImmersion();
+    }
   });
   // A screensaver dismissal reveals the dashboard WebView with no focus
   // change or resume to re-assert the mode, and on some Android 12 ROMs
@@ -128,6 +138,10 @@ Future<void> main() async {
   });
   SystemChrome.setSystemUIChangeCallback((systemOverlaysAreVisible) async {
     if (!systemOverlaysAreVisible) return;
+    if (!hidesStatusBar(container.settings) &&
+        !hidesNavigationBar(container.settings)) {
+      return;
+    }
     final locked = container.settings.get(defs.kioskEnabled);
     await Future<void>.delayed(
       locked ? const Duration(milliseconds: 400) : const Duration(seconds: 3),
@@ -139,6 +153,29 @@ Future<void> main() async {
   // came up", so it must not depend on the UI coming up.
   FrameWatchdog(container).start();
   runApp(KioskSatelliteApp(container: container));
+}
+
+/// Hide the system bars, or show the ones whose Hide status bar or Hide
+/// navigation bar setting is off while neither kiosk mode nor lockdown is on
+/// (issues #1076 and #1102). Manual with the shown overlays rather than
+/// edgeToEdge: the latter would make Flutter undo the edge-to-edge window
+/// MainActivity sets up itself. Manual drops the sticky flag for a bar it
+/// hides, so SystemBars.kt sets the swipe behavior on the window itself. The
+/// native side pads the content by the visible bars (CutoutLayout), so the
+/// dashboard sits between them.
+Future<void> applySystemBars(SettingsManager settings) {
+  final status = hidesStatusBar(settings);
+  final navigation = hidesNavigationBar(settings);
+  if (status && navigation) {
+    return SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+  return SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [
+      if (!status) SystemUiOverlay.top,
+      if (!navigation) SystemUiOverlay.bottom,
+    ],
+  );
 }
 
 class KioskSatelliteApp extends StatefulWidget {
@@ -192,7 +229,11 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
       (e) =>
           e.key == defs.uiTheme.key ||
               e.key == defs.uiScale.key ||
-              e.key == defs.uiLanguage.key
+              e.key == defs.uiLanguage.key ||
+              e.key == defs.screenHideStatusBar.key ||
+              e.key == defs.screenHideNavigationBar.key ||
+              e.key == defs.kioskEnabled.key ||
+              e.key == defs.lockdownEnabled.key
           ? setState(() {})
           : null,
     );
@@ -233,7 +274,7 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
     if (returned) {
       // Coming back from an OS screen (permission grants, app settings) is
       // another way the window returns without its immersive flags.
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      applySystemBars(widget.container.settings);
       _keepAliveTimer?.cancel();
       final since = _backgroundedAt;
       _backgroundedAt = null;
@@ -281,6 +322,9 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
   Widget build(BuildContext context) {
     final container = widget.container;
     final configured = container.settings.get(defs.startUrl).isNotEmpty;
+    final barsShown =
+        !hidesStatusBar(container.settings) ||
+        !hidesNavigationBar(container.settings);
     final uiLocale = appLocaleForLanguage(
       container.settings.get(defs.uiLanguage),
     );
@@ -293,8 +337,8 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
         uiLocale,
         WidgetsBinding.instance.platformDispatcher.locales,
       ),
-      theme: buildTheme(Brightness.light),
-      darkTheme: buildTheme(Brightness.dark),
+      theme: buildTheme(Brightness.light, barsShown: barsShown),
+      darkTheme: buildTheme(Brightness.dark, barsShown: barsShown),
       themeMode: switch (container.settings.get(defs.uiTheme)) {
         'dark' => ThemeMode.dark,
         'system' => ThemeMode.system,

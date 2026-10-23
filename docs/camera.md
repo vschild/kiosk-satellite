@@ -118,7 +118,23 @@ Resolution stays local to each device because cameras in a fleet can support dif
 
 Use RTSP over TCP in your viewer. The stream contains H.264 video and optional AAC microphone audio. For go2rtc, add the URL as a stream source. Frigate can record the H.264 stream without transcoding it. Authentication uses RTSP Digest. Enter the credentials in your client or use `rtsp://USERNAME:PASSWORD@DEVICE_IP:8554/camera`, with URL encoding for special characters.
 
-Choose **ONVIF** to let compatible clients discover the camera on your local network. The page shows the **ONVIF URL**, `http://DEVICE_IP:8080/onvif/device_service`. Use the selected port if you changed it. ONVIF exposes device information and a read-only media profile that points to the same RTSP stream. Configure video and audio in Kiosk Satellite settings. ONVIF requests use WS-Security UsernameToken authentication with the same credentials when authentication is enabled. Discovery uses WS-Discovery on multicast UDP port 3702. The camera announces when streaming starts and withdraws when it stops. ONVIF device information, discovery and stream profiles use the configured **Device name**. In Home Assistant, add the ONVIF integration and enable its automatic device search. This search uses WS-Discovery while the kiosk's `.local` name uses mDNS. Automatic discovery requires the client and camera to share a subnet or a WS-Discovery relay between their VLANs. An mDNS relay does not forward WS-Discovery traffic. If multicast discovery is unavailable, connect with the ONVIF URL. PTZ, ONVIF events and ONVIF snapshots are not provided.
+Choose **ONVIF** to let compatible clients discover the camera on your local network. The page shows the **ONVIF URL**, `http://DEVICE_IP:8080/onvif/device_service`. Use the selected port if you changed it. ONVIF exposes device information and a read-only media profile that points to the same RTSP stream. Configure video and audio in Kiosk Satellite settings. ONVIF requests use WS-Security UsernameToken authentication with the same credentials when authentication is enabled. Discovery uses WS-Discovery on multicast UDP port 3702. The camera announces when streaming starts and withdraws when it stops. ONVIF device information, discovery and stream profiles use the configured **Device name**. In Home Assistant, add the ONVIF integration and enable its automatic device search. This search uses WS-Discovery while the kiosk's `.local` name uses mDNS. Automatic discovery requires the client and camera to share a subnet or a WS-Discovery relay between their VLANs. An mDNS relay does not forward WS-Discovery traffic. If multicast discovery is unavailable, connect with the ONVIF URL. PTZ and ONVIF snapshots are not provided.
+
+### Motion Events
+
+**Motion Events** appears when the protocol is ONVIF. It reports motion to ONVIF clients, so NVRs such as UniFi Protect can record on motion instead of all the time.
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Send motion events | off | Report motion to ONVIF clients. |
+| Motion source | Camera motion sensor | The sensor that reports motion: **Camera motion sensor**, **Person sensor** or **Home Assistant sensor**. Person sensor is listed only on devices that have one, such as the Meta Portal. |
+| Motion sensor entity | none | Shown for **Home Assistant sensor**. Pick an occupancy, motion or presence sensor. Motion lasts while it reads on. |
+
+Picking a source does not turn its sensor on. Turn on **Motion sensor** under **Camera > Motion Sensor** for the camera. Turn on **Enable person sensor** under **Camera > Person Sensor** for the person sensor. A note under **Motion source** says when the picked sensor is off. Camera motion clears after the motion sensor's **Clear after** delay, the same as its Home Assistant sensor.
+
+An NVR keeps the stream open, so the camera only sees motion with **Motion analysis while streaming** on. A note under **Motion source** says when it is off.
+
+Clients receive motion through ONVIF PullPoint subscriptions on two topics, `tns1:RuleEngine/CellMotionDetector/Motion` and `tns1:VideoSource/MotionAlarm`. The event service is listed in GetServices and GetCapabilities only while **Send motion events** is on. If a client added the camera before you turned it on, add the camera again so the client finds the event service.
 
 One H.264 encoder serves up to four connected viewers. Hardware encoding is preferred. If no compatible hardware encoder can start, the app tries software encoding, which can use more CPU. It starts when the first authenticated viewer requests video and stops shortly after the last viewer disconnects. Enabling the listener alone does not open the camera or encode video. A recorder that stays connected keeps the encoder running. Slow viewers are disconnected instead of blocking the camera or growing an unlimited queue.
 

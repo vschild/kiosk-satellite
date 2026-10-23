@@ -117,6 +117,17 @@ A wake word answered by a realtime provider starts a conversation with a speech 
 
 **Which room.** Each conversation starts with the kiosk's name and its area in Home Assistant, so "turn on the lights" means the lights in the kiosk's area unless you name another one. Set the area on the kiosk's device in Home Assistant. The Assist satellite entity stays idle during a conversation, so automations that need to know which kiosk is talking should check the kiosk's [Voice Satellite](#home-assistant-entities-and-actions) sensor.
 
+**Which kiosk ran a script.** Every script the model runs gets the kiosk's Home Assistant device ID in a `ks_device_id` variable. The script does not need a field for it, so one script can act on whichever kiosk asked:
+
+```yaml
+sequence:
+  - action: notify.mobile_app_phone
+    data:
+      message: "Asked from {{ device_attr(ks_device_id, 'name') }} in {{ area_name(ks_device_id) }}"
+```
+
+If a script declares a `ks_device_id` field, the kiosk hides it from the model and fills it in. This works only with **Tools** on **Home Assistant**.
+
 **Picking up where you left off.** **Session duration** keeps what was said for 30 minutes up to 12 hours and gives it to the next conversation, so you can refer back to something after a conversation ended. Older exchanges are dropped, and nothing is kept across an app restart.
 
 **Started from Home Assistant.** With a provider on **Assistant 1**, `assist_satellite.start_conversation` opens a realtime conversation instead of an Assist turn. The model says the `start_message` in its own voice, word for word, and then listens for the reply. Home Assistant's own speech of the message is not played. `extra_system_prompt` does not reach the model, because Home Assistant does not send it to the kiosk. An automation that plays `start_media_id` with no message still gets an Assist turn.

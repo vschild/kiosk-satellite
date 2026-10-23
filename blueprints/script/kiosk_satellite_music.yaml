@@ -1,0 +1,156 @@
+blueprint:
+  name: Kiosk Satellite music
+  author: Kiosk Satellite
+  description: >-
+    Lets an LLM conversation agent play music on a Kiosk Satellite kiosk's
+    speaker, queue it, open the Music Library on it and steer what plays,
+    in any language the agent speaks. Create a script from this blueprint
+    and expose it to Assist. The kiosk that heard the request answers, or
+    the kiosk named in it, playing on the speaker its Now Playing follows
+    unless the user names another. Music Assistant gives the best results:
+    it searches every music provider it has. The kiosk needs its Home
+    Assistant address and a token from an administrator. Remove or stop
+    exposing Music Assistant's own voice script first, so the agent has
+    one tool for music.
+  domain: script
+  homeassistant:
+    min_version: "2024.10.0"
+  source_url: https://github.com/jxlarrea/kiosk-satellite/blob/main/blueprints/script/kiosk_satellite_music.yaml
+
+mode: parallel
+max: 10
+
+description: >-
+  Plays and controls music on the Kiosk Satellite tablet the user is
+  talking to. Always use this tool for music, instead of any other media
+  or search and play tool, and never ask which media player to use: it
+  already knows where this tablet plays. Use it for any request to play,
+  queue or find music (songs, albums, artists, playlists, radio stations,
+  podcasts, audiobooks), to show the music library, to say what is
+  playing, to pause, resume, skip or go back, to change the music volume,
+  to read or clear the queue, or to list the speakers. With no speaker named, the music plays where this
+  kiosk plays it. Put the title in query and the artist in artist when
+  the user names both, like "Punisher by Phoebe Bridgers". The response
+  says what happened. Tell the user in their language, naming what plays
+  and on which speaker. When the response lists other_matches, mention
+  them only if the user might have meant one. When it says a speaker was
+  not found, offer the speakers it lists.
+
+fields:
+  action:
+    name: Action
+    description: >-
+      play plays the music now, replacing the queue, or as mode says.
+      show opens the music library on the kiosk, on a search for query or
+      on the list of kind. now_playing says what plays. pause, resume,
+      next and previous steer it. volume sets level, volume_up and
+      volume_down step it. queue reads what plays next, clear_queue
+      empties it. speakers lists the speakers music can play on.
+    required: true
+    selector:
+      select:
+        options:
+          - play
+          - show
+          - now_playing
+          - pause
+          - resume
+          - next
+          - previous
+          - volume
+          - volume_up
+          - volume_down
+          - queue
+          - clear_queue
+          - speakers
+  query:
+    name: Query
+    description: >-
+      What to play or search for: a song, album, artist, playlist or
+      station name, or a genre or mood. Required for play.
+    selector:
+      text:
+  kind:
+    name: Kind
+    description: >-
+      Only when the user says what it is, like "the album" or "the song".
+    selector:
+      select:
+        options:
+          - track
+          - album
+          - artist
+          - playlist
+          - radio
+          - podcast
+          - audiobook
+  artist:
+    name: Artist
+    description: >-
+      The artist, only when the user names one beside the title.
+    selector:
+      text:
+  mode:
+    name: Mode
+    description: >-
+      replace plays now and clears the queue (the default). next plays it
+      after the current track. add puts it at the end of the queue. radio
+      plays it and keeps going with similar music.
+    selector:
+      select:
+        options:
+          - replace
+          - next
+          - add
+          - radio
+  speaker:
+    name: Speaker
+    description: >-
+      Leave empty to play where this kiosk plays. Only when the user names
+      a speaker or a room, its name, like Kitchen.
+    selector:
+      text:
+  level:
+    name: Level
+    description: The volume for the volume action, 0 to 100.
+    selector:
+      number:
+        min: 0
+        max: 100
+  kiosk:
+    name: Kiosk
+    description: >-
+      Leave empty. Only when the user names another kiosk, its name, like
+      Bedroom.
+    selector:
+      text:
+
+sequence:
+  - variables:
+      request: "{{ now().timestamp() }}-{{ range(10000) | random }}"
+  - event: kiosk_satellite_music
+    event_data:
+      id: "{{ request }}"
+      action: "{{ action | default('') }}"
+      query: "{{ query | default('') }}"
+      kind: "{{ kind | default('') }}"
+      artist: "{{ artist | default('') }}"
+      mode: "{{ mode | default('') }}"
+      speaker: "{{ speaker | default('') }}"
+      level: "{{ level | default('') }}"
+      kiosk: "{{ kiosk | default('') }}"
+  - wait_for_trigger:
+      - trigger: event
+        event_type: kiosk_satellite_music_result
+        event_data:
+          id: "{{ request }}"
+    timeout: 15
+  - variables:
+      result: >-
+        {{ wait.trigger.event.data if wait.trigger else {
+          'ok': false,
+          'error': 'No kiosk answered. None is in a voice turn or has that
+          name, or the kiosk cannot reach Home Assistant.'
+        } }}
+  - stop: Done
+    response_variable: result

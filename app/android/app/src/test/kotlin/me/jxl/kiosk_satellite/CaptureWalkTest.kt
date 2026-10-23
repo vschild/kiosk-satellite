@@ -97,6 +97,37 @@ class CaptureWalkTest {
     }
 
     @Test
+    fun zerosThatEndInAudioProveTheRungGates() {
+        val walk = CaptureWalk(3, 0)
+        assertFalse(walk.audible())
+        // A short dip between words proves nothing.
+        assertFalse(walk.audible(CaptureWalk.FRESH_ZERO_BYTES - 1))
+        assertFalse(walk.gating)
+        // Two seconds of zeros that end by themselves: a dead capture does
+        // not come back without a reopen.
+        assertTrue(walk.audible(CaptureWalk.FRESH_ZERO_BYTES))
+        assertTrue(walk.gating)
+        assertEquals(CaptureWalk.GATING_ZERO_BYTES, walk.zeroLimitBytes)
+        // Proven once: later runs do not announce it again.
+        assertFalse(walk.audible(CaptureWalk.TRUSTED_ZERO_BYTES))
+        // The proof belongs to that rung.
+        walk.opened(1)
+        assertFalse(walk.gating)
+        assertEquals(CaptureWalk.FRESH_ZERO_BYTES, walk.zeroLimitBytes)
+        walk.opened(0)
+        assertTrue(walk.gating)
+    }
+
+    @Test
+    fun aGatingRungCarriesOverToTheNextOpen() {
+        val walk = CaptureWalk(3, 1, gating = setOf(1))
+        assertTrue(walk.gating)
+        assertEquals(CaptureWalk.GATING_ZERO_BYTES, walk.zeroLimitBytes)
+        walk.opened(0)
+        assertFalse(walk.gating)
+    }
+
+    @Test
     fun aHealthyRateIsHonestWithOrWithoutASound() {
         for (played in listOf(false, true)) {
             assertEquals(CaptureWalk.RateVerdict.HONEST, CaptureWalk.rateVerdict(0.98, played))

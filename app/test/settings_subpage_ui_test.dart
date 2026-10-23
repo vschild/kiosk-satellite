@@ -1012,7 +1012,7 @@ void main() {
   group('Screen & Audio', () {
     Future<void> openScreenAudio(WidgetTester tester) async {
       await boot();
-      tester.view.physicalSize = const Size(500, 2400);
+      tester.view.physicalSize = const Size(500, 2800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(

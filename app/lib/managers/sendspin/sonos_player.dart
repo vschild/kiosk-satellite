@@ -974,6 +974,50 @@ class SonosPlayer implements RemotePlayer {
     }
   }
 
+  /// Take the 1-based queue track [id] out of the queue.
+  Future<bool> removeQueueTrack(String id) => _editQueue(
+    'remove',
+    (co) => co.call(SonosClient.avTransport, 'RemoveTrackFromQueue', {
+      'InstanceID': '0',
+      'ObjectID': 'Q:0/$id',
+      'UpdateID': '0',
+    }),
+  );
+
+  /// Move queue track [from] to position [to], both 1-based.
+  Future<bool> moveQueueTrack(int from, int to) => _editQueue(
+    'move',
+    (co) => co.call(SonosClient.avTransport, 'ReorderTracksInQueue', {
+      'InstanceID': '0',
+      'StartingIndex': '$from',
+      'NumberOfTracks': '1',
+      // Sonos inserts before the given track, counted before the move.
+      'InsertBefore': '${to > from ? to + 1 : to}',
+      'UpdateID': '0',
+    }),
+  );
+
+  Future<bool> clearQueueTracks() => _editQueue(
+    'clear',
+    (co) => co.call(SonosClient.avTransport, 'RemoveAllTracksFromQueue', {
+      'InstanceID': '0',
+    }),
+  );
+
+  Future<bool> _editQueue(
+    String what,
+    Future<Object?> Function(SonosClient co) edit,
+  ) async {
+    try {
+      await edit(_coordinator);
+      unawaited(_poll());
+      return true;
+    } catch (e) {
+      log.warn(_name, 'Sonos queue $what failed: $e');
+      return false;
+    }
+  }
+
   void _emit(Map<String, Object?>? snapshot) {
     _snapshot = snapshot;
     if (_running) onSnapshot(snapshot);

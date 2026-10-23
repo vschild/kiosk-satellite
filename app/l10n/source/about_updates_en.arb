@@ -105,5 +105,58 @@
         "Overview > available update"
       ]
     }
+  },
+  "aboutSystem": "System",
+  "@aboutSystem": {
+    "context": "Remote administration > About > System",
+    "description": "Title of the group about the Echo Dot's system image, shown above the App group.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System"
+      ]
+    }
+  },
+  "aboutSystemVersion": "ROM version",
+  "@aboutSystemVersion": {
+    "context": "Remote administration > About > System",
+    "description": "Row with the installed release of the Echo Dot's ROM, the system image. Clicking the number checks for updates. Keep ROM as is.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System"
+      ]
+    }
+  },
+  "aboutSystemVerifying": "Verifying…",
+  "@aboutSystemVerifying": {
+    "context": "Remote administration > About > System",
+    "description": "Installation button label while the signature of the downloaded system update is checked.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
+  },
+  "aboutSystemInstalling": "Installing…",
+  "@aboutSystemInstalling": {
+    "context": "Remote administration > About > System",
+    "description": "Installation button label while the system update installs. The device restarts twice meanwhile.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
+  },
+  "aboutSystemInstallHelp": "The Dot restarts twice to install the update and is offline for about a minute and a half each time.",
+  "@aboutSystemInstallHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System > install a version",
+        "Overview > available system update"
+      ]
+    }
   }
 }

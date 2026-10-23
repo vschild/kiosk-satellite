@@ -23,6 +23,8 @@ class ProximitySupport {
     this.vendor,
     this.maximumRange,
     this.resolution,
+    this.driver,
+    this.rawFile,
     this.hint,
   });
 
@@ -42,6 +44,13 @@ class ProximitySupport {
   final double? maximumRange;
   final double? resolution;
 
+  /// The Rockchip Sensortek driver bound on an NSPanel Pro ("ps_stk3a5x"),
+  /// null on every other device.
+  final String? driver;
+
+  /// Where that driver publishes its raw count, when it does.
+  final String? rawFile;
+
   /// Why [supported] is false, in a sentence fit for a settings row.
   final String? hint;
 
@@ -51,6 +60,8 @@ class ProximitySupport {
     if (vendor != null) 'vendor': vendor,
     if (maximumRange != null) 'maximumRange': maximumRange,
     if (resolution != null) 'resolution': resolution,
+    if (driver != null) 'driver': driver,
+    if (rawFile != null) 'rawFile': rawFile,
     if (hint != null) 'hint': hint,
   };
 }
@@ -220,6 +231,8 @@ class ProximityManager extends Manager {
         vendor: raw['vendor'] as String?,
         maximumRange: (raw['maximumRange'] as num?)?.toDouble(),
         resolution: (raw['resolution'] as num?)?.toDouble(),
+        driver: raw['driver'] as String?,
+        rawFile: raw['rawFile'] as String?,
         hint: raw['hint'] as String?,
       );
     } catch (_) {
@@ -262,8 +275,20 @@ class ProximityManager extends Manager {
     _sub = _stream.receiveBroadcastStream().listen(
       (raw) {
         if (raw is! Map) return;
+        if (raw['diagnostic'] case final String message) {
+          // Which source the session reads and what it saw, for reports.
+          raw['level'] == 'warn'
+              ? log.warn(name, message)
+              : log.info(name, message);
+          return;
+        }
         final near = raw['near'] == true;
-        final distance = raw['distance'] is num ? ' (${raw['distance']})' : '';
+        final distance = switch ((raw['distance'], raw['resting'])) {
+          (final num d, final num r) =>
+            ' ($d, resting ${r.toStringAsFixed(1)})',
+          (final num d, _) => ' ($d)',
+          _ => '',
+        };
         if (raw['initial'] == true) {
           // The resting state at registration: something already on the
           // sensor is not an approach, and a far is nothing at all.
@@ -292,7 +317,8 @@ class ProximityManager extends Manager {
     );
   }
 
-  /// The name, range and resolution, so a log shows the sensor's shape.
+  /// The name, range, resolution and driver, so a log shows the sensor's
+  /// shape.
   String _describeSensor() {
     final s = _support;
     if (s == null) return '';
@@ -300,6 +326,7 @@ class ProximityManager extends Manager {
       ?s.name,
       if (s.maximumRange case final r?) 'range $r',
       if (s.resolution case final r?) 'resolution $r',
+      if (s.driver case final d?) 'driver $d',
     ];
     return parts.isEmpty ? '' : ' (${parts.join(', ')})';
   }

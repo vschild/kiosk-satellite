@@ -363,6 +363,48 @@ class ApiServerEntitiesTest {
     }
 
     @Test
+    fun subscribingAsksEveryCameraForAFrame() {
+        val camera = EspEntity.Camera("camera", "Camera")
+        val screenshot = EspEntity.Camera("screenshot", "Screenshot")
+        val backend = object : ScannerBackend {
+            override fun onScanDemand(mode: ScannerMode) {}
+            override fun onScanRelease() {}
+        }
+        val requests = java.util.concurrent.LinkedBlockingQueue<String>()
+        lateinit var s: ApiServer
+        val hub = EntityHub(catalog + listOf(camera, screenshot), onCommand = { id, value ->
+            if (value == "capture") {
+                requests.add(id)
+                s.publishCameraImage(id, byteArrayOf(id.length.toByte()))
+            }
+        })
+        s = ApiServer(identity, "02:AA:BB:CC:DD:EE", 0, null, backend,
+            log = {}, entities = hub)
+        server = s
+        s.start()
+        val c = connectClient(s)
+        // No CameraImageRequest: Home Assistant only marks a camera
+        // available again once a frame arrives after the reconnect.
+        c.send(Msg.SUBSCRIBE_STATES_REQUEST)
+        val done = mutableSetOf<Int>()
+        repeat(30) {
+            if (done.size == 2) return@repeat
+            val frame = c.read()
+            if (frame.type != Msg.CAMERA_IMAGE_RESPONSE) return@repeat
+            var key = 0
+            var last = false
+            val r = ProtoReader(frame.payload)
+            while (r.next()) when (r.field) {
+                1 -> key = r.asFixed32()
+                3 -> last = r.asBool()
+            }
+            if (last) done.add(key)
+        }
+        assertEquals(setOf(camera.key, screenshot.key), done)
+        assertEquals(setOf("camera", "screenshot"), requests.toSet())
+    }
+
+    @Test
     fun pureEntityDeviceClaimsNoBluetoothCapability() {
         val backend = object : ScannerBackend {
             override fun onScanDemand(mode: ScannerMode) {}

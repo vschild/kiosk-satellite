@@ -920,6 +920,15 @@ internal class ApiServer(
                                         enqueue(type, payload)
                                     }
                             }
+                            // A camera has no state message, and Home
+                            // Assistant leaves it unavailable after a
+                            // reconnect until a frame arrives or its
+                            // 5 minute token refresh runs. One frame per
+                            // camera brings it back with the rest.
+                            if (hub.cameras.isNotEmpty()) {
+                                requestCameraFrames(hub.cameras.map { it.key })
+                                hub.requestCameraImage()
+                            }
                         }
                     }
                     Msg.SWITCH_COMMAND_REQUEST,

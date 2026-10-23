@@ -8,5 +8,10 @@
   "aboutDownloadProgress": "正在下载… {percent}%",
   "aboutDownloadFailed": "更新失败：{error}",
   "aboutAlreadyCurrent": "已是最新版本",
-  "aboutInstallHelp": "更新会在平板上下载，安装时请在平板上确认。"
+  "aboutInstallHelp": "更新会在平板上下载，安装时请在平板上确认。",
+  "aboutSystem": "系统",
+  "aboutSystemVersion": "ROM 版本",
+  "aboutSystemVerifying": "正在验证…",
+  "aboutSystemInstalling": "正在安装…",
+  "aboutSystemInstallHelp": "Dot 会重启两次以安装更新，每次离线约一分半钟。"
 }

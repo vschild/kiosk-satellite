@@ -1540,6 +1540,73 @@ class SendspinManager extends Manager {
 
     commands.register(
       Command(
+        name: 'mediaQueue',
+        description:
+            'The followed player\'s queue: list answers the playing track '
+            'and the next ones, clear empties it.',
+        params: const {
+          'action': 'list | clear',
+          'limit': 'up next, default 10',
+        },
+        handler: (p) async {
+          if (!queueAvailable) {
+            return const CommandResult.fail('the player has no queue');
+          }
+          if (p['action'] == 'clear') {
+            return await clearQueue()
+                ? const CommandResult.ok()
+                : const CommandResult.fail('the queue could not be cleared');
+          }
+          await refreshQueue();
+          final rows = queueItems.value;
+          final at = rows.indexWhere((r) => r['current'] == true);
+          final limit = (p['limit'] as num?)?.toInt() ?? 10;
+          Map<String, Object?> brief(Map<String, Object?> r) => {
+            'title': r['title'],
+            if ('${r['artist'] ?? ''}'.isNotEmpty) 'artist': r['artist'],
+          };
+          final next = rows.sublist(at + 1);
+          return CommandResult.ok({
+            if (at >= 0) 'current': brief(rows[at]),
+            'upNext': [for (final r in next.take(limit)) brief(r)],
+            'upNextCount': next.length,
+          });
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'mediaVolume',
+        description:
+            'Set the followed player\'s volume to level (0 to 100), or move '
+            'it by delta.',
+        params: const {'level': '0 to 100', 'delta': 'a step up or down'},
+        handler: (p) async {
+          if (!volumeAvailable) {
+            return const CommandResult.fail('the player takes no volume');
+          }
+          final level = p['level'];
+          final delta = p['delta'];
+          final base = volumeLevel;
+          final target = level is num
+              ? level.round()
+              : delta is num && base != null
+              ? base + delta.round()
+              : null;
+          if (target == null) {
+            return const CommandResult.fail('level or delta is required');
+          }
+          final clamped = target.clamp(0, 100);
+          return await setVolume(clamped)
+              ? CommandResult.ok({'volume': clamped})
+              : const CommandResult.fail('the volume could not be set');
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
         name: 'sendspinDiscover',
         description:
             'Scan the network for Sendspin servers (mDNS). Returns name, '
@@ -2940,6 +3007,70 @@ class SendspinManager extends Manager {
       args: {'queue_id': _queueId, 'index': queueItemId},
     );
     if (!res.ok) log.warn(name, 'play queue item failed: ${res.error}');
+    return res.ok;
+  }
+
+  /// Whether the shown queue can be changed from the library: reordered,
+  /// trimmed and cleared. Music Assistant's queues can (this device's own
+  /// and any player it drives), and so can a Sonos's own.
+  bool get queueEditable {
+    if (!queueAvailable) return false;
+    final remote = _remote;
+    return remote == null || remote is MaRemotePlayer || remote is SonosPlayer;
+  }
+
+  /// Take the item [id] out of the queue.
+  Future<bool> removeQueueItem(String id) async {
+    if (_remote case final SonosPlayer sonos) {
+      return sonos.removeQueueTrack(id);
+    }
+    return _queueCommand('player_queues/delete_item', {'item_id_or_index': id});
+  }
+
+  /// Move the item [id] from [from] to [to], both positions in the queue
+  /// as [queueItems] lists it. Music Assistant counts the move as a shift
+  /// from where it is; a Sonos by track number.
+  Future<bool> moveQueueItem(String id, int from, int to) async {
+    if (from == to) return true;
+    if (_remote case final SonosPlayer sonos) {
+      return sonos.moveQueueTrack(from + 1, to + 1);
+    }
+    return _queueCommand('player_queues/move_item', {
+      'queue_item_id': id,
+      'pos_shift': to - from,
+    });
+  }
+
+  /// Move the item [id] right after the playing one. Music Assistant does
+  /// that on a shift of zero; a Sonos is given the position.
+  Future<bool> playQueueItemNext(String id) async {
+    if (_remote case final SonosPlayer sonos) {
+      final rows = queueItems.value;
+      final from = rows.indexWhere((r) => r['id'] == id);
+      final current = rows.indexWhere((r) => r['current'] == true);
+      if (from < 0) return false;
+      return sonos.moveQueueTrack(from + 1, current < 0 ? 1 : current + 2);
+    }
+    return _queueCommand('player_queues/move_item', {
+      'queue_item_id': id,
+      'pos_shift': 0,
+    });
+  }
+
+  /// Empty the queue.
+  Future<bool> clearQueue() async {
+    if (_remote case final SonosPlayer sonos) return sonos.clearQueueTracks();
+    return _queueCommand('player_queues/clear', const {});
+  }
+
+  Future<bool> _queueCommand(String command, Map<String, Object?> args) async {
+    if (_queueId.isEmpty) await refreshQueue();
+    if (_queueId.isEmpty || !_maConfigured) return false;
+    final res = await _api().call(
+      command,
+      args: {'queue_id': _queueId, ...args},
+    );
+    if (!res.ok) log.warn(name, '$command failed: ${res.error}');
     return res.ok;
   }
 

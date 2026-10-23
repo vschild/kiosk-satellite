@@ -1,8 +1,12 @@
 package me.jxl.kiosk_satellite
 
+import java.io.File
+import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProximitySensorTest {
@@ -45,8 +49,8 @@ class ProximitySensorTest {
     }
 
     /** Feeds readings 200 ms apart, the rate the app registers at. */
-    private class Feed(maximumRange: Float, resolution: Float) {
-        private val c = ProximityClassifier(maximumRange, resolution)
+    private class Feed(maximumRange: Float, resolution: Float, risingCounts: Boolean = false) {
+        private val c = ProximityClassifier(maximumRange, resolution, risingCounts)
         var nanos = 0L
 
         fun read(value: Float): Boolean {
@@ -141,5 +145,103 @@ class ProximitySensorTest {
             listOf(false, true, false),
             Feed(5f, 1f).readAll(listOf(6f, 0f, 6f)),
         )
+    }
+
+    @Test
+    fun sensortekCountsRestingAtZeroIgnoreSmallBlips() {
+        // #980 follow-up: an 86P resting at 0 that blips to 3.
+        val f = Feed(9f, 9f, risingCounts = true)
+        val rest = listOf(0f, 3f, 0f, 3f, 0f, 2f, 0f, 3f, 0f)
+        assertEquals(List(rest.size) { false }, f.readAll(rest))
+        assertEquals(listOf(true, true, false), f.readAll(listOf(120f, 300f, 2f)))
+    }
+
+    @Test
+    fun sensortekCountsTakeTheFirstReadingAsTheRestingLevel() {
+        val f = Feed(9f, 9f, risingCounts = true)
+        assertFalse(f.read(47f))
+        assertFalse(f.read(60f))
+        assertTrue(f.read(70f))
+    }
+
+    @Test
+    fun highRestingCountsNeedNoMoreThanFiftyOver() {
+        // Some panels rest at 1000 to 4000 counts. A quarter of that would
+        // miss a hand the 120P's own driver calls near at 50 over.
+        val f = Feed(9f, 9f, risingCounts = true)
+        f.readAll(List(10) { if (it % 2 == 0) 4000f else 4010f })
+        assertFalse(f.read(4040f))
+        assertTrue(f.read(4080f))
+        assertTrue(f.read(4040f), "held until the reading drops below half the rise")
+        assertFalse(f.read(4010f))
+    }
+
+    @Test
+    fun theRestingLevelIsOnlyKnownInCountMode() {
+        val flags = ProximityClassifier(9f, 9f)
+        flags.near(1f, 0L)
+        assertNull(flags.restingLevel)
+        val counts = ProximityClassifier(9f, 9f, risingCounts = true)
+        counts.near(47f, 0L)
+        assertEquals(47f, counts.restingLevel)
+    }
+
+    private fun i2cDevices(vararg devices: Pair<String, Boolean>): File {
+        val root = Files.createTempDirectory("i2c").toFile()
+        for ((i, device) in devices.withIndex()) {
+            val dir = File(root, "2-004$i").apply { mkdirs() }
+            File(dir, "name").writeText("${device.first}\n")
+            if (device.second) File(dir, "driver").mkdirs()
+        }
+        return root
+    }
+
+    private fun rawFile(): File =
+        File.createTempFile("psensor_value", null).apply { writeText("48\n") }
+
+    @Test
+    fun findsTheBoundSensortekDriverAndItsRawFile() {
+        val raw = rawFile()
+        val found = findSensortekDriver(
+            i2cDevices("rk809" to true, "ps_stk3a5x" to true, "ls_stk3a5x" to true),
+            raw,
+        )
+        assertEquals(SensortekDriver("ps_stk3a5x", raw), found)
+    }
+
+    @Test
+    fun anUnboundSensortekNodeIsNotADriver() {
+        // The 86P's tree lists both chips. Only the one that answered binds.
+        val found = findSensortekDriver(
+            i2cDevices("ps_stk3a5x" to false, "ps_stk3x3x" to true),
+            rawFile(),
+        )
+        assertEquals("ps_stk3x3x", found?.name)
+        assertNull(findSensortekDriver(i2cDevices("ps_stk3a5x" to false), rawFile()))
+    }
+
+    @Test
+    fun aSensortekDriverWithoutTheRawFileStillCounts() {
+        // The 86P on 3.x firmware has no raw file but reports raw counts.
+        val found = findSensortekDriver(
+            i2cDevices("ps_stk3x3x" to true),
+            File("/nonexistent/psensor_value"),
+        )
+        assertEquals(SensortekDriver("ps_stk3x3x", null), found)
+    }
+
+    @Test
+    fun otherDevicesHaveNoSensortekDriver() {
+        assertNull(findSensortekDriver(i2cDevices("stk3x3x" to true, "ltr559" to true), rawFile()))
+        assertNull(findSensortekDriver(File("/nonexistent/i2c"), rawFile()))
+    }
+
+    @Test
+    fun rawCountsParseFromTheSysfsText() {
+        assertEquals(48f, parseRawCount("48\n"))
+        assertEquals(0f, parseRawCount("0"))
+        assertFailsWith<IllegalArgumentException> { parseRawCount("") }
+        assertFailsWith<IllegalArgumentException> { parseRawCount("-1\n") }
+        assertFailsWith<IllegalArgumentException> { parseRawCount("near\n") }
     }
 }

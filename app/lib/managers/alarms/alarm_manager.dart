@@ -137,6 +137,11 @@ class AlarmManager extends Manager {
   final DateTime Function() _clock;
   final MethodChannel _channel;
 
+  /// The mode a plugin holds the screensaver on, which wins over the
+  /// schedule and the setting. Set by the app container.
+  String? Function() screensaverModeOverride = _noOverride;
+  static String? _noOverride() => null;
+
   /// The full screen alarm list is up.
   final visible = ValueNotifier<bool>(false);
 
@@ -896,13 +901,15 @@ class AlarmManager extends Manager {
   // ── Where it shows ────────────────────────────────────────────────────
 
   /// The screensaver a ring or a sunrise shows on, or null for the alarm's
-  /// own view: Clock or Weather Mood, chosen (or scheduled) now, with its
-  /// Let alarms take over switch on.
+  /// own view: Clock or Weather Mood, chosen, scheduled or held by a plugin
+  /// now, with its Let alarms take over switch on.
   String? _takeoverMode() {
     if (!_settings.get(defs.screensaverEnabled)) return null;
     final entry = currentScreensaverScheduleEntry(_settings, now: _clock());
     final mode =
-        (entry?['mode'] as String?) ?? _settings.get(defs.screensaverMode);
+        screensaverModeOverride() ??
+        (entry?['mode'] as String?) ??
+        _settings.get(defs.screensaverMode);
     return switch (mode) {
       'clock' when _settings.get(defs.screensaverClockAlarmTakeover) => 'clock',
       'weather_mood' when _settings.get(defs.screensaverWeatherAlarmTakeover) =>

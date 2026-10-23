@@ -142,19 +142,21 @@ The screensaver has to be switched on in Android settings. Some devices also onl
 
 ### Clock
 
-Renders a full screen clock with three selectable styles via **Style**: **Digital Clock**, **Flip Clock** (split-flap cards), or **Roller Clock** (rolling digits styled after the Lenovo Smart Clock 2). Date formats adapt automatically to the device's system language.
+Renders a full screen clock with four selectable styles via **Style**: **Digital Clock**, **Flip Clock** (split-flap cards), **Roller Clock** (rolling digits styled after the Lenovo Smart Clock 2) or **Hand Clock** (a dial with hands, ticks and numbers). Date formats adapt automatically to the device's system language.
 
 | Setting | Notes |
 | --- | --- |
 | Font Family | Available across all faces. Options include Rubik (default app font), Nunito (rounded style similar to Apple StandBy), Inter (clean grotesque style), Oswald (tall condensed digits, the wall clock look), Roboto Slab (a warm slab serif), system font families (System, Serif, Condensed, Monospace, Casual, Cursive), or LCD (segmented LED alarm clock font covering digits, date, and AM/PM). |
 | Font weight | Available across all faces. Default matches the face's native style. Options include Light, Regular, Medium, Bold, or Black. The LCD font uses a single fixed weight. |
-| 24-hour clock | Applies to all clock faces. |
+| 24-hour clock | Applies to every clock face except Hand Clock. |
 | Show AM/PM | Digital face only. Appears when **24-hour clock** is off. Turn it off to show the time as 7:45 instead of 7:45 PM. |
 | Show seconds | Digital face only. |
 | Show date | Digital face only (enabled by default). |
 | Clock size | Scales the display size from 50% to 300%. |
-| Clock color | Digital face only. Flip and Roller styles utilize dedicated custom color controls for cards, digits, and backgrounds. |
-| Background color | Digital face only. Sets the solid color behind the clock (black by default). Setting a white background with a black clock color creates a high-contrast inverted face ideal for e-ink panels. |
+| Numbers | Hand Clock only. Shows numbers at 12, 3, 6 and 9 (default) or at every hour. |
+| Show seconds hand | Hand Clock only (enabled by default). The seconds hand ticks once a second. |
+| Clock color | Digital and Hand faces, each with its own color. On the Hand Clock it colors the hands, numbers and ticks. Flip and Roller styles utilize dedicated custom color controls for cards, digits, and backgrounds. |
+| Background color | Digital and Hand faces, each with its own color. Sets the solid color behind the clock (black by default). Setting a white background with a black clock color creates a high-contrast inverted face ideal for e-ink panels. |
 | Background photo | Displays a custom background image behind any clock face instead of a solid color. Accepts a path to an image on the device or an `http(s)://` image URL the device fetches itself. |
 | Refresh URL background | Minutes between fetches of a URL background. 0 by default, which only fetches when the setting is written. |
 
@@ -360,7 +362,7 @@ The screensaver pauses when another application takes the foreground. The idle t
 
 The screensaver holds a CPU wake lock while active, preventing Android's system display timeout from turning off the screen. **Turn screen off after** powers off the display panel after the screensaver has been running for a set duration. Both the global setting and schedule overrides range from 1 to 60 minutes in 1-minute increments. Set the value to 0 to disable panel power off. Powering off the display panel requires the **Device admin** permission (**Settings > Device > Permissions Manager**). If this permission is missing, a warning is logged and the panel remains powered on.
 
-Android automatically arms the lock screen when display admin power-off is called, regardless of whether a PIN is configured. Waking a panel to an active lock screen causes the display to turn off again seconds later while the kiosk remains paused underneath. To prevent this, Kiosk Satellite automatically clears unsecured lock screens (swipe-to-unlock screens without PINs, patterns, or passwords) upon waking. On Android 10 and newer, clearing lock screens requires the **Display over other apps** permission. Secured lock screens are left intact, requiring manual user unlock while logging the status. Fire OS 8 strictly blocks non-Amazon apps from clearing lock screens, requiring a specific ADB setting change and reboot (see [Amazon Fire tablets](fire.md)). Kiosks configured to turn off display panels operate best with lock screens disabled entirely.
+Android automatically arms the lock screen when display admin power-off is called, regardless of whether a PIN is configured. Waking a panel to an active lock screen causes the display to turn off again seconds later while the kiosk remains paused underneath. To prevent this, Kiosk Satellite automatically clears unsecured lock screens (swipe-to-unlock screens without PINs, patterns, or passwords) upon waking. On Android 10 and newer, clearing lock screens requires the **Display over other apps** permission. Secured lock screens are left intact. The kiosk waits behind them until someone unlocks the device, unless **Show over lock screen** is on under **Screen & Audio > Screen**, which shows the dashboard on top of them. Fire OS 8 strictly blocks non-Amazon apps from clearing lock screens, requiring a specific ADB setting change and reboot (see [Amazon Fire tablets](fire.md)). Kiosks configured to turn off display panels operate best with lock screens disabled entirely.
 
 The screensaver session remains active behind a dark panel, ensuring symmetrical wake behavior across all trigger sources. Supported wake triggers include [camera motion detection](microphone.md) (on supported hardware where background camera sessions survive screen off), wake word detection, toggling the ESPHome **Screensaver active** switch off, or calling `stopScreensaver` via Home Assistant automations. All wake triggers return the display directly to the live dashboard rather than the screensaver. Physical power button presses and double-tap-to-wake gestures act as touch interactions, returning to the dashboard and resetting the idle timeout clock. Under [Lockdown Mode](kiosk.md) or with **Power button** picked under **Wake to screensaver**, screensavers persist through these wake events as they do for motion. 
 

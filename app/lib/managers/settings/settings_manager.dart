@@ -599,6 +599,19 @@ class SettingsManager extends Manager {
         '${sendspinFullscreenLayout.key} ($horizontal)',
       );
     }
+    // Full screen (issue #1076) split into a switch per bar (issue #1102).
+    // A kiosk that showed both bars keeps showing them.
+    final fullScreenKey = '${_prefix}screen.full_screen';
+    final fullScreen = _prefs.get(fullScreenKey);
+    if (fullScreen is bool) {
+      for (final def in [screenHideStatusBar, screenHideNavigationBar]) {
+        if (_prefs.get(_prefix + def.key) == null) {
+          await _prefs.setBool(_prefix + def.key, fullScreen);
+        }
+      }
+      await _prefs.remove(fullScreenKey);
+      log.info(name, 'migrated screen.full_screen ($fullScreen)');
+    }
   }
 
   T get<T>(SettingDef<T> def) {
@@ -719,6 +732,17 @@ class SettingsManager extends Manager {
     if (key == 'sendspin.fullscreen_horizontal' && value is bool) {
       key = sendspinFullscreenLayout.key;
       value = sendspinLayoutFromSwitch(value);
+    }
+    // A backup, a fleet leader or an API caller from before Full screen
+    // became a switch per bar still sends it; it sets both.
+    if (key == 'screen.full_screen' && value is bool) {
+      await setFromJson(
+        screenHideStatusBar.key,
+        value,
+        source: source,
+        batch: batch,
+      );
+      key = screenHideNavigationBar.key;
     }
     final def = defByKey(key);
     if (def == null) return false;

@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kiosk_satellite/app_container.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/logging.dart';
@@ -138,6 +141,80 @@ void main() {
     expect(document, contains("next.style.opacity = '0'"));
     expect(document, contains('if (pending !== next) return;'));
     expect(document, isNot(contains('allow-same-origin')));
+  });
+
+  testWidgets('a native renderer shows the plugin view through the overlay '
+      'factory, rebuilt on every publication', (tester) async {
+    final calls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform_views,
+      (call) async {
+        calls.add(call);
+        return call.method == 'create' ? 0 : null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        null,
+      ),
+    );
+    final c = AppContainer();
+    await c.settings.init();
+    Map<String, Object?> view(int generation) => {
+      'key': 'dvd',
+      'title': 'DVD',
+      'view': true,
+      'generation': generation,
+      'session': 'token',
+      'pluginId': 'hello-world',
+    };
+    c.plugins.screensavers.value = {mode: view(3)};
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PluginScreensaver(container: c, mode: mode),
+      ),
+    );
+    await tester.pump();
+    AndroidView shown() => tester.widget<AndroidView>(find.byType(AndroidView));
+    expect(shown().viewType, 'kiosk_satellite/plugin_overlay');
+    final params = shown().creationParams as Map;
+    expect(params['kind'], 'screensaver');
+    expect(params['id'], 'hello-world');
+    expect(params['session'], 'token');
+    expect(params['key'], 'dvd');
+    expect(params['generation'], 3);
+    expect(params['width'], -2);
+    expect(params['height'], -2);
+    expect(params['insets'], [0, 0, 0, 0]);
+    expect(params['theme'], isA<Map>());
+    // Touches stay with KS.
+    expect(
+      find.ancestor(
+        of: find.byType(AndroidView),
+        matching: find.byWidgetPredicate(
+          (w) => w is IgnorePointer && w.ignoring,
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    final created = calls.where((c) => c.method == 'create').length;
+    c.plugins.screensavers.value = {mode: view(4)};
+    await tester.pump();
+    await tester.pump();
+    expect((shown().creationParams as Map)['generation'], 4);
+    expect(calls.where((c) => c.method == 'create').length, created + 1);
+    expect(calls.where((c) => c.method == 'dispose'), isNotEmpty);
+
+    // Removed, the screensaver goes black and the view is disposed, which
+    // tells the plugin to stop drawing.
+    final disposed = calls.where((c) => c.method == 'dispose').length;
+    c.plugins.screensavers.value = {};
+    await tester.pump();
+    expect(find.byType(AndroidView), findsNothing);
+    expect(calls.where((c) => c.method == 'dispose').length, disposed + 1);
+    await tester.pumpWidget(const SizedBox());
   });
 
   group('asset publications keep the shown document until the next paints', () {

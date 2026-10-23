@@ -321,6 +321,38 @@ function updateSessionPermissions(tab, shown) {
   watchUpdates(['service'], () => poll().then(render), { owner: row });
 }
 
+/* The Music Library page's voice group, after its settings. Voice music
+   lives in Home Assistant (the blueprint), so the group only points at the
+   guide. Mirror of the device's group. */
+const MUSIC_VOICE_DOCS_URL = 'https://kiosksatellite.com/docs/music-library/#playing-music-by-voice';
+
+export function updateMusicLibraryPage() {
+  const panel = document.querySelector('#tab-sendspin > .subpage[data-subpage="Music Library"]');
+  if (!panel || panel.querySelector('.library-voice')) return;
+  const heading = document.createElement('h2');
+  heading.className = 'card-title';
+  heading.textContent = t('libraryVoiceSection');
+  const card = document.createElement('div');
+  card.className = 'card library-voice';
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.dataset.searchId = 'x:library_voice';
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = '<div class="name"></div><div class="desc"></div>';
+  info.querySelector('.name').textContent = t('libraryVoiceManage');
+  info.querySelector('.desc').textContent = t('libraryVoiceHint');
+  const link = document.createElement('a');
+  link.className = 'btn-ghost';
+  link.textContent = deviceText('Open guide');
+  link.href = MUSIC_VOICE_DOCS_URL;
+  link.target = '_blank';
+  link.rel = 'noreferrer';
+  row.append(info, link);
+  card.appendChild(row);
+  panel.append(heading, card);
+}
+
 /* The Sonos page's speakers, under its setting: every room the device
    knows with a Forget, a search of the network and an address field for a
    speaker the search cannot reach. Mirror of the device's card. */

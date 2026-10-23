@@ -18,14 +18,23 @@ import kotlin.math.min
  * tried, and the next walk waits out a backoff that doubles up to
  * [BACKOFF_MAX_NS]: a microphone that really died is retried within
  * minutes, one that is merely quiet is not reopened every two seconds.
+ *
+ * A run of zeros that ends in audio without a reopen proves the rung
+ * gates: a dead capture does not come back by itself. Silence on a
+ * [gating] rung never walks the ladder. After [GATING_ZERO_BYTES] it is
+ * only reopened in place, on the same format and source, which still
+ * recovers a capture that wedged.
  */
-internal class CaptureWalk(private val rungs: Int, start: Int) {
+internal class CaptureWalk(private val rungs: Int, start: Int, gating: Set<Int> = emptySet()) {
     companion object {
         /** All-zero bytes, as 16 kHz mono PCM16, before a fresh rung is given up on: 2 s. */
         const val FRESH_ZERO_BYTES = 2L * 16000 * 2
 
         /** The same for a rung that has delivered audio: 30 s. */
         const val TRUSTED_ZERO_BYTES = 30L * 16000 * 2
+
+        /** The same for a rung proven to gate, before it is reopened in place: 10 min. */
+        const val GATING_ZERO_BYTES = 600L * 16000 * 2
 
         const val BACKOFF_FIRST_NS = 60_000_000_000L
         const val BACKOFF_MAX_NS = 600_000_000_000L
@@ -68,6 +77,7 @@ internal class CaptureWalk(private val rungs: Int, start: Int) {
     var nextWalkNs = 0L
         private set
     private var backoffNs = BACKOFF_FIRST_NS
+    private val gatingRungs = BooleanArray(rungs) { it in gating }
 
     /** Seconds until the next walk may start, as armed by the last [exhausted]. */
     var waitSeconds = 0L
@@ -79,16 +89,30 @@ internal class CaptureWalk(private val rungs: Int, start: Int) {
         step = rung
     }
 
-    /** The current rung delivered nonzero audio. */
-    fun audible() {
+    /**
+     * The current rung delivered nonzero audio after [afterZeroBytes] of
+     * silence in the same open. True when that proves for the first time
+     * that the rung gates.
+     */
+    fun audible(afterZeroBytes: Long = 0L): Boolean {
         audibleStep = step
+        if (afterZeroBytes < FRESH_ZERO_BYTES || gatingRungs[step]) return false
+        gatingRungs[step] = true
+        return true
     }
+
+    /** The current rung is one that gates quiet audio to zeros. */
+    val gating: Boolean get() = gatingRungs[step]
 
     /** The current rung is one that delivered audio at some point. */
     val trusted: Boolean get() = audibleStep == step
 
     /** How much silence the current rung may read before it counts against it. */
-    val zeroLimitBytes: Long get() = if (trusted) TRUSTED_ZERO_BYTES else FRESH_ZERO_BYTES
+    val zeroLimitBytes: Long get() = when {
+        gating -> GATING_ZERO_BYTES
+        trusted -> TRUSTED_ZERO_BYTES
+        else -> FRESH_ZERO_BYTES
+    }
 
     /** Whether a walk down the ladder may start now. */
     fun mayWalk(nowNs: Long): Boolean = nowNs >= nextWalkNs

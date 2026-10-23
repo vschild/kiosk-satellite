@@ -316,6 +316,27 @@ class KioskDrawer extends StatelessWidget {
                                     );
                                   },
                                 ),
+                              // The music library, the same way, once some
+                              // source is set up to browse.
+                              if (c.settings.get(defs.libraryMenu) &&
+                                  c.musicLibrary.available.isNotEmpty &&
+                                  (!restricted ||
+                                      c.settings.get(
+                                        defs.kioskAllowMusicLibrary,
+                                      )))
+                                _item(
+                                  divided: sep(),
+                                  context,
+                                  Icons.library_music_outlined,
+                                  l10n(context).libraryTitle,
+                                  () {
+                                    onClose();
+                                    c.commands.execute(
+                                      'openMusicLibrary',
+                                      const {},
+                                    );
+                                  },
+                                ),
                               // Music Assistant's own web interface, over
                               // the dashboard on the same surface a tapped
                               // link gets — browsing, queueing and

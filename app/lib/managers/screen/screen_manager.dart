@@ -1154,11 +1154,21 @@ class ScreenManager extends Manager with WidgetsBindingObserver {
           );
         }
       case 'secure':
-        log.warn(
-          name,
-          'the panel lit on a secured lock screen; the kiosk stays behind '
-          'it until the device is unlocked',
-        );
+        // Show over lock screen puts the kiosk on top of it instead
+        // (discussion #1105).
+        if (_settings.get(defs.screenShowOnLockScreen)) {
+          log.info(
+            name,
+            'the panel lit on a secured lock screen; showing over it',
+          );
+        } else {
+          log.warn(
+            name,
+            'the panel lit on a secured lock screen; the kiosk stays behind '
+            'it until the device is unlocked. Turn on Show over lock screen '
+            'to show it anyway',
+          );
+        }
       case 'no_overlay_grant':
         log.warn(
           name,

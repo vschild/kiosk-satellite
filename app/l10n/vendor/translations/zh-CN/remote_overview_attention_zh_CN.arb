@@ -21,5 +21,7 @@
   "overviewWakeReleased": "检测引擎已释放。",
   "overviewOpenVoice": "打开 Voice Satellite",
   "overviewOpenService": "打开服务",
-  "overviewPermissionMissing": "缺少权限：{permission}"
+  "overviewPermissionMissing": "缺少权限：{permission}",
+  "overviewSystemUpdate": "有可用的系统更新",
+  "overviewSystemUpdateHelp": "Echo Dot 镜像 {version} 版已可安装。安装时 Dot 会重启两次。"
 }

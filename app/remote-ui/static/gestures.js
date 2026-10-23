@@ -49,6 +49,7 @@ const DISPLAY_ACTIONS = new Set([
   'navigate', 'refresh', 'url', 'camera_view', 'sendspin_player', 'now_playing',
   'music_assistant', 'app_launcher', 'intercom_open', 'screensaver', 'screensaver_stop',
   'hold_mode', 'ha_kiosk', 'launch_app', 'open_uri', 'android_settings', 'calendar',
+  'music_library',
 ]);
 // The buttons that reach the app. The Echo Dot's LineageOS build keeps the
 // microphone and volume buttons for itself (they mute and change the volume
@@ -66,6 +67,7 @@ export const GESTURE_ACTION_GROUPS = [
     ['sendspin_player', 'Show the floating player', 'speaker'],
     ['now_playing', 'Show Now Playing', 'playCircle'],
     ['music_assistant', 'Open Music Assistant', 'music'],
+    ['music_library', 'Open Music Library', 'queueMusic'],
     ['media_play_pause', 'Play or pause media', 'playPause'],
     ['app_launcher', 'Open the app launcher', 'apps'],
     ['intercom_open', 'Open Call a kiosk', 'speaker'],
@@ -159,6 +161,7 @@ export function describeGestureAction(a) {
     case 'alarm_stop': return gestureText('Stop the alarm');
     case 'alarm_snooze': return gestureText('Snooze the alarm');
     case 'calendar': return gestureText('Open the calendar');
+    case 'music_library': return gestureText('Open Music Library');
     case 'voice_wake': return gestureText('Start a voice command');
     case 'voice_stop': return gestureText('Stop the voice assistant');
     case 'voice_mute': return gestureText('Mute or unmute Voice Satellite');
@@ -523,6 +526,7 @@ export async function pickGestureAction(current) {
     case 'media_play_pause': case 'intercom_open': case 'intercom_hangup':
     case 'intercom_answer': case 'intercom_decline':
     case 'alarm_stop': case 'alarm_snooze': case 'calendar': case 'refresh':
+    case 'music_library':
     case 'voice_wake': case 'voice_stop': case 'voice_mute':
       return { type };
     case 'navigate': return configureGestureNavigate(carried);

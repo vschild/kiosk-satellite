@@ -40,15 +40,23 @@
 
 &bull; **Dashboard performance:** Optional [optimizations](https://kiosksatellite.com/docs/optimizations/) reduce unnecessary dashboard updates and pause rendering during screensavers to lower CPU and GPU usage on older devices. Voice and the Home Assistant connection stay active.
 
-&bull; **[Music playback](https://kiosksatellite.com/docs/sendspin/):** Synchronized Music Assistant audio through Sendspin, AirPlay from an iPhone, iPad or Mac and the option to follow a Home Assistant or Sonos player. The full-screen Now Playing view shows album art, playback controls and supported lyrics.
+&bull; **[Music playback](https://kiosksatellite.com/docs/sendspin/):** Synchronized Music Assistant audio through Sendspin, AirPlay from an iPhone, iPad or Mac and the option to follow a Home Assistant or Sonos player. The full-screen Now Playing view shows album art, playback controls and supported lyrics, and the [Music Library](https://kiosksatellite.com/docs/music-library/) browses Music Assistant, Home Assistant or Sonos and plays on any speaker.
 
 <p align="center">
-  <a href="assets/screenshots/screensaver-np.png"><img src="assets/screenshots/screensaver-np.png" alt="Settings in Kiosk Satellite" width="650" /></a>
-  <a href="assets/screenshots/clock_flip.png"><img src="assets/screenshots/clock_flip.png" alt="Flip Clock Screensaver in  Kiosk Satellite" width="320" /></a>
-  <a href="assets/screenshots/weathermood-dawn.png"><img src="assets/screenshots/weathermood-dawn.png" alt="Weather Mood Screensaver in Kiosk Satellite" width="320" /></a>
+  <a href="assets/screenshots/now-playing.png"><img src="assets/screenshots/now-playing.png" alt="Now Playing with album artwork and music controls" width="650" /></a>
+  <a href="assets/screenshots/ml_discover_light.png"><img src="assets/screenshots/ml_discover_light.png" alt="Music Library Discover in  Kiosk Satellite" width="320" /></a>
+  <a href="assets/screenshots/ml_playlist_dark.png"><img src="assets/screenshots/ml_playlist_dark.png" alt="Music Library Discover in  Kiosk Satellite" width="320" /></a>
 </p>
 
 &bull; **Screensavers:** [Immich albums](https://kiosksatellite.com/docs/immich/), local photos, clocks, weather mood and a live night sky, with motion, face or presence detection to wake the kiosk.
+
+&bull; **[Motion, face and person detection](https://kiosksatellite.com/docs/camera/):** The device camera detects motion and faces on the device itself. Motion wakes the screen when someone walks up and holds off the screensaver while the room is in use. Face detection wakes it only when someone looks at the screen, so people walking past leave the screensaver up. Person detection uses the built-in sensor on supported devices. Motion and person also show up in Home Assistant as sensors for your automations.
+
+<p align="center">
+  <a href="assets/screenshots/screensaver-np.png"><img src="assets/screenshots/screensaver-np.png" alt="Settings in Kiosk Satellite" width="650" /></a>
+  <a href="assets/screenshots/clock-digital.png"><img src="assets/screenshots/clock-digital.png" alt="Digital Clock Screensaver in  Kiosk Satellite" width="320" /></a>
+  <a href="assets/screenshots/weathermood-dawn.png"><img src="assets/screenshots/weathermood-dawn.png" alt="Weather Mood Screensaver in Kiosk Satellite" width="320" /></a>
+</p>
 
 &bull; **Home Assistant integration:** The built-in [ESPHome connection](https://kiosksatellite.com/docs/esphome/) exposes screen controls, volume and device sensors. An optional Bluetooth proxy relays nearby Bluetooth devices to Home Assistant.
 

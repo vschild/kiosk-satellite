@@ -51,6 +51,7 @@ export const navigationMessageIds = {
   "Kiosk": "settingsGroupKiosk",
   "System": "settingsGroupSystem",
   "Overlays": "cameraOverlaysHeading",
+  "Motion Events": "cameraMotionEventsHeading",
   "Alarms": "settingsMenuAlarms",
   "Set alarms, tone, snooze, sunrise": "settingsMenuAlarmsSummary",
   "Status and quick controls": "settingsMenuOverviewHeadlessSummary",

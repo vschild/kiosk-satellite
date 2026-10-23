@@ -29,6 +29,26 @@ class PluginVoiceFeed {
   final SettingsManager settings;
 }
 
+/// The screensaver mode plugins with the screensaver.mode capability read
+/// and hold, through the screensaver manager.
+class PluginScreensaverModes {
+  const PluginScreensaverModes({
+    required this.read,
+    required this.hold,
+    required this.release,
+  });
+
+  /// {mode, saved, schedule, override, active, modes}.
+  final Map<String, Object?> Function() read;
+
+  /// Holds the screensaver on a mode for an owner. False for a mode the
+  /// device cannot show.
+  final bool Function(String owner, String mode) hold;
+
+  /// Drops the owner's hold.
+  final void Function(String owner) release;
+}
+
 /// Explicit SDK 1 host surface. Registry additions do not expand plugin access.
 class PluginHostApi {
   PluginHostApi(
@@ -38,6 +58,7 @@ class PluginHostApi {
     this.ha,
     this.ma,
     this.voice,
+    this.screensaverModes,
   }) {
     _events = bus.stream.listen(_onEvent);
     ha?.emit = _onHaEvent;
@@ -59,6 +80,9 @@ class PluginHostApi {
 
   /// The voice turn, for voice.text, voice.level and voice.skin.
   final PluginVoiceFeed? voice;
+
+  /// The screensaver mode, for sessions that declare screensaver.mode.
+  final PluginScreensaverModes? screensaverModes;
   late final StreamSubscription<AppEvent> _events;
   final _sessions = <String, _HostSession>{};
   bool _disposed = false;
@@ -140,6 +164,15 @@ class PluginHostApi {
 
   /// The longest command or answer a plugin gets, in characters.
   static const maxVoiceText = 16000;
+
+  /// Which screensaver shows, for sessions that declare the
+  /// screensaver.mode capability. A plugin holds a mode in place of the
+  /// schedule and the setting until it clears it or its session ends.
+  static const screensaverModeCommandNames = [
+    'getScreensaverMode',
+    'setScreensaverMode',
+    'clearScreensaverMode',
+  ];
 
   static bool _volumeChannel(Map params) =>
       !params.containsKey('channel') ||
@@ -243,6 +276,8 @@ class PluginHostApi {
                     DateTime.tryParse(date) != null));
       case 'loadDashboard':
         return keys({'dashboard'}) && path('dashboard');
+      case 'setScreensaverMode':
+        return params.length == 1 && text('mode');
       case 'haNavigate':
         return keys({'path'}) && viewPath('path');
       default:
@@ -284,7 +319,16 @@ class PluginHostApi {
   static const _fields = {
     'getLightLevel': ['present', 'lux', 'live'],
     'getNoiseLevel': ['available', 'dbfs', 'held', 'updated'],
-    'getStats': ['battery', 'charging', 'cpu', 'temp', 'memFree', 'memTotal'],
+    'getStats': [
+      'battery',
+      'charging',
+      'cpu',
+      'cpuClock',
+      'temp',
+      'batteryTemp',
+      'memFree',
+      'memTotal',
+    ],
     'getUptime': ['app', 'network'],
     'getDeviceInfo': [
       'name',
@@ -359,7 +403,11 @@ class PluginHostApi {
     if (capabilities is! List ||
         !capabilities.any(
           (c) =>
-              c == 'host.read' || c == 'host.control' || c == 'ha' || c == 'ma',
+              c == 'host.read' ||
+              c == 'host.control' ||
+              c == 'ha' ||
+              c == 'ma' ||
+              c == 'screensaver.mode',
         )) {
       return;
     }
@@ -374,6 +422,7 @@ class PluginHostApi {
       canHa: capabilities.contains('ha'),
       canMa: capabilities.contains('ma'),
       canVoiceText: capabilities.contains('voice.text'),
+      canScreensaverMode: capabilities.contains('screensaver.mode'),
     );
   }
 
@@ -391,6 +440,9 @@ class PluginHostApi {
     );
     if (session.canHa) ha?.release(session.owner);
     if (session.canMa) ma?.release(session.owner);
+    if (session.canScreensaverMode) {
+      screensaverModes?.release(session.owner);
+    }
   }
 
   static String? entityEventId(String event) {
@@ -468,6 +520,8 @@ class PluginHostApi {
             !(session.canRead &&
                 session.canVoiceText &&
                 voiceTextCommandNames.contains(name)) &&
+            !(session.canScreensaverMode &&
+                screensaverModeCommandNames.contains(name)) &&
             !(session.canControl && isControl))) {
       return const CommandResult.fail(
         'Command is not available through this plugin session',
@@ -503,12 +557,16 @@ class PluginHostApi {
           if (session.canHa && ha != null) 'ha',
           if (session.canMa && ma != null) 'ma',
           if (session.canRead && session.canVoiceText) 'voice.text',
+          if (session.canScreensaverMode && screensaverModes != null)
+            'screensaver.mode',
         ],
         'commands': [
           'getHostApi',
           if (session.canRead) ...commandNames.skip(1),
           if (session.canRead && session.canNoise) ...noiseCommandNames,
           if (session.canRead && session.canVoiceText) ...voiceTextCommandNames,
+          if (session.canScreensaverMode && screensaverModes != null)
+            ...screensaverModeCommandNames,
           if (session.canControl) ...controlNames,
         ],
         'events': [
@@ -525,6 +583,24 @@ class PluginHostApi {
               'KS could not complete this command. The feature may be unavailable.',
             ).toJson()
           : CommandResult.ok(appearance).toJson();
+    }
+    if (screensaverModeCommandNames.contains(name)) {
+      final modes = screensaverModes;
+      if (modes == null) {
+        return const CommandResult.fail(
+          'KS could not complete this command. The feature may be unavailable.',
+        ).toJson();
+      }
+      if (name == 'getScreensaverMode') {
+        return CommandResult.ok(modes.read()).toJson();
+      }
+      if (name == 'setScreensaverMode') {
+        return modes.hold(session.owner, params['mode'] as String)
+            ? const CommandResult.ok().toJson()
+            : const CommandResult.fail('Unknown screensaver mode').toJson();
+      }
+      modes.release(session.owner);
+      return const CommandResult.ok().toJson();
     }
     if (name == 'getVoiceText') {
       final text = _voiceText();
@@ -1256,6 +1332,7 @@ class _HostSession {
     this.canHa = false,
     this.canMa = false,
     this.canVoiceText = false,
+    this.canScreensaverMode = false,
   });
 
   /// Home Assistant and Music Assistant events waiting for a slow plugin.
@@ -1268,6 +1345,7 @@ class _HostSession {
   final bool canHa;
   final bool canMa;
   final bool canVoiceText;
+  final bool canScreensaverMode;
   final String id;
   final String token;
   String get owner => '$id:$token';

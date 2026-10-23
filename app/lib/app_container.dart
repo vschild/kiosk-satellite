@@ -37,12 +37,14 @@ import 'managers/launcher/home_launcher_manager.dart';
 import 'managers/led/led_manager.dart';
 import 'managers/motion/motion_entity_manager.dart';
 import 'managers/motion/motion_manager.dart';
+import 'managers/motion/onvif_events_manager.dart';
 import 'managers/notifications/notification_manager.dart';
 import 'managers/fleet/fleet_manager.dart';
 import 'managers/fleet/fleet_sync_manager.dart';
 import 'managers/intercom/intercom_manager.dart';
 import 'managers/alarms/alarm_manager.dart';
 import 'managers/calendar/calendar_manager.dart';
+import 'managers/music_library/music_library_manager.dart';
 import 'managers/analytics/analytics_manager.dart';
 import 'managers/analytics/usage_counters.dart';
 import 'managers/broadcasts/event_broadcast_manager.dart';
@@ -62,6 +64,7 @@ import 'managers/sound/sound_manager.dart';
 import 'managers/settings/headless_settings.dart';
 import 'managers/settings/provisioning.dart';
 import 'managers/settings/settings_manager.dart';
+import 'managers/update/system_update_manager.dart';
 import 'managers/update/update_manager.dart';
 import 'managers/voice/voice_manager.dart';
 import 'managers/voice/voice_requests_manager.dart';
@@ -133,6 +136,17 @@ class AppContainer {
     );
     analytics = AnalyticsManager(bus, commands, log, settings);
     personSensor = PersonSensorManager(bus, commands, log, settings);
+    // It watches its Home Assistant source through homeAssistant.
+    onvifEvents = OnvifEventsManager(
+      bus,
+      commands,
+      log,
+      settings,
+      homeAssistant,
+    );
+    // The Portal turns its own screen on for someone it sees, and only the
+    // person sensor's log tail can tell that wake from the power button.
+    screensaver.systemWakeSource = personSensor.wakeSource;
     // Before wakeWord: its init seeds the mic selector the engine reads at
     // start, and its SettingChanged subscription must run before wakeWord's
     // restart re-opens capture.
@@ -176,6 +190,7 @@ class AppContainer {
           ? settings.get(updateSourceUrl).trim()
           : null,
     );
+    systemUpdate = SystemUpdateManager(bus, commands, log);
     // After homeAssistant: it reads states through it for the fallback.
     glance = GlanceManager(bus, commands, log, settings, homeAssistant);
     shizuku = ShizukuManager(bus, commands, log);
@@ -184,6 +199,11 @@ class AppContainer {
         view: voice.view,
         level: voice.level,
         settings: settings,
+      )
+      ..screensaverModes = PluginScreensaverModes(
+        read: () => screensaver.modeState,
+        hold: screensaver.setModeOverride,
+        release: screensaver.clearModeOverride,
       )
       ..camera = PluginCamera(
         motion: motion,
@@ -204,8 +224,17 @@ class AppContainer {
     plugins.onActivity = (name) =>
         unawaited(UsageCounters.bump(settings, name));
     intercom = IntercomManager(bus, commands, log, settings);
-    alarms = AlarmManager(bus, commands, log, settings);
+    alarms = AlarmManager(bus, commands, log, settings)
+      ..screensaverModeOverride = () => screensaver.modeOverride.value;
     calendar = CalendarManager(bus, commands, log, settings);
+    musicLibrary = MusicLibraryManager(bus, commands, log, settings);
+    // The library is opaque and full screen too.
+    musicLibrary.visible.addListener(
+      () => browser.setCovered(
+        'music library',
+        covered: musicLibrary.visible.value,
+      ),
+    );
     voiceRequests = VoiceRequestsManager(bus, commands, log, settings);
     // It follows what the managers above are doing, through the bus and
     // the media players' own states.
@@ -263,6 +292,7 @@ class AppContainer {
   late final CelestialLocator celestial;
   late final AnalyticsManager analytics;
   late final PersonSensorManager personSensor;
+  late final OnvifEventsManager onvifEvents;
   late final HomeAssistantManager homeAssistant;
   late final AudioRoutingManager audio;
   late final EventBroadcastManager broadcasts;
@@ -280,6 +310,7 @@ class AppContainer {
   late final VoiceManager voice;
   late final NotificationManager notifications;
   late final UpdateManager update;
+  late final SystemUpdateManager systemUpdate;
   late final ShizukuManager shizuku;
   late final PluginManager plugins;
   late final RemoteManager remote;
@@ -288,6 +319,7 @@ class AppContainer {
   late final IntercomManager intercom;
   late final AlarmManager alarms;
   late final CalendarManager calendar;
+  late final MusicLibraryManager musicLibrary;
   late final VoiceRequestsManager voiceRequests;
   late final LedManager leds;
   late final PageStateManager pageState;
@@ -329,6 +361,8 @@ class AppContainer {
     // report waits minutes anyway.
     analytics,
     personSensor,
+    // After personSensor: its init asks for the current presence.
+    onvifEvents,
     homeAssistant,
     audio,
     // After kiosk (it relays GestureDetected) and after audio: gestures may
@@ -345,6 +379,12 @@ class AppContainer {
     dlna,
     // After sendspin: the surfaces it drives follow an AirPlay session.
     airplay,
+    // Before btProxy, whose first catalog lists the LED Control Idle
+    // entities only once ledStatus says there are lights, and before the
+    // remote admin's first request reads its hidden settings. It follows
+    // the other managers through the bus, so starting before them costs
+    // nothing.
+    leds,
     btProxy,
     files,
     glance,
@@ -356,6 +396,7 @@ class AppContainer {
     voice,
     notifications,
     update,
+    systemUpdate,
     shizuku,
     plugins,
     remote,
@@ -371,11 +412,11 @@ class AppContainer {
     alarms,
     // Nothing reaches Home Assistant until a screen watches some days.
     calendar,
+    // Nothing connects until the library opens. Its plays go through the
+    // Sendspin manager's commands.
+    musicLibrary,
     // After intercom and alarms: it runs their commands.
     voiceRequests,
-    // Before the remote admin's first request reads its hidden settings,
-    // which is not until every manager is up.
-    leds,
     // Last: it reads the state every manager above keeps.
     pageState,
   ];

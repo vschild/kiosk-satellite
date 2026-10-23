@@ -28,6 +28,8 @@ void main() {
         'view': 'month',
       });
       expect(kioskLinkAction('ks://calendar/year'), isNull);
+      expect(kioskLinkAction('ks://music-library'), {'type': 'music_library'});
+      expect(kioskLinkAction('ks://music-library/albums'), isNull);
     });
 
     test('camera links pick a view, the default view or close', () {

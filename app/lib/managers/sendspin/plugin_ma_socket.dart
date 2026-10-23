@@ -29,6 +29,7 @@ class MaPluginSocket {
     required this.log,
     this.idleClose = const Duration(seconds: 60),
     this.callTimeout = const Duration(seconds: 25),
+    this.maxResult = maxResultBytes,
   });
 
   /// The Music Assistant address and token from the Sendspin settings,
@@ -38,6 +39,12 @@ class MaPluginSocket {
   final Logger log;
   final Duration idleClose;
   final Duration callTimeout;
+
+  /// The largest answer handed back. Plugins get [maxResultBytes]. Zero
+  /// hands back any size without measuring it: the Music Library's own
+  /// connection, whose album and playlist listings run large and would
+  /// otherwise be encoded once more on the UI thread just to be counted.
+  final int maxResult;
 
   /// Delivers a subscription's events and status changes to its plugin
   /// session: `{type: event, event, objectId, data}`, `{type: too_large,
@@ -141,7 +148,7 @@ class MaPluginSocket {
               (result) {
                 if (done.isCompleted) return;
                 done.complete(
-                  _bytes({'result': result}) > maxResultBytes
+                  maxResult > 0 && _bytes({'result': result}) > maxResult
                       ? _error('too_large', 'The result is larger than 512 KB')
                       : {'ok': true, 'result': result},
                 );

@@ -8,5 +8,10 @@
   "aboutDownloadProgress": "Descargando… {percent}%",
   "aboutDownloadFailed": "La actualización falló: {error}",
   "aboutAlreadyCurrent": "Ya está actualizado",
-  "aboutInstallHelp": "La descarga se realiza en la tablet. Debes confirmar la instalación en su pantalla."
+  "aboutInstallHelp": "La descarga se realiza en la tablet. Debes confirmar la instalación en su pantalla.",
+  "aboutSystem": "Sistema",
+  "aboutSystemVersion": "Versión de la ROM",
+  "aboutSystemVerifying": "Verificando…",
+  "aboutSystemInstalling": "Instalando…",
+  "aboutSystemInstallHelp": "El Dot se reinicia dos veces para instalar la actualización y queda sin conexión aproximadamente un minuto y medio cada vez."
 }

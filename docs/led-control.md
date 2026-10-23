@@ -36,6 +36,15 @@ Below it, the page has a group for the idle look and one for each feature: Idle,
 - **Timers** also has **Show the countdown**, off by default, as on an Echo Dot.
 - **Media Player** is off by default, as on an Echo Dot, and its **Effect** is **Solid** or **Breathing**.
 
+## Home Assistant
+
+With [ESPHome](esphome.md) on, the Idle group shows up in Home Assistant as two entities while **Enable LED Control** is on:
+
+- **LED Control Idle** is a light. Turning it on or off switches **Light up when idle**, and its brightness and color set the group's **Brightness** and **Color**. The brightness moves in 5% steps and never goes below 5%.
+- **LED Control Idle Effect** is a select with **Solid** and **Breathing**.
+
+Turning **Enable LED Control** on or off reconnects ESPHome so Home Assistant gets the updated entity list.
+
 ## Supported Devices
 
 | Device | Lights |

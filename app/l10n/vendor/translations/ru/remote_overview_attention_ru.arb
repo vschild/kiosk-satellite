@@ -21,5 +21,7 @@
   "overviewWakeReleased": "Движок был освобождён.",
   "overviewOpenVoice": "Открыть Voice Satellite",
   "overviewOpenService": "Открыть службу",
-  "overviewPermissionMissing": "Нет разрешения: {permission}"
+  "overviewPermissionMissing": "Нет разрешения: {permission}",
+  "overviewSystemUpdate": "Доступно обновление системы",
+  "overviewSystemUpdateHelp": "Версия {version} образа Echo Dot готова к установке. Для этого Dot дважды перезагрузится."
 }

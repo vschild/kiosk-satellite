@@ -191,6 +191,15 @@ const List<SettingsSearchEntry> handBuiltSearchEntries = [
     anchorId: "x:alarms_voice",
   ),
   SettingsSearchEntry(
+    category: "Sendspin",
+    title: "Manage music using Voice Satellite",
+    description:
+        "Needs the Kiosk Satellite music blueprint and an LLM conversation "
+        "agent in Home Assistant.",
+    subpage: "Music Library",
+    anchorId: "x:library_voice",
+  ),
+  SettingsSearchEntry(
     category: "Device",
     title: "Learn how we process your data",
     description:

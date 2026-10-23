@@ -14,14 +14,76 @@ import 'toast.dart';
 Map? pluginSetupRun(PluginManager plugins, String pluginId, String target) =>
     ((plugins.setup.value[pluginId]?['runs'] as Map?)?[target]) as Map?;
 
-/// The choices a plugin listed for a setting, or null before it listed any.
-List<Map>? pluginSetupChoices(
+/// The choices a plugin listed for a setting or a list row field, by its
+/// key or dotted path, as the picker lists them. Null before it listed
+/// any. Each list is converted once, however often rows redraw.
+PickList? pluginChoiceList(PluginManager plugins, String pluginId, String key) {
+  final choices = (plugins.setup.value[pluginId]?['choices'] as Map?)?[key];
+  if (choices is! List) return null;
+  return _choiceLists[choices] ??= _pickList(choices);
+}
+
+final _choiceLists = Expando<PickList>();
+
+/// A choice shows its label, with its detail below and its value on the
+/// right, the way an entity shows its state, and its category as a chip.
+/// A plain choice with only a label shows its ID below instead. Groups
+/// keep the order they first appear in.
+PickList _pickList(List choices) {
+  final items = [
+    for (final choice in choices.whereType<Map>())
+      PickItem(
+        id: '${choice['id']}',
+        name: '${choice['label']}',
+        sub: choice['detail'] != null
+            ? '${choice['detail']}'
+            : choice['label'] == choice['id'] || _rich(choice)
+            ? null
+            : '${choice['id']}',
+        subMono: choice['detail'] == null,
+        state: choice['value'] as String?,
+        group: '${choice['group'] ?? ''}',
+        chip: choice['category'] as String?,
+        icon: choice['icon'] as String?,
+      ),
+  ];
+  return PickList(items, groupOrder: {for (final i in items) i.group}.toList());
+}
+
+bool _rich(Map choice) => [
+  'group',
+  'value',
+  'category',
+  'icon',
+].any((field) => choice[field] != null);
+
+/// The picker for the choices at [key], with group headings once any
+/// choice has a group and chips once they hold two categories.
+PickSpec pluginChoiceSpec(
+  BuildContext context,
   PluginManager plugins,
   String pluginId,
-  String key,
-) => ((plugins.setup.value[pluginId]?['choices'] as Map?)?[key] as List?)
-    ?.whereType<Map>()
-    .toList();
+  String key, {
+  String? emptyText,
+}) => PickSpec(
+  key: 'pluginChoices:$pluginId:$key',
+  // The picker loads the list as it opens, so it starts on the latest. A
+  // plugin that has not listed any yet has an empty list, not one that
+  // failed to load, so the picker says so instead of blaming Home Assistant.
+  loader: () async =>
+      pluginChoiceList(plugins, pluginId, key) ?? const PickList([]),
+  searchHint: pluginText(context, 'Search'),
+  noGroup: '',
+  headings:
+      pluginChoiceList(
+        plugins,
+        pluginId,
+        key,
+      )?.items.any((i) => i.group.isNotEmpty) ??
+      false,
+  byGroupName: false,
+  emptyText: (context) => _emptyText(context, emptyText),
+);
 
 /// Starts a run, with the toast every other plugin action shows when the
 /// host refuses it.
@@ -161,6 +223,99 @@ class PluginSetupButtonRow extends StatelessWidget {
   );
 }
 
+/// What a choices setting says before the plugin lists any: the plugin's own
+/// words from the manifest, else that it has none yet.
+String _emptyText(BuildContext context, String? text) =>
+    text != null && text.isNotEmpty
+    ? text
+    : pluginText(context, 'No choices yet. Refresh to look for them.');
+
+/// The pieces of a choices control: the picked choice by its label,
+/// Refresh to have the plugin look again (a spinner that cancels while it
+/// looks), whether the saved choice is no longer listed and the refresh's
+/// progress or outcome.
+({Widget field, Widget refresh, bool missing, Widget? status}) _choiceParts(
+  BuildContext context, {
+  required PluginManager plugins,
+  required String pluginId,
+  required String path,
+  required String title,
+  required String value,
+  required bool running,
+  required bool enabled,
+  required ValueChanged<String> onPick,
+  String? emptyText,
+}) {
+  final list = pluginChoiceList(plugins, pluginId, path);
+  final run = pluginSetupRun(plugins, pluginId, 'choices:$path');
+  final busy = run?['state'] == 'running';
+  // The plugin turned it off, such as while its device cannot be reached.
+  final off =
+      (plugins.setup.value[pluginId]?['choicesOff'] as List?)?.contains(path) ??
+      false;
+  final status =
+      pluginSetupStatus(context, run) ??
+      (running && (list == null || list.items.isEmpty)
+          ? Text(_emptyText(context, emptyText))
+          : null);
+  final field = PickField(
+    value: value,
+    list: list,
+    placeholder: deviceText(context, 'Not set'),
+    enabled: enabled && !off,
+    onTap: () async {
+      final outcome = await showItemPicker(
+        context,
+        title: title,
+        spec: pluginChoiceSpec(
+          context,
+          plugins,
+          pluginId,
+          path,
+          emptyText: emptyText,
+        ),
+        selected: value.isEmpty ? null : value,
+        allowClear: true,
+      );
+      if (outcome != null && (outcome.id ?? '') != value) {
+        onPick(outcome.id ?? '');
+      }
+    },
+  );
+  final refresh = busy
+      ? IconButton(
+          tooltip: pluginText(context, 'Cancel'),
+          icon: _spinner(),
+          onPressed: () => unawaited(
+            plugins.cancelSetup(pluginId, '${run!['run']}').catchError((_) {}),
+          ),
+        )
+      : IconButton(
+          tooltip: pluginText(context, 'Refresh'),
+          icon: const Icon(Icons.refresh),
+          onPressed: running && !off
+              ? () => startPluginSetup(
+                  context,
+                  plugins,
+                  pluginId,
+                  target: 'choices',
+                  key: path,
+                )
+              : null,
+        );
+  return (
+    field: field,
+    refresh: refresh,
+    missing: PickField.missing(value, list),
+    status: status,
+  );
+}
+
+Widget _noLongerListed(BuildContext context) => Text(
+  pluginText(context, 'This choice is no longer listed.'),
+  style: TextStyle(color: Theme.of(context).colorScheme.error),
+);
+
 /// A text setting whose choices the plugin lists: the picked choice by its
 /// label, Refresh to have the plugin look again, and the refresh's
 /// progress or outcome below. The setting stores the choice's id.
@@ -184,121 +339,124 @@ class PluginChoiceRow extends StatelessWidget {
   final bool enabled;
   final ValueChanged<String> onPick;
 
-  String get _key => '${setting['key']}';
-
-  PickList? _list() {
-    final choices = pluginSetupChoices(plugins, pluginId, _key);
-    if (choices == null) return null;
-    return PickList([
-      for (final choice in choices)
-        PickItem(
-          id: '${choice['id']}',
-          name: '${choice['label']}',
-          sub: choice['label'] == choice['id'] ? null : '${choice['id']}',
-          subMono: true,
-        ),
-    ]);
-  }
-
-  Future<void> _open(BuildContext context) async {
-    // The picker loads the list as it opens, so it starts on the latest.
-    final outcome = await showItemPicker(
-      context,
-      title: '${setting['title']}',
-      spec: PickSpec(
-        key: 'pluginChoices:$pluginId:$_key',
-        loader: () async => _list(),
-        searchHint: pluginText(context, 'Search'),
-        noGroup: '',
-        chips: false,
-        headings: false,
-        byGroupName: false,
-      ),
-      selected: value.isEmpty ? null : value,
-      allowClear: true,
-    );
-    if (outcome != null && (outcome.id ?? '') != value) {
-      onPick(outcome.id ?? '');
-    }
-  }
-
   @override
   Widget build(BuildContext context) => ValueListenableBuilder(
     valueListenable: plugins.setup,
     builder: (context, _, _) {
-      final list = _list();
-      final run = pluginSetupRun(plugins, pluginId, 'choices:$_key');
-      final busy = run?['state'] == 'running';
-      final missing = PickField.missing(value, list);
-      final status =
-          pluginSetupStatus(context, run) ??
-          (running && (list == null || list.items.isEmpty)
-              ? Text(
-                  pluginText(
-                    context,
-                    'No choices yet. Refresh to look for them.',
-                  ),
-                )
-              : null);
-      final description = setting['description'] as String?;
-      final field = PickField(
+      final parts = _choiceParts(
+        context,
+        plugins: plugins,
+        pluginId: pluginId,
+        path: '${setting['key']}',
+        title: '${setting['title']}',
         value: value,
-        list: list,
-        placeholder: deviceText(context, 'Not set'),
+        running: running,
         enabled: enabled,
-        onTap: () => _open(context),
+        onPick: onPick,
+        emptyText: setting['emptyText'] as String?,
       );
-      final refresh = busy
-          ? IconButton(
-              tooltip: pluginText(context, 'Cancel'),
-              icon: _spinner(),
-              onPressed: () => unawaited(
-                plugins
-                    .cancelSetup(pluginId, '${run!['run']}')
-                    .catchError((_) {}),
-              ),
-            )
-          : IconButton(
-              tooltip: pluginText(context, 'Refresh'),
-              icon: const Icon(Icons.refresh),
-              onPressed: running
-                  ? () => startPluginSetup(
-                      context,
-                      plugins,
-                      pluginId,
-                      target: 'choices',
-                      key: _key,
-                    )
-                  : null,
-            );
-      final error = Theme.of(context).colorScheme.error;
+      final description = setting['description'] as String?;
       return SettingsRow(
         title: Text('${setting['title']}'),
         stack: true,
         enabled: enabled,
-        subtitle: description == null && status == null && !missing
+        subtitle: description == null && parts.status == null && !parts.missing
             ? null
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (missing)
-                    Text(
-                      pluginText(context, 'This choice is no longer listed.'),
-                      style: TextStyle(color: error),
-                    ),
+                  if (parts.missing) _noLongerListed(context),
                   if (description != null) Text(description),
-                  ?status,
+                  ?parts.status,
                 ],
               ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             tightPane(context)
-                ? Flexible(child: field)
-                : SizedBox(width: 300, child: field),
-            refresh,
+                ? Flexible(child: parts.field)
+                : SizedBox(width: 300, child: parts.field),
+            parts.refresh,
           ],
         ),
+      );
+    },
+  );
+}
+
+/// A list row field whose choices the plugin lists, in the row editor: the
+/// same picker and Refresh as [PluginChoiceRow], with the warning and the
+/// refresh's progress below. [path] is the field's dotted path, such as
+/// `panels.tiles.sensor`.
+class PluginChoiceField extends StatelessWidget {
+  const PluginChoiceField({
+    super.key,
+    required this.plugins,
+    required this.pluginId,
+    required this.path,
+    required this.title,
+    required this.value,
+    required this.running,
+    required this.onPick,
+    this.emptyText,
+  });
+
+  final PluginManager plugins;
+  final String pluginId;
+  final String path;
+  final String title;
+  final String value;
+  final bool running;
+  final ValueChanged<String> onPick;
+
+  /// What the picker says before the plugin lists any choices.
+  final String? emptyText;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: plugins.setup,
+    builder: (context, _, _) {
+      final parts = _choiceParts(
+        context,
+        plugins: plugins,
+        pluginId: pluginId,
+        path: path,
+        title: title,
+        value: value,
+        running: running,
+        enabled: true,
+        onPick: onPick,
+        emptyText: emptyText,
+      );
+      final note = Theme.of(context).textTheme.bodySmall?.copyWith(
+        fontSize: 12.5,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(child: parts.field),
+              parts.refresh,
+            ],
+          ),
+          if (parts.missing || parts.status != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: DefaultTextStyle.merge(
+                style: note,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (parts.missing) _noLongerListed(context),
+                    ?parts.status,
+                  ],
+                ),
+              ),
+            ),
+        ],
       );
     },
   );

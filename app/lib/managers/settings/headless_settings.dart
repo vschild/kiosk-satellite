@@ -94,6 +94,7 @@ class HeadlessSettings {
               'Floating Player',
               'Now Playing',
               'Lyrics',
+              'Music Library',
             }.contains(def.subpage) ||
             def.section == 'Kiosk menu';
       case 'ESPHome':

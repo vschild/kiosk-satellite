@@ -1,0 +1,1010 @@
+{
+  "@@locale": "en",
+  "libraryTitle": "Music Library",
+  "@libraryTitle": {
+    "context": "Music Library",
+    "description": "Name of the Music Library feature: the kiosk menu entry, the overlay's eyebrow and the Allowed Actions switch.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Settings > Media Player > Music Library"
+      ]
+    }
+  },
+  "librarySource": "Source",
+  "@librarySource": {
+    "context": "Music Library",
+    "description": "Label of the picker for where the library lists music from: Music Assistant, Home Assistant or Sonos.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceMa": "Music Assistant",
+  "@librarySourceMa": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceHa": "Home Assistant",
+  "@librarySourceHa": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceSonos": "Sonos",
+  "@librarySourceSonos": {
+    "context": "Music Library",
+    "description": "Source name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceMaHint": "Library, search and radio",
+  "@librarySourceMaHint": {
+    "context": "Music Library",
+    "description": "What the Music Assistant source offers, under its name in the source picker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceHaHint": "Media from each speaker",
+  "@librarySourceHaHint": {
+    "context": "Music Library",
+    "description": "What the Home Assistant source offers: the media the picked speaker's integration lists.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySourceSonosHint": "Favorites and playlists",
+  "@librarySourceSonosHint": {
+    "context": "Music Library",
+    "description": "What the Sonos source offers: My Sonos favorites, Sonos playlists and the indexed music library.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryDiscover": "Discover",
+  "@libraryDiscover": {
+    "context": "Music Library",
+    "description": "Navigation entry and page title: recommendations and recently played music.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearch": "Search",
+  "@librarySearch": {
+    "context": "Music Library",
+    "description": "Navigation entry: search the source.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryBrowse": "Browse",
+  "@libraryBrowse": {
+    "context": "Music Library",
+    "description": "Navigation entry and page title: the source's own folders.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryLibrary": "Library",
+  "@libraryLibrary": {
+    "context": "Music Library",
+    "description": "Navigation entry and sidebar heading over the library lists (artists, albums and so on).",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryArtists": "Artists",
+  "@libraryArtists": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAlbums": "Albums",
+  "@libraryAlbums": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTracks": "Tracks",
+  "@libraryTracks": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlaylists": "Playlists",
+  "@libraryPlaylists": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRadio": "Radio",
+  "@libraryRadio": {
+    "context": "Music Library",
+    "description": "Library list and search filter: radio stations.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPodcasts": "Podcasts",
+  "@libraryPodcasts": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAudiobooks": "Audiobooks",
+  "@libraryAudiobooks": {
+    "context": "Music Library",
+    "description": "Library list and search filter.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryFavorites": "Favorites",
+  "@libraryFavorites": {
+    "context": "Music Library",
+    "description": "Sonos library list: My Sonos favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySonosPlaylists": "Sonos playlists",
+  "@librarySonosPlaylists": {
+    "context": "Music Library",
+    "description": "Sonos library list: playlists saved in the Sonos app.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRecentlyPlayed": "Recently played",
+  "@libraryRecentlyPlayed": {
+    "context": "Music Library",
+    "description": "Discover shelf title.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRecentlyAdded": "Recently added",
+  "@libraryRecentlyAdded": {
+    "context": "Music Library",
+    "description": "Discover shelf title.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryMoreResults": "More results",
+  "@libraryMoreResults": {
+    "context": "Music Library",
+    "description": "Search results shelf for entries of other kinds.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTopTracks": "Top tracks",
+  "@libraryTopTracks": {
+    "context": "Music Library",
+    "description": "Heading over an artist's most played tracks.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindArtist": "Artist",
+  "@libraryKindArtist": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindAlbum": "Album",
+  "@libraryKindAlbum": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindTrack": "Track",
+  "@libraryKindTrack": {
+    "context": "Music Library",
+    "description": "What a search result is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindPlaylist": "Playlist",
+  "@libraryKindPlaylist": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindRadio": "Radio",
+  "@libraryKindRadio": {
+    "context": "Music Library",
+    "description": "What a search result is: a radio station.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindPodcast": "Podcast",
+  "@libraryKindPodcast": {
+    "context": "Music Library",
+    "description": "What a search result or page is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindEpisode": "Episode",
+  "@libraryKindEpisode": {
+    "context": "Music Library",
+    "description": "What a search result is: a podcast episode.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindAudiobook": "Audiobook",
+  "@libraryKindAudiobook": {
+    "context": "Music Library",
+    "description": "What a search result is.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryOneTrack": "1 track",
+  "@libraryOneTrack": {
+    "context": "Music Library",
+    "description": "Album facts: an album with one track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryTrackCount": "{count} tracks",
+  "@libraryTrackCount": {
+    "context": "Music Library",
+    "description": "Album facts: how many tracks.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "How many tracks, 2 or more."
+      }
+    }
+  },
+  "libraryMinutes": "{minutes} min",
+  "@libraryMinutes": {
+    "context": "Music Library",
+    "description": "Album facts: total length under an hour.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "minutes": {
+        "type": "String",
+        "description": "Whole minutes."
+      }
+    }
+  },
+  "libraryHoursMinutes": "{hours} h {minutes} min",
+  "@libraryHoursMinutes": {
+    "context": "Music Library",
+    "description": "Album facts: total length of an hour or more.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    },
+    "placeholders": {
+      "hours": {
+        "type": "String",
+        "description": "Whole hours."
+      },
+      "minutes": {
+        "type": "String",
+        "description": "Minutes past the hour."
+      }
+    }
+  },
+  "librarySearchHint": "Artists, albums, tracks",
+  "@librarySearchHint": {
+    "context": "Music Library",
+    "description": "Placeholder of the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchClear": "Clear search",
+  "@librarySearchClear": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that empties the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchAll": "All",
+  "@librarySearchAll": {
+    "context": "Music Library",
+    "description": "Search filter chip: every kind of result.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySearchPrompt": "Search for artists, albums, tracks and more.",
+  "@librarySearchPrompt": {
+    "context": "Music Library",
+    "description": "Shown before anything is typed in the search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryEmpty": "Nothing here yet.",
+  "@libraryEmpty": {
+    "context": "Music Library",
+    "description": "A list, folder or search with no entries.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryLoadFailed": "This could not be loaded.",
+  "@libraryLoadFailed": {
+    "context": "Music Library",
+    "description": "A list or page failed to load. The error follows on the next line.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryNoSource": "Set up Music Assistant, Home Assistant or a Sonos speaker to browse music.",
+  "@libraryNoSource": {
+    "context": "Music Library",
+    "description": "No source is configured on this device.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryHaPickSpeaker": "Choose a speaker to see the media it can play.",
+  "@libraryHaPickSpeaker": {
+    "context": "Music Library",
+    "description": "Home Assistant source with no speaker picked: the media tree belongs to the speaker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryChooseSpeaker": "Choose a speaker",
+  "@libraryChooseSpeaker": {
+    "context": "Music Library",
+    "description": "Speaker pill label and button when no speaker of the source is picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPickSpeakerHint": "Choose the speaker to play on.",
+  "@libraryPickSpeakerHint": {
+    "context": "Music Library",
+    "description": "Prompt over the Speakers sheet when a play needs a speaker first.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlay": "Play",
+  "@libraryPlay": {
+    "context": "Music Library",
+    "description": "Button: play the album, playlist or artist, replacing the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryOpenNowPlaying": "Open Now Playing",
+  "@libraryOpenNowPlaying": {
+    "context": "Music Library",
+    "description": "Player bar button.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryNothingPlaying": "Nothing playing",
+  "@libraryNothingPlaying": {
+    "context": "Music Library",
+    "description": "Player bar with no track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryMore": "More options",
+  "@libraryMore": {
+    "context": "Music Library",
+    "description": "Tooltip of the menu button on a row or a page.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayNow": "Play now",
+  "@libraryPlayNow": {
+    "context": "Music Library",
+    "description": "Menu action: play now, keeping the rest of the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayNext": "Play next",
+  "@libraryPlayNext": {
+    "context": "Music Library",
+    "description": "Menu action: play after the current track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddToQueue": "Add to queue",
+  "@libraryAddToQueue": {
+    "context": "Music Library",
+    "description": "Menu action: add to the end of the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryStartRadio": "Start radio",
+  "@libraryStartRadio": {
+    "context": "Music Library",
+    "description": "Menu action and button: play and keep going with similar music.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryGoToArtist": "Go to artist",
+  "@libraryGoToArtist": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddFavorite": "Add to favorites",
+  "@libraryAddFavorite": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRemoveFavorite": "Remove from favorites",
+  "@libraryRemoveFavorite": {
+    "context": "Music Library",
+    "description": "Menu action.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddedFavorite": "Added to favorites",
+  "@libraryAddedFavorite": {
+    "context": "Music Library",
+    "description": "Toast after Add to favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryRemovedFavorite": "Removed from favorites",
+  "@libraryRemovedFavorite": {
+    "context": "Music Library",
+    "description": "Toast after Remove from favorites.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryFavoriteFailed": "Favorites could not be changed",
+  "@libraryFavoriteFailed": {
+    "context": "Music Library",
+    "description": "Toast when the favorite change failed.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlaysNext": "Plays next",
+  "@libraryPlaysNext": {
+    "context": "Music Library",
+    "description": "Toast after Play next.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAddedToQueue": "Added to queue",
+  "@libraryAddedToQueue": {
+    "context": "Music Library",
+    "description": "Toast after Add to queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryView": "View",
+  "@libraryView": {
+    "context": "Music Library",
+    "description": "Toast action: open Now Playing with the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryPlayFailed": "This could not be played",
+  "@libraryPlayFailed": {
+    "context": "Music Library",
+    "description": "Toast when a play failed. The error follows.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySpeakers": "Speakers",
+  "@librarySpeakers": {
+    "context": "Music Library",
+    "description": "Title of the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryPlayingOn": "Playing on",
+  "@libraryPlayingOn": {
+    "context": "Music Library",
+    "description": "Label over the name of the speaker the music plays on, in the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryOtherSpeakers": "Other speakers",
+  "@libraryOtherSpeakers": {
+    "context": "Music Library",
+    "description": "Heading over the speakers that can be picked instead.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryNoOtherSpeakers": "No other speakers.",
+  "@libraryNoOtherSpeakers": {
+    "context": "Music Library",
+    "description": "The source has no other speakers to pick.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryThisDevice": "This device",
+  "@libraryThisDevice": {
+    "context": "Music Library",
+    "description": "Under the name of this device's own player in the Speakers sheet.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryUnavailable": "Unavailable",
+  "@libraryUnavailable": {
+    "context": "Music Library",
+    "description": "Under the name of a speaker that is offline.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroup": "Group",
+  "@libraryGroup": {
+    "context": "Music Library",
+    "description": "Button that opens the list of speakers to group with the playing one.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupAll": "Group",
+  "@libraryGroupAll": {
+    "context": "Music Library",
+    "description": "Label of the volume slider for the whole group.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupWith": "Group with {speaker}",
+  "@libraryGroupWith": {
+    "context": "Music Library",
+    "description": "Title of the grouping dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    },
+    "placeholders": {
+      "speaker": {
+        "type": "String",
+        "description": "The speaker the others join."
+      }
+    }
+  },
+  "libraryGroupHint": "Grouped speakers play the same music in sync.",
+  "@libraryGroupHint": {
+    "context": "Music Library",
+    "description": "Text in the grouping dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    }
+  },
+  "libraryGroupName": "{speaker} + {count}",
+  "@libraryGroupName": {
+    "context": "Music Library",
+    "description": "A group's name: the leading speaker and how many others play with it.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library",
+        "Now Playing"
+      ]
+    },
+    "placeholders": {
+      "speaker": {
+        "type": "String",
+        "description": "The leading speaker."
+      },
+      "count": {
+        "type": "String",
+        "description": "How many others."
+      }
+    }
+  },
+  "settingLibraryMenuDescription": "Add a Music Library entry to the kiosk menu.",
+  "@settingLibraryMenuDescription": {
+    "context": "Music Library",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingKioskAllowMusicLibraryDescription": "Browse music and play it on a speaker.",
+  "@settingKioskAllowMusicLibraryDescription": {
+    "context": "Music Library",
+    "description": "Allowed Actions switch description.",
+    "x-locations": {
+      "device": [
+        "Settings > Kiosk > Allowed Actions"
+      ],
+      "remoteAdmin": [
+        "Kiosk > Allowed Actions"
+      ]
+    }
+  },
+  "libraryPageHint": "Browse music and play it on a speaker",
+  "@libraryPageHint": {
+    "context": "Music Library",
+    "description": "Hint under the Music Library entry on the Media Player settings page.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySourceDescription": "Where the library lists music from. Automatic starts with the source of the speaker Now Playing follows.",
+  "@settingLibrarySourceDescription": {
+    "context": "Music Library",
+    "description": "Setting description. Automatic is the first choice of the Source setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryNowPlayingButtonTitle": "Show on Now Playing",
+  "@settingLibraryNowPlayingButtonTitle": {
+    "context": "Music Library",
+    "description": "Setting label: the Music Library button on the Now Playing view.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryNowPlayingButtonDescription": "Add a Music Library button next to the close button.",
+  "@settingLibraryNowPlayingButtonDescription": {
+    "context": "Music Library",
+    "description": "Setting description. The close button is the one on the Now Playing view.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryQueueTitle": "Queue",
+  "@libraryQueueTitle": {
+    "context": "Music Library",
+    "description": "Title of the queue panel in the Music Library.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryCloseQueue": "Close queue",
+  "@libraryCloseQueue": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that closes the queue panel.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClear": "Clear",
+  "@libraryClear": {
+    "context": "Music Library",
+    "description": "Button that empties the queue, and the confirm button of its dialog.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClearQueueTitle": "Clear the queue?",
+  "@libraryClearQueueTitle": {
+    "context": "Music Library",
+    "description": "Title of the dialog that confirms emptying the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryClearQueueMessage": "The music stops and every track leaves the queue.",
+  "@libraryClearQueueMessage": {
+    "context": "Music Library",
+    "description": "Text of the dialog that confirms emptying the queue.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryRemoveFromQueue": "Remove from queue",
+  "@libraryRemoveFromQueue": {
+    "context": "Music Library",
+    "description": "Menu action on a queue row.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryReorder": "Drag to reorder",
+  "@libraryReorder": {
+    "context": "Music Library",
+    "description": "Accessibility label of the handle that moves a queue row.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryQueueFailed": "The queue could not be changed",
+  "@libraryQueueFailed": {
+    "context": "Music Library",
+    "description": "Toast when moving, removing or clearing failed.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library > Queue"
+      ]
+    }
+  },
+  "libraryVoiceSection": "Voice Control",
+  "@libraryVoiceSection": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Heading of the group about playing music by voice.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryVoiceManage": "Manage music using Voice Satellite",
+  "@libraryVoiceManage": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Row that opens the guide to playing music by voice. Keep Voice Satellite unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryVoiceHint": "Needs the Kiosk Satellite music blueprint and an LLM conversation agent in Home Assistant.",
+  "@libraryVoiceHint": {
+    "context": "Settings > Media Player > Music Library",
+    "description": "Description under that row. Keep Kiosk Satellite and Home Assistant unchanged. A blueprint is a Home Assistant template for a script.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  }
+}

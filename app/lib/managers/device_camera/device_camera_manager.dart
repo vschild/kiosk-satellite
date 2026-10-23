@@ -181,8 +181,11 @@ class DeviceCameraManager extends Manager {
       unawaited(visionSupport());
     }
 
+    // The sizes only feed the streaming rows under the camera switch, and
+    // turning the camera on probes them, so a device with the camera off
+    // never touches it.
     bus.on<ActivityAttached>().listen((_) {
-      if (!_disposed) unawaited(refreshStreamResolutions());
+      if (!_disposed && enabled) unawaited(refreshStreamResolutions());
     });
 
     bus.on<SettingChanged>().listen((e) {
@@ -292,7 +295,7 @@ class DeviceCameraManager extends Manager {
       ),
     );
 
-    if (!Headless.active) await refreshStreamResolutions();
+    if (!Headless.active && enabled) await refreshStreamResolutions();
     _syncTimer();
   }
 

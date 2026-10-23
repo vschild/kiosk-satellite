@@ -59,6 +59,77 @@ class ShizukuManager extends Manager {
         ),
       );
     }
+    commands.register(
+      Command(
+        name: 'runShizukuCommand',
+        description:
+            'Run a shell command line through Shizuku, as adb shell would, '
+            'and answer with its exit code and output.',
+        params: const {
+          'command': 'the command line, run through sh',
+          'timeout': 'seconds to wait, 1 to 25; 0 is 10',
+        },
+        handler: (args) async {
+          try {
+            return CommandResult.ok(
+              await runCommand(
+                '${args['command'] ?? ''}',
+                timeout: (args['timeout'] as num?)?.toInt() ?? 0,
+              ),
+            );
+          } on PlatformException catch (error) {
+            return CommandResult.fail(
+              error.message ?? 'Shizuku command failed',
+            );
+          } catch (error) {
+            return CommandResult.fail(
+              error is StateError ? error.message : '$error',
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  /// Why a command cannot run right now, or null when Shizuku is ready.
+  /// Each answer names the one thing to fix on the kiosk.
+  static String? notReadyReason(Map<String, Object?> state) =>
+      switch (state['status']) {
+        'ready' => null,
+        'unavailable' when state['installed'] == false =>
+          'Shizuku is not installed on this device',
+        'unavailable' => 'Shizuku is not running. Start it in the Shizuku app',
+        'unsupported' => 'Update Shizuku to version 13 or later',
+        'permission_required' || 'denied' =>
+          'Kiosk Satellite is not allowed in Shizuku. Tap Shizuku access '
+              'under Settings > Device > Shizuku',
+        _ => 'Shizuku is not available',
+      };
+
+  Future<Map<String, Object?>> runCommand(
+    String command, {
+    int timeout = 0,
+  }) async {
+    final line = command.trim();
+    if (line.isEmpty) throw StateError('command is empty');
+    final seconds = timeout <= 0 ? 10 : timeout.clamp(1, 25);
+    final reason = notReadyReason(await refresh());
+    if (reason != null) throw StateError(reason);
+    final result =
+        await channel
+            .invokeMapMethod<String, Object?>('runCommand', {
+              'command': line,
+              'timeoutMs': seconds * 1000,
+            })
+            .timeout(Duration(seconds: seconds + 15)) ??
+        const {};
+    return {
+      'exit_code': result['exitCode'] ?? -1,
+      'stdout': '${result['stdout'] ?? ''}',
+      'stderr': '${result['stderr'] ?? ''}',
+      'timed_out': result['timedOut'] == true,
+      'truncated': result['truncated'] == true,
+    };
   }
 
   Future<Map<String, Object?>> refresh({bool request = false}) async {

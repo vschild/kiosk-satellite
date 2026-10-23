@@ -31,8 +31,9 @@ void main() {
     }
   }
 
-  Future<void> start(String saved) async {
+  Future<void> start(String saved, {bool enabled = true}) async {
     SharedPreferences.setMockInitialValues({
+      'ks.camera.enabled': enabled,
       'ks.camera.rtsp.resolution': saved,
     });
     bus = EventBus();
@@ -44,6 +45,18 @@ void main() {
     await camera.init();
     await settle();
   }
+
+  setUpAll(() {
+    // A facing change on an enabled camera takes a snapshot, which asks
+    // for the camera permission first.
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('flutter.baseflow.com/permissions/methods'),
+      (call) async => switch (call.method) {
+        'checkPermissionStatus' => 1,
+        _ => null,
+      },
+    );
+  });
 
   setUp(() {
     probe = (_) async => portal;
@@ -142,6 +155,13 @@ void main() {
       expect(settings.optionsFor(cameraRtspResolution), ['1920x1080']);
     },
   );
+
+  test('a disabled camera is never probed, also on attachment', () async {
+    await start('640x480', enabled: false);
+    bus.publish(const ActivityAttached());
+    await settle();
+    expect(requests, isEmpty);
+  });
 
   test(
     'unavailable inventory preserves the saved size and retries on attachment',

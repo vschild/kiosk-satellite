@@ -28,13 +28,18 @@ internal class PluginShizuku(private val context: Context, private val changed: 
     }
     fun state(): Map<String, Any> {
         try {
-            if (!Shizuku.pingBinder()) return mapOf("available" to false, "granted" to false, "status" to "unavailable")
+            if (!Shizuku.pingBinder()) return unavailable()
             if (Shizuku.isPreV11() || Shizuku.getVersion() < 13) return mapOf("available" to true, "granted" to false, "status" to "unsupported")
             val granted = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
             return mapOf("available" to true, "granted" to granted,
                 "status" to if (granted) "ready" else if (Shizuku.shouldShowRequestPermissionRationale()) "denied" else "permission_required",
                 "uid" to Shizuku.getUid(), "version" to Shizuku.getVersion())
-        } catch (_: Exception) { return mapOf("available" to false, "granted" to false, "status" to "unavailable") }
+        } catch (_: Exception) { return unavailable() }
+    }
+    /** Not running, with whether the Shizuku app is installed at all, so a caller can say which to fix. Sui has no app and is always running. */
+    private fun unavailable(): Map<String, Any> {
+        val installed = try { context.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0); true } catch (_: Exception) { false }
+        return mapOf("available" to false, "granted" to false, "status" to "unavailable", "installed" to installed)
     }
     private fun notifyState() {
         val value = state()
@@ -121,5 +126,5 @@ internal class PluginShizuku(private val context: Context, private val changed: 
             fun close() { stopped.set(true); latch.countDown(); val target = service; service = null; destroy(target) }
         }
     }
-    companion object { private const val REQUEST = 7421 }
+    companion object { private const val REQUEST = 7421; private const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api" }
 }

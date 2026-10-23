@@ -279,5 +279,33 @@
         "type": "String"
       }
     }
+  },
+  "overviewSystemUpdate": "System update available",
+  "@overviewSystemUpdate": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "A newer release of the Echo Dot's system image can be installed.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "overviewSystemUpdateHelp": "Version {version} of the Echo Dot image is ready to install. The Dot restarts twice to install it.",
+  "@overviewSystemUpdateHelp": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+      }
+    }
   }
 }

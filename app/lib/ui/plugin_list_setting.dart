@@ -6,21 +6,43 @@ import 'package:flutter/material.dart';
 import '../app_container.dart';
 import '../core/command_registry.dart';
 import '../l10n/messages.dart';
+import '../managers/plugins/plugin_manager.dart';
 import 'color_picker.dart';
 import 'dashboard_view_picker.dart';
 import 'entity_picker.dart';
 import 'kit.dart';
 import 'mdi_icon.dart';
+import 'plugin_setup.dart';
 import 'theme.dart';
 
 /// What plugin setting controls reach for: the commands behind the entity
-/// picker, and the container for dashboards and camera views. Without a
-/// container those two pickers stay read-only.
+/// picker, the container for dashboards and camera views, and the plugin
+/// whose choices row fields pick from. Without a container those two
+/// pickers stay read-only, and without a plugin a choices field is text.
 class PluginFieldServices {
-  const PluginFieldServices({required this.commands, this.container});
+  const PluginFieldServices({
+    required this.commands,
+    this.container,
+    this.plugins,
+    this.pluginId = '',
+    this.running = false,
+  });
 
   final CommandRegistry commands;
   final AppContainer? container;
+  final PluginManager? plugins;
+  final String pluginId;
+
+  /// The plugin is running, so it can refresh its choices.
+  final bool running;
+
+  /// The label of the choice [value] at [path] when [field] takes plugin
+  /// choices and the plugin lists it.
+  String? choiceLabel(Map field, String path, Object? value) {
+    final plugins = this.plugins;
+    if (field['choices'] != 'plugin' || plugins == null) return null;
+    return pluginChoiceList(plugins, pluginId, path)?.find('$value')?.name;
+  }
 }
 
 /// The default a field starts with. Row fields may leave it out, and then
@@ -84,6 +106,49 @@ bool pluginFieldMissing(Map field, Map row, List fields) {
 bool pluginRowComplete(List fields, Map row) =>
     !fields.whereType<Map>().any((f) => pluginFieldMissing(f, row, fields));
 
+/// Whether the number [field] is typed into a text field instead of
+/// dragged on a slider.
+bool pluginTypedNumber(Map field) =>
+    field['type'] == 'number' && field['input'] == 'field';
+
+/// Why [text] is not a value the number [field] takes, or null when it is.
+/// The same checks as PluginManifest.validateValue.
+String? pluginNumberError(BuildContext context, Map field, String text) {
+  final value = double.tryParse(text.trim().replaceAll(',', '.'));
+  if (value == null || !value.isFinite) {
+    return pluginText(context, 'Expected a numeric setting');
+  }
+  final min = (field['min'] as num).toDouble();
+  final max = (field['max'] as num).toDouble();
+  if (value < min || value > max) {
+    return pluginText(context, 'Numeric setting is outside its range');
+  }
+  final steps = (value - min) / (field['step'] as num? ?? 1);
+  if ((steps - steps.round()).abs() >= 0.00001) {
+    return pluginText(context, 'Numeric setting does not match its step');
+  }
+  return null;
+}
+
+/// The valid [text] as the number it saves: whole when the step is, the
+/// way the slider snaps.
+num pluginNumberValue(Map field, String text) {
+  final value = double.parse(text.trim().replaceAll(',', '.'));
+  return value == value.roundToDouble() && (field['step'] as num? ?? 1) % 1 == 0
+      ? value.round()
+      : value;
+}
+
+/// The keyboard a typed number needs: a sign below zero and a decimal
+/// point off whole steps.
+TextInputType pluginNumberKeyboard(Map field) =>
+    TextInputType.numberWithOptions(
+      signed: (field['min'] as num) < 0,
+      decimal:
+          (field['step'] as num? ?? 1) % 1 != 0 ||
+          (field['min'] as num) % 1 != 0,
+    );
+
 /// A fresh, complete copy of [row] for editing, every field filled in.
 Map<String, Object?> pluginFilledRow(Map list, Map? row) => {
   for (final field in (list['fields'] as List).whereType<Map>())
@@ -123,33 +188,62 @@ Map? _fieldOf(Map list, String? key) => key == null
   return (id: id, item: PickCatalog.of('entities').value?.find(id));
 }
 
-/// Whether a row's title or second line reads from the entity list.
-bool _rowShowsEntities(Map list) {
+/// The fields a row's title and second line read from.
+Iterable<Map> _rowFields(Map list) {
   final declared = (list['row'] as Map?)?['subtitle'];
   return [
     _rowKey(list, 'title', 'string'),
     ...(declared is List ? declared : [?declared]),
-  ].any((key) => _fieldOf(list, key?.toString())?['type'] == 'entity');
+  ].map((key) => _fieldOf(list, key?.toString())).whereType<Map>();
 }
 
+/// Whether a row's title or second line reads from the entity list.
+bool _rowShowsEntities(Map list) =>
+    _rowFields(list).any((f) => f['type'] == 'entity');
+
+/// Whether a row's title or second line shows a plugin choice's label.
+bool _rowShowsChoices(Map list) =>
+    _rowFields(list).any((f) => f['choices'] == 'plugin');
+
 /// The name a row shows, its first text field unless the list names one.
-/// An entity shows its friendly name, or its id until the list has it.
-String pluginRowTitle(BuildContext context, Map list, Map row) {
+/// An entity shows its friendly name, or its id until the list has it. A
+/// plugin choice shows its label once the plugin lists it. [path] is the
+/// list's dotted path, its own key unless it is nested.
+String pluginRowTitle(
+  BuildContext context,
+  Map list,
+  Map row, {
+  PluginFieldServices? services,
+  String? path,
+}) {
   final entity = _titleEntity(list, row);
   if (entity != null) return entity.item?.name ?? entity.id;
   final key = _rowKey(list, 'title', 'string');
   final value = key == null ? '' : '${row[key] ?? ''}'.trim();
-  return value.isEmpty ? pluginText(context, 'Untitled') : value;
+  if (value.isEmpty) return pluginText(context, 'Untitled');
+  final field = _fieldOf(list, key);
+  final label = field == null
+      ? null
+      : services?.choiceLabel(field, '${path ?? list['key']}.$key', value);
+  return label ?? value;
 }
 
 String _addTitle(BuildContext context, Map list) =>
     list['addTitle']?.toString() ?? l10n(context).commonAdd;
 
 /// One value as a row's second line shows it: a camera view by its name,
-/// a number with its unit, an entity by its name and state. Null when
-/// there is nothing to say.
-String? _displayValue(Map field, Object? value, PluginFieldServices services) {
+/// a number with its unit, an entity by its name and state, a plugin
+/// choice by its label. Null when there is nothing to say.
+String? _displayValue(
+  Map field,
+  Object? value,
+  PluginFieldServices services,
+  String path,
+) {
   switch (field['type']) {
+    case 'string':
+      final label = services.choiceLabel(field, '$path.${field['key']}', value);
+      if (label != null) return label;
     case 'boolean' || 'list' || 'color':
       return null;
     case 'number':
@@ -171,14 +265,19 @@ String? _displayValue(Map field, Object? value, PluginFieldServices services) {
 /// A row's second line: the first declared subtitle with something to
 /// say. Without one, an entity title adds its state and id, the way the
 /// At a Glance rows do.
-String? _rowSubtitle(Map list, Map row, PluginFieldServices services) {
+String? _rowSubtitle(
+  Map list,
+  Map row,
+  PluginFieldServices services,
+  String path,
+) {
   final declared = (list['row'] as Map?)?['subtitle'];
   final keys = declared is List ? declared : [?declared];
   final fields = list['fields'] as List;
   for (final key in keys) {
     final field = _fieldOf(list, '$key');
     if (field == null || !pluginFieldVisible(field, row, fields)) continue;
-    final text = _displayValue(field, row[key], services);
+    final text = _displayValue(field, row[key], services, path);
     if (text != null) return text;
   }
   // An entity the list lacks already shows its id as the title.
@@ -329,6 +428,7 @@ class PluginRows extends StatelessWidget {
     required this.onOpen,
     required this.onReorder,
     this.contentPadding,
+    this.path,
   });
 
   final Map list;
@@ -341,16 +441,29 @@ class PluginRows extends StatelessWidget {
   /// Rows inside the row editor sit closer to its border.
   final EdgeInsetsGeometry? contentPadding;
 
+  /// The list's dotted path, such as `panels.tiles` for a nested list.
+  /// Its own key unless set.
+  final String? path;
+
+  String get _path => path ?? '${list['key']}';
+
   @override
   Widget build(BuildContext context) {
-    if (!_rowShowsEntities(list)) return _rows(context);
-    // Entity names and states come from the shared list, so the rows
-    // redraw once it loads.
-    final catalog = PickCatalog.of('entities');
-    if (catalog.value == null) unawaited(loadEntityCatalog(services.commands));
-    return ValueListenableBuilder<PickList?>(
-      valueListenable: catalog,
-      builder: (context, _, _) => _rows(context),
+    // Entity names and states come from the shared list and choice labels
+    // from the plugin, so the rows redraw once those arrive.
+    final entities = _rowShowsEntities(list);
+    final plugins = services.plugins;
+    final sources = <Listenable>[
+      if (entities) PickCatalog.of('entities'),
+      if (plugins != null && _rowShowsChoices(list)) plugins.setup,
+    ];
+    if (entities && PickCatalog.of('entities').value == null) {
+      unawaited(loadEntityCatalog(services.commands));
+    }
+    if (sources.isEmpty) return _rows(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge(sources),
+      builder: (context, _) => _rows(context),
     );
   }
 
@@ -391,12 +504,14 @@ class PluginRows extends StatelessWidget {
 
     Widget row(int index) {
       final value = rows[index];
-      final subtitle = _rowSubtitle(list, value, services);
+      final subtitle = _rowSubtitle(list, value, services, _path);
       return SettingsRow(
         contentPadding: contentPadding,
         enabled: enabled,
         leading: leading(value),
-        title: Text(pluginRowTitle(context, list, value)),
+        title: Text(
+          pluginRowTitle(context, list, value, services: services, path: _path),
+        ),
         subtitle: subtitle == null
             ? null
             : Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -582,6 +697,18 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
   /// comes back here, so there is only ever one editing surface.
   _Entry? _entry;
 
+  /// Text typed into number fields that they do not take, by the draft
+  /// and key that [_fieldKey] names. The draft keeps the last valid number
+  /// and Save waits while a shown field holds such text.
+  final _typed = <String, String>{};
+
+  String _fieldKey(Map draft, Object? key) => '${identityHashCode(draft)}:$key';
+
+  /// The dotted path of the list being edited: the setting's key, then
+  /// the nested list's.
+  String get _path =>
+      [widget.list['key'], if (_entry != null) _entry!.list['key']].join('.');
+
   void _openEntry(Map field, int? index) {
     final rows = _draft[field['key']] as List;
     final row = index == null ? null : rows[index] as Map;
@@ -592,7 +719,13 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
         pluginFilledRow(field, row),
         row == null
             ? _addTitle(context, field)
-            : pluginRowTitle(context, field, row),
+            : pluginRowTitle(
+                context,
+                field,
+                row,
+                services: widget.services,
+                path: '${widget.list['key']}.${field['key']}',
+              ),
       ),
     );
   }
@@ -600,7 +733,9 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
   void _closeEntry({bool save = false, bool delete = false}) {
     final entry = _entry!;
     final rows = _draft[entry.list['key']] as List;
+    final typed = _fieldKey(entry.draft, '');
     setState(() {
+      _typed.removeWhere((id, _) => id.startsWith(typed));
       if (delete) {
         rows.removeAt(entry.index!);
       } else if (save && entry.index == null) {
@@ -621,12 +756,24 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
     final fields = (list['fields'] as List).whereType<Map>().toList();
     final draft = entry?.draft ?? _draft;
     final isNew = entry == null ? widget.row == null : entry.index == null;
-    final complete = pluginRowComplete(fields, draft);
+    final complete =
+        pluginRowComplete(fields, draft) &&
+        !fields.any(
+          (f) =>
+              _typed.containsKey(_fieldKey(draft, f['key'])) &&
+              pluginFieldVisible(f, draft, fields),
+        );
     final title =
         entry?.title ??
         (widget.row == null
             ? _addTitle(context, list)
-            : pluginRowTitle(context, list, widget.row!));
+            : pluginRowTitle(
+                context,
+                list,
+                widget.row!,
+                services: widget.services,
+                path: _path,
+              ));
     final body = Column(
       key: ObjectKey(draft),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -756,13 +903,51 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
     );
     final text = '${value ?? ''}';
     final services = widget.services;
+    final plugins = services.plugins;
     switch (field['type']) {
+      case 'string' when field['choices'] == 'plugin' && plugins != null:
+        return labeled(
+          PluginChoiceField(
+            plugins: plugins,
+            pluginId: services.pluginId,
+            path: '$_path.$key',
+            title: title,
+            value: text,
+            running: services.running,
+            onPick: set,
+            emptyText: field['emptyText'] as String?,
+          ),
+        );
       case 'boolean':
         return SettingsRow(
           contentPadding: EdgeInsets.zero,
           title: Text(title),
           subtitle: description == null ? null : Text(description),
           trailing: Switch(value: value == true, onChanged: set),
+        );
+      case 'number' when pluginTypedNumber(field):
+        final id = _fieldKey(draft, key);
+        final typed = _typed[id];
+        return labeled(
+          TextFormField(
+            key: ValueKey(id),
+            initialValue: typed ?? text,
+            keyboardType: pluginNumberKeyboard(field),
+            decoration: InputDecoration(
+              suffixText: field['unit']?.toString(),
+              errorText: typed == null
+                  ? null
+                  : pluginNumberError(context, field, typed),
+            ),
+            onChanged: (next) => setState(() {
+              if (pluginNumberError(context, field, next) == null) {
+                _typed.remove(id);
+                draft[key] = pluginNumberValue(field, next);
+              } else {
+                _typed[id] = next;
+              }
+            }),
+          ),
         );
       case 'number':
         return labeled(
@@ -936,6 +1121,7 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
                   list: field,
                   rows: rows,
                   services: services,
+                  path: '$_path.$key',
                   enabled: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   onOpen: (index) => _openEntry(field, index),

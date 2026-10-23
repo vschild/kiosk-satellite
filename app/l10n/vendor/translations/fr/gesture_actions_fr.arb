@@ -23,6 +23,7 @@
   "gestureDeepLink": "Ouvrir un lien profond",
   "gestureAndroidSettings": "Ouvrir les paramètres Android",
   "gestureOpenCalendar": "Ouvrir le calendrier",
+  "gestureOpenMusicLibrary": "Ouvrir la bibliothèque musicale",
   "gestureService": "Appeler un service",
   "gestureScript": "Exécuter un script",
   "gestureAutomation": "Déclencher une automatisation",

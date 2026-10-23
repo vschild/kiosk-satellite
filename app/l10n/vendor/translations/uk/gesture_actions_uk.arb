@@ -23,6 +23,7 @@
   "gestureDeepLink": "Відкрити deep link",
   "gestureAndroidSettings": "Відкрити налаштування Android",
   "gestureOpenCalendar": "Відкрити календар",
+  "gestureOpenMusicLibrary": "Відкрити музичну бібліотеку",
   "gestureService": "Викликати службу",
   "gestureScript": "Запустити скрипт",
   "gestureAutomation": "Запустити автоматизацію",

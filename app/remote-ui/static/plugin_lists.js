@@ -3,7 +3,8 @@ import { cmd } from './core.js';
 import { cameraIcon } from './cameras.js';
 import { dashboardField } from './dashboard_picker.js';
 import { ENTITY_ICONS, cachedList, entitySpec, loadEntityList, onListLoaded, pickField, pickItem } from './entity_picker.js';
-import { modalShell, swatch } from './widgets.js';
+import { choiceControl, choiceLabel, choiceSpec, watchPluginSetup } from './plugin_setup.js';
+import { hintRow, modalShell, swatch } from './widgets.js';
 
 /* Plugin list settings and the picker setting types, the device's
    plugin_list_setting.dart in the browser: the rows inline on the plugin
@@ -81,6 +82,40 @@ export function rowComplete(fields, row) {
   return !fields.some((f) => fieldMissing(f, row, fields));
 }
 
+// Why [text] is not a value the number [field] takes, or null when it is.
+// The same checks as PluginManifest.validateValue.
+export function numberError(field, text) {
+  const value = String(text).trim() === '' ? NaN : Number(text);
+  if (!Number.isFinite(value)) return pluginText('Expected a numeric setting');
+  if (value < field.min || value > field.max) return pluginText('Numeric setting is outside its range');
+  const steps = (value - field.min) / (field.step || 1);
+  if (Math.abs(steps - Math.round(steps)) >= 0.00001) return pluginText('Numeric setting does not match its step');
+  return null;
+}
+
+// A typed number: the box, its unit after it and the reason it is not
+// valid yet under it. [onInput] gets the box's text on every keystroke.
+export function numberControl(field, text, onInput) {
+  const control = el('div', 'plugin-number');
+  const input = el('input', 'field');
+  input.type = 'number'; input.min = field.min; input.max = field.max; input.step = field.step || 1;
+  input.value = text;
+  input.setAttribute('aria-label', field.title);
+  control.appendChild(input);
+  if (field.unit) control.appendChild(el('span', 'desc', field.unit));
+  const error = el('div', 'desc plugin-number-error');
+  const check = () => {
+    const reason = numberError(field, input.value);
+    input.classList.toggle('error', reason != null);
+    error.textContent = reason || '';
+    error.hidden = reason == null;
+    return reason;
+  };
+  input.oninput = () => { check(); onInput(input.value); };
+  check();
+  return { control, input, error, check };
+}
+
 function filledRow(list, row) {
   const out = {};
   for (const field of list.fields) {
@@ -107,20 +142,36 @@ function titleEntity(list, row) {
   return id ? { id, item: findEntity(id) } : null;
 }
 
-// Whether a row's title or second line reads from the entity list.
-function rowShowsEntities(list) {
+// The fields a row's title and second line read from.
+function rowFields(list) {
   const declared = list.row?.subtitle;
   const keys = [rowKey(list, 'title'), ...(Array.isArray(declared) ? declared : [declared])];
-  return keys.some((key) => fieldOf(list, key)?.type === 'entity');
+  return keys.map((key) => fieldOf(list, key)).filter(Boolean);
+}
+
+// Whether a row's title or second line reads from the entity list.
+const rowShowsEntities = (list) => rowFields(list).some((field) => field.type === 'entity');
+
+const takesChoices = (field) => field.type === 'string' && field.choices === 'plugin';
+
+// Whether a list or a list inside it has a field that takes plugin choices.
+const hasChoices = (list) => list.fields.some((field) => takesChoices(field) || (field.type === 'list' && hasChoices(field)));
+
+// A plugin choice by its label once the plugin lists it. [at] is the
+// plugin and the list's dotted path.
+function choiceText(field, value, at) {
+  if (!takesChoices(field) || !at?.plugin) return null;
+  return choiceLabel(at.plugin.id, `${at.path}.${field.key}`, String(value ?? ''));
 }
 
 // An entity shows its friendly name, or its id until the list has it.
-function rowTitle(list, row) {
+function rowTitle(list, row, at) {
   const entity = titleEntity(list, row);
   if (entity) return entity.item?.name || entity.id;
   const key = rowKey(list, 'title');
   const value = key ? String(row[key] ?? '').trim() : '';
-  return value || pluginText('Untitled');
+  if (!value) return pluginText('Untitled');
+  return choiceText(fieldOf(list, key) || {}, value, at) ?? value;
 }
 
 function addTitle(list) { return list.addTitle || t('commonAdd'); }
@@ -297,8 +348,13 @@ export function iconField({ value = '', title, onPick }) {
 
 /* ------------------------------------------------------------ rows */
 
-function displayValue(field, value) {
+function displayValue(field, value, at) {
   switch (field.type) {
+    case 'string': {
+      const label = choiceText(field, value, at);
+      if (label) return label;
+      break;
+    }
     case 'boolean': case 'list': case 'color': return null;
     case 'number': return `${value} ${field.unit || ''}`.trim();
     case 'entity': {
@@ -315,13 +371,13 @@ function displayValue(field, value) {
   return text || null;
 }
 
-function rowSubtitle(list, row) {
+function rowSubtitle(list, row, at) {
   const declared = list.row?.subtitle;
   const keys = Array.isArray(declared) ? declared : declared ? [declared] : [];
   for (const key of keys) {
     const field = list.fields.find((f) => f.key === key);
     if (!field || !fieldVisible(field, row, list.fields)) continue;
-    const text = displayValue(field, row[key]);
+    const text = displayValue(field, row[key], at);
     if (text) return text;
   }
   // Without one, an entity title adds its state and id, the way the At a
@@ -341,8 +397,11 @@ function iconButton(label, d) {
 
 // The rows of a list and the row that adds one. A row drags onto another
 // to take its place; a touch screen has no drag, so the arrows move it a
-// step at a time. onOpen gets the row's index, or null to add one.
-function listRows({ list, rows, onOpen, onReorder }) {
+// step at a time. onOpen gets the row's index, or null to add one. [plugin]
+// lists the choices, and [path] is the list's dotted path.
+function listRows({ list, rows, onOpen, onReorder, plugin = null, path = list.key }) {
+  const at = { plugin, path };
+  const choiceFields = plugin ? rowFields(list).filter(takesChoices) : [];
   const box = el('div', 'plugin-list-rows');
   const max = list.maxItems || 32;
   const iconKey = list.row?.icon || null;
@@ -364,8 +423,8 @@ function listRows({ list, rows, onOpen, onReorder }) {
         icon.classList.toggle('plugin-row-missing', gone);
         icon.replaceChildren(svgPath(gone ? ENTITY_ICONS.warn : (entity?.item?.iconPath || ENTITY_ICONS.generic), 24));
       }
-      info.replaceChildren(el('div', 'name', rowTitle(list, row)));
-      const subtitle = rowSubtitle(list, row);
+      info.replaceChildren(el('div', 'name', rowTitle(list, row, at)));
+      const subtitle = rowSubtitle(list, row, at);
       if (subtitle) info.append(el('div', 'desc', subtitle));
     };
     if (iconKey && row[iconKey]) {
@@ -378,6 +437,8 @@ function listRows({ list, rows, onOpen, onReorder }) {
     // Entity names and states come from the shared list, so the row
     // redraws once it loads.
     if (entities) onListLoaded('entities', item, paint);
+    // Choice labels come from the plugin, so the row redraws as they do.
+    for (const field of choiceFields) onListLoaded(choiceSpec(plugin.id, `${path}.${field.key}`).key, item, paint);
     if (iconKey || titleIsEntity) main.appendChild(icon);
     main.appendChild(info);
     const actions = el('div', 'camera-row-actions');
@@ -428,6 +489,7 @@ function listRows({ list, rows, onOpen, onReorder }) {
     box.appendChild(add);
   }
   if (entities && !cachedList('entities')) loadEntityList();
+  if (choiceFields.length) watchPluginSetup(plugin.id);
   return box;
 }
 
@@ -435,8 +497,10 @@ const move = (rows, from, to) => { const next = [...rows]; next.splice(to, 0, ne
 
 // A list setting on the plugin's page: the rows inline, each opening the
 // row editor. Every completed edit, delete and move saves the whole list.
-export function listSetting({ setting, rows, showTitle, onChange }) {
+export function listSetting({ setting, rows, showTitle, onChange, plugin = null }) {
   const block = el('div', 'plugin-list');
+  // The page keeps reading the plugin's choices while a list takes them.
+  if (plugin && hasChoices(setting)) block.dataset.pluginChoices = 'true';
   if (showTitle) {
     const head = el('div', 'row');
     const info = el('div', 'info'); info.append(el('div', 'name', setting.title));
@@ -444,9 +508,9 @@ export function listSetting({ setting, rows, showTitle, onChange }) {
     head.appendChild(info); block.appendChild(head);
   }
   block.appendChild(listRows({
-    list: setting, rows,
+    list: setting, rows, plugin,
     onOpen: async (index) => {
-      const result = await editRow({ list: setting, row: index == null ? null : rows[index] });
+      const result = await editRow({ list: setting, row: index == null ? null : rows[index], plugin });
       if (!result) return;
       const next = [...rows];
       if (result.row == null) next.splice(index, 1);
@@ -456,7 +520,9 @@ export function listSetting({ setting, rows, showTitle, onChange }) {
     },
     onReorder: (from, to) => onChange(move(rows, from, to)),
   }));
-  if (!showTitle && setting.description) block.appendChild(el('div', 'group-note plugin-list-note', setting.description));
+  // Alone in its group the list goes without a title, so its description
+  // closes the card as a hint, the way the device's HintRow shows it.
+  if (!showTitle && setting.description) block.appendChild(hintRow(setting.description, { className: 'divided plugin-list-note' }));
   return block;
 }
 
@@ -465,11 +531,16 @@ export function listSetting({ setting, rows, showTitle, onChange }) {
 // Edits one row of [list] in a modal, a new one when [row] is null.
 // Resolves to { row } on Save, { row: null } on Delete, null on Cancel.
 // A nested row opens in the same modal, so there is one editing surface.
-export function editRow({ list, row }) {
+// [plugin] lists the choices of fields that take them.
+export function editRow({ list, row, plugin = null }) {
   return new Promise((resolve) => {
     const shell = modalShell({ title: '', width: 600 });
     const draft = filledRow(list, row);
     let entry = null;
+    // Text typed into number fields that they do not take, per row being
+    // edited. The row keeps its last valid number and Save waits while a
+    // shown field holds such text.
+    const typed = new WeakMap();
     const finish = (result) => { shell.close(); resolve(result); };
 
     const render = () => {
@@ -483,14 +554,20 @@ export function editRow({ list, row }) {
         back.onclick = () => { entry = null; render(); };
         shell.head.append(back);
       }
-      shell.head.append(entry ? entry.title : (row ? rowTitle(list, row) : addTitle(list)));
+      const path = entry ? `${list.key}.${entry.list.key}` : list.key;
+      shell.head.append(entry ? entry.title : (row ? rowTitle(list, row, { plugin, path }) : addTitle(list)));
       const form = el('div', 'modal-form plugin-editor');
       const save = el('button', 'btn-primary', entry ? pluginText('Done') : t('commonSave'));
-      const refresh = () => { save.disabled = !rowComplete(level.fields, values); };
+      if (!typed.has(values)) typed.set(values, {});
+      const pending = typed.get(values);
+      const refresh = () => {
+        save.disabled = !rowComplete(level.fields, values)
+          || level.fields.some((f) => f.key in pending && fieldVisible(f, values, level.fields));
+      };
       const rerender = () => render();
       for (const field of level.fields) {
         if (!fieldVisible(field, values, level.fields)) continue;
-        form.appendChild(fieldControl(field, values, level.fields, { refresh, rerender, openEntry }));
+        form.appendChild(fieldControl(field, values, level.fields, { refresh, rerender, openEntry, plugin, path, pending }));
       }
       shell.body.replaceChildren(form);
       shell.foot.replaceChildren();
@@ -518,7 +595,7 @@ export function editRow({ list, row }) {
     const openEntry = (field, index) => {
       const current = index == null ? null : draft[field.key][index];
       entry = { list: field, index, draft: filledRow(field, current),
-        title: current ? rowTitle(field, current) : addTitle(field) };
+        title: current ? rowTitle(field, current, { plugin, path: `${list.key}.${field.key}` }) : addTitle(field) };
       render();
     };
     render();
@@ -527,7 +604,7 @@ export function editRow({ list, row }) {
 
 // One field in the editor, the device's _Labeled layout: the label above
 // with Required beside an empty required field, the description beneath.
-function fieldControl(field, values, fields, { refresh, rerender, openEntry }) {
+function fieldControl(field, values, fields, { refresh, rerender, openEntry, plugin, path, pending }) {
   const wrap = el('div', 'form-field');
   const label = el('span', 'desc', field.title);
   const required = el('span', 'plugin-required', ` · ${pluginText('Required')}`);
@@ -543,6 +620,19 @@ function fieldControl(field, values, fields, { refresh, rerender, openEntry }) {
   };
   const value = values[field.key];
   let control;
+  // The same picker and Refresh as a choices setting, with the warning and
+  // the refresh's progress below. A list row has nothing to save first.
+  if (takesChoices(field) && plugin) {
+    const choice = choiceControl(plugin, { key: `${path}.${field.key}`, title: field.title, emptyText: field.emptyText }, value ?? '',
+      async () => {}, async (picked) => set(picked));
+    const body = el('div', 'plugin-choice-field');
+    body.append(choice.control, ...choice.lines);
+    choice.attach(body);
+    wrap.append(label, body);
+    if (field.description) wrap.append(el('span', 'desc plugin-field-note', field.description));
+    paintRequired();
+    return wrap;
+  }
   switch (field.type) {
     case 'boolean': {
       const row = el('div', 'row');
@@ -557,6 +647,18 @@ function fieldControl(field, values, fields, { refresh, rerender, openEntry }) {
       return row;
     }
     case 'number': {
+      if (field.input === 'field') {
+        const number = numberControl(field, field.key in pending ? pending[field.key] : String(value), (text) => {
+          if (numberError(field, text)) { pending[field.key] = text; refresh(); return; }
+          delete pending[field.key];
+          set(Number(text), { settled: false });
+        });
+        number.input.onchange = () => { if (!(field.key in pending)) set(values[field.key]); };
+        wrap.append(label, number.control, number.error);
+        if (field.description) wrap.append(el('span', 'desc plugin-field-note', field.description));
+        paintRequired();
+        return wrap;
+      }
       control = el('div', 'plugin-range');
       const input = el('input'); input.type = 'range';
       input.min = field.min; input.max = field.max; input.step = field.step || 1; input.value = value;
@@ -615,7 +717,7 @@ function fieldControl(field, values, fields, { refresh, rerender, openEntry }) {
     case 'list': {
       control = el('div', 'plugin-list-box');
       control.appendChild(listRows({
-        list: field, rows: value,
+        list: field, rows: value, plugin, path: `${path}.${field.key}`,
         onOpen: (index) => openEntry(field, index),
         onReorder: (from, to) => { values[field.key] = move(value, from, to); rerender(); },
       }));

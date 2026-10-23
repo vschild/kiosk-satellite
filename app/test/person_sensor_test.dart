@@ -634,4 +634,148 @@ void main() {
       });
     });
   });
+
+  group("the Portal's own presence wake (issue #1092)", () {
+    late ScreensaverManager saver;
+    late List<String> screenCalls;
+
+    const wakeKey = 'ks.screensaver.screen_off_wake_to_screensaver';
+    const presenceWake =
+        'PowerManagerService: Waking up from Dozing (uid=10058, '
+        'reason=WAKE_REASON_APPLICATION, '
+        'details=Full_Wakeup_PresenceManager)...';
+    const powerButtonWake =
+        'PowerManagerService: Waking up from Dozing (uid=1000, '
+        'reason=WAKE_REASON_POWER_BUTTON, details=android.policy:POWER)...';
+
+    /// A session that has powered the panel off, Dismiss on person off and
+    /// [wake] picked, as in the report.
+    void darkSession(FakeAsync async, {String wake = '["person"]'}) {
+      build({
+        'ks.screensaver.enabled': true,
+        'ks.screensaver.timeout_seconds': 60,
+        'ks.screensaver.screen_off_minutes': 1,
+        wakeKey: wake,
+      });
+      async.flushMicrotasks();
+      final calls = <String>[];
+      screenCalls = calls;
+      for (final name in ['screenOn', 'screenOff']) {
+        commands.register(
+          Command(
+            name: name,
+            description: 'Record screen power requests',
+            handler: (_) async {
+              calls.add(name);
+              bus.publish(
+                ScreenStateChanged(on: name == 'screenOn', source: 'app'),
+              );
+              return const CommandResult.ok();
+            },
+          ),
+        );
+      }
+      saver = ScreensaverManager(bus, commands, Logger(), settings)
+        ..systemWakeSource = sensor.wakeSource;
+      saver.init();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 2));
+      expect(screenCalls, ['screenOff']);
+      expect(saver.isActive, isTrue);
+    }
+
+    test('Person under Wake to screensaver runs the sensor on its own', () {
+      fakeAsync((async) {
+        darkSession(async);
+        expect(sensor.wanted, isTrue);
+        expect(sensor.running, isTrue);
+        saver.dispose();
+      });
+    });
+
+    test('the wake line before the screen-on keeps the screensaver', () {
+      fakeAsync((async) {
+        darkSession(async);
+        lines.add(
+          beat(
+            clock,
+            text: 'aloha.CameraServiceController: Notify people presence',
+          ),
+        );
+        lines.add(beat(clock, text: presenceWake));
+        async.flushMicrotasks();
+        // The wake line names a wake lock, never a beat of its own.
+        bus.publish(const ScreenStateChanged(on: true));
+        async.flushMicrotasks();
+        expect(saver.isActive, isTrue);
+        expect(screenCalls, ['screenOff']);
+
+        // A fresh countdown runs from the wake.
+        async.elapse(const Duration(minutes: 1));
+        expect(screenCalls, ['screenOff', 'screenOff']);
+        expect(saver.isActive, isTrue);
+        saver.dispose();
+      });
+    });
+
+    test('the wake line after the screen-on keeps the screensaver', () {
+      fakeAsync((async) {
+        darkSession(async);
+        bus.publish(const ScreenStateChanged(on: true));
+        async.flushMicrotasks();
+        expect(saver.isActive, isTrue);
+        async.elapse(const Duration(milliseconds: 300));
+        lines.add(beat(clock, text: presenceWake));
+        async.flushMicrotasks();
+        expect(saver.isActive, isTrue);
+        async.elapse(PersonSensorManager.wakeLineWithin);
+        expect(saver.isActive, isTrue);
+        saver.dispose();
+      });
+    });
+
+    test('the power button still opens the dashboard', () {
+      fakeAsync((async) {
+        darkSession(async);
+        lines.add(beat(clock, text: powerButtonWake));
+        async.flushMicrotasks();
+        bus.publish(const ScreenStateChanged(on: true));
+        async.flushMicrotasks();
+        expect(saver.isActive, isFalse);
+        saver.dispose();
+      });
+    });
+
+    test('a wake line from before the panel went dark answers nothing', () {
+      fakeAsync((async) {
+        darkSession(async);
+        lines.add(beat(clock, text: presenceWake));
+        async.flushMicrotasks();
+        bus.publish(const ScreenStateChanged(on: false));
+        async.flushMicrotasks();
+        bus.publish(const ScreenStateChanged(on: true));
+        async.flushMicrotasks();
+        expect(saver.isActive, isTrue);
+        // No line for this wake: the dead-tail fallback opens the
+        // dashboard.
+        async.elapse(PersonSensorManager.wakeLineWithin);
+        expect(saver.isActive, isFalse);
+        saver.dispose();
+      });
+    });
+
+    test('with Person not picked the presence wake opens the dashboard', () {
+      fakeAsync((async) {
+        darkSession(async, wake: '["motion"]');
+        settings.set(defs.personSensorEnabled, true);
+        async.flushMicrotasks();
+        lines.add(beat(clock, text: presenceWake));
+        async.flushMicrotasks();
+        bus.publish(const ScreenStateChanged(on: true));
+        async.flushMicrotasks();
+        expect(saver.isActive, isFalse);
+        saver.dispose();
+      });
+    });
+  });
 }

@@ -58,6 +58,7 @@ Use **Settings > ESPHome > Excluded entities** to pick entities that should stay
 | **Restart device** | button | Restarts the whole device, not just the app. Listed only where the restart can land: with Kiosk Satellite provisioned as the [device owner](kiosk.md#going-further-device-ownership), or with a granted [Shizuku](shizuku.md) connection. A Shizuku started over ADB stops at the reboot, so on such a kiosk the button is gone until Shizuku runs again. |
 | **Open app launcher** | button | Requires the App launcher setting to be enabled. |
 | **Show Music Assistant** | button | Requires a Music Assistant server address to be configured. |
+| **Show Music Library** | button | Opens the [Music Library](music-library.md). Listed once Music Assistant, Home Assistant or a Sonos speaker is set up. |
 | **Media play**, **Media pause**, **Media next**, **Media previous** | button | Transport for the player the Media Player page follows: the Sendspin player, a Home Assistant, Music Assistant or Sonos player, or the [Local Media Session](sendspin.md#local-media-session). Requires **Expose ESPHome entities** on the Media Player page. |
 | **Media state**, **Media title**, **Media artist**, **Media source** | text sensor | What that player is doing: `playing`, `paused` or `idle`, the track, the artist and the player's name. For the Local Media Session the source is the app that plays, such as YouTube. Requires **Expose ESPHome entities** on the Media Player page. |
 | **Camera view** | select | Includes a "Closed" option, plus one option for every camera view containing cameras. Requires camera views to be configured. The option list is built when the server starts; if you add new views, simply toggle ESPHome off and on, or restart the app to refresh the list. |
@@ -67,6 +68,7 @@ Use **Settings > ESPHome > Excluded entities** to pick entities that should stay
 | **Intercom**, **Intercom kiosk** | text sensor | The [intercom's](intercom.md#home-assistant) state (`idle`, `calling`, `ringing`, `in_call`, `broadcasting`, `listening`, `missed` for a minute after a call nobody answered) and the other kiosk's name. Listed while the intercom is on. |
 | **Dashboard view** | select | Provides one option per dashboard view (`dashboard/view`), then one per app in the Home Assistant sidebar (`1e25efb6_panalume`), followed by your [custom pages](custom-pages.md) (`local/page.html`). This list re reads when Home Assistant reports that a dashboard or sidebar panel was created, deleted, or edited, and when the dashboard connection returns after an outage (it never re reads on a timer). The last read list is saved across restarts, so the selector is available immediately upon the first connection even if Home Assistant is temporarily down. |
 | **Update** | update | Displays the latest release and its release notes, which you can install directly from Home Assistant (see [updates.md](updates.md)). Calling `homeassistant.update_entity` on it checks the release source right away instead of waiting for the next scheduled check. |
+| **Firmware** | update | Only on the Echo Dot's Kiosk Satellite Edition image. Displays the newest release of the image and its release notes, which you can install from Home Assistant. The Dot restarts twice to install it. Calling `homeassistant.update_entity` on it checks for a newer release right away (see [Echo Dot](echo-dot.md#system-updates)). |
 | **Screenshot** | camera | Exposes the display as a still camera on every kiosk. It is fed by the Take screenshot button or by fetching the entity itself. |
 | **Take screenshot** | button | Manually captures the display. |
 | **Last screenshot** | timestamp | Updates when the button is pressed or the remote admin preview refreshes, but never on a simple fetch of the camera entity. The value is saved across restarts. |
@@ -114,6 +116,8 @@ Every item in this list corresponds directly to a kiosk setting. They are fully 
 | **Camera facing** | select | Requires both a front and back physical camera. |
 | **Intercom do not disturb** | switch | The [intercom's](intercom.md) answer mode as Do not disturb, on or off. Listed while the intercom is on. |
 | **Intercom answer mode** | select | Ring, Answer automatically or Do not disturb. Listed while the intercom is on. |
+| **LED Control Idle** | light | Turns **Light up when idle** on the [LED Control](led-control.md) page on or off and sets its brightness and color. Listed on devices with lights Kiosk Satellite can drive, such as the Echo Dot, while **Enable LED Control** is on. |
+| **LED Control Idle Effect** | select | Solid or Breathing, the idle **Effect** on the [LED Control](led-control.md) page. Listed with the **LED Control Idle** light. |
 | **Intercom volume** | number | The share of the master volume the other kiosk's voice and announcements play at, in percentage. Listed while the intercom is on. |
 
 ### Diagnostics
@@ -122,8 +126,10 @@ Every item in this list corresponds directly to a kiosk setting. They are fully 
 |---|---|---|
 | **Battery** | sensor | Reports battery percentage. Only devices with a physical battery receive this entity; a mains powered device without a battery will only report the Charging status. |
 | **Charging** | binary sensor | Indicates if the device is currently receiving power. |
-| **CPU usage** | sensor | Reports current CPU load as a percentage. |
+| **CPU usage** | sensor | Reports how busy the CPU is as a percentage. Only available on devices that let an app measure CPU load. |
+| **CPU clock** | sensor | Reports the average clock speed of the active CPU cores in MHz. |
 | **CPU temperature** | sensor | Only available on devices that report thermal data. |
+| **Battery temperature** | sensor | Reports the battery temperature in °C from Android's battery report. Only devices with a battery that has a temperature sensor receive this entity. |
 | **RAM available**, **RAM total** | sensor | Reported in Megabytes (MB). |
 | **Internal storage free**, **Internal storage total** | sensor | Available space and capacity of Android's internal data partition in mebibytes (MiB). Refresh every minute. Free space includes a valid zero when the partition is full. |
 | **Current page** | text sensor | Displays the URL currently on screen, perfectly tracking Single Page Application (SPA) navigations. |
@@ -443,6 +449,24 @@ The page has the same footing as any other link the kiosk opens: it follows the 
 ```
 
 On the [remote API](remote-api.md) the same two are the `showLinkPage` and `hideOverlayPage` commands, `showLinkPage` with the same `hold` flag.
+
+## Run a Shizuku command
+
+`esphome.<node name>_shizuku_command` runs a shell command on the kiosk through [Shizuku](shizuku.md), the same way `adb shell` would. It is listed with **Expose kiosk entities** and needs Shizuku running with Kiosk Satellite allowed under **Settings > Device > Shizuku**. The command runs as the user Shizuku runs as, which is Android's shell user when Shizuku was started over ADB and root when it was started as root.
+
+```yaml
+- action: esphome.kitchen_tablet_shizuku_command
+  data:
+    command: settings put system screen_off_timeout 600000
+    timeout: 0
+  response_variable: result
+```
+
+`command` is one command line and can use pipes, `&&` and redirects. `timeout` is how many seconds to wait for it, up to 25. Set it to 0 for the default of 10. A command that runs past its timeout is stopped.
+
+The action answers through `response_variable` with `exit_code`, `stdout`, `stderr`, `timed_out` and `truncated`. A command that runs and fails still answers, so check `exit_code` in the automation. Output longer than about 48 KB is cut and `truncated` is true. The action reports an error to Home Assistant when the command could not run at all: Shizuku is not installed, not running, older than version 13 or Kiosk Satellite is not allowed in it. Commands run one at a time in the order they arrive.
+
+Anyone who can run actions on this device in Home Assistant can run commands on the kiosk with the same access as `adb shell`. Turn off **Expose kiosk entities** or revoke Kiosk Satellite in the Shizuku app if that is more access than you want to give Home Assistant. On the [remote API](remote-api.md), the equivalent command is `runShizukuCommand` with the same `command` and `timeout` arguments.
 
 ## Ambient Noise
 

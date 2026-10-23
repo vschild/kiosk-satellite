@@ -155,6 +155,17 @@ class PluginManager extends Manager implements FleetPluginHost {
   /// Settings page buttons and plugin choices by plugin id: each run's
   /// state and what the plugin listed. Session scoped like charts.
   final setup = ValueNotifier<Map<String, Map<String, Object?>>>({});
+
+  /// Who has each plugin's settings page open, by plugin id: kiosk pages
+  /// by their state, remote admin pages by their viewer id with the timer
+  /// that closes them once they stop checking in.
+  final _pageViewers = <String, Map<Object, Timer?>>{};
+
+  /// The plugins last told their settings page is open.
+  final _pagesOpen = <String>{};
+
+  /// How long a remote admin page counts as open after it last checked in.
+  static const remotePageTimeout = Duration(seconds: 5);
   final screensavers = ValueNotifier<Map<String, Map<String, Object?>>>({});
   Map<String, String> get screensaverOptions => {
     for (final entry in screensavers.value.entries)
@@ -284,6 +295,10 @@ class PluginManager extends Manager implements FleetPluginHost {
   /// The voice turn plugins follow. Set by the app container before [init].
   PluginVoiceFeed? voice;
 
+  /// The screensaver mode plugins with the screensaver.mode capability
+  /// read and hold. Set by the app container before [init].
+  PluginScreensaverModes? screensaverModes;
+
   /// The device camera for the camera and barcode capabilities. Set by the
   /// app container before [init].
   PluginCamera? camera;
@@ -393,6 +408,7 @@ class PluginManager extends Manager implements FleetPluginHost {
       ha: haSocket,
       ma: maSocket,
       voice: voice,
+      screensaverModes: screensaverModes,
     );
     channel.setMethodCallHandler((call) async {
       if (_disposed) return null;
@@ -408,8 +424,15 @@ class PluginManager extends Manager implements FleetPluginHost {
           _setContentInsets(data['id'] as String, null);
           _setSetup(data['id'] as String, null);
           _hostReads.open(call.arguments as Map);
+          // A new session has not heard that its settings page is open.
+          if (_pageViewers.containsKey(data['id'])) {
+            _sendSettingsPage(data['id'] as String, true);
+          }
         case 'hostSessionClosed':
           final data = call.arguments as Map;
+          // First, so a screensaver mode the plugin held lets go before its
+          // renderers do, instead of showing black in between.
+          _hostReads.close(call.arguments as Map);
           if (_runtimeSessions[data['id']] == data['session']) {
             _runtimeSessions.remove(data['id']);
             _setScreensavers(data['id'] as String, const []);
@@ -420,7 +443,6 @@ class PluginManager extends Manager implements FleetPluginHost {
             _setContentInsets(data['id'] as String, null);
             _setSetup(data['id'] as String, null);
           }
-          _hostReads.close(call.arguments as Map);
         case 'cameraOpen':
           return camera == null
               ? 'camera_failed'
@@ -807,9 +829,35 @@ class PluginManager extends Manager implements FleetPluginHost {
     );
     register(
       'getPluginSetup',
-      'Read the settings button runs and listed choices of a running plugin.',
-      (p) async => setup.value[p['id']] ?? const {'runs': {}, 'choices': {}},
-      const {'id': 'Plugin ID'},
+      'Read the settings button runs and listed choices of a running plugin. choiceRevisions changes with each new list, so a caller that passes the revisions it holds gets only the lists that changed.',
+      (p) async => _remoteSetup(p['id'] as String? ?? '', p['choiceRevisions']),
+      const {
+        'id': 'Plugin ID',
+        'choiceRevisions':
+            'Optional. The revision of each choices list held, by key. Only lists with another revision come back',
+      },
+    );
+    register(
+      'setPluginPageOpen',
+      'Tell a plugin that its settings page is open in this browser. Repeat it while the page stays open: the page counts as closed ${remotePageTimeout.inSeconds} seconds after the last call, or right away with open false.',
+      (p) async {
+        final id = p['id'] as String? ?? '';
+        if (!installed.value.any((plugin) => plugin['id'] == id)) {
+          throw StateError('Plugin is not installed');
+        }
+        settingsPageViewer(
+          id,
+          'remote:${p['viewer'] ?? ''}',
+          open: p['open'] != false,
+          timeout: remotePageTimeout,
+        );
+        return null;
+      },
+      const {
+        'id': 'Plugin ID',
+        'viewer': 'An ID for this page, the same on every call',
+        'open': 'False when the page closes. True unless set',
+      },
     );
     register(
       'runPluginSetup',
@@ -1142,6 +1190,40 @@ class PluginManager extends Manager implements FleetPluginHost {
     return '${(result as Map)['run']}';
   }
 
+  /// Opens or closes one [viewer] of plugin [id]'s settings page. The
+  /// plugin hears settings.page when the first viewer opens it and when the
+  /// last one closes it. A [timeout] closes the viewer unless it opens again
+  /// before then.
+  void settingsPageViewer(
+    String id,
+    Object viewer, {
+    required bool open,
+    Duration? timeout,
+  }) {
+    if (_disposed) return;
+    final viewers = _pageViewers[id] ??= {};
+    viewers.remove(viewer)?.cancel();
+    if (open) {
+      viewers[viewer] = timeout == null
+          ? null
+          : Timer(timeout, () => settingsPageViewer(id, viewer, open: false));
+    }
+    if (viewers.isEmpty) _pageViewers.remove(id);
+    final next = _pageViewers.containsKey(id);
+    if (next != _pagesOpen.contains(id)) _sendSettingsPage(id, next);
+  }
+
+  /// The host passes the state on to the plugin's running session, if any,
+  /// and skips a state that session already heard.
+  void _sendSettingsPage(String id, bool open) {
+    open ? _pagesOpen.add(id) : _pagesOpen.remove(id);
+    unawaited(
+      channel
+          .invokeMethod<void>('settingsPage', {'id': id, 'open': open})
+          .catchError((_) {}),
+    );
+  }
+
   Future<void> cancelSetup(String id, String run) =>
       _setupCall('setupCancel', {'id': id, 'run': run});
 
@@ -1158,12 +1240,84 @@ class PluginManager extends Manager implements FleetPluginHost {
     }
   }
 
+  /// Takes the host's setup update. Choice lists can be large, so the host
+  /// sends each one only when its revision changes, and the lists already
+  /// held stay for the keys it still names.
   void _setSetup(String id, Map? value) {
-    final next = value == null ? null : jsonDecode(jsonEncode(value)) as Map;
-    if (jsonEncode(setup.value[id]) == jsonEncode(next)) return;
-    setup.value = {...setup.value}
-      ..remove(id)
-      ..addAll(next == null ? {} : {id: next.cast<String, Object?>()});
+    final previous = setup.value[id];
+    if (value == null) {
+      if (previous != null) setup.value = {...setup.value}..remove(id);
+      return;
+    }
+    final sent = value['choices'] as Map? ?? const {};
+    final revisions = value['choiceRevisions'] as Map?;
+    final held = previous?['choices'] as Map? ?? const {};
+    final runs = jsonDecode(jsonEncode(value['runs'] ?? const {}));
+    final off = [...?(value['choicesOff'] as List?)];
+    final next = <String, Object?>{
+      'runs': runs,
+      'choiceRevisions': {...?revisions},
+      'choicesOff': off,
+      'choices': {
+        for (final key in revisions?.keys ?? sent.keys)
+          if (sent.containsKey(key))
+            '$key': jsonDecode(jsonEncode(sent[key]))
+          else if (held.containsKey(key))
+            '$key': held[key],
+      },
+    };
+    if (sent.isEmpty &&
+        previous != null &&
+        jsonEncode(previous['runs']) == jsonEncode(runs) &&
+        jsonEncode(previous['choicesOff']) == jsonEncode(off) &&
+        jsonEncode(previous['choiceRevisions']) ==
+            jsonEncode(next['choiceRevisions'])) {
+      return;
+    }
+    setup.value = {...setup.value, id: next};
+  }
+
+  /// A plugin's setup for the remote API. Given the revisions a caller
+  /// [held], only the lists that changed since come along. Choice icons
+  /// travel as path data, the way the remote pickers draw them.
+  Future<Map<String, Object?>> _remoteSetup(String id, Object? held) async {
+    final state = setup.value[id];
+    final revisions = state?['choiceRevisions'] as Map? ?? const {};
+    final choices = state?['choices'] as Map? ?? const {};
+    final sent = held is Map
+        ? {
+            for (final entry in choices.entries)
+              if (!revisions.containsKey(entry.key) ||
+                  '${held[entry.key]}' != '${revisions[entry.key]}')
+                entry.key: entry.value,
+          }
+        : choices;
+    final icons = {
+      for (final list in sent.values.whereType<List>())
+        for (final choice in list.whereType<Map>())
+          if (choice['icon'] is String) choice['icon'] as String,
+    };
+    final paths = icons.isEmpty
+        ? const <String, String>{}
+        : await MdiIcons.paths(icons);
+    return {
+      'runs': state?['runs'] ?? const {},
+      'choiceRevisions': revisions,
+      'choicesOff': state?['choicesOff'] ?? const [],
+      'choices': paths.isEmpty
+          ? sent
+          : {
+              for (final entry in sent.entries)
+                entry.key: [
+                  for (final choice in (entry.value as List).whereType<Map>())
+                    if (paths[MdiIcons.normalize('${choice['icon'] ?? ''}')]
+                        case final path?)
+                      {...choice, 'iconPath': path}
+                    else
+                      choice,
+                ],
+            },
+    };
   }
 
   void _setScreensavers(String id, List value) {
@@ -1526,6 +1680,12 @@ class PluginManager extends Manager implements FleetPluginHost {
   @override
   Future<void> dispose() async {
     _disposed = true;
+    for (final viewers in _pageViewers.values) {
+      for (final timer in viewers.values) {
+        timer?.cancel();
+      }
+    }
+    _pageViewers.clear();
     await _attachSub?.cancel();
     await _hostReads.dispose();
     haSocket?.dispose();

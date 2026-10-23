@@ -338,6 +338,14 @@ class UpdateStateChanged extends AppEvent {
   const UpdateStateChanged();
 }
 
+/// The ROM's system update moved: a check ended, a newer image release
+/// appeared, or a download or install made progress or ended. Only on the
+/// Echo Dot's Kiosk Satellite Edition image. Internal-only; listeners read
+/// the details through getSystemUpdateStatus.
+class SystemUpdateStateChanged extends AppEvent {
+  const SystemUpdateStateChanged();
+}
+
 /// A native sound (playSound) actually began playing. Wire event: the page
 /// times stop-word arming and its speaking UI off real audio start.
 class SoundStarted extends AppEvent {

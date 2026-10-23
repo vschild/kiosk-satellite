@@ -4,7 +4,7 @@ import { fleetStatusText } from './fleet-messages.js';
 import { overviewText, overviewStatus, cameraError, deviceText, deviceOperationError, fleetText, intercomText, mediaText, mediaError, navigationText, t, voiceText } from './localization.js';
 import { watchUpdates } from './live.js';
 import { $, api, cmd, state } from './core.js';
-import { attachUpdateInstall, refreshUpdateBadge } from './device.js';
+import { attachSystemUpdateInstall, attachUpdateInstall, refreshUpdateBadge } from './device.js';
 import { readFilterStatus } from './filter_status.js';
 import { agoLabel } from './notices.js';
 import { loadScreenshot, quick, renderQuickControls } from './panels.js';
@@ -374,7 +374,7 @@ function openButton(btn, label, tab) {
    painted whole from the cache. A settings change repaints from the
    cache without a single command. */
 const health = { ha: null, wake: null, voice: null, esp: null, media: null, svc: null,
-  upd: null, perms: null, guard: null, buttons: null, fleet: null, tiles: null };
+  upd: null, sys: null, perms: null, guard: null, buttons: null, fleet: null, tiles: null };
 const SOURCES = {
   ha: { topics: ['ha'], read: async () => { health.ha = await ask('haStatus'); } },
   // Wake word pushes arrive as their own message (ks-wakeword below).
@@ -403,6 +403,11 @@ const SOURCES = {
       ['getServiceStatus', 'getSystemPermissions', 'hasUiGuard'].map((c) => ask(c)));
   } },
   update: { topics: ['update'], read: async () => { health.upd = await ask('getUpdateStatus'); } },
+  // The Echo Dot image's own update, only there.
+  sys: { topics: ['update'], read: async () => {
+    const sys = isHeadless() ? await ask('getSystemUpdateStatus') : null;
+    health.sys = sys?.supported ? sys : null;
+  } },
   fleet: { topics: ['fleetsync'], read: async () => { health.fleet = await ask('fleetStatus'); } },
   tiles: { topics: ['plugin-tiles'], read: async () => { health.tiles = await ask('getPluginStatusTiles'); } },
 };
@@ -586,6 +591,17 @@ function paintHealth({ filter = true } = {}) {
       desc: t(upd.silent ? 'overviewInstallSilentHelp'
         : isHeadless() ? 'overviewInstallHeadlessHelp' : 'overviewInstallHelp', {version: upd.availableVersion}),
       action: (btn) => { overviewLabel(btn, 'Install'); attachUpdateInstall(btn, () => health.upd); },
+    });
+  }
+  if (health.sys?.availableVersion) {
+    items.push({
+      key: 'system-update',
+      name: t('overviewSystemUpdate'),
+      desc: t('overviewSystemUpdateHelp', {version: health.sys.availableVersion}),
+      action: (btn) => {
+        overviewLabel(btn, 'Install');
+        attachSystemUpdateInstall(btn, () => health.sys, () => { refreshUpdateBadge(); refreshHealth(); });
+      },
     });
   }
   if (ha && !ha.configured) {

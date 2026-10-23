@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /** Device actions share the Shizuku connection but never belong to a plugin session. */
 internal class ShizukuDeviceBridge(private val context: Context, messenger: BinaryMessenger, private val access: () -> PluginShizuku) {
@@ -17,6 +18,8 @@ internal class ShizukuDeviceBridge(private val context: Context, messenger: Bina
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "shizuku-device").apply { isDaemon = true } }
     private val busy = AtomicBoolean(false)
+    private val commands = Executors.newSingleThreadExecutor { task -> Thread(task, "shizuku-command").apply { isDaemon = true } }
+    private val queued = AtomicInteger(0)
     fun changed(state: Map<String, Any>) { main.post { channel.invokeMethod("state", state) } }
     init {
         channel.setMethodCallHandler { call, result ->
@@ -24,6 +27,32 @@ internal class ShizukuDeviceBridge(private val context: Context, messenger: Bina
                 when (call.method) {
                     "state" -> result.success(access().state())
                     "requestPermission" -> { access().requestPermission(); result.success(access().state()) }
+                    // A shell command line from Home Assistant, run through
+                    // sh as the Shizuku user. Commands queue on their own
+                    // worker so a slow one never blocks a permission action.
+                    "runCommand" -> {
+                        val args = call.arguments as? Map<*, *> ?: error("Missing command")
+                        val line = (args["command"] as? String)?.trim().orEmpty()
+                        require(line.isNotEmpty()) { "Missing command" }
+                        val timeoutMs = (args["timeoutMs"] as? Number)?.toInt() ?: 10000
+                        val command = arrayOf("/system/bin/sh", "-c", line)
+                        PluginShizukuCommand.validate(command, timeoutMs)
+                        if (queued.incrementAndGet() > 4) { queued.decrementAndGet(); error("Too many Shizuku commands are waiting") }
+                        commands.execute {
+                            val client = access().client()
+                            try {
+                                check(access().state()["granted"] == true) { "Grant Shizuku access first" }
+                                val done = CountDownLatch(1)
+                                var data: Map<String, Any>? = null
+                                var failure: String? = null
+                                client.execute(command, timeoutMs) { ok, value, error -> data = if (ok) value else null; failure = error; done.countDown() }
+                                check(done.await(timeoutMs + 10_000L, TimeUnit.MILLISECONDS)) { "Shizuku command did not respond" }
+                                val value = data ?: error(failure ?: "Shizuku command failed")
+                                main.post { result.success(value) }
+                            } catch (error: Exception) { main.post { result.error("shizuku_error", error.message, null) } }
+                            finally { client.close(); queued.decrementAndGet() }
+                        }
+                    }
                     "runAction" -> {
                         val args = call.arguments as? Map<*, *> ?: error("Missing action")
                         val action = args["action"] as? String ?: error("Missing action")

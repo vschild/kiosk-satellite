@@ -216,6 +216,18 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingScreenOrientationTitle",
     "description": "settingScreenOrientationDescription",
   },
+  "screen.hide_status_bar": {
+    "title": "settingScreenHideStatusBarTitle",
+    "description": "settingScreenHideStatusBarDescription",
+  },
+  "screen.hide_navigation_bar": {
+    "title": "settingScreenHideNavigationBarTitle",
+    "description": "settingScreenHideNavigationBarDescription",
+  },
+  "screen.show_on_lock_screen": {
+    "title": "settingScreenShowOnLockScreenTitle",
+    "description": "settingScreenShowOnLockScreenDescription",
+  },
   "screen.keep_on": {
     "title": "settingKeepScreenOnTitle",
     "description": "settingKeepScreenOnDescription",
@@ -383,6 +395,22 @@ const settingMessageIds = <String, Map<String, String>>{
   "screensaver.roller_bg_color": {
     "title": "settingScreensaverRollerBgColorTitle",
     "description": "settingScreensaverRollerBgColorDescription",
+  },
+  "screensaver.hand_numbers": {
+    "title": "settingScreensaverHandNumbersTitle",
+    "description": "settingScreensaverHandNumbersDescription",
+  },
+  "screensaver.hand_seconds": {
+    "title": "settingScreensaverHandSecondsTitle",
+    "description": "settingScreensaverHandSecondsDescription",
+  },
+  "screensaver.hand_color": {
+    "title": "settingScreensaverHandColorTitle",
+    "description": "settingScreensaverHandColorDescription",
+  },
+  "screensaver.hand_bg_color": {
+    "title": "settingScreensaverHandBgColorTitle",
+    "description": "settingScreensaverHandBgColorDescription",
   },
   "screensaver.clock_night": {
     "title": "settingScreensaverClockNightTitle",
@@ -911,6 +939,18 @@ const settingMessageIds = <String, Map<String, String>>{
   "camera.rtsp.password": {
     "title": "settingCameraRtspPasswordTitle",
     "description": "settingCameraRtspPasswordDescription",
+  },
+  "camera.onvif.events": {
+    "title": "settingCameraOnvifEventsTitle",
+    "description": "settingCameraOnvifEventsDescription",
+  },
+  "camera.onvif.events_source": {
+    "title": "settingCameraOnvifEventsSourceTitle",
+    "description": "settingCameraOnvifEventsSourceDescription",
+  },
+  "camera.onvif.events_entity": {
+    "title": "settingMotionEntityTitle",
+    "description": "settingMotionEntityDescription",
   },
   "camera.allow_h265": {
     "title": "settingCameraAllowH265Title",
@@ -2411,5 +2451,25 @@ const settingMessageIds = <String, Map<String, String>>{
   "voice.amazon_locale": {
     "title": "settingVoiceAmazonLocaleTitle",
     "description": "settingVoiceAmazonLocaleDescription",
+  },
+  "library.menu": {
+    "title": "settingCalendarMenuTitle",
+    "description": "settingLibraryMenuDescription",
+  },
+  "library.idle_close_minutes": {
+    "title": "settingCalendarIdleCloseMinutesTitle",
+    "description": "settingCalendarIdleCloseMinutesDescription",
+  },
+  "kiosk.allow_music_library": {
+    "title": "libraryTitle",
+    "description": "settingKioskAllowMusicLibraryDescription",
+  },
+  "library.source": {
+    "title": "librarySource",
+    "description": "settingLibrarySourceDescription",
+  },
+  "library.now_playing_button": {
+    "title": "settingLibraryNowPlayingButtonTitle",
+    "description": "settingLibraryNowPlayingButtonDescription",
   },
 };

@@ -26,6 +26,15 @@ class NativeRtsp {
     await _channel.invokeMethod<Map>('configure', config) ?? {},
   );
 
+  /// Whether ONVIF clients get motion events, and whether there is motion.
+  static Future<void> onvifEvents({
+    required bool enabled,
+    required bool motion,
+  }) => _channel.invokeMethod('onvifEvents', {
+    'enabled': enabled,
+    'motion': motion,
+  });
+
   static Future<Map<String, dynamic>> status() async =>
       Map<String, dynamic>.from(
         await _channel.invokeMethod<Map>('status') ?? {},

@@ -45,6 +45,7 @@ class CameraRtspServer(
     private val clockNs = System.nanoTime()
     private val clockMs = System.currentTimeMillis()
     private val clients = CopyOnWriteArrayList<Client>()
+    private val requestNotes = mutableMapOf<String, Long>()
     private val scheduler = Executors.newSingleThreadScheduledExecutor { task -> Thread(task, "ks-rtsp-scheduler").apply { isDaemon = true } }
     private var idleTask: java.util.concurrent.ScheduledFuture<*>? = null
     private val server = (tls?.serverSocketFactory?.createServerSocket() ?: ServerSocket()).apply {
@@ -113,7 +114,7 @@ class CameraRtspServer(
     fun config(units: List<ByteArray>) {
         synchronized(formatReady) {
             for (unit in units) if (unit.isNotEmpty()) when (unit[0].toInt() and 31) {
-                7 -> sps = unit
+                7 -> { sps = unit; onvif?.updateParameterSet(unit) }
                 8 -> pps = unit
             }
             // New parameter sets can recover video, never a failed listener.
@@ -163,6 +164,7 @@ class CameraRtspServer(
     @Synchronized fun close() {
         running = false
         server.close()
+        onvif?.close()
         clients.forEach { it.close() }
         scheduler.shutdownNow()
         synchronized(formatReady) { formatReady.notifyAll() }
@@ -203,6 +205,19 @@ class CameraRtspServer(
         return !path.isNullOrEmpty() && digestUri == path
     }
 
+    /** Records each client request outcome once every few minutes, so polling NVRs do not flood the log. */
+    private fun note(key: String, event: String, details: String) {
+        val now = System.nanoTime()
+        synchronized(requestNotes) {
+            val last = requestNotes[key]
+            if (last != null && now - last < 300_000_000_000L) return
+            if (requestNotes.size >= 256) requestNotes.entries.removeAll { now - it.value >= 300_000_000_000L }
+            if (requestNotes.size >= 256) return
+            requestNotes[key] = now
+        }
+        onDiagnostic(event, details, null)
+    }
+
     private fun md5(text: String) = MessageDigest.getInstance("MD5").digest(text.toByteArray())
         .joinToString("") { "%02x".format(it.toInt() and 255) }
 
@@ -214,6 +229,8 @@ class CameraRtspServer(
         private var identified = false
         private val connectedNs = System.nanoTime()
         @Volatile private var userAgent = ""
+        private var requestMethod = ""
+        private var requestPath = ""
         @Volatile var playing = false
         @Volatile private var open = true
         @Volatile private var gotKey = false
@@ -308,6 +325,8 @@ class CameraRtspServer(
                     if (!open || (parts[2] != "RTSP/1.0" && !http)) break
                     val method = parts[0]
                     val uri = parts[1]
+                    requestMethod = method
+                    requestPath = if (uri == "*") "*" else try { java.net.URI(uri).path ?: "" } catch (_: Exception) { "" }
                     val headers = mutableMapOf<String, String>()
                     var headerBytes = 0
                     while (true) {
@@ -343,6 +362,11 @@ class CameraRtspServer(
                             else -> onvif.respond(uri, body, socket.localAddress.hostAddress ?: "127.0.0.1", localPort)
                         }
                         httpReply(response)
+                        val operation = response.operation.ifEmpty { "$method $requestPath" }
+                        note("onvif ${socket.inetAddress.hostAddress} $operation ${response.status}", "onvif request",
+                            "client=${socket.inetAddress.hostAddress}, operation=$operation, status=${response.status}" +
+                                (response.fault?.let { ", fault=$it" } ?: "") +
+                                (if (userAgent.isNotEmpty()) ", userAgent=$userAgent" else ""))
                         break
                     }
                     repeat(length) { check(input.read() >= 0) }
@@ -440,6 +464,12 @@ class CameraRtspServer(
                     "Content-Length: ${bytes.size}\r\n\r\n").toByteArray())
                 output.write(bytes); output.flush()
                 writeStartedNs = 0L
+            }
+            if (code != "200 OK" || requestMethod in listOf("DESCRIBE", "SETUP", "PLAY", "TEARDOWN")) {
+                val client = socket.inetAddress.hostAddress
+                note("rtsp $client $requestMethod $requestPath $code", "rtsp request",
+                    "client=$client, method=$requestMethod, path=$requestPath, status=$code" +
+                        (if (userAgent.isNotEmpty()) ", userAgent=$userAgent" else ""))
             }
         }
 

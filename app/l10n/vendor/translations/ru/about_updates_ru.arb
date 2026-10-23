@@ -8,5 +8,10 @@
   "aboutDownloadProgress": "Загрузка… {percent}%",
   "aboutDownloadFailed": "Обновление не удалось: {error}",
   "aboutAlreadyCurrent": "Уже установлена последняя версия",
-  "aboutInstallHelp": "Загрузка выполняется на планшете; установку нужно подтвердить на экране планшета."
+  "aboutInstallHelp": "Загрузка выполняется на планшете; установку нужно подтвердить на экране планшета.",
+  "aboutSystem": "Система",
+  "aboutSystemVersion": "Версия ROM",
+  "aboutSystemVerifying": "Проверка…",
+  "aboutSystemInstalling": "Установка…",
+  "aboutSystemInstallHelp": "Dot дважды перезагружается для установки обновления и каждый раз около полутора минут не в сети."
 }

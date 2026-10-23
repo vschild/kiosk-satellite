@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -895,12 +896,40 @@ class PluginDetailPanel extends StatefulWidget {
 
 class _PluginDetailPanelState extends State<PluginDetailPanel> {
   bool _busy = false;
+  // Off while a full page covers this one. Dialogs and pickers opened from
+  // here leave it on, so the page still counts as open under them.
+  ValueListenable<TickerModeData>? _shown;
   @override
   void initState() {
     super.initState();
     widget.plugins.enabled.addListener(_masterChanged);
     _masterChanged();
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown = TickerMode.getValuesNotifier(context);
+    if (shown == _shown) return;
+    _shown?.removeListener(_pageShown);
+    _shown = shown..addListener(_pageShown);
+    _pageShown();
+  }
+
+  @override
+  void didUpdateWidget(covariant PluginDetailPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id == widget.id) return;
+    oldWidget.plugins.settingsPageViewer(oldWidget.id, this, open: false);
+    _pageShown();
+  }
+
+  /// Tells the plugin when its settings page opens and closes.
+  void _pageShown() => widget.plugins.settingsPageViewer(
+    widget.id,
+    this,
+    open: _shown!.value.enabled,
+  );
 
   void _masterChanged() {
     if (widget.plugins.enabled.value) return;
@@ -912,6 +941,8 @@ class _PluginDetailPanelState extends State<PluginDetailPanel> {
   @override
   void dispose() {
     widget.plugins.enabled.removeListener(_masterChanged);
+    _shown?.removeListener(_pageShown);
+    widget.plugins.settingsPageViewer(widget.id, this, open: false);
     super.dispose();
   }
 
@@ -1158,9 +1189,63 @@ class _PluginSettingsState extends State<_PluginSettings> {
     }
   }
 
+  /// A typed number. Save waits until the text is a value the setting
+  /// takes, and the reason shows under the field until then.
+  Future<void> _editNumber(Map raw) async {
+    final key = '${raw['key']}';
+    var draft = '${_values[key] ?? raw['default']}';
+    final result = await showDialog<num>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final error = pluginNumberError(context, raw, draft);
+          void save() => Navigator.pop(context, pluginNumberValue(raw, draft));
+          return AlertDialog(
+            title: Text('${raw['title']}'),
+            content: SizedBox(
+              width: 420,
+              child: TextFormField(
+                initialValue: draft,
+                autofocus: true,
+                keyboardType: pluginNumberKeyboard(raw),
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  helperText: raw['description'] as String?,
+                  helperMaxLines: 3,
+                  suffixText: raw['unit']?.toString(),
+                  errorText: error,
+                ),
+                onChanged: (value) => setDialogState(() => draft = value),
+                onFieldSubmitted: (_) {
+                  if (pluginNumberError(context, raw, draft) == null) save();
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(pluginText(context, 'Cancel')),
+              ),
+              FilledButton(
+                onPressed: error == null ? save : null,
+                child: Text(pluginText(context, 'Save')),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result != null && mounted && !_busy) {
+      await _saveValue(key, result);
+    }
+  }
+
   PluginFieldServices get _services => PluginFieldServices(
     commands: widget.commands,
     container: widget.container,
+    plugins: widget.plugins,
+    pluginId: '${widget.plugin['id']}',
+    running: widget.plugin['running'] == true,
   );
 
   Widget _settingRow(Map raw, {bool alone = false}) {
@@ -1302,6 +1387,15 @@ class _PluginSettingsState extends State<_PluginSettings> {
         trailing: const Icon(Icons.edit_outlined),
         enabled: !_busy,
         onTap: _busy ? null : () => _editText(raw),
+      );
+    }
+    if (pluginTypedNumber(raw)) {
+      return SettingsRow(
+        title: Text('${raw['title']}'),
+        subtitle: Text('$value ${raw['unit'] ?? ''}'.trim()),
+        trailing: const Icon(Icons.edit_outlined),
+        enabled: !_busy,
+        onTap: _busy ? null : () => _editNumber(raw),
       );
     }
     return SettingsRow(
@@ -1602,12 +1696,8 @@ class _PluginGroupOutput extends StatelessWidget {
     builder: (context, _) {
       final groups = (plugin['groups'] as List? ?? const []).whereType<Map>();
       final layout = groups.where((g) => g['title'] == group).firstOrNull;
-      bool belongs(String kind, String key) {
-        if (group != null) {
-          return (layout?[kind] as List? ?? const []).contains(key);
-        }
-        return !groups.any((g) => (g[kind] as List? ?? const []).contains(key));
-      }
+      bool belongs(String kind, String key) =>
+          pluginOutputGroup(groups, kind, key) == group;
 
       final charts = (plugins.charts.value[plugin['id']] ?? const [])
           .where((chart) => belongs('charts', '${chart['key']}'))
@@ -1636,6 +1726,22 @@ class _PluginGroupOutput extends StatelessWidget {
       );
     },
   );
+}
+
+/// The group whose [kind] ("readings" or "charts") claims [key], or null
+/// when none does. A group naming the key wins over one claiming its whole
+/// type with "sensor.*", which wins over one claiming the rest with "*".
+String? pluginOutputGroup(Iterable<Map> groups, String kind, String key) {
+  String? claimedBy(String reference) => groups
+      .where((g) => (g[kind] as List? ?? const []).contains(reference))
+      .firstOrNull?['title']
+      ?.toString();
+  final dot = key.indexOf('.');
+  return claimedBy(key) ??
+      (kind == 'readings' && dot > 0
+          ? claimedBy('${key.substring(0, dot)}.*')
+          : null) ??
+      claimedBy('*');
 }
 
 /// The icon an installed plugin names in its manifest, filling the intro

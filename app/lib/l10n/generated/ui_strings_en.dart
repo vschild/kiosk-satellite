@@ -81,6 +81,22 @@ class UiStringsEn extends UiStrings {
       'The download runs on the tablet; the installation must be confirmed on the tablet screen.';
 
   @override
+  String get aboutSystem => 'System';
+
+  @override
+  String get aboutSystemVersion => 'ROM version';
+
+  @override
+  String get aboutSystemVerifying => 'Verifying…';
+
+  @override
+  String get aboutSystemInstalling => 'Installing…';
+
+  @override
+  String get aboutSystemInstallHelp =>
+      'The Dot restarts twice to install the update and is offline for about a minute and a half each time.';
+
+  @override
   String get alarmsTitle => 'Alarms';
 
   @override
@@ -1892,6 +1908,9 @@ class UiStringsEn extends UiStrings {
   String get gestureOpenCalendar => 'Open the calendar';
 
   @override
+  String get gestureOpenMusicLibrary => 'Open Music Library';
+
+  @override
   String get gestureService => 'Call a service';
 
   @override
@@ -2830,6 +2849,305 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get logsUnknown => 'unknown';
+
+  @override
+  String get libraryTitle => 'Music Library';
+
+  @override
+  String get librarySource => 'Source';
+
+  @override
+  String get librarySourceMa => 'Music Assistant';
+
+  @override
+  String get librarySourceHa => 'Home Assistant';
+
+  @override
+  String get librarySourceSonos => 'Sonos';
+
+  @override
+  String get librarySourceMaHint => 'Library, search and radio';
+
+  @override
+  String get librarySourceHaHint => 'Media from each speaker';
+
+  @override
+  String get librarySourceSonosHint => 'Favorites and playlists';
+
+  @override
+  String get libraryDiscover => 'Discover';
+
+  @override
+  String get librarySearch => 'Search';
+
+  @override
+  String get libraryBrowse => 'Browse';
+
+  @override
+  String get libraryLibrary => 'Library';
+
+  @override
+  String get libraryArtists => 'Artists';
+
+  @override
+  String get libraryAlbums => 'Albums';
+
+  @override
+  String get libraryTracks => 'Tracks';
+
+  @override
+  String get libraryPlaylists => 'Playlists';
+
+  @override
+  String get libraryRadio => 'Radio';
+
+  @override
+  String get libraryPodcasts => 'Podcasts';
+
+  @override
+  String get libraryAudiobooks => 'Audiobooks';
+
+  @override
+  String get libraryFavorites => 'Favorites';
+
+  @override
+  String get librarySonosPlaylists => 'Sonos playlists';
+
+  @override
+  String get libraryRecentlyPlayed => 'Recently played';
+
+  @override
+  String get libraryRecentlyAdded => 'Recently added';
+
+  @override
+  String get libraryMoreResults => 'More results';
+
+  @override
+  String get libraryTopTracks => 'Top tracks';
+
+  @override
+  String get libraryKindArtist => 'Artist';
+
+  @override
+  String get libraryKindAlbum => 'Album';
+
+  @override
+  String get libraryKindTrack => 'Track';
+
+  @override
+  String get libraryKindPlaylist => 'Playlist';
+
+  @override
+  String get libraryKindRadio => 'Radio';
+
+  @override
+  String get libraryKindPodcast => 'Podcast';
+
+  @override
+  String get libraryKindEpisode => 'Episode';
+
+  @override
+  String get libraryKindAudiobook => 'Audiobook';
+
+  @override
+  String get libraryOneTrack => '1 track';
+
+  @override
+  String libraryTrackCount(String count) {
+    return '$count tracks';
+  }
+
+  @override
+  String libraryMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String libraryHoursMinutes(String hours, String minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get librarySearchHint => 'Artists, albums, tracks';
+
+  @override
+  String get librarySearchClear => 'Clear search';
+
+  @override
+  String get librarySearchAll => 'All';
+
+  @override
+  String get librarySearchPrompt =>
+      'Search for artists, albums, tracks and more.';
+
+  @override
+  String get libraryEmpty => 'Nothing here yet.';
+
+  @override
+  String get libraryLoadFailed => 'This could not be loaded.';
+
+  @override
+  String get libraryNoSource =>
+      'Set up Music Assistant, Home Assistant or a Sonos speaker to browse music.';
+
+  @override
+  String get libraryHaPickSpeaker =>
+      'Choose a speaker to see the media it can play.';
+
+  @override
+  String get libraryChooseSpeaker => 'Choose a speaker';
+
+  @override
+  String get libraryPickSpeakerHint => 'Choose the speaker to play on.';
+
+  @override
+  String get libraryPlay => 'Play';
+
+  @override
+  String get libraryOpenNowPlaying => 'Open Now Playing';
+
+  @override
+  String get libraryNothingPlaying => 'Nothing playing';
+
+  @override
+  String get libraryMore => 'More options';
+
+  @override
+  String get libraryPlayNow => 'Play now';
+
+  @override
+  String get libraryPlayNext => 'Play next';
+
+  @override
+  String get libraryAddToQueue => 'Add to queue';
+
+  @override
+  String get libraryStartRadio => 'Start radio';
+
+  @override
+  String get libraryGoToArtist => 'Go to artist';
+
+  @override
+  String get libraryAddFavorite => 'Add to favorites';
+
+  @override
+  String get libraryRemoveFavorite => 'Remove from favorites';
+
+  @override
+  String get libraryAddedFavorite => 'Added to favorites';
+
+  @override
+  String get libraryRemovedFavorite => 'Removed from favorites';
+
+  @override
+  String get libraryFavoriteFailed => 'Favorites could not be changed';
+
+  @override
+  String get libraryPlaysNext => 'Plays next';
+
+  @override
+  String get libraryAddedToQueue => 'Added to queue';
+
+  @override
+  String get libraryView => 'View';
+
+  @override
+  String get libraryPlayFailed => 'This could not be played';
+
+  @override
+  String get librarySpeakers => 'Speakers';
+
+  @override
+  String get libraryPlayingOn => 'Playing on';
+
+  @override
+  String get libraryOtherSpeakers => 'Other speakers';
+
+  @override
+  String get libraryNoOtherSpeakers => 'No other speakers.';
+
+  @override
+  String get libraryThisDevice => 'This device';
+
+  @override
+  String get libraryUnavailable => 'Unavailable';
+
+  @override
+  String get libraryGroup => 'Group';
+
+  @override
+  String get libraryGroupAll => 'Group';
+
+  @override
+  String libraryGroupWith(String speaker) {
+    return 'Group with $speaker';
+  }
+
+  @override
+  String get libraryGroupHint =>
+      'Grouped speakers play the same music in sync.';
+
+  @override
+  String libraryGroupName(String speaker, String count) {
+    return '$speaker + $count';
+  }
+
+  @override
+  String get settingLibraryMenuDescription =>
+      'Add a Music Library entry to the kiosk menu.';
+
+  @override
+  String get settingKioskAllowMusicLibraryDescription =>
+      'Browse music and play it on a speaker.';
+
+  @override
+  String get libraryPageHint => 'Browse music and play it on a speaker';
+
+  @override
+  String get settingLibrarySourceDescription =>
+      'Where the library lists music from. Automatic starts with the source of the speaker Now Playing follows.';
+
+  @override
+  String get settingLibraryNowPlayingButtonTitle => 'Show on Now Playing';
+
+  @override
+  String get settingLibraryNowPlayingButtonDescription =>
+      'Add a Music Library button next to the close button.';
+
+  @override
+  String get libraryQueueTitle => 'Queue';
+
+  @override
+  String get libraryCloseQueue => 'Close queue';
+
+  @override
+  String get libraryClear => 'Clear';
+
+  @override
+  String get libraryClearQueueTitle => 'Clear the queue?';
+
+  @override
+  String get libraryClearQueueMessage =>
+      'The music stops and every track leaves the queue.';
+
+  @override
+  String get libraryRemoveFromQueue => 'Remove from queue';
+
+  @override
+  String get libraryReorder => 'Drag to reorder';
+
+  @override
+  String get libraryQueueFailed => 'The queue could not be changed';
+
+  @override
+  String get libraryVoiceSection => 'Voice Control';
+
+  @override
+  String get libraryVoiceManage => 'Manage music using Voice Satellite';
+
+  @override
+  String get libraryVoiceHint =>
+      'Needs the Kiosk Satellite music blueprint and an LLM conversation agent in Home Assistant.';
 
   @override
   String get offlineDashboard => 'Dashboard unavailable';
@@ -3964,6 +4282,14 @@ class UiStringsEn extends UiStrings {
   }
 
   @override
+  String get overviewSystemUpdate => 'System update available';
+
+  @override
+  String overviewSystemUpdateHelp(String version) {
+    return 'Version $version of the Echo Dot image is ready to install. The Dot restarts twice to install it.';
+  }
+
+  @override
   String get overviewQuick => 'Quick controls';
 
   @override
@@ -5048,6 +5374,44 @@ class UiStringsEn extends UiStrings {
       'Other camera sizes are unavailable in the current capture setup.';
 
   @override
+  String get cameraMotionEventsHeading => 'Motion Events';
+
+  @override
+  String get settingCameraOnvifEventsTitle => 'Send motion events';
+
+  @override
+  String get settingCameraOnvifEventsDescription =>
+      'Let ONVIF clients such as NVRs know when motion is detected.';
+
+  @override
+  String get settingCameraOnvifEventsSourceTitle => 'Motion source';
+
+  @override
+  String get settingCameraOnvifEventsSourceDescription =>
+      'The sensor that sends motion events.';
+
+  @override
+  String get cameraOnvifEventsSourceCamera => 'Camera motion sensor';
+
+  @override
+  String get cameraOnvifEventsSourcePerson => 'Person sensor';
+
+  @override
+  String get cameraOnvifEventsSourceEntity => 'Home Assistant sensor';
+
+  @override
+  String get cameraOnvifEventsMotionSensorOff =>
+      'The camera motion sensor is off. Turn it on in Camera > Motion Sensor.';
+
+  @override
+  String get cameraOnvifEventsAnalysisOff =>
+      'Motion analysis while streaming is off, so the camera cannot detect motion while a viewer is connected.';
+
+  @override
+  String get cameraOnvifEventsPersonSensorOff =>
+      'The person sensor is off. Turn it on in Camera > Person Sensor.';
+
+  @override
   String get cameraOverlaysHeading => 'Overlays';
 
   @override
@@ -5778,10 +6142,16 @@ class UiStringsEn extends UiStrings {
   String get deviceCpuUsage => 'CPU usage';
 
   @override
+  String get deviceCpuClock => 'CPU clock';
+
+  @override
   String get deviceCpuTemp => 'CPU temperature';
 
   @override
   String get deviceBatteryLevel => 'Battery level';
+
+  @override
+  String get deviceBatteryTemp => 'Battery temperature';
 
   @override
   String get deviceScreenBrightness => 'Screen brightness';
@@ -9967,6 +10337,27 @@ class UiStringsEn extends UiStrings {
       'Force the screen into one orientation. Use this on a device without a rotation sensor, or one mounted a way the sensor gets wrong.';
 
   @override
+  String get settingScreenHideStatusBarTitle => 'Hide status bar';
+
+  @override
+  String get settingScreenHideStatusBarDescription =>
+      'Turn off to keep the clock and notification icons at the top of the screen. Kiosk mode always hides it.';
+
+  @override
+  String get settingScreenHideNavigationBarTitle => 'Hide navigation bar';
+
+  @override
+  String get settingScreenHideNavigationBarDescription =>
+      'Turn off to keep the navigation buttons on screen, along with the taskbar on tablets. Kiosk mode always hides it.';
+
+  @override
+  String get settingScreenShowOnLockScreenTitle => 'Show over lock screen';
+
+  @override
+  String get settingScreenShowOnLockScreenDescription =>
+      'Show the dashboard on top of a PIN, pattern or password lock screen. The rest of the device stays locked.';
+
+  @override
   String get settingKeepScreenOnTitle => 'Keep screen on';
 
   @override
@@ -10610,6 +11001,34 @@ class UiStringsEn extends UiStrings {
       'The color behind the digits.';
 
   @override
+  String get settingScreensaverHandNumbersTitle => 'Numbers';
+
+  @override
+  String get settingScreensaverHandNumbersDescription =>
+      'Which hours the dial shows as numbers.';
+
+  @override
+  String get settingScreensaverHandSecondsTitle => 'Show seconds hand';
+
+  @override
+  String get settingScreensaverHandSecondsDescription =>
+      'Draw a seconds hand on the dial.';
+
+  @override
+  String get settingScreensaverHandColorTitle => 'Clock color';
+
+  @override
+  String get settingScreensaverHandColorDescription =>
+      'The color of the hands, numbers and ticks.';
+
+  @override
+  String get settingScreensaverHandBgColorTitle => 'Background color';
+
+  @override
+  String get settingScreensaverHandBgColorDescription =>
+      'The color behind the clock.';
+
+  @override
   String get settingScreensaverClockNightTitle => 'Night mode';
 
   @override
@@ -10675,6 +11094,15 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get screensaverStyleRoller => 'Roller Clock';
+
+  @override
+  String get screensaverStyleHand => 'Hand Clock';
+
+  @override
+  String get screensaverHandNumbersQuarters => '12, 3, 6 and 9';
+
+  @override
+  String get screensaverHandNumbersAll => 'All hours';
 
   @override
   String get screensaverFontDefault => 'Default';

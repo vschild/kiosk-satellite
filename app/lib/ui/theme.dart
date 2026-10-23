@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Kiosk Satellite visual identity: modern flat, light + dark, built from the
 /// shared brand palette (the remote admin UI's CSS carries the same values —
@@ -147,7 +148,9 @@ ColorScheme _darkScheme() =>
       outlineVariant: const Color(0xFF3C3E43),
     );
 
-ThemeData buildTheme(Brightness brightness) {
+/// [barsShown] is true while a Hide status bar or Hide navigation bar setting
+/// keeps a system bar up (see applySystemBars in main.dart).
+ThemeData buildTheme(Brightness brightness, {bool barsShown = false}) {
   final dark = brightness == Brightness.dark;
   final scheme = dark ? _darkScheme() : _lightScheme();
   // Pill-shaped, compact One UI buttons. Filled carries the affirmative
@@ -180,6 +183,10 @@ ThemeData buildTheme(Brightness brightness) {
       foregroundColor: scheme.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
+      // Light bar icons in both themes while the bars are up: they sit over
+      // the black window background, not over the app bar, and a light
+      // theme's dark icons would vanish there.
+      systemOverlayStyle: barsShown ? SystemUiOverlayStyle.light : null,
       // The title sits right after the back arrow, as it does in the wide
       // settings pane, instead of Material's 16 further along: every bar
       // here is a pushed page with a leading arrow, and on a phone the
