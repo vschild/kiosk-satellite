@@ -5,5 +5,7 @@
   "setupQrTitle": "Сканируйте QR-код токена",
   "setupQrHelp": "Он появляется рядом с только что созданным токеном в вашем профиле Home Assistant.",
   "setupQrFlashOff": "Выключить фонарик",
-  "setupQrFlashOn": "Включить фонарик"
+  "setupQrFlashOn": "Включить фонарик",
+  "setupQrScreenLightOff": "Выключить подсветку экраном",
+  "setupQrScreenLightOn": "Включить подсветку экраном"
 }

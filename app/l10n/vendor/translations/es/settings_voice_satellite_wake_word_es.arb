@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "El motor que escucha. Todos los modelos vienen con la aplicación.",
   "settingVoiceWakeWordSensitivityTitle": "Sensibilidad de la palabra de activación",
   "settingVoiceWakeWordSensitivityDescription": "Con qué facilidad se activa la palabra de activación.",
+  "settingVoiceWakeWordFineTuneTitle": "Ajuste fino de la sensibilidad",
+  "settingVoiceWakeWordFineTuneDescription": "Ajusta la sensibilidad de la palabra de activación en pasos más pequeños. Súbelo si a menudo tienes que repetir la palabra de activación y bájalo si se activa por error.",
   "settingVoiceNoiseGateTitle": "Puerta de ruido de la palabra de activación",
   "settingVoiceNoiseGateDescription": "Omite la detección de la palabra de activación mientras la sala está en silencio, lo que ahorra CPU.",
   "settingVoiceStopWordTitle": "Interrupción con palabra de parada",

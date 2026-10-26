@@ -29,12 +29,16 @@ import {
   syncScreenOffAdminNotice,
 } from './notices.js';
 import {
+  TOAST_SOURCES,
   WAKE_SOURCES,
+  decodeToastsHidden,
   decodeWakeSources,
   openImmichNamesPicker,
   openLauncherAppsPicker,
   openMediaBrowser,
+  openToastsPicker,
   openWakeSourcesPicker,
+  toastsShownText,
   wakeSourcesText,
 } from './pickers.js';
 import { loadSettings, refreshRealMacNote, syncSubpages, updateCelestialLocationRow, updateCelestialPermissionRows, updateClockNightAdminRows, updateOnvifEventsRows, updatePersonSensorRows, updateRtspRows } from './settings.js';
@@ -575,6 +579,24 @@ export function settingRow(s) {
       field.setText(wakeSourcesText(decodeWakeSources(current())));
     });
     bindUpdate(field.el, () => field.setText(wakeSourcesText(decodeWakeSources(current()))));
+    row.classList.add('dp-field-row');
+    row.appendChild(field.el);
+    return row;
+  }
+
+  // Show system toast notifications, mirroring the device's row: the
+  // toasts shown at rest in a dropdown-style box that opens a checkbox
+  // dialog. Stored as a JSON list of the ones turned off.
+  if (s.key === 'ui.toasts_hidden') {
+    const current = () => (state.settings || []).find((o) => o.key === s.key)?.value ?? s.value ?? '[]';
+    const field = choiceBox(toastsShownText(decodeToastsHidden(current())), async () => {
+      const hidden = await openToastsPicker(s.title, decodeToastsHidden(current()));
+      if (!hidden) return;
+      field.setText(toastsShownText(hidden));
+      await save(JSON.stringify(TOAST_SOURCES.filter((source) => hidden.has(source))));
+      field.setText(toastsShownText(decodeToastsHidden(current())));
+    });
+    bindUpdate(field.el, () => field.setText(toastsShownText(decodeToastsHidden(current()))));
     row.classList.add('dp-field-row');
     row.appendChild(field.el);
     return row;

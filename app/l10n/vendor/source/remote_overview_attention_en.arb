@@ -291,8 +291,8 @@
       ]
     }
   },
-  "overviewSystemUpdateHelp": "Version {version} of the Echo Dot image is ready to install. The Dot restarts twice to install it.",
-  "@overviewSystemUpdateHelp": {
+  "overviewSystemImageUpdateHelp": "Version {version} of the system image is ready to install. The device restarts twice to install it.",
+  "@overviewSystemImageUpdateHelp": {
     "context": "Remote admin > Overview > Needs attention",
     "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
     "x-locations": {
@@ -304,7 +304,7 @@
     "placeholders": {
       "version": {
         "type": "String",
-        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+        "description": "Release of the device's system image, such as 2026.10.4."
       }
     }
   }

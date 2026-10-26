@@ -102,8 +102,10 @@ class McpClient {
   static const scriptDeviceArgument = 'ks_device_id';
 
   /// Home Assistant's MCP Server names the tool of each exposed script
-  /// this way.
-  static bool isScriptTool(String name) => name.startsWith('script__');
+  /// this way. With more than one LLM API ticked on the server, every tool
+  /// name starts with its API's id, and scripts come from Assist's.
+  static bool isScriptTool(String name) =>
+      name.startsWith('script__') || name.startsWith('assist__script__');
 
   Future<String?> _device() async {
     try {

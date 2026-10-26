@@ -134,7 +134,7 @@ class SettingsManager extends Manager {
                 ...pluginScreensavers().keys,
                 if (isPluginScreensaver(get(def))) get(def) as String,
               },
-              if (def.key == voiceSkin.key) ...{
+              if (isVoiceSkinSetting(def.key)) ...{
                 ...pluginVoiceSkins().keys,
                 if (isPluginVoiceSkin(get(def))) get(def) as String,
               },
@@ -155,7 +155,7 @@ class SettingsManager extends Manager {
                       (isPluginScreensaver(value)
                           ? 'Unavailable plugin screensaver'
                           : null)
-                : def.key == voiceSkin.key
+                : isVoiceSkinSetting(def.key)
                 ? pluginVoiceSkins()[value] ??
                       (isPluginVoiceSkin(value)
                           ? 'Unavailable plugin skin'
@@ -178,9 +178,35 @@ class SettingsManager extends Manager {
   /// it validated, and the reset would stomp it after the fact.
   bool importing = false;
 
+  /// Whether this is the first start of a fresh install: nothing the app
+  /// keeps was stored when [init] began. An upgrade, a restored backup and
+  /// a data import all arrive with stored settings. Read before the
+  /// migrations below write theirs.
+  bool firstRun = false;
+
+  /// Settings the native side can write before Dart first starts (the
+  /// renderer guards), which a fresh install may already hold.
+  static final _nativeWritten = {disableImpeller.key, legacyWebView.key};
+
+  bool _storedNothing() {
+    final keys = _prefs.getKeys();
+    if (keys.any(
+      (k) =>
+          k.startsWith('${_prefix}internal.') ||
+          k.startsWith('${_prefix}secret.'),
+    )) {
+      return false;
+    }
+    return !allSettings.any(
+      (def) =>
+          !_nativeWritten.contains(def.key) && keys.contains(_prefix + def.key),
+    );
+  }
+
   @override
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    firstRun = _storedNothing();
     await _migrate();
 
     commands
@@ -612,6 +638,17 @@ class SettingsManager extends Manager {
       await _prefs.remove(fullScreenKey);
       log.info(name, 'migrated screen.full_screen ($fullScreen)');
     }
+    // Assistant 2 got its own skin (issue #1121). Its turns keep the skin
+    // they wore before.
+    const skin2Migration = 'voice.skin_2.migrated';
+    if (internal(skin2Migration).isEmpty) {
+      final skin = _prefs.get(_prefix + voiceSkin.key);
+      if (skin is String && _prefs.get(_prefix + voiceSkin2.key) == null) {
+        await _prefs.setString(_prefix + voiceSkin2.key, skin);
+        log.info(name, 'migrated ${voiceSkin2.key} ($skin)');
+      }
+      await setInternal(skin2Migration, '1');
+    }
   }
 
   T get<T>(SettingDef<T> def) {
@@ -766,7 +803,7 @@ class SettingsManager extends Manager {
                       isCameraStreamResolution(value)) ||
                   (def.key == screensaverMode.key &&
                       isPluginScreensaver(value)) ||
-                  (def.key == voiceSkin.key && isPluginVoiceSkin(value))):
+                  (isVoiceSkinSetting(def.key) && isPluginVoiceSkin(value))):
         await set(def, value, source: source);
       default:
         return false;
@@ -846,11 +883,11 @@ class SettingsManager extends Manager {
                 isPluginScreensaver(get(def)) &&
                 !pluginScreensavers().containsKey(get(def)))
               get(def) as String: 'Unavailable plugin screensaver',
-            if (def.key == voiceSkin.key) ...pluginVoiceSkins(),
+            if (isVoiceSkinSetting(def.key)) ...pluginVoiceSkins(),
             if (def.key == voiceAmazonLocale.key)
               for (final locale in PryonCatalog.locales)
                 locale: PryonCatalog.localeLabel(locale),
-            if (def.key == voiceSkin.key &&
+            if (isVoiceSkinSetting(def.key) &&
                 isPluginVoiceSkin(get(def)) &&
                 !pluginVoiceSkins().containsKey(get(def)))
               get(def) as String: 'Unavailable plugin skin',

@@ -38,6 +38,8 @@
   "settingVoiceRealtimeHistoryHoursDescription": "Wat binnen deze tijd is gezegd, wordt meegenomen naar het volgende gesprek.",
   "settingVoiceRealtimeTalkOverTitle": "Door antwoorden heen praten",
   "settingVoiceRealtimeTalkOverDescription": "Onderbreek een antwoord door te spreken. Zet uit als het zichzelf onderbreekt.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Gevoeligheid voor onderbreken",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Hoe makkelijk spreken een antwoord onderbreekt. Verhoog dit als onderbreken niet werkt met een zachte microfoon. Hogere waarden kunnen ervoor zorgen dat het zichzelf onderbreekt.",
   "settingVoiceRealtimeToolsTitle": "Tools",
   "settingVoiceRealtimeToolsDescription": "Wat de assistent kan bedienen. Home Assistant gebruikt hiervoor de MCP Server-integratie en entiteiten die aan Assist beschikbaar zijn gesteld.",
   "settingVoiceRealtimeMcpUrlTitle": "MCP-server-URL",

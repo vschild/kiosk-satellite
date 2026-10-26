@@ -1,10 +1,14 @@
 package me.jxl.kiosk_satellite.sendspin
 
 import android.media.AudioAttributes
+import android.media.AudioDeviceInfo
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioRouting
 import android.media.AudioTimestamp
 import android.media.AudioTrack
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import java.nio.ByteBuffer
@@ -70,6 +74,15 @@ class NativeAudioOutput {
     private val presentationClock = PresentationClock()
     private val audioTimestamp = AudioTimestamp()
 
+    /** The device the track plays to, 0 until Android reports one. */
+    private var routedDeviceId = 0
+    private val routingListener = AudioRouting.OnRoutingChangedListener { router ->
+        synchronized(lock) {
+            val t = track
+            if (t != null && router === t) updateRouteLocked(t)
+        }
+    }
+
     @Volatile private var mediaGain = 1f
     @Volatile private var duckGain = 1f
     @Volatile private var softStartBeganMs = 0L
@@ -94,6 +107,7 @@ class NativeAudioOutput {
                     resetProgressLocked()
                     beginSoftStartLocked(existing)
                     existing.play()
+                    updateRouteLocked(existing)
                     tap?.flushed()
                     started = true
                     Log.i(TAG, "AudioTrack reused for new stream")
@@ -160,6 +174,8 @@ class NativeAudioOutput {
             this.sampleRate = sampleRate
             this.channels = channels
             this.bitDepth = bitDepth
+            routedDeviceId = 0
+            presentationClock.bluetooth = false
             sinkLatencyUs = measureSinkLatencyUs(
                 newTrack, newTrack.bufferSizeInFrames * frameBytes, frameBytes,
             )
@@ -167,6 +183,9 @@ class NativeAudioOutput {
             beginSoftStartLocked(newTrack)
             newTrack.play()
             track = newTrack
+            // Headphones can connect or drop while music plays.
+            newTrack.addOnRoutingChangedListener(routingListener, Handler(Looper.getMainLooper()))
+            updateRouteLocked(newTrack)
             // The canceller's reference follows this output's own clock,
             // the one rooms are synced by.
             tap = TrackTap(newTrack, sampleRate, channels, bitDepth / 8, clock = ::presentedFrames).also {
@@ -318,6 +337,8 @@ class NativeAudioOutput {
         mapOf(
             "clockSource" to presentationClock.source,
             "fallbackReason" to presentationClock.fallbackReason,
+            "clockOutliers" to presentationClock.outliers,
+            "clockMoves" to presentationClock.moves,
             "sampleTimeNs" to nowNs,
             "playbackHeadFrames" to (t.playbackHeadPosition.toLong() and 0xFFFF_FFFFL),
             "reportedFrames" to lastReportedFrames,
@@ -380,17 +401,26 @@ class NativeAudioOutput {
         val valid = presentationClock.canPollTimestamp &&
             runCatching { t.getTimestamp(audioTimestamp) }.getOrDefault(false)
         val previousSource = presentationClock.source
+        val previousMoves = presentationClock.moves
         val presented = presentationClock.position(
             nowNs, head, written, sampleRate,
             if (valid) audioTimestamp.framePosition else null,
             if (valid) audioTimestamp.nanoTime else null,
         )
+        if (presentationClock.moves != previousMoves) {
+            Log.i(
+                TAG,
+                "Playback clock moved ${presentationClock.lastMoveUs / 1000}ms " +
+                    "after ${presentationClock.outliers} outliers, underruns=${underrunCount()}",
+            )
+        }
         if (presentationClock.source != previousSource) {
             Log.i(
                 TAG,
                 "Playback clock=${presentationClock.source} " +
                     "sinkLatency=${presentationClock.latencyUs / 1000}ms " +
-                    "reason=${presentationClock.fallbackReason ?: "validated"}",
+                    "reason=${presentationClock.fallbackReason ?: "validated"} " +
+                    "outliers=${presentationClock.outliers} underruns=${underrunCount()}",
             )
         }
         return presented
@@ -423,6 +453,29 @@ class NativeAudioOutput {
             Log.i(TAG, "getLatency unavailable, using HAL buffer (${e.javaClass.simpleName})")
             fallback
         }
+    }
+
+    /**
+     * Follows the track's output device. Bluetooth timestamps get a codec
+     * frame of tolerance, and a new device mid-stream revalidates the clock.
+     */
+    private fun updateRouteLocked(t: AudioTrack) {
+        val device = runCatching { t.routedDevice }.getOrNull() ?: return
+        if (device.id == routedDeviceId) return
+        val known = routedDeviceId != 0
+        routedDeviceId = device.id
+        presentationClock.bluetooth = device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+            device.type == AudioDeviceInfo.TYPE_BLE_HEADSET ||
+            device.type == AudioDeviceInfo.TYPE_BLE_SPEAKER
+        // The first report for a track only names where it started.
+        if (!known) return
+        sinkLatencyUs = measureSinkLatencyUs(t, t.bufferSizeInFrames * bytesPerFrame, bytesPerFrame)
+        presentationClock.rerouted(System.nanoTime(), sinkLatencyUs)
+        Log.i(
+            TAG,
+            "Output moved to device type ${device.type}, revalidating playback clock " +
+                "sinkLatency=${sinkLatencyUs / 1000}ms",
+        )
     }
 
     private fun beginSoftStartLocked(t: AudioTrack) {
@@ -462,6 +515,7 @@ class NativeAudioOutput {
     private fun releaseLocked() {
         val t = track ?: return
         track = null
+        runCatching { t.removeOnRoutingChangedListener(routingListener) }
         tap?.close()
         tap = null
         runCatching { t.pause() }

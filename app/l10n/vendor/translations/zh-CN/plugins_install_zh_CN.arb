@@ -21,6 +21,7 @@
   "pluginSearchPlugins": "搜索插件",
   "pluginUpdate": "更新",
   "pluginInstalled": "已安装",
+  "pluginNeedsAppVersion": "需要 Kiosk Satellite {version} 或更高版本",
   "pluginStars": "星标",
   "pluginDownloads": "下载量",
   "pluginActiveInstalls": "活跃安装",

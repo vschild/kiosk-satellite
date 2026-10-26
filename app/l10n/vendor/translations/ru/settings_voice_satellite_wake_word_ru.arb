@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "Какой движок слушает. Все модели поставляются с приложением.",
   "settingVoiceWakeWordSensitivityTitle": "Чувствительность слова пробуждения",
   "settingVoiceWakeWordSensitivityDescription": "Насколько легко срабатывает слово пробуждения.",
+  "settingVoiceWakeWordFineTuneTitle": "Точная настройка чувствительности",
+  "settingVoiceWakeWordFineTuneDescription": "Меняет чувствительность слова пробуждения более мелкими шагами. Повысьте, если слово пробуждения часто приходится повторять, и понизьте, если оно срабатывает по ошибке.",
   "settingVoiceNoiseGateTitle": "Шумовой порог слова пробуждения",
   "settingVoiceNoiseGateDescription": "Пропускать распознавание слова пробуждения в тишине, экономя ЦП.",
   "settingVoiceStopWordTitle": "Перебивание стоп-словом",

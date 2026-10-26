@@ -5,5 +5,7 @@
   "setupQrHelp": "Er wird neben einem neu erstellten Token in deinem Home-Assistant-Profil angezeigt.",
   "setupQrFlashOff": "Taschenlampe ausschalten",
   "setupQrFlashOn": "Taschenlampe einschalten",
-  "setupQrFlipCamera": "Kamera wechseln"
+  "setupQrFlipCamera": "Kamera wechseln",
+  "setupQrScreenLightOff": "Bildschirmlicht ausschalten",
+  "setupQrScreenLightOn": "Bildschirmlicht einschalten"
 }

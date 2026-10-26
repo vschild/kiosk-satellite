@@ -37,6 +37,8 @@
   "settingVoiceRealtimeModelDescription": "Das Sprache-zu-Sprache-Modell, das antwortet.",
   "settingVoiceRealtimeTalkOverTitle": "In Antworten hineinsprechen",
   "settingVoiceRealtimeTalkOverDescription": "Unterbrich eine Antwort, indem du sprichst. Schalte es aus, wenn er sich selbst unterbricht.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Unterbrechungsempfindlichkeit",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Wie leicht Sprechen eine Antwort unterbricht. Erhöhe sie, wenn das Unterbrechen bei einem leisen Mikrofon nicht klappt. Höhere Werte können dazu führen, dass er sich selbst unterbricht.",
   "settingVoiceRealtimeToolsTitle": "Werkzeuge",
   "settingVoiceRealtimeToolsDescription": "Was der Assistent steuern kann. Home Assistant nutzt seine MCP Server-Integration und die für Assist freigegebenen Entitäten.",
   "settingVoiceRealtimeVoiceTitle": "Stimme",

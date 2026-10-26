@@ -71,8 +71,9 @@ Set<String> decodeKioskAllowedApps(String json) {
 /// app; each one restarts the clock, so the return only ever interrupts
 /// an app nobody is using. Where the watch cannot be put up the clock
 /// runs plain, which is what it always did. Media playing in any other
-/// app holds the return too (issue #1055): the clock waits for it to stop
-/// and then runs its full time again.
+/// app holds the return too (issue #1055), and so does a call (issue
+/// #1155): the clock waits for it to end and then runs its full time
+/// again.
 class AppLauncherManager extends Manager with WidgetsBindingObserver {
   AppLauncherManager(super.bus, super.commands, super.log, this._settings);
 
@@ -98,9 +99,9 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
   DateTime? _launchedAt;
   static const _armWindow = Duration(seconds: 15);
 
-  /// Whether the clock ran out with media playing and now waits for it to
-  /// stop, at which point the full idle time starts over.
-  bool _heldByMedia = false;
+  /// What the clock ran out on and now waits for to end, at which point
+  /// the full idle time starts over. Null while the clock runs plain.
+  _Hold? _heldBy;
   static const _mediaPoll = Duration(seconds: 5);
 
   /// Whether the native touch watch is up for the current arm; false also
@@ -134,6 +135,18 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
   /// unless it was opened from the full menu.
   List<LauncherApp> get shown =>
       _settings.get(defs.kioskEnabled) && !_unlocked ? kioskApps : apps;
+
+  /// The apps a plugin may open (issue #1122): the launcher's apps, the
+  /// kiosk's apps while kiosk mode is on and none while the launcher is
+  /// off, the Apps action is not allowed or Lockdown Mode holds.
+  List<LauncherApp> get pluginApps {
+    if (!_settings.get(defs.launcherEnabled) ||
+        _settings.get(defs.lockdownEnabled)) {
+      return const [];
+    }
+    if (!_settings.get(defs.kioskEnabled)) return apps;
+    return _settings.get(defs.kioskAllowApps) ? kioskApps : const [];
+  }
 
   /// Opens the launcher. [unlocked] is the full menu's open, which shows
   /// every app even while kiosk mode is on.
@@ -239,6 +252,37 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
 
     commands.register(
       Command(
+        name: 'pluginLauncherApps',
+        description:
+            'The launcher apps a plugin may open: [{package, label}]. '
+            'Only the kiosk mode apps while kiosk mode is on and none '
+            'while the launcher is off or Lockdown Mode holds.',
+        handler: (_) async =>
+            CommandResult.ok([for (final app in pluginApps) app.toJson()]),
+      ),
+    );
+
+    commands.register(
+      Command(
+        name: 'pluginLaunchApp',
+        description:
+            'Open a launcher app for a plugin. Fails for a package '
+            'pluginLauncherApps does not list.',
+        params: const {'package': 'Android package from pluginLauncherApps'},
+        handler: (p) async {
+          final package = '${p['package'] ?? ''}'.trim();
+          if (!pluginApps.any((app) => app.package == package)) {
+            return const CommandResult.fail(
+              'the app is not one the launcher offers',
+            );
+          }
+          return commands.execute('launchApp', {'package': package});
+        },
+      ),
+    );
+
+    commands.register(
+      Command(
         name: 'hideAppLauncher',
         description: 'Close the app launcher overlay.',
         handler: (_) async {
@@ -334,7 +378,7 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
   /// touch the watch reports, so the return only fires after [seconds]
   /// with nobody touching the other app.
   void _startClock(int seconds) {
-    _heldByMedia = false;
+    _heldBy = null;
     _schedule(Duration(seconds: seconds), seconds);
   }
 
@@ -345,26 +389,30 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
     _returnTimer = timer;
   }
 
-  /// The clock ran out, or a media hold looks again. Playing media keeps
-  /// the kiosk away and is asked about again shortly; media that stopped
-  /// starts the full idle time over.
+  /// The clock ran out, or a hold looks again. A call or playing media
+  /// keeps the kiosk away and is asked about again shortly; once it ends
+  /// the full idle time starts over.
   Future<void> _ranOut(Timer timer, int seconds) async {
-    final playing =
-        _settings.get(defs.launcherAutoReturnMedia) &&
-        await SessionPlayer.anyPlaying();
+    final hold = await _holdNow();
     // A touch, a return or a disarm while the answer was on its way owns
     // the clock now.
     if (!identical(_returnTimer, timer)) return;
-    if (playing) {
-      if (!_heldByMedia) {
-        log.info(name, 'auto-return: media is playing, waiting for it to stop');
+    if (hold != null) {
+      if (_heldBy != hold) {
+        log.info(
+          name,
+          hold == _Hold.call
+              ? 'auto-return: a call is on, waiting for it to end'
+              : 'auto-return: media is playing, waiting for it to stop',
+        );
       }
-      _heldByMedia = true;
+      _heldBy = hold;
       _schedule(_mediaPoll, seconds);
       return;
     }
-    if (_heldByMedia) {
-      log.info(name, 'auto-return: media stopped, ${seconds}s again');
+    if (_heldBy != null) {
+      final ended = _heldBy == _Hold.call ? 'the call ended' : 'media stopped';
+      log.info(name, 'auto-return: $ended, ${seconds}s again');
       _startClock(seconds);
       return;
     }
@@ -380,20 +428,39 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
     }
   }
 
+  /// What keeps the kiosk away right now, if anything. A call needs no
+  /// grant, so it is asked about first and holds even without
+  /// Notification access.
+  Future<_Hold?> _holdNow() async {
+    if (!_settings.get(defs.launcherAutoReturnMedia)) return null;
+    if (await _inCall()) return _Hold.call;
+    if (await SessionPlayer.anyPlaying()) return _Hold.media;
+    return null;
+  }
+
+  Future<bool> _inCall() async {
+    try {
+      return await _channel.invokeMethod<bool>('inCall') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Said once per arm, like the touch watch's warning: without the grant
-  /// no media reads as playing, so the clock runs on touches alone.
+  /// no media reads as playing, so only touches and calls hold the clock.
   Future<void> _checkMediaAccess() async {
     if (await SessionPlayer.hasAccess()) return;
     if (_returnTimer == null) return;
     log.warn(
       name,
       'auto-return: media playing in the other app cannot be seen '
-      '(Notification access missing), returning on touches alone',
+      '(Notification access missing), only touches and calls hold the '
+      'return',
     );
   }
 
   void _disarm() {
-    _heldByMedia = false;
+    _heldBy = null;
     if (_returnTimer == null && !watchingTouches) return;
     _returnTimer?.cancel();
     _returnTimer = null;
@@ -483,3 +550,6 @@ class AppLauncherManager extends Manager with WidgetsBindingObserver {
     visible.dispose();
   }
 }
+
+/// What holds the auto-return clock once it runs out.
+enum _Hold { media, call }

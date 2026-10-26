@@ -185,7 +185,9 @@ class VoiceMigration {
     final skin = pick<String>('skin');
     if (skin != null &&
         (defs.voiceSkin.options ?? const <String>[]).contains(skin)) {
+      // The integration has one skin, for both assistants.
       appearance[defs.voiceSkin.key] = skin;
+      appearance[defs.voiceSkin2.key] = skin;
     }
     final theme = pick<String>('theme_mode');
     if (theme != null && const ['auto', 'light', 'dark'].contains(theme)) {

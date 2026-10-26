@@ -23,6 +23,10 @@ class _Spanish extends UiStringsEn {
   @override
   String get setupQrFlipCamera => 'Cambiar de cámara';
   @override
+  String get setupQrScreenLightOff => 'Apagar la luz de pantalla';
+  @override
+  String get setupQrScreenLightOn => 'Encender la luz de pantalla';
+  @override
   String get commonCancel => 'Cancelar';
 }
 
@@ -113,7 +117,13 @@ void main() {
     await scanner.captures.close();
     await scanner.torch.close();
   });
-  Future<void> show(WidgetTester tester, void Function(String?) result) async {
+  Future<void> show(
+    WidgetTester tester,
+    void Function(String?) result, {
+    bool screenLight = false,
+    ValueChanged<bool>? onScreenLight,
+    ValueChanged<bool>? lightScreen,
+  }) async {
     tester.view.physicalSize = const Size(320, 600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -132,7 +142,13 @@ void main() {
               onPressed: () async {
                 result(
                   await Navigator.of(context).push<String>(
-                    MaterialPageRoute(builder: (_) => const TokenQrScanner()),
+                    MaterialPageRoute(
+                      builder: (_) => TokenQrScanner(
+                        screenLight: screenLight,
+                        onScreenLight: onScreenLight,
+                        lightScreen: lightScreen,
+                      ),
+                    ),
                   ),
                 );
               },
@@ -272,6 +288,70 @@ void main() {
     await tester.pumpAndSettle();
     expect(returned, isTrue);
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('the screen light shrinks the preview without a restart', (
+    tester,
+  ) async {
+    String? result;
+    final lights = <bool>[];
+    final bright = <bool>[];
+    await show(
+      tester,
+      (value) => result = value,
+      onScreenLight: lights.add,
+      lightScreen: bright.add,
+    );
+    expect(bright, isEmpty);
+    Color background() =>
+        tester.widget<Scaffold>(find.byType(Scaffold).last).backgroundColor!;
+    expect(background(), Colors.black);
+    expect(tester.getSize(find.byType(MobileScanner)), const Size(320, 600));
+    await tester.tap(action('Encender la luz de pantalla'));
+    await tester.pumpAndSettle();
+    expect(background(), Colors.white);
+    // A QR code scan keeps a square preview, scaled down on a small screen.
+    expect(tester.getSize(find.byType(MobileScanner)), const Size(144, 144));
+    expect(find.byTooltip('Apagar la luz de pantalla'), findsOneWidget);
+    expect(lights, [true]);
+    expect(bright, [true]);
+    expect(scanner.starts, 1);
+    scanner.captures.add(
+      const BarcodeCapture(barcodes: [Barcode(rawValue: '0012345')]),
+    );
+    await tester.pumpAndSettle();
+    expect(result, '0012345');
+    expect(bright, [true, false], reason: 'a read lets go of the panel');
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('a remembered screen light opens lit and turns off', (
+    tester,
+  ) async {
+    final lights = <bool>[];
+    final bright = <bool>[];
+    await show(
+      tester,
+      (_) {},
+      screenLight: true,
+      onScreenLight: lights.add,
+      lightScreen: bright.add,
+    );
+    expect(tester.getSize(find.byType(MobileScanner)), const Size(144, 144));
+    expect(bright, [true]);
+    await tester.tap(action('Apagar la luz de pantalla'));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(find.byType(MobileScanner)), const Size(320, 600));
+    expect(lights, [false]);
+    expect(bright, [true, false]);
+    expect(scanner.starts, 1);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('cancel turns full brightness off', (tester) async {
+    final bright = <bool>[];
+    await show(tester, (_) {}, screenLight: true, lightScreen: bright.add);
+    await tester.tap(find.byTooltip('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(bright, [true, false]);
     await tester.pumpWidget(const SizedBox());
   });
 }

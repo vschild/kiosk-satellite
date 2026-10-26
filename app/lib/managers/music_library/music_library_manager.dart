@@ -53,7 +53,11 @@ class MusicLibraryManager extends Manager {
     this._settings, {
     MaPluginSocket? ma,
     HaSocket? ha,
-  }) : _ma =
+    ValueListenable<Map<String, Object?>?>? nowPlaying,
+  }) : // A named parameter cannot be private.
+       // ignore: prefer_initializing_formals
+       _nowPlaying = nowPlaying,
+       _ma =
            ma ??
            MaPluginSocket(
              baseUrl: () => _settings.get(defs.sendspinMaUrl),
@@ -71,6 +75,39 @@ class MusicLibraryManager extends Manager {
   final SettingsManager _settings;
   final MaPluginSocket _ma;
   final HaSocket _ha;
+
+  /// What the followed player plays, to tell when a play has started.
+  final ValueListenable<Map<String, Object?>?>? _nowPlaying;
+
+  /// What a play from the library is starting, from the tap until the
+  /// player reports something new, so the screen answers the tap at once
+  /// instead of after the server has loaded the music.
+  final starting = ValueNotifier<LibraryItem?>(null);
+  String _startedFrom = '';
+  Timer? _startTimeout;
+
+  static String _trackKey(Map<String, Object?>? now) =>
+      '${now?['title'] ?? ''}|${now?['artist'] ?? ''}|${now?['playing']}';
+
+  void _begin(LibraryItem item) {
+    _startedFrom = _trackKey(_nowPlaying?.value);
+    starting.value = item;
+    _startTimeout?.cancel();
+    // A player that never says anything new still lets go.
+    _startTimeout = Timer(const Duration(seconds: 15), _settle);
+  }
+
+  void _settle() {
+    _startTimeout?.cancel();
+    _startTimeout = null;
+    starting.value = null;
+  }
+
+  /// A new track, or the same one starting to play, ends the wait.
+  void _onNowPlaying() {
+    if (starting.value == null) return;
+    if (_trackKey(_nowPlaying?.value) != _startedFrom) _settle();
+  }
 
   @override
   String get name => 'library';
@@ -104,6 +141,7 @@ class MusicLibraryManager extends Manager {
   Future<void> init() async {
     _readPick();
     _registerCommands();
+    _nowPlaying?.addListener(_onNowPlaying);
     _subs
       ..add(
         bus.on<SettingChanged>().listen((e) {
@@ -145,6 +183,9 @@ class MusicLibraryManager extends Manager {
       await sub.cancel();
     }
     visible.removeListener(_onVisible);
+    _nowPlaying?.removeListener(_onNowPlaying);
+    _startTimeout?.cancel();
+    starting.dispose();
     for (final s in _sources.values) {
       s.dispose();
     }
@@ -266,10 +307,41 @@ class MusicLibraryManager extends Manager {
           webBase: () =>
               musicAssistantWebUrl(_settings.get(defs.sendspinMaUrl)),
           ownQueueId: _ownQueueId,
+          preferences: () => _ma.userPreferences,
         ),
       };
 
   Future<void> setSource(String key) => _settings.set(defs.librarySource, key);
+
+  /// The order [category] was left in, if [source] sorts at all: one of
+  /// its sorts, else the first.
+  LibrarySort? sortFor(LibrarySource source, LibraryCategory category) {
+    if (source.sorts.isEmpty) return null;
+    final name = _savedSorts()[category.key];
+    return source.sorts.where((s) => s.name == name).firstOrNull ??
+        source.sorts.first;
+  }
+
+  Future<void> setSort(LibraryCategory category, LibrarySort sort) =>
+      _settings.set(
+        defs.librarySort,
+        jsonEncode({..._savedSorts(), category.key: sort.name}),
+      );
+
+  Map<String, Object?> _savedSorts() {
+    try {
+      final saved = jsonDecode(_settings.get(defs.librarySort));
+      return saved is Map ? saved.cast<String, Object?>() : const {};
+    } on FormatException {
+      return const {};
+    }
+  }
+
+  /// Artists lists only the artists credited on an album.
+  bool get albumArtists => _settings.get(defs.libraryAlbumArtists);
+
+  Future<void> setAlbumArtists(bool on) =>
+      _settings.set(defs.libraryAlbumArtists, on);
 
   /// The source [key] names, built if need be, without changing the one
   /// on screen. Null when it is not set up.
@@ -363,15 +435,30 @@ class MusicLibraryManager extends Manager {
     final src = source.value;
     if (src == null) return 'no_source';
     if (!pickIn(src.key)) return 'no_speaker';
+    // Queuing changes nothing that plays, so only a play waits.
+    final changes = mode != PlayMode.next && mode != PlayMode.add;
+    if (changes) _begin(item);
     final error = await src.play(item, mode, pick: pick.value, within: within);
+    if (error != null && changes) _settle();
     if (error == null) {
-      unawaited(UsageCounters.bump(_settings, 'library_plays'));
+      // A play by the source it came from; Play next and Add to queue
+      // change nothing that plays, so they count apart.
+      unawaited(
+        UsageCounters.bump(
+          _settings,
+          changes ? 'library_plays_${src.key}' : 'library_queue_adds',
+        ),
+      );
       log.info(name, 'play ${item.kind.name} ${mode.name} on ${pick.value}');
     } else {
       log.warn(name, 'play ${item.id} on ${pick.value}: $error');
     }
     return error;
   }
+
+  /// Counts a search someone typed, for usage analytics.
+  void noteSearch() =>
+      unawaited(UsageCounters.bump(_settings, 'library_searches'));
 
   Future<void> open() async {
     unawaited(UsageCounters.bump(_settings, 'library_opens'));
@@ -419,6 +506,14 @@ class MusicLibraryManager extends Manager {
     };
 
   Future<Uint8List?> _fetchArt(String url) async {
+    // A provider logo comes inline.
+    if (url.startsWith('data:')) {
+      try {
+        return UriData.parse(url).contentAsBytes();
+      } on FormatException {
+        return null;
+      }
+    }
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.hasAuthority) return null;
     final haBase = Uri.tryParse(

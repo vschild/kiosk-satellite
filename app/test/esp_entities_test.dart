@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
-import 'package:kiosk_satellite/core/headless.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/managers/btproxy/esp_entities.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
@@ -1743,9 +1742,10 @@ void main() {
         'availableVersion': '2026.10.5',
         'availableNotes': '# Version 2026.10.5\n\n- **A fix.** Details.',
         'releaseUrl':
-            'https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite/releases/tag/2026.10.5',
+            'https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/releases/tag/biscuit-2026.10.5',
         'state': 'idle',
         'progress': null,
+        'title': 'LineageOS for the Echo Dot',
       };
       commands.register(
         Command(
@@ -1768,11 +1768,6 @@ void main() {
       }
     });
 
-    tearDown(() {
-      Headless.debugActive = false;
-      Headless.debugSystemUpdate = false;
-    });
-
     Future<Map<String, Object?>> firmwareState() async {
       await surface.build();
       await attach();
@@ -1783,11 +1778,12 @@ void main() {
           as Map<String, Object?>;
     }
 
-    test('is listed only on the Echo Dot image', () async {
+    test('is listed only where the image updates itself', () async {
+      final supported = systemStatus;
+      systemStatus = {'supported': false};
       var ids = (await surface.build()).map((e) => e['objectId']);
       expect(ids, isNot(contains('firmware')));
-      Headless.debugActive = true;
-      Headless.debugSystemUpdate = true;
+      systemStatus = supported;
       final catalog = await surface.build();
       final firmware = catalog.singleWhere((e) => e['objectId'] == 'firmware');
       expect(firmware['type'], 'update');
@@ -1798,8 +1794,6 @@ void main() {
     });
 
     test('install and check reach the system update commands', () async {
-      Headless.debugActive = true;
-      Headless.debugSystemUpdate = true;
       await surface.build();
       await attach();
       executed.clear();
@@ -1812,20 +1806,51 @@ void main() {
     });
 
     test('carries the versions, the notes and the release page', () async {
-      Headless.debugActive = true;
-      Headless.debugSystemUpdate = true;
       final state = await firmwareState();
       expect(state['current'], '2026.10.4');
       expect(state['latest'], '2026.10.5');
+      expect(state['title'], 'LineageOS for the Echo Dot');
       expect(state['summary'], '# Version 2026.10.5\n\n- **A fix.** Details.');
       expect(state['url'], systemStatus['releaseUrl']);
       expect(state['inProgress'], false);
       expect(state.containsKey('progress'), isFalse);
     });
 
+    // A Dot on the CM14.1 image: its updater has nothing newer, the new
+    // image installs by hand.
+    test('a new image that installs by hand shows with its guide', () async {
+      const guide =
+          'https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md#moving-from-the-cm141-image';
+      systemStatus
+        ..['currentVersion'] = '2026.10.5'
+        ..['availableVersion'] = null
+        ..['availableNotes'] = null
+        ..['releaseUrl'] =
+            'https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite/releases/tag/2026.10.5'
+        ..['manualVersion'] = '2026.10.6'
+        ..['manualNotes'] = '- **LineageOS 18.1.** Details.'
+        ..['manualUrl'] = guide;
+      final state = await firmwareState();
+      expect(state['current'], '2026.10.5');
+      expect(state['latest'], '2026.10.6');
+      expect(state['url'], guide);
+      expect(
+        state['summary'],
+        'Version 2026.10.6 is a new image that installs by hand, not as an '
+        'update. Follow the [guide]($guide).\n\n'
+        '- **LineageOS 18.1.** Details.',
+      );
+    });
+
+    test('an update the updater can install comes first', () async {
+      systemStatus['manualVersion'] = '2026.10.6';
+      systemStatus['manualUrl'] = 'https://example.com/guide';
+      final state = await firmwareState();
+      expect(state['latest'], '2026.10.5');
+      expect(state['url'], systemStatus['releaseUrl']);
+    });
+
     test('a download carries a percentage, the install none', () async {
-      Headless.debugActive = true;
-      Headless.debugSystemUpdate = true;
       systemStatus['state'] = 'downloading';
       systemStatus['progress'] = 0.42;
       var state = await firmwareState();

@@ -13,5 +13,7 @@
   "aboutSystemVersion": "ROM-Version",
   "aboutSystemVerifying": "Wird geprüft ...",
   "aboutSystemInstalling": "Wird installiert ...",
-  "aboutSystemInstallHelp": "Der Dot startet zur Installation des Updates zweimal neu und ist dabei jedes Mal etwa anderthalb Minuten offline."
+  "aboutSystemRestartHelp": "Das Gerät startet zur Installation des Updates zweimal neu und ist dabei einige Minuten offline.",
+  "aboutSystemManual": "Neues Image verfügbar",
+  "aboutSystemManualHelp": "Version {version} des neuen Echo-Dot-Images wird von Hand installiert, nicht als Update."
 }

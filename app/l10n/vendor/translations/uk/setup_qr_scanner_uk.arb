@@ -5,5 +5,7 @@
   "setupQrHelp": "Він відображається поруч із щойно створеним токеном у вашому профілі Home Assistant.",
   "setupQrFlashOff": "Вимкнути ліхтарик",
   "setupQrFlashOn": "Увімкнути ліхтарик",
-  "setupQrFlipCamera": "Перемкнути камеру"
+  "setupQrFlipCamera": "Перемкнути камеру",
+  "setupQrScreenLightOff": "Вимкнути підсвічування екраном",
+  "setupQrScreenLightOn": "Увімкнути підсвічування екраном"
 }

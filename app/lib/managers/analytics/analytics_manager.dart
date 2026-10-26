@@ -545,6 +545,7 @@ class AnalyticsManager extends Manager {
       if (rules.isNotEmpty)
         'url_filter_blocked': counts['url_filter_blocked'] ?? 0,
       if (calendars.isNotEmpty) 'calendar_opens': counts['calendar_opens'] ?? 0,
+      for (final k in libraryActivity) k: counts[k] ?? 0,
       if (nativeOn)
         for (final k in [
           'vs_turns_assist',
@@ -738,6 +739,22 @@ class AnalyticsManager extends Manager {
           _reportedCounts['calendar_opens'] ?? 0,
         ),
       },
+      // Music Library: switches and picks, and how often it was opened,
+      // played from, searched and steered since the last report. Never
+      // what was searched for or played.
+      'library_menu': s.get(defs.libraryMenu),
+      'library_source': s.get(defs.librarySource).isEmpty
+          ? 'auto'
+          : s.get(defs.librarySource),
+      'library_now_playing_button': s.get(defs.libraryNowPlayingButton),
+      'library_kiosk_allowed': s.get(defs.kioskAllowMusicLibrary),
+      'library_idle_close_minutes': s.get(defs.libraryIdleCloseMinutes),
+      'library_grid_density': s.get(defs.libraryGridDensity),
+      'library_text_scale': s.get(defs.libraryTextScale).round(),
+      'library_square_artwork': s.get(defs.librarySquareArtwork),
+      'library_album_artists': s.get(defs.libraryAlbumArtists),
+      for (final k in libraryActivity)
+        k: UsageCounters.bucket(_reportedCounts[k] ?? 0),
       'esphome': s.get(defs.esphomeEnabled),
       'bluetooth_proxy': s.get(defs.btproxyEnabled),
       'gps_sensor': s.get(defs.locationEnabled),
@@ -891,6 +908,21 @@ class AnalyticsManager extends Manager {
     }
     return (state: 'off', skin: skin);
   }
+
+  /// Music Library use counted since the last snapshot: opens, plays by
+  /// source and Play next or Add to queue, tapped or asked for by voice,
+  /// typed searches, queue edits from any player and requests through the
+  /// music voice blueprint.
+  static const libraryActivity = [
+    'library_opens',
+    'library_plays_ma',
+    'library_plays_ha',
+    'library_plays_sonos',
+    'library_queue_adds',
+    'library_searches',
+    'queue_edits',
+    'library_voice_requests',
+  ];
 
   /// The plugin installs, updates, removals and failed installs people
   /// asked for, counted since the last snapshot (PluginManager.onActivity).

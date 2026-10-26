@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
 import 'package:kiosk_satellite/ui/theme.dart';
 import 'package:kiosk_satellite/ui/toast.dart';
 
@@ -84,6 +85,37 @@ void main() {
     );
     expect(ignore.ignoring, isTrue);
     await tester.pump(const Duration(milliseconds: 1500));
+  });
+
+  testWidgets('a turned off source shows nothing and leaves the toast up', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    final context = tester.element(find.byType(Scaffold));
+    final hidden = defs.decodeToastsHidden('["downloads"]');
+    toastShown = (source) => !hidden.contains(source);
+    addTearDown(() => toastShown = (_) => true);
+    showToast(context, title: 'Saved', sticky: true);
+    await tester.pump(const Duration(milliseconds: 250));
+    showToast(context, title: 'Downloading', source: 'downloads');
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text('Downloading'), findsNothing);
+    expect(find.text('Saved'), findsOneWidget);
+    showToast(context, title: 'Hold mode on', source: 'hold_mode');
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text('Hold mode on'), findsOneWidget);
+    dismissToast();
+    await tester.pump(const Duration(milliseconds: 250));
+  });
+
+  test('Show system toast notifications stores known sources in order', () {
+    expect(
+      defs.encodeToastsHidden({'voice', 'back', 'nope'}),
+      '["back","voice"]',
+    );
+    expect(defs.decodeToastsHidden('not json'), isEmpty);
+    expect(defs.uiToastsHidden.validator!('["back","voice"]'), isNull);
+    expect(defs.uiToastsHidden.validator!('["nope"]'), isNotNull);
   });
 
   testWidgets('action button fires the callback and dismisses', (tester) async {

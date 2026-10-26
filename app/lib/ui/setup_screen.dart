@@ -154,11 +154,18 @@ class _SetupScreenState extends State<SetupScreen> {
       motion.releaseScanner();
       return;
     }
+    final settings = widget.container.settings;
     String? scanned;
     try {
-      scanned = await Navigator.of(
-        context,
-      ).push<String>(MaterialPageRoute(builder: (_) => const TokenQrScanner()));
+      scanned = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (_) => TokenQrScanner(
+            screenLight: settings.get(defs.cameraScanScreenLight),
+            onScreenLight: (on) => settings.set(defs.cameraScanScreenLight, on),
+            lightScreen: widget.container.screen.holdScanLight,
+          ),
+        ),
+      );
     } finally {
       motion.releaseScanner();
     }

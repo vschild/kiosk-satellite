@@ -28,6 +28,7 @@
   "pluginErrorSettingType": "Неподдерживаемый тип настройки",
   "pluginErrorInvalidManifest": "Недопустимый манифест плагина",
   "pluginErrorAndroidApi": "Плагину нужен Android API {version}",
+  "pluginErrorAppVersion": "Плагину нужен Kiosk Satellite {required} или новее. На этом киоске установлен {current}.",
   "pluginErrorInvalidField": "Недопустимое поле {field}",
   "pluginErrorTooManyTriggers": "Слишком много триггеров",
   "pluginErrorTriggerId": "Недопустимый или повторяющийся ID триггера",

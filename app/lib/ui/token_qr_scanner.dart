@@ -10,13 +10,25 @@ import '../l10n/messages.dart';
 /// closed. Only reachable from the setup wizard, and only on devices with a
 /// camera; the remote admin's wizard keeps paste, where it belongs.
 class TokenQrScanner extends StatelessWidget {
-  const TokenQrScanner({super.key});
+  const TokenQrScanner({
+    super.key,
+    this.screenLight = false,
+    this.onScreenLight,
+    this.lightScreen,
+  });
+
+  final bool screenLight;
+  final ValueChanged<bool>? onScreenLight;
+  final ValueChanged<bool>? lightScreen;
 
   @override
   Widget build(BuildContext context) => CodeScanner(
     title: l10n(context).setupQrTitle,
     help: l10n(context).setupQrHelp,
     formats: const [BarcodeFormat.qrCode],
+    screenLight: screenLight,
+    onScreenLight: onScreenLight,
+    lightScreen: lightScreen,
     result: (outcome) => outcome.value,
   );
 }

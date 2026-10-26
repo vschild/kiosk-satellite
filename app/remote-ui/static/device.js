@@ -622,9 +622,10 @@ function releaseNotesModal(version, notesText, hintId, onOk) {
   shell.foot.append(cancel, ok);
 }
 
-/* ---- System updates of the Echo Dot image ----
-   BiscuitService downloads the release, checks its signature and installs
-   it through TWRP, rebooting the Dot twice. The About page's System card and
+/* ---- System updates of the Echo images ----
+   The image's updater (BiscuitService on the Dot, EchoService on the Shows)
+   downloads the release, checks its signature and installs it through TWRP,
+   rebooting the device twice. The About page's System card and
    the Overview's Needs attention row show it. The kiosk goes down with each
    reboot, so a running update is polled until it settles, whatever the
    connection does meanwhile. */
@@ -671,7 +672,7 @@ export function attachSystemUpdateInstall(btn, getStatus, onSettled) {
   btn.onclick = () => {
     const sys = getStatus();
     if (!sys?.availableVersion) return;
-    releaseNotesModal(sys.availableVersion, sys.availableNotes, 'aboutSystemInstallHelp', async () => {
+    releaseNotesModal(sys.availableVersion, sys.availableNotes, 'aboutSystemRestartHelp', async () => {
       btn.disabled = true;
       const res = await cmd('installSystemUpdate').catch(() => null);
       if (!res?.ok) {
@@ -709,7 +710,7 @@ export async function loadAboutInfo() {
   const [info, updRes, sysRes] = await Promise.all([
     api('/api/info').then((r) => r.json()).catch(() => null),
     cmd('getUpdateStatus').catch(() => null),
-    isHeadless() ? cmd('getSystemUpdateStatus').catch(() => null) : null,
+    cmd('getSystemUpdateStatus').catch(() => null),
   ]);
   const upd = updRes?.data;
   const sys = sysRes?.data?.supported ? sysRes.data : null;
@@ -762,8 +763,9 @@ export async function loadAboutInfo() {
     return a;
   };
 
-  // The Echo Dot image, above the app it runs: its release, the same tap
-  // to check for a newer one, and the update itself.
+  // The system image, above the app it runs: its release, the same tap
+  // to check for a newer one, and the update itself. A newer image that
+  // installs by hand gets its guide instead.
   if (sys) {
     const sysVersion = document.createElement('a');
     sysVersion.textContent = or(sys.currentVersion);
@@ -794,11 +796,16 @@ export async function loadAboutInfo() {
       setAboutLabel(btn, 'deviceInstallVersion', { version: sys.availableVersion });
       attachSystemUpdateInstall(btn, () => sys, () => { refreshUpdateBadge(); loadAboutInfo(); });
       updateRow = ['Update available', btn, failed];
+    } else if (sys.manualVersion) {
+      const guide = link('', sys.manualUrl);
+      setAboutLabel(guide, 'deviceOpenGuide');
+      const help = document.createElement('div');
+      setAboutLabel(help, 'aboutSystemManualHelp', {version: sys.manualVersion});
+      updateRow = [{id: 'aboutSystemManual'}, guide, help];
     } else {
       updateRow = ['Updates', aboutStatus('drawerUpdateCurrent'), failed];
     }
-    const image = link('jxlarrea/lineageos-biscuit-kiosk-satellite',
-      'https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite');
+    const image = link(sys.repository.replace('https://github.com/', ''), sys.repository);
     image.insertAdjacentHTML('afterbegin', githubMark);
     card({id: 'aboutSystem'}, [
       [{id: 'aboutSystemVersion'}, sysVersion],
@@ -942,7 +949,7 @@ export function renderLocalizationCredits() {
 export async function refreshUpdateBadge() {
   const [upd, sys] = await Promise.all([
     cmd('getUpdateStatus').catch(() => null).then((r) => r?.data),
-    isHeadless() ? cmd('getSystemUpdateStatus').catch(() => null).then((r) => r?.data) : null,
+    cmd('getSystemUpdateStatus').catch(() => null).then((r) => r?.data),
   ]);
   const title = document.querySelector('button[data-tab="about"] .nav-title');
   if (!title) return;

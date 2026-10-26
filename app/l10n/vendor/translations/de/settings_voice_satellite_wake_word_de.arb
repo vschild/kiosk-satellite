@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "Welche Engine zuhört. Alle Modelle sind in der App enthalten.",
   "settingVoiceWakeWordSensitivityTitle": "Empfindlichkeit des Aktivierungsworts",
   "settingVoiceWakeWordSensitivityDescription": "Wie leicht das Aktivierungswort auslöst.",
+  "settingVoiceWakeWordFineTuneTitle": "Empfindlichkeit feinjustieren",
+  "settingVoiceWakeWordFineTuneDescription": "Passt die Empfindlichkeit des Aktivierungsworts in kleineren Schritten an. Erhöhe sie, wenn du das Aktivierungswort oft wiederholen musst, und senke sie, wenn es versehentlich auslöst.",
   "settingVoiceNoiseGateTitle": "Rauschsperre für das Aktivierungswort",
   "settingVoiceNoiseGateDescription": "Überspringt die Aktivierungswort-Erkennung, solange der Raum still ist, und spart so CPU.",
   "settingVoiceStopWordTitle": "Unterbrechung per Stoppwort",

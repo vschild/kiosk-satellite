@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fake_async/fake_async.dart';
@@ -80,6 +81,39 @@ class _SlowEngine extends _FakeEngine {
     await Future<void>.delayed(const Duration(milliseconds: 50));
     starting--;
     started.add(config.models.first.id);
+    _running = true;
+  }
+}
+
+/// An engine whose microphone dies right after it opens, [failuresLeft]
+/// times, the way AudioRecord does while the audio HAL is still coming up.
+class _MicLostEngine extends _FakeEngine {
+  int failuresLeft = 0;
+  int starts = 0;
+  EngineFailure failure = EngineFailure.micLost;
+
+  @override
+  Future<void> start({
+    required WakeWordConfig config,
+    required DetectionCallback onDetection,
+    StopDetectionCallback? onStopDetection,
+    EngineFailureCallback? onFailure,
+  }) async {
+    starts++;
+    if (failuresLeft > 0) {
+      failuresLeft--;
+      if (failure != EngineFailure.micLost) {
+        onFailure?.call(failure, 'test');
+        return;
+      }
+      _running = true;
+      // The mic stream's error arrives after start has returned.
+      scheduleMicrotask(() {
+        _running = false;
+        onFailure?.call(EngineFailure.micLost, 'microphone failed: test');
+      });
+      return;
+    }
     _running = true;
   }
 }
@@ -906,6 +940,106 @@ void main() {
         expect(state['statusLabel'], contains('Home Assistant'));
       },
     );
+  });
+
+  group('a microphone that is not ready yet', () {
+    // Issue #1145: right after a boot the audio HAL refuses AudioRecord for a
+    // few seconds. The card has already pushed its config by then, so
+    // without a retry of our own the satellite stays deaf until a restart.
+    late _MicLostEngine engine;
+
+    setUp(() async {
+      await wakeWord.dispose();
+      await bus.dispose();
+      bus = EventBus();
+      commands = CommandRegistry(log);
+      settings = SettingsManager(bus, commands, log);
+      await settings.init();
+      await settings.set(defs.voiceRuntime, 'dashboard');
+      engine = _MicLostEngine();
+    });
+
+    // Built inside fakeAsync: the manager chains every engine sync onto a
+    // future, and one created in the real zone would never run here.
+    void boot(FakeAsync async) {
+      wakeWord = WakeWordManager(
+        bus,
+        commands,
+        log,
+        settings,
+        engines: {WakeWordEngineType.microWakeWord: engine},
+      );
+      wakeWord.init();
+      async.flushMicrotasks();
+    }
+
+    test('reopens the mic on its own once it works', () {
+      fakeAsync((async) {
+        boot(async);
+        engine.failuresLeft = 2;
+        commands.execute('setWakeWordConfig', vsConfig);
+        async.flushMicrotasks();
+        expect(wakeWord.describeState()['status'], 'micLost');
+        expect(engine.starts, 1);
+
+        async.elapse(const Duration(seconds: 5));
+        expect(engine.starts, 2);
+        expect(wakeWord.describeState()['status'], 'micLost');
+
+        async.elapse(const Duration(seconds: 15));
+        expect(engine.starts, 3);
+        expect(wakeWord.listening, isTrue);
+        expect(wakeWord.available, isTrue);
+
+        // Nothing left over to restart a healthy engine.
+        async.elapse(const Duration(minutes: 30));
+        expect(engine.starts, 3);
+      });
+    });
+
+    test('gives up after the ladder and leaves Retry to the user', () {
+      fakeAsync((async) {
+        boot(async);
+        engine.failuresLeft = 1000;
+        commands.execute('setWakeWordConfig', vsConfig);
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 30));
+        // The first start plus six retries.
+        expect(engine.starts, 7);
+        expect(wakeWord.describeState()['status'], 'micLost');
+        expect(wakeWord.canRetry, isTrue);
+        async.elapse(const Duration(minutes: 20));
+        expect(engine.starts, 7);
+      });
+    });
+
+    test('a release cancels the pending retry', () {
+      fakeAsync((async) {
+        boot(async);
+        engine.failuresLeft = 1;
+        commands.execute('setWakeWordConfig', vsConfig);
+        async.flushMicrotasks();
+        commands.execute('releaseWakeWord', const {'reason': 'muted'});
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 10));
+        expect(engine.starts, 1);
+        expect(wakeWord.describeState()['status'], 'muted');
+      });
+    });
+
+    test('other failures are not retried on their own', () {
+      fakeAsync((async) {
+        boot(async);
+        engine
+          ..failuresLeft = 1000
+          ..failure = EngineFailure.modelsUnavailable;
+        commands.execute('setWakeWordConfig', vsConfig);
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 10));
+        expect(engine.starts, 1);
+        expect(wakeWord.describeState()['status'], 'modelsUnavailable');
+      });
+    });
   });
 
   group('the model cache', () {

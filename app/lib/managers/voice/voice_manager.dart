@@ -452,6 +452,7 @@ class VoiceManager extends Manager {
               e.key == defs.voiceAmazonLocale.key ||
               e.key == defs.voiceWakeWords.key ||
               e.key == defs.voiceWakeWordSensitivity.key ||
+              e.key == defs.voiceWakeWordFineTune.key ||
               e.key == defs.voiceNoiseGate.key ||
               e.key == defs.voiceStopWord.key) {
             unawaited(_sync());
@@ -678,6 +679,7 @@ class VoiceManager extends Manager {
             final seconds = (p['seconds'] as num?)?.toInt() ?? 5;
             _previewTimer?.cancel();
             _previewDocked = p['docked'] == true;
+            _assistant = 1;
             _onView(_previewDocked ? shown.copyWith(docked: true) : shown);
             level.value = ((p['level'] as num?)?.toDouble() ?? 0.5).clamp(
               0.0,
@@ -925,6 +927,11 @@ class VoiceManager extends Manager {
             if (!enabled || !nativeRuntime) {
               return const CommandResult.fail('Voice Satellite is off');
             }
+            if (_session.busy) {
+              return const CommandResult.fail('a turn is on screen');
+            }
+            final slot = (p['pipeline'] as num?)?.toInt() == 2 ? 2 : 1;
+            _assistant = slot;
             final gen = _session.beginShow(prompt);
             if (gen == null) {
               return const CommandResult.fail('a turn is on screen');
@@ -934,7 +941,7 @@ class VoiceManager extends Manager {
                 gen,
                 prompt,
                 speak: p['speak'] == true,
-                slot: (p['pipeline'] as num?)?.toInt() == 2 ? 2 : 1,
+                slot: slot,
                 seconds: ((p['duration'] as num?)?.toInt() ?? 0).clamp(0, 3600),
               ),
             );
@@ -2162,19 +2169,29 @@ class VoiceManager extends Manager {
     if (provider != null) {
       if (_session.busy) return;
       _activeProvider = provider;
+      _assistant = slot;
       unawaited(UsageCounters.bump(_settings, 'vs_turns_${provider.id}'));
       unawaited(_realtime.wake(phrase));
       return;
     }
+    if (!_session.busy || _session.announcing) _assistant = slot;
     unawaited(UsageCounters.bump(_settings, 'vs_turns_assist'));
     unawaited(_session.wake(phrase));
   }
+
+  /// Who answers the turn on screen, 1 or 2, which picks its skin. Turns
+  /// no wake word starts run on Assistant 1, as Home Assistant runs them,
+  /// except a vs_show on pipeline 2.
+  int _assistant = 1;
 
   RealtimeOptions _realtimeOptions() => RealtimeOptions(
     wakeSound: _settings.get(defs.voiceWakeSound),
     seamless: _settings.get(defs.voiceSeamlessWake),
     idleSeconds: _settings.get(defs.voiceRealtimeIdleSeconds).toInt(),
     talkOver: _settings.get(defs.voiceRealtimeTalkOver),
+    talkOverLevel: RealtimeSession.talkOverLevel(
+      _settings.get(defs.voiceRealtimeTalkOverSensitivity),
+    ),
     language: _settings.get(defs.uiLanguage),
     historyHours: _settings.get(defs.voiceRealtimeHistoryHours).toDouble(),
   );
@@ -2674,6 +2691,7 @@ class VoiceManager extends Manager {
       engine: _engine,
       activeIds: _activeIds(),
       sensitivity: _settings.get(defs.voiceWakeWordSensitivity),
+      fineTune: _settings.get(defs.voiceWakeWordFineTune),
       noiseGate: _settings.get(defs.voiceNoiseGate),
       stopWord: _settings.get(defs.voiceStopWord),
       external: _external,
@@ -2716,6 +2734,7 @@ class VoiceManager extends Manager {
             docked: _settings.get(defs.voiceOverlayMode) == 'docked',
           )
         : next;
+    if (next.visible) shown = shown.copyWith(assistant: _assistant);
     if (_settings.get(defs.voiceHideSentimentTags) && next.answer.isNotEmpty) {
       shown = shown.copyWith(answer: stripSentimentTags(next.answer));
     }
@@ -2908,9 +2927,10 @@ class VoiceManager extends Manager {
         );
         if (_openRealtime(announcement)) return;
         unawaited(
-          _announceOverConversation().then(
-            (_) => _session.announce(announcement),
-          ),
+          _announceOverConversation().then((_) {
+            _assistant = 1;
+            return _session.announce(announcement);
+          }),
         );
       case 'setConfiguration':
         final active = [
@@ -2944,6 +2964,7 @@ class VoiceManager extends Manager {
       if (_realtime.busy) await _realtime.cancel();
       if (_session.busy) await _session.cancel();
       _activeProvider = provider;
+      _assistant = 1;
       unawaited(UsageCounters.bump(_settings, 'vs_turns_${provider.id}'));
       // Home Assistant started it, not someone at the screen: the screen
       // comes on as it does for an announcement.

@@ -124,6 +124,64 @@ void main() {
     expect(elsewhere['updateAvailable'], isFalse);
   });
 
+  test('holds back a release that needs a newer Kiosk Satellite', () {
+    Map<String, Object?> listed(Object? minAppVersion) =>
+        (PluginDirectory.parse(
+                      jsonDecode(
+                        index([
+                          entry({'minAppVersion': minAppVersion}),
+                        ]),
+                      ),
+                    )['plugins']
+                    as List)
+                .single
+            as Map<String, Object?>;
+    expect(listed('2026.10.40')['minAppVersion'], '2026.10.40');
+    for (final bad in ['2026.10', '2026.09.1', 'v2026.10.40', 2026, null]) {
+      expect(listed(bad)['minAppVersion'], isNull, reason: '$bad');
+    }
+    final older = {
+      'id': 'weather',
+      'version': '1.1.0',
+      'source': {'repository': 'https://github.com/alice/kiosk-weather'},
+    };
+    final fresh = PluginDirectory.installStatus(
+      listed('2026.10.40'),
+      null,
+      appVersion: '2026.10.39',
+    );
+    expect(fresh['needsAppVersion'], '2026.10.40');
+    final update = PluginDirectory.installStatus(
+      listed('2026.10.40'),
+      older,
+      appVersion: '2026.10.39',
+    );
+    expect(update['updateAvailable'], isFalse);
+    expect(update['needsAppVersion'], '2026.10.40');
+    final current = PluginDirectory.installStatus(
+      listed('2026.10.40'),
+      older,
+      appVersion: '2026.10.40',
+    );
+    expect(current['updateAvailable'], isTrue);
+    expect(current.containsKey('needsAppVersion'), isFalse);
+    // Up to date already, so nothing is held back.
+    expect(
+      PluginDirectory.installStatus(listed('2026.10.40'), {
+        ...older,
+        'version': '1.2.0',
+        'sha256': 'b' * 64,
+      }, appVersion: '2026.10.39').containsKey('needsAppVersion'),
+      isFalse,
+    );
+    expect(
+      PluginDirectory.appVersionAtLeast('2026.10.9', '2026.10.10'),
+      isFalse,
+    );
+    expect(PluginDirectory.appVersionAtLeast('2027.1.1', '2026.12.9'), isTrue);
+    expect(PluginDirectory.appVersionAtLeast('', '2026.10.40'), isTrue);
+  });
+
   group('reading the list', () {
     late Directory temp;
     late int requests;

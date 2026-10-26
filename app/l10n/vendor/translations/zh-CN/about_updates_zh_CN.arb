@@ -13,5 +13,7 @@
   "aboutSystemVersion": "ROM 版本",
   "aboutSystemVerifying": "正在验证…",
   "aboutSystemInstalling": "正在安装…",
-  "aboutSystemInstallHelp": "Dot 会重启两次以安装更新，每次离线约一分半钟。"
+  "aboutSystemRestartHelp": "设备会重启两次以安装更新，期间离线几分钟。",
+  "aboutSystemManual": "有新镜像可用",
+  "aboutSystemManualHelp": "新的 Echo Dot 镜像 {version} 版需要手动安装，无法作为更新安装。"
 }

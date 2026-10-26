@@ -23,5 +23,5 @@
   "overviewOpenService": "Открыть службу",
   "overviewPermissionMissing": "Нет разрешения: {permission}",
   "overviewSystemUpdate": "Доступно обновление системы",
-  "overviewSystemUpdateHelp": "Версия {version} образа Echo Dot готова к установке. Для этого Dot дважды перезагрузится."
+  "overviewSystemImageUpdateHelp": "Версия {version} образа системы готова к установке. Для этого устройство дважды перезагрузится."
 }

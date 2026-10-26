@@ -83,15 +83,20 @@ void main() {
   });
 
   test('a subpage never splits a section across two pages', () {
-    // A section straddling the boundary would render as two cards with one
-    // heading, and syncGatedRows in the remote UI could not place a row.
+    // A section straddling the boundary between the category page and one
+    // of its subpages would render as two cards with one heading, and
+    // syncGatedRows in the remote UI could not place a row. Two subpages
+    // may each have a group of the same name, such as User Interface on
+    // Now Playing and on Music Library: both UIs draw a subpage on its
+    // own and syncGatedRows compares the subpage.
     final pageOf = <String, Set<String?>>{};
     for (final def in defs.allSettings) {
       if (def.section == null) continue;
       (pageOf['${def.category}/${def.section}'] ??= {}).add(def.subpage);
     }
     for (final entry in pageOf.entries) {
-      expect(entry.value, hasLength(1), reason: entry.key);
+      if (entry.value.length < 2) continue;
+      expect(entry.value, isNot(contains(null)), reason: entry.key);
     }
   });
 
@@ -158,6 +163,7 @@ void main() {
       defs.voiceWakeWordEngine.key,
       defs.voiceAmazonLocale.key,
       defs.voiceWakeWordSensitivity.key,
+      defs.voiceWakeWordFineTune.key,
       defs.voiceNoiseGate.key,
       defs.voiceStopWord.key,
       defs.voiceWakeArbitration.key,

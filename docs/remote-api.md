@@ -95,7 +95,8 @@ With the switcher in place, one kiosk can lead the others: it pushes the setting
 - Failed logins are rate-limited (exponential backoff per client IP).
 - `GET /api/health` is the one unauthenticated endpoint: it exists for
   external monitoring to poll, and a monitor cannot do a login dance. It
-  serves read-only hardware facts only.
+  serves read-only hardware facts only. It sends
+  `Access-Control-Allow-Origin: *`, so a web page on any origin can read it.
 - Optional HTTPS with a device certificate. Off by default. Plain HTTP is intended for a trusted LAN.
 
 ## HTTPS and certificates
@@ -125,7 +126,7 @@ is administrable here by construction.
 |---|---|---|
 | `/api/login` | POST | `{password}` → `{token}`. Optional `ttl_days` for a long-lived automation token (max 3650) |
 | `/api/info` | GET | Device info, app version, battery, screen, current URL |
-| `/api/health` | GET | The Device Info tab's Hardware section as one JSON object: identity, addresses, battery (null on a device without one), screen (`width`, `height`, `density`, `orientation` and `rotation` in degrees from the panel's natural orientation), RAM, storage, CPU usage, clock (`cpu.clock`, MHz) and temperature, the system WebView (`webview.package` and `webview.version`), the network link and uptimes. `link.type` is `ethernet`, `wifi`, `cellular`, `vpn` or `other`, and on Wi-Fi `link` adds `rssi` (dBm), `speedMbps` and `frequencyMhz`, each null when Android does not know it. `link` is null while offline and never carries the network name, which needs a location permission. `uptime.app`, `uptime.device` and `uptime.network` are in seconds since the app started, the device booted and the network came up. `network` is null while offline and starts counting at app start at the earliest. Meant for external monitoring to poll, so it is the one endpoint that needs no token |
+| `/api/health` | GET | The Device Info tab's Hardware section as one JSON object: identity, addresses, battery (null on a device without one), screen (`width`, `height`, `density`, `orientation` and `rotation` in degrees from the panel's natural orientation), RAM, storage, CPU usage, clock (`cpu.clock`, MHz) and temperature, the system WebView (`webview.package` and `webview.version`), the network link and uptimes. `link.type` is `ethernet`, `wifi`, `cellular`, `vpn` or `other`, and on Wi-Fi `link` adds `rssi` (dBm), `speedMbps` and `frequencyMhz`, each null when Android does not know it. `link` is null while offline and never carries the network name, which needs a location permission. `uptime.app`, `uptime.device` and `uptime.network` are in seconds since the app started, the device booted and the network came up. `network` is null while offline and starts counting at app start at the earliest. `leader` is true when the kiosk leads a fleet, and `follows` is the name of the leader it follows, null when it follows none. Meant for external monitoring to poll, so it is the one endpoint that needs no token. Any web page can read it, so a page of your own can list your kiosks by name and version |
 | `/api/settings` | GET | All setting definitions + current values |
 | `/api/settings` | PATCH | `{key: value, ...}` partial update |
 | `/api/settings/export` | GET | Full config as JSON (for provisioning) |

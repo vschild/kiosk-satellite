@@ -114,4 +114,27 @@ void main() {
     // The window is empty again, so four more frames still cannot fire.
     expect(feed(g, 0.99, 4, startMs: 5000), isNull);
   });
+
+  test('a less sensitive cutoff stays reachable below 1.0', () {
+    // Slightly sensitive (x1.10) used to put 0.97 models at 1.067, which
+    // no window mean reaches. It now halves what is left below 1.0.
+    expect(mwwCutoffFor(0.97, 1.10), closeTo(0.985, 1e-9));
+    expect(mwwCutoffFor(0.95, 1.10), closeTo(0.975, 1e-9));
+    expect(mwwCutoffFor(0.85, 1.10), closeTo(0.925, 1e-9));
+    for (final scale in [1.05, 1.10, 1.20, 1.30]) {
+      expect(mwwCutoffFor(0.97, scale), lessThan(1.0));
+    }
+    expect(mwwCutoffFor(0.97, 1.30), 0.99);
+    // That close to 1.0 it fires on the second sighting.
+    final g = gate(cutoff: mwwCutoffFor(0.97, 1.10));
+    expect(feed(g, 0.995, 6), MwwTrigger.confirmed);
+  });
+
+  test('moderate, more sensitive and the stop word multiply as before', () {
+    expect(mwwCutoffFor(0.97, 1.0), 0.97);
+    expect(mwwCutoffFor(0.97, 0.90), closeTo(0.873, 1e-9));
+    expect(mwwCutoffFor(0.85, 0.70), closeTo(0.595, 1e-9));
+    expect(mwwCutoffFor(0.5, 1.05), closeTo(0.525, 1e-9));
+    expect(mwwCutoffFor(0.5, 0.95), closeTo(0.475, 1e-9));
+  });
 }

@@ -1015,6 +1015,7 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
             if (domain is List)
               for (final d in domain) '$d',
           ],
+          includeHidden: field['includeHidden'] == true,
         );
         return labeled(
           PickFieldBox(

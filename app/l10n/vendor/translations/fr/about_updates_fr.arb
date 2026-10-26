@@ -13,5 +13,7 @@
   "aboutSystemVersion": "Version de la ROM",
   "aboutSystemVerifying": "Vérification…",
   "aboutSystemInstalling": "Installation…",
-  "aboutSystemInstallHelp": "Le Dot redémarre deux fois pour installer la mise à jour et reste hors ligne environ une minute et demie à chaque fois."
+  "aboutSystemRestartHelp": "L'appareil redémarre deux fois pour installer la mise à jour et reste hors ligne quelques minutes.",
+  "aboutSystemManual": "Nouvelle image disponible",
+  "aboutSystemManualHelp": "La version {version} de la nouvelle image de l'Echo Dot s'installe à la main, pas comme une mise à jour."
 }

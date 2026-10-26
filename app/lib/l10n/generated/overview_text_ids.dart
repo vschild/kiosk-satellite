@@ -43,6 +43,7 @@ const overviewTextMessageIds = <String, String>{
   "Open settings on device": "kioskOpenSettingsDevice",
   "Update": "overviewUpdate",
   "Install": "commonInstall",
+  "Open guide": "deviceOpenGuide",
   "Retry": "commonRetry",
   "1 follower runs another release": "overviewOutdatedOne",
   "this release": "overviewThisRelease",

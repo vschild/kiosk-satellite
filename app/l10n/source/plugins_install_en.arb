@@ -273,6 +273,25 @@
       ]
     }
   },
+  "pluginNeedsAppVersion": "Needs Kiosk Satellite {version} or newer",
+  "@pluginNeedsAppVersion": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Shown on a listed plugin whose newest release needs a newer Kiosk Satellite than this kiosk runs.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "2026.10.40"
+      }
+    }
+  },
   "pluginStars": "Stars",
   "@pluginStars": {
     "context": "Settings > Plugin Manager > Browse plugins",

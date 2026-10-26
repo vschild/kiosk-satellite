@@ -733,6 +733,7 @@ class _RosterScreenState extends State<_RosterScreen> {
     if (r.ok || !mounted) return;
     showToast(
       context,
+      source: 'intercom',
       title: command == 'intercomBroadcast'
           ? intercomText(context, "Could not talk to everyone")
           : intercomText(context, "Could not call"),
@@ -1291,6 +1292,7 @@ class _IntercomCallOverlayState extends State<IntercomCallOverlay> {
     final overlay = Overlay.of(context, rootOverlay: true);
     showToastIn(
       overlay,
+      source: 'intercom',
       title: l10n(context).intercomMissedFrom('${peer['name']}'),
       message: l10n(
         context,
@@ -1309,6 +1311,7 @@ class _IntercomCallOverlayState extends State<IntercomCallOverlay> {
     if (r.ok || !mounted) return;
     showToast(
       context,
+      source: 'intercom',
       title: intercomText(context, "Intercom"),
       message: r.error == null
           ? null

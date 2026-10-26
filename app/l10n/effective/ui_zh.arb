@@ -304,15 +304,43 @@
       ]
     }
   },
-  "aboutSystemInstallHelp": "Dot 会重启两次以安装更新，每次离线约一分半钟。",
-  "@aboutSystemInstallHelp": {
+  "aboutSystemRestartHelp": "设备会重启两次以安装更新，期间离线几分钟。",
+  "@aboutSystemRestartHelp": {
     "context": "Remote administration > About > System",
-    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "description": "Guidance below the release notes before a system update installs. The device is an Echo Dot or Echo Show running the Kiosk Satellite image.",
     "x-locations": {
       "remoteAdmin": [
         "About > System > install a version",
         "Overview > available system update"
       ]
+    }
+  },
+  "aboutSystemManual": "有新镜像可用",
+  "@aboutSystemManual": {
+    "context": "Remote administration > About > System",
+    "description": "Row shown when a newer system image exists that the device cannot install as an update. It has to be installed by hand, following a guide. The Echo Dot smart speaker moves from its LineageOS 14.1 image to a LineageOS 18.1 one this way.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "aboutSystemManualHelp": "新的 Echo Dot 镜像 {version} 版需要手动安装，无法作为更新安装。",
+  "@aboutSystemManualHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Explanation below the row about a newer system image that has to be installed by hand. Next to it is a link to the guide. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the new Echo Dot system image, such as 2026.10.6."
+      }
     }
   },
   "alarmsTitle": "闹钟",
@@ -11290,6 +11318,180 @@
       ]
     }
   },
+  "librarySort": "排序",
+  "@librarySort": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that opens the sort menu of a library list such as Albums or Playlists.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortAToZ": "A 到 Z",
+  "@librarySortAToZ": {
+    "context": "Music Library",
+    "description": "Sort menu option: alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortZToA": "Z 到 A",
+  "@librarySortZToA": {
+    "context": "Music Library",
+    "description": "Sort menu option: reverse alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortMostPlayed": "最常播放",
+  "@librarySortMostPlayed": {
+    "context": "Music Library",
+    "description": "Sort menu option: the most played entries first.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAlbumArtistsOnly": "仅专辑艺人",
+  "@libraryAlbumArtistsOnly": {
+    "context": "Music Library",
+    "description": "Checkable option in the Artists sort menu. Lists only artists credited on an album, leaving out artists who only appear on single tracks of compilations.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindGenre": "流派",
+  "@libraryKindGenre": {
+    "context": "Music Library",
+    "description": "Kind of entry shown in lists and on a genre's page, like Artist or Album.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryBrowseByGenre": "按流派浏览",
+  "@libraryBrowseByGenre": {
+    "context": "Music Library",
+    "description": "Discover section title: a grid of music genres to open.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "settingLibraryTextScaleDescription": "音乐库中标题、名称和标签的大小。",
+  "@settingLibraryTextScaleDescription": {
+    "context": "Music Library",
+    "description": "Setting description under Text scale, a percentage slider.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkTitle": "方形封面",
+  "@settingLibrarySquareArtworkTitle": {
+    "context": "Music Library",
+    "description": "Setting label: show artists in square tiles instead of circles.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkDescription": "像专辑和播放列表一样，以方形卡片显示艺人。",
+  "@settingLibrarySquareArtworkDescription": {
+    "context": "Music Library",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityTitle": "网格密度",
+  "@settingLibraryGridDensityTitle": {
+    "context": "Music Library",
+    "description": "Setting label: how large the tiles in the library's grids are.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityDescription": "音乐库中卡片的大小。紧凑可在每行显示更多。",
+  "@settingLibraryGridDensityDescription": {
+    "context": "Music Library",
+    "description": "Setting description. Compact is one of the options.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityComfortable": "宽松",
+  "@libraryDensityComfortable": {
+    "context": "Music Library",
+    "description": "Grid density option: larger tiles, fewer in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityStandard": "标准",
+  "@libraryDensityStandard": {
+    "context": "Music Library",
+    "description": "Grid density option: the default tile size.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityCompact": "紧凑",
+  "@libraryDensityCompact": {
+    "context": "Music Library",
+    "description": "Grid density option: smaller tiles, more in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
   "libraryMoreResults": "更多结果",
   "@libraryMoreResults": {
     "context": "Music Library",
@@ -13599,6 +13801,25 @@
       ]
     }
   },
+  "pluginNeedsAppVersion": "需要 Kiosk Satellite {version} 或更高版本",
+  "@pluginNeedsAppVersion": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Shown on a listed plugin whose newest release needs a newer Kiosk Satellite than this kiosk runs.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "2026.10.40"
+      }
+    }
+  },
   "pluginStars": "星标",
   "@pluginStars": {
     "context": "Settings > Plugin Manager > Browse plugins",
@@ -15560,6 +15781,29 @@
       }
     }
   },
+  "pluginErrorAppVersion": "插件需要 Kiosk Satellite {required} 或更高版本。本机运行的是 {current}。",
+  "@pluginErrorAppVersion": {
+    "context": "Settings > Plugin Manager > Add plugin, preview or install",
+    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ],
+      "remoteAdmin": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ]
+    },
+    "placeholders": {
+      "required": {
+        "type": "String",
+        "example": "2026.10.40"
+      },
+      "current": {
+        "type": "String",
+        "example": "2026.10.36"
+      }
+    }
+  },
   "pluginErrorInvalidField": "{field} 无效",
   "@pluginErrorInvalidField": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -16298,8 +16542,8 @@
       ]
     }
   },
-  "overviewSystemUpdateHelp": "Echo Dot 镜像 {version} 版已可安装。安装时 Dot 会重启两次。",
-  "@overviewSystemUpdateHelp": {
+  "overviewSystemImageUpdateHelp": "系统镜像 {version} 版已可安装。安装时设备会重启两次。",
+  "@overviewSystemImageUpdateHelp": {
     "context": "Remote admin > Overview > Needs attention",
     "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
     "x-locations": {
@@ -16311,7 +16555,7 @@
     "placeholders": {
       "version": {
         "type": "String",
-        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+        "description": "Release of the device's system image, such as 2026.10.4."
       }
     }
   },
@@ -18050,29 +18294,29 @@
       ]
     }
   },
-  "settingLauncherAutoReturnMediaTitle": "媒体播放时等待",
-  "@settingLauncherAutoReturnMediaTitle": {
+  "settingLauncherAutoReturnHoldTitle": "媒体播放或通话时等待",
+  "@settingLauncherAutoReturnHoldTitle": {
     "context": "Settings > App Launcher",
     "description": "Setting label.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
-  "settingLauncherAutoReturnMediaDescription": "正在播放视频或音乐时不自动返回。",
-  "@settingLauncherAutoReturnMediaDescription": {
+  "settingLauncherAutoReturnHoldDescription": "正在播放视频、音乐或通话时不自动返回。",
+  "@settingLauncherAutoReturnHoldDescription": {
     "context": "Settings > App Launcher",
     "description": "Help below this setting.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
@@ -27384,6 +27628,240 @@
   "@deviceThemeSystem": {
     "context": "Settings:Device:User Interface",
     "description": "Label or explanation on this Device settings page.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenTitle": "显示系统提示消息",
+  "@settingUiToastsHiddenTitle": {
+    "context": "Settings:Device:User Interface",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenDescription": "选择在仪表盘上方弹出的提示消息。设置中的消息始终显示。",
+  "@settingUiToastsHiddenDescription": {
+    "context": "Settings:Device:User Interface",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsAll": "全部",
+  "@deviceToastsAll": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast shows.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsNone": "无",
+  "@deviceToastsNone": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast is turned off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastBack": "返回键提示",
+  "@deviceToastBack": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the hint to press back again.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastGestures": "手势操作",
+  "@deviceToastGestures": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the outcome of a gesture's Home Assistant action.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastHoldMode": "页面保持模式",
+  "@deviceToastHoldMode": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Hold mode turning on or off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastLinks": "仪表盘链接",
+  "@deviceToastLinks": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: kiosk and app links on the dashboard that fail.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastDownloads": "下载",
+  "@deviceToastDownloads": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: file downloads from the dashboard.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastNetwork": "网络状态",
+  "@deviceToastNetwork": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the pill that says the network is gone or back.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastUpdates": "检查更新",
+  "@deviceToastUpdates": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: checking for updates from the kiosk menu.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastVoice": "Voice Satellite 通知",
+  "@deviceToastVoice": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Voice Satellite errors, warnings and notices.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastTimers": "计时器",
+  "@deviceToastTimers": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: voice timer pills.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAlarms": "闹钟",
+  "@deviceToastAlarms": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Alarms panel.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastMusicLibrary": "音乐库",
+  "@deviceToastMusicLibrary": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Music Library.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastIntercom": "对讲",
+  "@deviceToastIntercom": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Intercom calls.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAppLauncher": "应用启动器",
+  "@deviceToastAppLauncher": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: apps opened from the App Launcher.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastPlugins": "插件操作",
+  "@deviceToastPlugins": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: plugin actions in the kiosk menu.",
     "x-locations": {
       "device": [
         "Settings > Device > User Interface"
@@ -50203,6 +50681,58 @@
       ]
     }
   },
+  "voiceSkin1": "助手 1 的皮肤",
+  "@voiceSkin1": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin1Help": "助手 1 回答时浮层的外观。",
+  "@voiceSkin1Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2": "助手 2 的皮肤",
+  "@voiceSkin2": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2Help": "助手 2 回答时浮层的外观。",
+  "@voiceSkin2Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
   "voiceTheme": "主题模式",
   "@voiceTheme": {
     "context": "Settings > Voice Satellite > Appearance",
@@ -52090,6 +52620,16 @@
     "context": "Settings > Voice Satellite > Realtime",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "语音打断灵敏度",
+  "@settingVoiceRealtimeTalkOverSensitivityTitle": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "说话打断回复的难易程度。如果麦克风音量较小导致无法打断，请调高此项。设置过高可能导致助手被自己的声音打断。",
+  "@settingVoiceRealtimeTalkOverSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
   "settingVoiceRealtimeToolsTitle": "工具",
   "@settingVoiceRealtimeToolsTitle": {
     "context": "Settings > Voice Satellite > Realtime",
@@ -53286,6 +53826,16 @@
   },
   "settingVoiceWakeWordSensitivityDescription": "唤醒词触发的难易程度。",
   "@settingVoiceWakeWordSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneTitle": "灵敏度微调",
+  "@settingVoiceWakeWordFineTuneTitle": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneDescription": "以更小的幅度调整唤醒词灵敏度。如果经常需要重复唤醒词，请调高；如果经常误唤醒，请调低。",
+  "@settingVoiceWakeWordFineTuneDescription": {
     "context": "Settings > Voice Satellite > Wake Word",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
@@ -54751,6 +55301,30 @@
     "x-locations": {
       "device": [
         "First-time setup > Connect > Scan token QR code"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOff": "关闭屏幕补光",
+  "@setupQrScreenLightOff": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is on. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOn": "开启屏幕补光",
+  "@setupQrScreenLightOn": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is off. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
       ],
       "remoteAdmin": []
     }

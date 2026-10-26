@@ -93,8 +93,16 @@ class UiStringsNl extends UiStrings {
   String get aboutSystemInstalling => 'Installeren…';
 
   @override
-  String get aboutSystemInstallHelp =>
-      'De Dot start twee keer opnieuw op om de update te installeren en is elke keer ongeveer anderhalve minuut offline.';
+  String get aboutSystemRestartHelp =>
+      'Het apparaat start twee keer opnieuw op om de update te installeren en is een paar minuten offline.';
+
+  @override
+  String get aboutSystemManual => 'Nieuwe image beschikbaar';
+
+  @override
+  String aboutSystemManualHelp(String version) {
+    return 'Versie $version van de nieuwe Echo Dot-image installeer je met de hand, niet als update.';
+  }
 
   @override
   String get alarmsTitle => 'Alarmen';
@@ -2939,6 +2947,54 @@ class UiStringsNl extends UiStrings {
   String get libraryRecentlyAdded => 'Recent toegevoegd';
 
   @override
+  String get librarySort => 'Sorteren';
+
+  @override
+  String get librarySortAToZ => 'A tot Z';
+
+  @override
+  String get librarySortZToA => 'Z tot A';
+
+  @override
+  String get librarySortMostPlayed => 'Meest afgespeeld';
+
+  @override
+  String get libraryAlbumArtistsOnly => 'Alleen albumartiesten';
+
+  @override
+  String get libraryKindGenre => 'Genre';
+
+  @override
+  String get libraryBrowseByGenre => 'Bladeren op genre';
+
+  @override
+  String get settingLibraryTextScaleDescription =>
+      'Grootte van titels, namen en labels in de bibliotheek.';
+
+  @override
+  String get settingLibrarySquareArtworkTitle => 'Vierkante afbeeldingen';
+
+  @override
+  String get settingLibrarySquareArtworkDescription =>
+      'Toont artiesten als vierkante tegels, zoals albums en afspeellijsten.';
+
+  @override
+  String get settingLibraryGridDensityTitle => 'Rasterdichtheid';
+
+  @override
+  String get settingLibraryGridDensityDescription =>
+      'Grootte van de tegels in de bibliotheek. Compact toont meer per rij.';
+
+  @override
+  String get libraryDensityComfortable => 'Ruim';
+
+  @override
+  String get libraryDensityStandard => 'Standaard';
+
+  @override
+  String get libraryDensityCompact => 'Compact';
+
+  @override
   String get libraryMoreResults => 'Meer resultaten';
 
   @override
@@ -3589,6 +3645,11 @@ class UiStringsNl extends UiStrings {
   String get pluginInstalled => 'Geïnstalleerd';
 
   @override
+  String pluginNeedsAppVersion(String version) {
+    return 'Vereist Kiosk Satellite $version of nieuwer';
+  }
+
+  @override
   String get pluginStars => 'Sterren';
 
   @override
@@ -4117,6 +4178,11 @@ class UiStringsNl extends UiStrings {
   }
 
   @override
+  String pluginErrorAppVersion(String required, String current) {
+    return 'De plug-in vereist Kiosk Satellite $required of nieuwer. Deze kiosk draait $current.';
+  }
+
+  @override
   String pluginErrorInvalidField(String field) {
     return 'Ongeldige $field';
   }
@@ -4331,8 +4397,8 @@ class UiStringsNl extends UiStrings {
   String get overviewSystemUpdate => 'Systeemupdate beschikbaar';
 
   @override
-  String overviewSystemUpdateHelp(String version) {
-    return 'Versie $version van de Echo Dot-image staat klaar om te installeren. De Dot start daarvoor twee keer opnieuw op.';
+  String overviewSystemImageUpdateHelp(String version) {
+    return 'Versie $version van de systeemimage staat klaar om te installeren. Het apparaat start daarvoor twee keer opnieuw op.';
   }
 
   @override
@@ -4839,11 +4905,12 @@ class UiStringsNl extends UiStrings {
       'Tijd zonder aanraking in de andere app voordat de kiosk terugkeert.';
 
   @override
-  String get settingLauncherAutoReturnMediaTitle => 'Wachten tijdens afspelen';
+  String get settingLauncherAutoReturnHoldTitle =>
+      'Wachten tijdens afspelen en gesprekken';
 
   @override
-  String get settingLauncherAutoReturnMediaDescription =>
-      'Niet terugkeren zolang er video of muziek speelt.';
+  String get settingLauncherAutoReturnHoldDescription =>
+      'Niet terugkeren tijdens video, muziek of gesprekken.';
 
   @override
   String get launcherOverlayHeld =>
@@ -7338,6 +7405,62 @@ class UiStringsNl extends UiStrings {
 
   @override
   String get deviceThemeSystem => 'Systeem';
+
+  @override
+  String get settingUiToastsHiddenTitle =>
+      'Pop-upmeldingen van het systeem tonen';
+
+  @override
+  String get settingUiToastsHiddenDescription =>
+      'Kies welke pop-upmeldingen over het dashboard verschijnen. Meldingen in Instellingen verschijnen altijd.';
+
+  @override
+  String get deviceToastsAll => 'Alle';
+
+  @override
+  String get deviceToastsNone => 'Geen';
+
+  @override
+  String get deviceToastBack => 'Hints voor de terugknop';
+
+  @override
+  String get deviceToastGestures => 'Gebaaracties';
+
+  @override
+  String get deviceToastHoldMode => 'Wachtstand';
+
+  @override
+  String get deviceToastLinks => 'Dashboardlinks';
+
+  @override
+  String get deviceToastDownloads => 'Downloads';
+
+  @override
+  String get deviceToastNetwork => 'Netwerkstatus';
+
+  @override
+  String get deviceToastUpdates => 'Updatecontroles';
+
+  @override
+  String get deviceToastVoice => 'Voice Satellite-meldingen';
+
+  @override
+  String get deviceToastTimers => 'Timers';
+
+  @override
+  String get deviceToastAlarms => 'Alarmen';
+
+  @override
+  String get deviceToastMusicLibrary => 'Muziekbibliotheek';
+
+  @override
+  String get deviceToastIntercom => 'Intercom';
+
+  @override
+  String get deviceToastAppLauncher => 'Appstarter';
+
+  @override
+  String get deviceToastPlugins => 'Plug-inacties';
 
   @override
   String get settingDlnaEnabledTitle => 'DLNA-renderer inschakelen';
@@ -13479,6 +13602,20 @@ class UiStringsNl extends UiStrings {
   String get voiceSkinHelp => 'Het uiterlijk van de spraakassistent-overlay.';
 
   @override
+  String get voiceSkin1 => 'Vormgeving van Assistent 1';
+
+  @override
+  String get voiceSkin1Help =>
+      'Het uiterlijk van de overlay wanneer Assistent 1 antwoordt.';
+
+  @override
+  String get voiceSkin2 => 'Vormgeving van Assistent 2';
+
+  @override
+  String get voiceSkin2Help =>
+      'Het uiterlijk van de overlay wanneer Assistent 2 antwoordt.';
+
+  @override
   String get voiceTheme => 'Themamodus';
 
   @override
@@ -14366,6 +14503,14 @@ class UiStringsNl extends UiStrings {
       'Onderbreek een antwoord door te spreken. Zet uit als het zichzelf onderbreekt.';
 
   @override
+  String get settingVoiceRealtimeTalkOverSensitivityTitle =>
+      'Gevoeligheid voor onderbreken';
+
+  @override
+  String get settingVoiceRealtimeTalkOverSensitivityDescription =>
+      'Hoe makkelijk spreken een antwoord onderbreekt. Verhoog dit als onderbreken niet werkt met een zachte microfoon. Hogere waarden kunnen ervoor zorgen dat het zichzelf onderbreekt.';
+
+  @override
   String get settingVoiceRealtimeToolsTitle => 'Tools';
 
   @override
@@ -14800,6 +14945,13 @@ class UiStringsNl extends UiStrings {
   @override
   String get settingVoiceWakeWordSensitivityDescription =>
       'Hoe gemakkelijk de detectie op het wekwoord reageert.';
+
+  @override
+  String get settingVoiceWakeWordFineTuneTitle => 'Gevoeligheid fijnafstellen';
+
+  @override
+  String get settingVoiceWakeWordFineTuneDescription =>
+      'Past de wekwoordgevoeligheid in kleinere stappen aan. Verhoog dit als je het wekwoord vaak moet herhalen en verlaag het als het per ongeluk reageert.';
 
   @override
   String get settingVoiceNoiseGateTitle => 'Ruisfilter voor wekwoord';
@@ -15338,6 +15490,12 @@ class UiStringsNl extends UiStrings {
 
   @override
   String get setupQrFlashOn => 'Zaklamp inschakelen';
+
+  @override
+  String get setupQrScreenLightOff => 'Schermlicht uitschakelen';
+
+  @override
+  String get setupQrScreenLightOn => 'Schermlicht inschakelen';
 
   @override
   String get setupPasswordFirst =>

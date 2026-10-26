@@ -147,10 +147,10 @@ function settingValue(key) {
   return (state.settings || []).find((s) => s.key === key)?.value;
 }
 
-/* Skin: the current skin's name, opening a grid of every skin as a
-   screenshot of its overlay, the device's picker. Keeps the row's own
-   (localized) title and option labels and its key. */
-function skinRow(row, current) {
+/* Skin or Assistant 2 skin (key): the current skin's name, opening a grid
+   of every skin as a screenshot of its overlay, the device's picker. Keeps
+   the row's own (localized) title and option labels and its key. */
+function skinRow(row, key, current) {
   const title = row.querySelector('.name')?.textContent || voiceText('Skin');
   const desc = row.querySelector('.desc')?.textContent || '';
   // A plugin's skin reads as the plugin's name. One no longer installed
@@ -167,7 +167,7 @@ function skinRow(row, current) {
   const refresh = async () => {
     try {
       const data = await api('/api/settings').then((r) => r.json());
-      const def = (data.settings || []).find((x) => x.key === 'voice.skin');
+      const def = (data.settings || []).find((x) => x.key === key);
       if (!Array.isArray(def?.options)) return;
       skins = [...builtIn, ...def.options.filter((id) => `${id}`.startsWith('plugin:'))
         .map((id) => ({ id, name: skinName(id, `${def.optionLabels?.[id] || id}`) }))];
@@ -176,16 +176,16 @@ function skinRow(row, current) {
     } catch (_) {}
   };
   const picker = readOnlyRow(title, desc, nameOf(current), false);
-  picker.dataset.key = 'voice.skin';
+  picker.dataset.key = key;
   picker.style.cursor = 'pointer';
   picker.tabIndex = 0;
   const open = async () => {
     await refresh();
-    const picked = await openSkinPicker(skins, current);
+    const picked = await openSkinPicker(title, skins, current);
     if (!picked || picked === current) return;
     current = picked;
     picker.lastElementChild.textContent = nameOf(picked);
-    api('/api/settings', { method: 'PATCH', body: JSON.stringify({ 'voice.skin': picked }) })
+    api('/api/settings', { method: 'PATCH', body: JSON.stringify({ [key]: picked }) })
       .catch(() => null);
   };
   picker.addEventListener('click', open);
@@ -193,16 +193,16 @@ function skinRow(row, current) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
   });
   picker.updateSetting = () => {
-    current = `${settingValue('voice.skin') ?? current}`;
+    current = `${settingValue(key) ?? current}`;
     picker.lastElementChild.textContent = nameOf(current);
     return true;
   };
   row.replaceWith(picker);
 }
 
-function openSkinPicker(skins, current) {
+function openSkinPicker(title, skins, current) {
   return new Promise((resolve) => {
-    const shell = modalShell({ title: voiceText('Skin'), width: 640, onDismiss: () => close(null) });
+    const shell = modalShell({ title, width: 640, onDismiss: () => close(null) });
     const close = (id) => { shell.close(); resolve(id); };
     shell.foot.remove();
     const grid = document.createElement('div');
@@ -572,11 +572,12 @@ export async function renderNativeVs(root, byKey) {
     const wake = panel('Wake Word');
     if (wake) {
       // Engine, the language of Amazon's engine, Home Assistant's wake
-      // words (which follow both), then sensitivity, the noise gate and the
-      // stop word in one card, the engine's own tuning after.
+      // words (which follow both), then sensitivity and its fine-tune, the
+      // noise gate and the stop word in one card, the engine's own tuning
+      // after.
       const first = document.createElement('div');
       first.className = 'card';
-      for (const key of ['voice.wake_word_engine', 'voice.amazon_locale', 'voice.wake_word_sensitivity', 'voice.noise_gate', 'voice.stop_word']) {
+      for (const key of ['voice.wake_word_engine', 'voice.amazon_locale', 'voice.wake_word_sensitivity', 'voice.wake_word_fine_tune', 'voice.noise_gate', 'voice.stop_word']) {
         const row = wake.querySelector(`[data-key="${key}"]`);
         if (row) first.appendChild(row);
         if (key === 'voice.amazon_locale') first.appendChild(selectsBlock(WAKE_ROWS));
@@ -585,8 +586,10 @@ export async function renderNativeVs(root, byKey) {
       wake.prepend(first);
       if (!wake.querySelector('#vsCustomModels')) wake.append(...customModelsGroup());
     }
-    const skin = panel('Appearance')?.querySelector('[data-key="voice.skin"]');
-    if (skin) skinRow(skin, byKey['voice.skin']?.value || '');
+    for (const key of ['voice.skin', 'voice.skin_2']) {
+      const skin = panel('Appearance')?.querySelector(`[data-key="${key}"]`);
+      if (skin) skinRow(skin, key, byKey[key]?.value || '');
+    }
     const reactive = panel('Appearance')?.querySelector('[data-key="voice.reactive_bar"]');
     if (reactive) {
       const row = voiceRow('Preview', 'Show the overlay on the kiosk screen for five seconds.');

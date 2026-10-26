@@ -192,6 +192,28 @@ try:
         assert not errors, errors
         page.close()
 
+        # A release that needs a newer Kiosk Satellite says so and offers neither Install nor Update.
+        page = browser.new_page(viewport={'width': 1440, 'height': 1000})
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        directory['plugins'] = [
+            listed('newer', 'Newer Clock', None, needsAppVersion='2026.10.40'),
+            listed('quiet', 'Quiet Clock', None, version='1.1.0', installed=True, installedVersion='1.0.0',
+                   sameSource=True, updateAvailable=False, needsAppVersion='2026.10.40'),
+        ]
+        open_app(page)
+        page.locator('[data-search-id="x:plugins:browse"]').click()
+        root = page.locator('#tab-plugins')
+        newer = root.locator('.plugin-directory-row').filter(has_text='Newer Clock')
+        expect(newer.locator('.plugin-directory-needs')).to_have_text('Needs Kiosk Satellite 2026.10.40 or newer')
+        expect(newer.get_by_role('button', name='Install')).to_have_count(0)
+        quiet = root.locator('.plugin-directory-row').filter(has_text='Quiet Clock')
+        expect(quiet).to_contain_text('Installed')
+        expect(quiet.locator('.plugin-directory-needs')).to_have_count(1)
+        expect(quiet.get_by_role('button', name='Update')).to_have_count(0)
+        directory['plugins'] = saved
+        assert not errors, errors
+        page.close()
+
         # An install link: it leaves the address at once and asks before installing.
         plugins_enabled = False
         requests.clear()

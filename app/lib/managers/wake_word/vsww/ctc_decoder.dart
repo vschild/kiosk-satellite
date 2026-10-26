@@ -33,6 +33,9 @@ class MatchResult {
     required this.matchedConfidence,
     required this.gateThreshold,
     this.endFrame = -1,
+    this.nearConfidence = double.negativeInfinity,
+    this.nearThreshold = double.negativeInfinity,
+    this.nearEditDistance = -1,
   });
 
   static const miss = MatchResult(
@@ -58,6 +61,20 @@ class MatchResult {
   /// high-confidence bypass).
   final double matchedConfidence;
   final double gateThreshold;
+
+  /// On a miss, the target alignment that came closest to its confidence
+  /// gate: its mean confidence, the gate it fell short of and its edit
+  /// distance. Lets near-miss diagnostics and the tester say how close a
+  /// rejected wake word got. -infinity (and -1) when nothing aligned.
+  final double nearConfidence;
+  final double nearThreshold;
+  final int nearEditDistance;
+
+  /// What this verdict scored and had to clear: the match on a hit, the
+  /// closest below-gate alignment on a miss.
+  double get score => matched ? matchedConfidence : nearConfidence;
+  double get threshold => matched ? gateThreshold : nearThreshold;
+  int get scoredEditDistance => matched ? editDistance : nearEditDistance;
 }
 
 /// Greedy CTC decode + phoneme matching, ported from Voice Satellite's
@@ -129,6 +146,9 @@ class CtcDecoder {
     final endFrames = decode.endFrames;
     final len = ids.length;
     MatchResult best = MatchResult.miss;
+    var nearConf = double.negativeInfinity;
+    var nearGate = double.negativeInfinity;
+    var nearEd = -1;
 
     double meanConf(int start, int winLen) {
       if (winLen <= 0) return double.negativeInfinity;
@@ -142,7 +162,17 @@ class CtcDecoder {
     void consider(int ti, int start, int winLen, int ed) {
       final gate = ctc.minConfidenceFor(ti) * confidenceScale;
       final mc = meanConf(start, winLen);
-      if (mc < gate) return; // confidence gate
+      if (mc < gate) {
+        // confidence gate; remember the alignment that came closest to it
+        if (gate > 0 &&
+            mc.isFinite &&
+            (nearEd < 0 || mc / gate > nearConf / nearGate)) {
+          nearConf = mc;
+          nearGate = gate;
+          nearEd = ed;
+        }
+        return;
+      }
       // prefer lower edit distance, then higher confidence
       if (!best.matched ||
           ed < best.editDistance ||
@@ -197,7 +227,17 @@ class CtcDecoder {
         }
       }
     }
-    return best;
+    if (best.matched || nearEd < 0) return best;
+    return MatchResult(
+      matched: false,
+      targetIndex: -1,
+      editDistance: 1 << 30,
+      matchedConfidence: double.negativeInfinity,
+      gateThreshold: double.negativeInfinity,
+      nearConfidence: nearConf,
+      nearThreshold: nearGate,
+      nearEditDistance: nearEd,
+    );
   }
 
   bool _trailOk(int start, int winLen, int len) {

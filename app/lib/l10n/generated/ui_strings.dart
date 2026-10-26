@@ -260,11 +260,23 @@ abstract class UiStrings {
   /// **'Installing…'**
   String get aboutSystemInstalling;
 
-  /// Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.
+  /// Guidance below the release notes before a system update installs. The device is an Echo Dot or Echo Show running the Kiosk Satellite image.
   ///
   /// In en, this message translates to:
-  /// **'The Dot restarts twice to install the update and is offline for about a minute and a half each time.'**
-  String get aboutSystemInstallHelp;
+  /// **'The device restarts twice to install the update and is offline for a few minutes.'**
+  String get aboutSystemRestartHelp;
+
+  /// Row shown when a newer system image exists that the device cannot install as an update. It has to be installed by hand, following a guide. The Echo Dot smart speaker moves from its LineageOS 14.1 image to a LineageOS 18.1 one this way.
+  ///
+  /// In en, this message translates to:
+  /// **'New image available'**
+  String get aboutSystemManual;
+
+  /// Explanation below the row about a newer system image that has to be installed by hand. Next to it is a link to the guide. The Dot is the Echo Dot smart speaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} of the new Echo Dot image installs by hand, not as an update.'**
+  String aboutSystemManualHelp(String version);
 
   /// Name of the alarms feature: the kiosk menu entry, the alarm list eyebrow and section headings.
   ///
@@ -5223,6 +5235,96 @@ abstract class UiStrings {
   /// **'Recently added'**
   String get libraryRecentlyAdded;
 
+  /// Tooltip of the button that opens the sort menu of a library list such as Albums or Playlists.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get librarySort;
+
+  /// Sort menu option: alphabetical order by name.
+  ///
+  /// In en, this message translates to:
+  /// **'A to Z'**
+  String get librarySortAToZ;
+
+  /// Sort menu option: reverse alphabetical order by name.
+  ///
+  /// In en, this message translates to:
+  /// **'Z to A'**
+  String get librarySortZToA;
+
+  /// Sort menu option: the most played entries first.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played'**
+  String get librarySortMostPlayed;
+
+  /// Checkable option in the Artists sort menu. Lists only artists credited on an album, leaving out artists who only appear on single tracks of compilations.
+  ///
+  /// In en, this message translates to:
+  /// **'Album artists only'**
+  String get libraryAlbumArtistsOnly;
+
+  /// Kind of entry shown in lists and on a genre's page, like Artist or Album.
+  ///
+  /// In en, this message translates to:
+  /// **'Genre'**
+  String get libraryKindGenre;
+
+  /// Discover section title: a grid of music genres to open.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse by genre'**
+  String get libraryBrowseByGenre;
+
+  /// Setting description under Text scale, a percentage slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Size of the titles, names and labels in the library.'**
+  String get settingLibraryTextScaleDescription;
+
+  /// Setting label: show artists in square tiles instead of circles.
+  ///
+  /// In en, this message translates to:
+  /// **'Square artwork'**
+  String get settingLibrarySquareArtworkTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Show artists in square tiles, like albums and playlists.'**
+  String get settingLibrarySquareArtworkDescription;
+
+  /// Setting label: how large the tiles in the library's grids are.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid density'**
+  String get settingLibraryGridDensityTitle;
+
+  /// Setting description. Compact is one of the options.
+  ///
+  /// In en, this message translates to:
+  /// **'Size of the tiles in the library. Compact fits more in a row.'**
+  String get settingLibraryGridDensityDescription;
+
+  /// Grid density option: larger tiles, fewer in a row.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable'**
+  String get libraryDensityComfortable;
+
+  /// Grid density option: the default tile size.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get libraryDensityStandard;
+
+  /// Grid density option: smaller tiles, more in a row.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get libraryDensityCompact;
+
   /// Search results shelf for entries of other kinds.
   ///
   /// In en, this message translates to:
@@ -6370,6 +6472,12 @@ abstract class UiStrings {
   /// **'Installed'**
   String get pluginInstalled;
 
+  /// Shown on a listed plugin whose newest release needs a newer Kiosk Satellite than this kiosk runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Kiosk Satellite {version} or newer'**
+  String pluginNeedsAppVersion(String version);
+
   /// Visible label, help or status in this section.
   ///
   /// In en, this message translates to:
@@ -7243,6 +7351,12 @@ abstract class UiStrings {
   /// Explain the failure. Keep technical identifiers, file names and product names unchanged.
   ///
   /// In en, this message translates to:
+  /// **'Plugin needs Kiosk Satellite {required} or newer. This kiosk runs {current}.'**
+  String pluginErrorAppVersion(String required, String current);
+
+  /// Explain the failure. Keep technical identifiers, file names and product names unchanged.
+  ///
+  /// In en, this message translates to:
   /// **'Invalid {field}'**
   String pluginErrorInvalidField(String field);
 
@@ -7591,8 +7705,8 @@ abstract class UiStrings {
   /// Translate the interface text. Keep external names, versions and technical details unchanged.
   ///
   /// In en, this message translates to:
-  /// **'Version {version} of the Echo Dot image is ready to install. The Dot restarts twice to install it.'**
-  String overviewSystemUpdateHelp(String version);
+  /// **'Version {version} of the system image is ready to install. The device restarts twice to install it.'**
+  String overviewSystemImageUpdateHelp(String version);
 
   /// Translate the interface text. Keep external names, versions and technical details unchanged.
   ///
@@ -8449,14 +8563,14 @@ abstract class UiStrings {
   /// Setting label.
   ///
   /// In en, this message translates to:
-  /// **'Wait while media plays'**
-  String get settingLauncherAutoReturnMediaTitle;
+  /// **'Wait during media and calls'**
+  String get settingLauncherAutoReturnHoldTitle;
 
   /// Help below this setting.
   ///
   /// In en, this message translates to:
-  /// **'Do not come back while video or music is playing.'**
-  String get settingLauncherAutoReturnMediaDescription;
+  /// **'Do not come back during video, music or calls.'**
+  String get settingLauncherAutoReturnHoldDescription;
 
   /// Label or guidance in this section.
   ///
@@ -12700,6 +12814,114 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'System'**
   String get deviceThemeSystem;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Show system toast notifications'**
+  String get settingUiToastsHiddenTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the pop-up messages shown over the dashboard. Messages in Settings always show.'**
+  String get settingUiToastsHiddenDescription;
+
+  /// Value of Show system toast notifications when every toast shows.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get deviceToastsAll;
+
+  /// Value of Show system toast notifications when every toast is turned off.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get deviceToastsNone;
+
+  /// Toast source: the hint to press back again.
+  ///
+  /// In en, this message translates to:
+  /// **'Back button hints'**
+  String get deviceToastBack;
+
+  /// Toast source: the outcome of a gesture's Home Assistant action.
+  ///
+  /// In en, this message translates to:
+  /// **'Gesture actions'**
+  String get deviceToastGestures;
+
+  /// Toast source: Hold mode turning on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold mode'**
+  String get deviceToastHoldMode;
+
+  /// Toast source: kiosk and app links on the dashboard that fail.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard links'**
+  String get deviceToastLinks;
+
+  /// Toast source: file downloads from the dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get deviceToastDownloads;
+
+  /// Toast source: the pill that says the network is gone or back.
+  ///
+  /// In en, this message translates to:
+  /// **'Network status'**
+  String get deviceToastNetwork;
+
+  /// Toast source: checking for updates from the kiosk menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Update checks'**
+  String get deviceToastUpdates;
+
+  /// Toast source: Voice Satellite errors, warnings and notices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Satellite notices'**
+  String get deviceToastVoice;
+
+  /// Toast source: voice timer pills.
+  ///
+  /// In en, this message translates to:
+  /// **'Timers'**
+  String get deviceToastTimers;
+
+  /// Toast source: the Alarms panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms'**
+  String get deviceToastAlarms;
+
+  /// Toast source: the Music Library.
+  ///
+  /// In en, this message translates to:
+  /// **'Music Library'**
+  String get deviceToastMusicLibrary;
+
+  /// Toast source: Intercom calls.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercom'**
+  String get deviceToastIntercom;
+
+  /// Toast source: apps opened from the App Launcher.
+  ///
+  /// In en, this message translates to:
+  /// **'App Launcher'**
+  String get deviceToastAppLauncher;
+
+  /// Toast source: plugin actions in the kiosk menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin actions'**
+  String get deviceToastPlugins;
 
   /// Setting label.
   ///
@@ -23228,6 +23450,30 @@ abstract class UiStrings {
   /// Translate the visible label or help. Keep model names and technical identifiers unchanged.
   ///
   /// In en, this message translates to:
+  /// **'Assistant 1 skin'**
+  String get voiceSkin1;
+
+  /// Translate the visible label or help. Keep model names and technical identifiers unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The look of the overlay when Assistant 1 answers.'**
+  String get voiceSkin1Help;
+
+  /// Translate the visible label or help. Keep model names and technical identifiers unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant 2 skin'**
+  String get voiceSkin2;
+
+  /// Translate the visible label or help. Keep model names and technical identifiers unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The look of the overlay when Assistant 2 answers.'**
+  String get voiceSkin2Help;
+
+  /// Translate the visible label or help. Keep model names and technical identifiers unchanged.
+  ///
+  /// In en, this message translates to:
   /// **'Theme mode'**
   String get voiceTheme;
 
@@ -24776,6 +25022,18 @@ abstract class UiStrings {
   /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
   ///
   /// In en, this message translates to:
+  /// **'Talk over sensitivity'**
+  String get settingVoiceRealtimeTalkOverSensitivityTitle;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'How easily speaking interrupts an answer. Raise it if interrupting does not work on a quiet microphone. Higher values can make it interrupt itself.'**
+  String get settingVoiceRealtimeTalkOverSensitivityDescription;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
   /// **'Tools'**
   String get settingVoiceRealtimeToolsTitle;
 
@@ -25522,6 +25780,18 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'How easily the wake word triggers.'**
   String get settingVoiceWakeWordSensitivityDescription;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Fine-tune sensitivity'**
+  String get settingVoiceWakeWordFineTuneTitle;
+
+  /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusts the wake word sensitivity in smaller steps. Raise it if you often have to repeat the wake word, lower it if it wakes by mistake.'**
+  String get settingVoiceWakeWordFineTuneDescription;
 
   /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
   ///
@@ -26416,6 +26686,18 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Turn on the flashlight'**
   String get setupQrFlashOn;
+
+  /// Button label when the screen light is on. The screen light turns the screen white around a smaller camera preview to light the code.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off the screen light'**
+  String get setupQrScreenLightOff;
+
+  /// Button label when the screen light is off. The screen light turns the screen white around a smaller camera preview to light the code.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the screen light'**
+  String get setupQrScreenLightOn;
 
   /// Error heading when importing before setting an admin password.
   ///

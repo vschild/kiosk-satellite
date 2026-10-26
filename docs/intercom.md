@@ -103,6 +103,8 @@ Ask the kiosk you are talking to for a call, like "call the kitchen" or "call th
 
 The built-in **Home Assistant** conversation agent does not work for this, since it cannot fill in the script's fields. An LLM agent with **Prefer handling commands locally** turned on works fine.
 
+> **Info:** The long-lived token under **Settings, Home Assistant** must belong to a Home Assistant administrator. This applies to every request the script handles, including questions such as "Which kiosks can I call?". Calls started on the kiosk work with any user's token. The kiosk listens for the script over its own Home Assistant connection. Home Assistant only lets administrators fire and follow the events the script runs on.
+
 1. Import the blueprint:
 
     [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjxlarrea%2Fkiosk-satellite%2Fblob%2Fmain%2Fblueprints%2Fscript%2Fkiosk_satellite_intercom.yaml)
@@ -115,8 +117,6 @@ Name the kiosk the way you think of it: its name, the name its device has in Hom
 Wake word detection pauses for the whole call, so the kiosk cannot hear "hang up". To end a call without touching the screen, map claps or Show fingers to the **End the intercom call** [gesture action](gestures.md), or pick a hardware button under **Hang up call when pressing this button**. The **Accept intercom call** and **Decline intercom call** gesture actions answer a ringing call the same way.
 
 The call goes out from the kiosk you are talking to. A request typed into Home Assistant's own chat reaches no kiosk until it names the one that should call, as in "call the kitchen from the bedroom kiosk", which matches the kiosk's device name or ESPHome name.
-
-The kiosk listens for the script over its own Home Assistant connection and it needs the Home Assistant long-lived token under **Settings, Home Assistant** to belong to an administrator user. Home Assistant only lets administrators fire and follow the events the script runs on. With any other token the kiosk leaves voice calls off and asks Home Assistant nothing. [Voice alarms](alarms.md#setting-alarms-by-voice) and [the calendar by voice](calendar.md#managing-the-calendar-by-voice) work the same way and need the same token.
 
 The script works from automations too. Set `caller` to the kiosk that should place the call, and the call rings at once:
 

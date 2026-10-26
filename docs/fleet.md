@@ -139,13 +139,15 @@ Certain settings remain unique to each kiosk regardless of the profile configura
 | Intercom encryption and hang up button | `intercom.tls`, `intercom.hangup_key`, `intercom.hangup_key_ringing` |
 | Alarms | `alarms.list`, `alarms.runtime` |
 | Calendar | `calendar.hidden` |
-| Hardware picks | `camera.device`, `camera.rtsp.tls`, `camera.rtsp.resolution`, `camera.rtsp.analysis`, `motion.camera`, `audio.mic_device`, `audio.speaker_device`, `audio.mic_channel`, `audio.mic_capture_mode`, `audio.software_echo_cancellation`, `audio.mic_noise_suppression`, `audio.mic_gain_db`, `audio.mic_capture_format`, `render.disable_impeller`, `render.legacy_webview`, `ui.scale`, `screen.ambient_display` |
+| Hardware picks | `camera.device`, `camera.scan_screen_light`, `camera.rtsp.tls`, `camera.rtsp.resolution`, `camera.rtsp.analysis`, `motion.camera`, `audio.mic_device`, `audio.speaker_device`, `audio.mic_channel`, `audio.mic_capture_mode`, `audio.software_echo_cancellation`, `audio.mic_noise_suppression`, `audio.mic_gain_db`, `audio.mic_capture_format`, `render.disable_impeller`, `render.legacy_webview`, `ui.scale`, `screen.ambient_display` |
 | Followed player | `sendspin.player`, `sendspin.player_source`, `sendspin.player_name`, `sendspin.speaker_pill_players` |
 | Weather preview | `screensaver.weather_preview`, `screensaver.weather_preview_condition`, `screensaver.weather_preview_period` |
 | Celestial view and last GPS position | `screensaver.celestial_view`, `screensaver.celestial_last_gps` |
 | Voice Satellite chimes | `voice_chimes.wake`, `voice_chimes.done`, `voice_chimes.error`, `voice_chimes.alert`, `voice_chimes.announce` |
 | Diagnostics | `wake_word.diagnostics` |
 | Wake word arbitration offset | `voice.wake_arbitration_offset_db` |
+| Wake word fine-tune | `voice.wake_word_fine_tune` |
+| Realtime talk over sensitivity | `voice.realtime_talk_over_sensitivity` |
 | Wake words this kiosk listens for | `voice.wake_words`, `voice.pending_selects` |
 | Local state | `voice.runtime`, `voice.timer_position`, `voice.dock_position`, `voice.realtime_openai_validated`, `voice.realtime_xai_validated`, `voice.realtime_gemini_validated`, `screensaver.saved_brightness`, `screensaver.immich_validated`, `sendspin.player_active`, `sendspin.player_pos`, `sendspin.sonos_hosts` |
 

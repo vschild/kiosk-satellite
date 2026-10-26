@@ -7,6 +7,6 @@
   "settingLauncherAutoReturnDescription": "Вернуться в киоск, когда другое приложение какое-то время остаётся без касаний.",
   "settingLauncherAutoReturnSecondsTitle": "Возврат через (с)",
   "settingLauncherAutoReturnSecondsDescription": "Время без касаний в другом приложении до возврата в киоск.",
-  "settingLauncherAutoReturnMediaTitle": "Ждать во время воспроизведения",
-  "settingLauncherAutoReturnMediaDescription": "Не возвращаться, пока играет видео или музыка."
+  "settingLauncherAutoReturnHoldTitle": "Ждать во время воспроизведения и звонков",
+  "settingLauncherAutoReturnHoldDescription": "Не возвращаться во время видео, музыки или звонков."
 }

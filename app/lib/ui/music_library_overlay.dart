@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_container.dart';
+import '../core/events.dart';
 import '../l10n/generated/ui_strings.dart';
 import '../l10n/messages.dart';
 import '../managers/music_library/ha_library_source.dart';
@@ -36,6 +37,43 @@ class MusicLibraryOverlay extends StatelessWidget {
       return Positioned.fill(child: MusicLibraryScreen(container: container));
     },
   );
+}
+
+/// The library's Text scale at the rate its chrome follows it: [rate] of
+/// its own and never below 100%, as the Now Playing speaker group menu
+/// follows Now Playing's.
+double libraryChromeScale(AppContainer c, [double rate = 0.7]) {
+  final scale = c.settings.get(defs.libraryTextScale).toDouble() / 100;
+  return math.max(1, 1 + (scale - 1) * rate);
+}
+
+/// A menu, sheet or dialog the library opens, at the library's Text
+/// scale, its icons too, never below their normal size. Those are routes
+/// above the library, so its own scale never reaches them.
+class LibraryMenuText extends StatelessWidget {
+  const LibraryMenuText({
+    super.key,
+    required this.container,
+    required this.child,
+  });
+
+  final AppContainer container;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final scale = libraryChromeScale(container, 1);
+    return MediaQuery(
+      data: media.copyWith(
+        textScaler: TextScaler.linear(media.textScaler.scale(1) * scale),
+      ),
+      child: IconTheme.merge(
+        data: IconThemeData(size: 22 * scale),
+        child: child,
+      ),
+    );
+  }
 }
 
 /// The three layouts: roomy is a tablet with a sidebar, short a panel
@@ -106,6 +144,10 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   /// place of it on a smaller one.
   bool _queueOpen = false;
 
+  /// Redraws the library when its look changes under it, from the remote
+  /// admin while it is open.
+  StreamSubscription<SettingChanged>? _looks;
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +157,14 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     c.musicLibrary.reopened.addListener(_reopen);
     c.musicLibrary.pick.addListener(_pickChanged);
     c.musicLibrary.backHandler = _onBack;
+    _looks = c.bus.on<SettingChanged>().listen((e) {
+      if (mounted &&
+          (e.key == defs.librarySquareArtwork.key ||
+              e.key == defs.libraryGridDensity.key ||
+              e.key == defs.libraryTextScale.key)) {
+        setState(() {});
+      }
+    });
     _sourceChanged();
     _takeOpening();
     _armIdle();
@@ -160,6 +210,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     }
     _idle?.cancel();
     _debounce?.cancel();
+    unawaited(_looks?.cancel());
     _query.dispose();
     _queryFocus.dispose();
     super.dispose();
@@ -241,6 +292,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
       LibraryKind.playlist,
       LibraryKind.artist,
       LibraryKind.podcast,
+      LibraryKind.genre,
     }.contains(item.kind);
     setState(() => _stack.add(_Opened(item, folder: !detail)));
   }
@@ -285,6 +337,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 450), () {
       if (!mounted || text.trim() == _searched) return;
+      if (text.trim().isNotEmpty) widget.container.musicLibrary.noteSearch();
       setState(() {
         _searched = text.trim();
         _searchKind = null;
@@ -320,6 +373,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     if (error != null) {
       showToast(
         context,
+        source: 'music_library',
         title: s.libraryPlayFailed,
         message: error,
         kind: ToastKind.error,
@@ -331,6 +385,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     if (mode != PlayMode.next && mode != PlayMode.add) return;
     showToast(
       context,
+      source: 'music_library',
       title: mode == PlayMode.next ? s.libraryPlaysNext : s.libraryAddedToQueue,
       message: item.title,
       kind: ToastKind.success,
@@ -427,7 +482,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             ),
           ),
         ),
-      if (source.hasFavorites && item.kind != LibraryKind.folder)
+      if (source.hasFavorites &&
+          item.kind != LibraryKind.folder &&
+          item.kind != LibraryKind.genre)
         (
           item.favorite
               ? Icons.favorite_rounded
@@ -438,6 +495,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             if (!mounted) return;
             showToast(
               context,
+              source: 'music_library',
               title: ok
                   ? (item.favorite
                         ? s.libraryRemovedFavorite
@@ -457,28 +515,33 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
         () => showModalBottomSheet<Future<void> Function()>(
           context: context,
           showDragHandle: true,
-          builder: (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                  child: Text(
-                    item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium,
+          builder: (context) => LibraryMenuText(
+            container: c,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                    child: Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
-                ),
-                for (final (icon, label, run) in actions)
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                    leading: Icon(icon),
-                    title: Text(label),
-                    onTap: () => Navigator.of(context).pop(run),
-                  ),
-              ],
+                  for (final (icon, label, run) in actions)
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                      ),
+                      leading: Icon(icon),
+                      title: Text(label),
+                      onTap: () => Navigator.of(context).pop(run),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -500,12 +563,15 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             for (final (icon, label, run) in actions)
               PopupMenuItem(
                 value: run,
-                child: Row(
-                  children: [
-                    Icon(icon, size: 22),
-                    const SizedBox(width: 14),
-                    Text(label),
-                  ],
+                child: LibraryMenuText(
+                  container: c,
+                  child: Row(
+                    children: [
+                      Icon(icon),
+                      const SizedBox(width: 14),
+                      Text(label),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -535,6 +601,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     'sonos_playlists' => s.librarySonosPlaylists,
     'recent' => s.libraryRecentlyPlayed,
     'added' => s.libraryRecentlyAdded,
+    'genres' => s.libraryBrowseByGenre,
     'more' => s.libraryMoreResults,
     _ => key,
   };
@@ -558,32 +625,35 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     final picked = await _present(
       () => showDialog<String>(
         context: context,
-        builder: (context) => SimpleDialog(
-          title: Text(s.librarySource),
-          children: [
-            for (final key in keys)
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                leading: _SourceMark(
-                  source: key,
-                  size: 24,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+        builder: (context) => LibraryMenuText(
+          container: c,
+          child: SimpleDialog(
+            title: Text(s.librarySource),
+            children: [
+              for (final key in keys)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: _SourceMark(
+                    source: key,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  title: Text(_sourceName(s, key)),
+                  subtitle: Text(switch (key) {
+                    'ha' => s.librarySourceHaHint,
+                    'sonos' => s.librarySourceSonosHint,
+                    _ => s.librarySourceMaHint,
+                  }),
+                  trailing: key == current
+                      ? Icon(
+                          Icons.check_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () => Navigator.of(context).pop(key),
                 ),
-                title: Text(_sourceName(s, key)),
-                subtitle: Text(switch (key) {
-                  'ha' => s.librarySourceHaHint,
-                  'sonos' => s.librarySourceSonosHint,
-                  _ => s.librarySourceMaHint,
-                }),
-                trailing: key == current
-                    ? Icon(
-                        Icons.check_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-                onTap: () => Navigator.of(context).pop(key),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -599,20 +669,28 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final layout = libraryLayout(MediaQuery.sizeOf(context));
+    final media = MediaQuery.of(context);
+    final scale = c.settings.get(defs.libraryTextScale).toDouble() / 100;
     return Listener(
       onPointerDown: (_) => _armIdle(),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         child: Material(
           color: theme.colorScheme.surface,
-          child: SafeArea(
-            child: ValueListenableBuilder<String>(
-              valueListenable: c.musicLibrary.pickName,
-              builder: (context, _, _) => switch (layout) {
-                LibraryLayout.roomy => _roomy(context),
-                LibraryLayout.short => _short(context),
-                LibraryLayout.narrow => _narrow(context),
-              },
+          // Text scale on top of the device's own text size.
+          child: MediaQuery(
+            data: media.copyWith(
+              textScaler: TextScaler.linear(media.textScaler.scale(1) * scale),
+            ),
+            child: SafeArea(
+              child: ValueListenableBuilder<String>(
+                valueListenable: c.musicLibrary.pickName,
+                builder: (context, _, _) => switch (layout) {
+                  LibraryLayout.roomy => _roomy(context),
+                  LibraryLayout.short => _short(context),
+                  LibraryLayout.narrow => _narrow(context),
+                },
+              ),
             ),
           ),
         ),
@@ -641,10 +719,41 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   bool _keyboard(BuildContext context) =>
       MediaQuery.viewInsetsOf(context).bottom > 0;
 
-  Widget _eyebrow(LibraryLayout layout) => KsEyebrow(
-    label: l10n(context).libraryTitle,
-    compact: layout != LibraryLayout.roomy,
+  /// The mark and the library's name, grown with the chrome and shrunk
+  /// to fit where a long name meets a narrow sidebar.
+  Widget _eyebrow(LibraryLayout layout) => FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.centerLeft,
+    child: _chrome(
+      KsEyebrow(
+        label: l10n(context).libraryTitle,
+        compact: layout != LibraryLayout.roomy,
+        scale: _chromeScale(),
+      ),
+      // The caps carry the scale: the device's own text size only.
+      rate: 0,
+    ),
   );
+
+  /// [child] with the text of the library's chrome: its navigation,
+  /// pickers and the player bar's track and times. They follow Text scale
+  /// at 70% of its rate and stay at their normal size below 100%, as the
+  /// Now Playing speaker group menu does, so the content gets the room.
+  /// A [rate] of 0 keeps the device's own size.
+  /// The screen's own context sits above the scaled text.
+  Widget _chrome(Widget child, {double rate = 0.7}) {
+    final media = MediaQuery.of(context);
+    return MediaQuery(
+      data: media.copyWith(
+        textScaler: TextScaler.linear(
+          media.textScaler.scale(1) * _chromeScale(rate),
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  double _chromeScale([double rate = 0.7]) => libraryChromeScale(c, rate);
 
   Widget _closeButton({double size = 26}) => IconButton(
     icon: const Icon(Icons.close),
@@ -665,6 +774,8 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Widget _roomy(BuildContext context) {
     final s = l10n(context);
     final theme = Theme.of(context);
+    // The sidebar, the docked queue and a list at least as wide as either.
+    final dock = MediaQuery.sizeOf(context).width >= 256 + 400 + 400;
     final title = _stack.isNotEmpty
         ? null
         : switch (_place.nav) {
@@ -680,77 +791,96 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(width: 256, child: _sidebar(context)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 76,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 20, 0),
-                        child: Row(
-                          children: [
-                            if (_stack.isNotEmpty) _backButton(),
-                            if (_place.nav == 'search' && _stack.isEmpty)
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 560,
+              SizedBox(width: 256, child: _chrome(_sidebar(context))),
+              // The queue docks beside the content where both have room,
+              // and takes the content's place on a tablet in portrait.
+              if (_queueOpen && !dock)
+                Expanded(child: _queuePanel())
+              else
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        height: 76,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 20, 0),
+                          child: Row(
+                            children: [
+                              if (_stack.isNotEmpty) _backButton(),
+                              if (_place.nav == 'search' && _stack.isEmpty)
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 560,
+                                      ),
+                                      child: _searchField(52),
                                     ),
-                                    child: _searchField(52),
                                   ),
-                                ),
-                              )
-                            else if (title != null)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: Text(
-                                    title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.headlineMedium
-                                        ?.copyWith(fontSize: 34),
+                                )
+                              else if (title != null)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 4),
+                                    child: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme
+                                                .textTheme
+                                                .headlineMedium
+                                                ?.copyWith(fontSize: 34),
+                                          ),
+                                        ),
+                                        if (_sortButton() case final sort?) ...[
+                                          const SizedBox(width: 8),
+                                          sort,
+                                        ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            else
-                              const Spacer(),
-                            const SizedBox(width: 12),
-                            _speakerPill(height: 44),
-                            const SizedBox(width: 4),
-                            _closeButton(size: 28),
-                          ],
+                                )
+                              else
+                                const Spacer(),
+                              const SizedBox(width: 12),
+                              _speakerPill(height: 44),
+                              const SizedBox(width: 4),
+                              _closeButton(size: 28),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    if (_place.nav == 'search' && _stack.isEmpty)
-                      _searchChips(const EdgeInsets.fromLTRB(12, 0, 32, 12)),
-                    Expanded(
-                      child: _content(
-                        context,
-                        LibraryLayout.roomy,
-                        const EdgeInsets.fromLTRB(12, 4, 32, 24),
+                      if (_place.nav == 'search' && _stack.isEmpty)
+                        _searchChips(const EdgeInsets.fromLTRB(12, 0, 32, 12)),
+                      Expanded(
+                        child: _content(
+                          context,
+                          LibraryLayout.roomy,
+                          const EdgeInsets.fromLTRB(12, 4, 32, 24),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              if (_queueOpen)
+              if (_queueOpen && dock)
                 SizedBox(width: 400, child: _queuePanel(docked: true)),
             ],
           ),
         ),
         if (!_keyboard(context))
-          _MiniPlayer(
-            container: c,
-            layout: LibraryLayout.roomy,
-            onQueue: _toggleQueue,
-            queueOpen: _queueOpen,
-            onSpeakers: _pickSpeaker,
+          _chrome(
+            _MiniPlayer(
+              container: c,
+              layout: LibraryLayout.roomy,
+              onQueue: _toggleQueue,
+              queueOpen: _queueOpen,
+              onSpeakers: _pickSpeaker,
+            ),
           ),
       ],
     );
@@ -970,7 +1100,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             padding: const EdgeInsets.fromLTRB(18, 0, 8, 0),
             child: Row(
               children: [
-                _eyebrow(LibraryLayout.short),
+                Flexible(child: _eyebrow(LibraryLayout.short)),
                 const SizedBox(width: 12),
                 if (_stack.isNotEmpty) _backButton(),
                 if (searching)
@@ -1041,11 +1171,13 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                         ),
                       if (tabs.length > 1)
                         for (final (nav, icon, label) in tabs)
-                          _TabItem(
-                            icon: icon,
-                            label: label,
-                            selected: _tabNav == nav,
-                            onTap: () => _go(_tabPlace(nav)),
+                          _chrome(
+                            _TabItem(
+                              icon: icon,
+                              label: label,
+                              selected: _tabNav == nav,
+                              onTap: () => _go(_tabPlace(nav)),
+                            ),
                           ),
                     ],
                   ),
@@ -1057,7 +1189,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                       if (searching)
                         _searchChips(const EdgeInsets.fromLTRB(4, 0, 16, 10)),
                       if (_place.nav == 'library' && _stack.isEmpty)
-                        _categoryChips(const EdgeInsets.fromLTRB(4, 0, 16, 10)),
+                        _categoryBar(const EdgeInsets.fromLTRB(4, 0, 16, 10)),
                       Expanded(
                         child: _content(
                           context,
@@ -1072,12 +1204,14 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             ),
           ),
         if (!_keyboard(context))
-          _MiniPlayer(
-            container: c,
-            layout: LibraryLayout.short,
-            onQueue: _toggleQueue,
-            queueOpen: _queueOpen,
-            onSpeakers: _pickSpeaker,
+          _chrome(
+            _MiniPlayer(
+              container: c,
+              layout: LibraryLayout.short,
+              onQueue: _toggleQueue,
+              queueOpen: _queueOpen,
+              onSpeakers: _pickSpeaker,
+            ),
           ),
       ],
     );
@@ -1104,8 +1238,12 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
             child: Row(
               children: [
-                _eyebrow(LibraryLayout.narrow),
-                const Spacer(),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _eyebrow(LibraryLayout.narrow),
+                  ),
+                ),
                 _closeButton(size: 24),
               ],
             ),
@@ -1150,7 +1288,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           ),
           if (searching) _searchChips(const EdgeInsets.fromLTRB(16, 2, 16, 12)),
           if (_place.nav == 'library' && _stack.isEmpty)
-            _categoryChips(const EdgeInsets.fromLTRB(16, 2, 16, 12)),
+            _categoryBar(const EdgeInsets.fromLTRB(16, 2, 16, 12)),
           Expanded(
             child: _content(
               context,
@@ -1160,25 +1298,30 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           ),
         ],
         if (!_keyboard(context))
-          _MiniPlayer(
-            container: c,
-            layout: LibraryLayout.narrow,
-            onQueue: _toggleQueue,
-            queueOpen: _queueOpen,
-            onSpeakers: _pickSpeaker,
+          _chrome(
+            _MiniPlayer(
+              container: c,
+              layout: LibraryLayout.narrow,
+              onQueue: _toggleQueue,
+              queueOpen: _queueOpen,
+              onSpeakers: _pickSpeaker,
+            ),
           ),
         if (tabs.length > 1 && !_keyboard(context) && !_queueOpen)
           SizedBox(
-            height: 68,
+            // The tab label's line grows with the chrome's text.
+            height: 52 + 16 * _chromeScale(),
             child: Row(
               children: [
                 for (final (nav, icon, label) in tabs)
                   Expanded(
-                    child: _TabItem(
-                      icon: icon,
-                      label: label,
-                      selected: _tabNav == nav,
-                      onTap: () => _go(_tabPlace(nav)),
+                    child: _chrome(
+                      _TabItem(
+                        icon: icon,
+                        label: label,
+                        selected: _tabNav == nav,
+                        onTap: () => _go(_tabPlace(nav)),
+                      ),
                     ),
                   ),
               ],
@@ -1191,15 +1334,17 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   Widget _sourcePill() {
     final s = l10n(context);
     final key = _source?.key ?? '';
-    return _Pill(
-      height: 40,
-      icon: _SourceMark(
-        source: key,
-        size: 20,
-        color: Theme.of(context).colorScheme.primary,
+    return _chrome(
+      _Pill(
+        height: 40,
+        icon: _SourceMark(
+          source: key,
+          size: 20,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        label: _sourceName(s, key),
+        onTap: _pickSource,
       ),
-      label: _sourceName(s, key),
-      onTap: _pickSource,
     );
   }
 
@@ -1212,18 +1357,20 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     final source = _source;
     final needs = source == null || !c.musicLibrary.pickIn(source.key);
     final label = needs ? s.libraryChooseSpeaker : c.sendspin.playerChipName;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxWidth ?? 300),
-      child: _Pill(
-        height: height,
-        icon: Icon(
-          Icons.speaker_outlined,
-          size: 20,
-          color: Theme.of(context).colorScheme.primary,
+    return _chrome(
+      ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth ?? 300),
+        child: _Pill(
+          height: height,
+          icon: Icon(
+            Icons.speaker_outlined,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          label: iconOnly ? null : label,
+          semanticLabel: '${s.librarySpeakers}: $label',
+          onTap: _pickSpeaker,
         ),
-        label: iconOnly ? null : label,
-        semanticLabel: '${s.librarySpeakers}: $label',
-        onTap: _pickSpeaker,
       ),
     );
   }
@@ -1241,6 +1388,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
         onChanged: _onQuery,
         onSubmitted: (text) {
           _debounce?.cancel();
+          if (text.trim().isNotEmpty && text.trim() != _searched) {
+            widget.container.musicLibrary.noteSearch();
+          }
           setState(() {
             _searched = text.trim();
             _searchKind = null;
@@ -1364,6 +1514,163 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     );
   }
 
+  /// The category chips with the sort button at their end.
+  Widget _categoryBar(EdgeInsets padding) {
+    final sort = _sortButton(slim: true);
+    if (sort == null) return _categoryChips(padding);
+    return Row(
+      children: [
+        Expanded(child: _categoryChips(padding.copyWith(right: 8))),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            0,
+            padding.top,
+            padding.right - 8,
+            padding.bottom,
+          ),
+          child: sort,
+        ),
+      ],
+    );
+  }
+
+  /// The button that opens the sort menu of the list on screen, or null
+  /// where the source lists in an order of its own. [slim] keeps it to
+  /// the height of the chips beside it.
+  Widget? _sortButton({bool slim = false}) {
+    final source = _source;
+    final category = _place.category;
+    if (source == null ||
+        category == null ||
+        _place.nav != 'library' ||
+        _stack.isNotEmpty ||
+        source.sorts.isEmpty) {
+      return null;
+    }
+    return Builder(
+      builder: (anchor) => IconButton(
+        icon: const Icon(Icons.sort_rounded),
+        padding: slim ? EdgeInsets.zero : null,
+        constraints: slim
+            ? const BoxConstraints.tightFor(width: 44, height: 36)
+            : null,
+        tooltip: l10n(context).librarySort,
+        onPressed: () => _sortMenu(anchor, source, category),
+      ),
+    );
+  }
+
+  String _sortName(UiStrings s, LibrarySort sort) => switch (sort) {
+    LibrarySort.name => s.librarySortAToZ,
+    LibrarySort.nameDesc => s.librarySortZToA,
+    LibrarySort.recentlyPlayed => s.libraryRecentlyPlayed,
+    LibrarySort.recentlyAdded => s.libraryRecentlyAdded,
+    LibrarySort.mostPlayed => s.librarySortMostPlayed,
+  };
+
+  /// The orders the source takes and, on Artists, album artists only.
+  /// A bottom sheet on a phone, a menu at the button elsewhere.
+  Future<void> _sortMenu(
+    BuildContext anchor,
+    LibrarySource source,
+    LibraryCategory category,
+  ) async {
+    final s = l10n(context);
+    final library = c.musicLibrary;
+    final current = library.sortFor(source, category);
+    final albumArtists = category.key == 'artists' && source.hasAlbumArtists;
+    final options = <(String, bool, Future<void> Function())>[
+      for (final sort in source.sorts)
+        (
+          _sortName(s, sort),
+          sort == current,
+          () => library.setSort(category, sort),
+        ),
+      if (albumArtists)
+        (
+          s.libraryAlbumArtistsOnly,
+          library.albumArtists,
+          () => library.setAlbumArtists(!library.albumArtists),
+        ),
+    ];
+    final scheme = Theme.of(context).colorScheme;
+    Widget check(bool on) => Icon(
+      Icons.check_rounded,
+      color: on ? scheme.primary : Colors.transparent,
+    );
+    Future<void> Function()? chosen;
+    if (libraryLayout(MediaQuery.sizeOf(context)) == LibraryLayout.narrow) {
+      chosen = await _present(
+        () => showModalBottomSheet<Future<void> Function()>(
+          context: context,
+          showDragHandle: true,
+          builder: (context) => LibraryMenuText(
+            container: c,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, (label, on, run)) in options.indexed) ...[
+                      if (albumArtists && i == options.length - 1)
+                        const Divider(height: 16),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        leading: check(on),
+                        title: Text(label),
+                        onTap: () => Navigator.of(context).pop(run),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      final box = anchor.findRenderObject() as RenderBox?;
+      final overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox?;
+      if (box == null || overlay == null) return;
+      final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
+      chosen = await _present(
+        () => showMenu<Future<void> Function()>(
+          context: context,
+          position: RelativeRect.fromRect(
+            topLeft & box.size,
+            Offset.zero & overlay.size,
+          ),
+          items: [
+            for (final (i, (label, on, run)) in options.indexed) ...[
+              if (albumArtists && i == options.length - 1)
+                const PopupMenuDivider(),
+              PopupMenuItem(
+                value: run,
+                child: LibraryMenuText(
+                  container: c,
+                  child: Row(
+                    children: [
+                      check(on),
+                      const SizedBox(width: 14),
+                      Flexible(child: Text(label)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+    if (chosen == null) return;
+    await chosen();
+    if (mounted) setState(() {});
+  }
+
   String _shelfTitle(UiStrings s, LibraryShelf shelf) =>
       shelf.key == null ? shelf.title : _categoryName(s, shelf.key!);
 
@@ -1395,11 +1702,12 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                 (data) =>
                     _results(context, layout, pad, data as List<LibraryShelf>),
               ),
-      'library' when _place.category != null => _PagedList(
-        key: ValueKey('${source.key}:${_place.category!.key}'),
-        load: (offset) => source.list(_place.category!, offset: offset),
-        builder: (items, more) => _grid(context, layout, pad, items, more),
-        empty: s.libraryEmpty,
+      'library' when _place.category != null => _list(
+        context,
+        layout,
+        pad,
+        source,
+        _place.category!,
       ),
       'node' when _place.node != null => _loaded(
         'node:${_place.node!.id}',
@@ -1414,6 +1722,35 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
         (data) => _rows(context, layout, pad, (data as LibraryPage).items),
       ),
     };
+  }
+
+  /// A library list in the order it was left in, loaded a page at a
+  /// time. A new order or filter starts it over.
+  Widget _list(
+    BuildContext context,
+    LibraryLayout layout,
+    EdgeInsets pad,
+    LibrarySource source,
+    LibraryCategory category,
+  ) {
+    final sort = c.musicLibrary.sortFor(source, category);
+    final albumArtists =
+        category.key == 'artists' &&
+        source.hasAlbumArtists &&
+        c.musicLibrary.albumArtists;
+    return _PagedList(
+      key: ValueKey(
+        '${source.key}:${category.key}:${sort?.name}:$albumArtists',
+      ),
+      load: (offset) => source.list(
+        category,
+        offset: offset,
+        sort: sort,
+        albumArtists: albumArtists,
+      ),
+      builder: (items, more) => _grid(context, layout, pad, items, more),
+      empty: l10n(context).libraryEmpty,
+    );
   }
 
   Widget _loaded(
@@ -1470,10 +1807,27 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     );
   }
 
-  double _cardWidth(LibraryLayout layout) => switch (layout) {
-    LibraryLayout.roomy => 156,
-    LibraryLayout.short => 112,
-    LibraryLayout.narrow => 136,
+  double _cardWidth(LibraryLayout layout) =>
+      _density *
+      switch (layout) {
+        LibraryLayout.roomy => 156,
+        LibraryLayout.short => 112,
+        LibraryLayout.narrow => 136,
+      };
+
+  /// The room under a card's cover: the gap, then the title and the
+  /// subtitle at the text's scale.
+  double _cardText(BuildContext context, LibraryLayout layout) {
+    final short = layout == LibraryLayout.short;
+    return (short ? 6 : 8) +
+        MediaQuery.textScalerOf(context).scale(short ? 40 : 44);
+  }
+
+  /// Grid density as a factor on the size of a shelf's cards.
+  double get _density => switch (c.settings.get(defs.libraryGridDensity)) {
+    'comfortable' => 1.2,
+    'compact' => 0.85,
+    _ => 1.0,
   };
 
   Widget _discover(
@@ -1497,17 +1851,81 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
               container: c,
               items: tiles,
               columns: layout == LibraryLayout.roomy ? 3 : 2,
-              height: layout == LibraryLayout.roomy ? 64 : 56,
+              // Two lines of the title, at the text's scale.
+              height: math.max(
+                layout == LibraryLayout.roomy ? 64 : 56,
+                MediaQuery.textScalerOf(context).scale(38) + 18,
+              ),
               onTap: _tap,
             ),
             SizedBox(height: gap),
           ],
           for (final (i, shelf) in shelves.indexed) ...[
             if (i > 0) SizedBox(height: gap),
-            _shelf(context, layout, _shelfTitle(s, shelf), shelf.items),
+            if (shelf.key == 'genres')
+              _genres(context, layout, _shelfTitle(s, shelf), shelf.items)
+            else
+              _shelf(
+                context,
+                layout,
+                _shelfTitle(s, shelf),
+                shelf.items,
+                // Recently played and the like mix kinds: say which.
+                kindLabels: shelf.items.map((i) => i.kind).toSet().length > 1,
+              ),
           ],
         ],
       ),
+    );
+  }
+
+  /// Browse by genre: a grid of genre tiles, four across on a tablet.
+  Widget _genres(
+    BuildContext context,
+    LibraryLayout layout,
+    String title,
+    List<LibraryItem> items,
+  ) {
+    final compact = layout == LibraryLayout.short;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontSize: compact ? 17 : 21),
+          ),
+        ),
+        LayoutBuilder(
+          builder: (context, box) {
+            final gap = compact ? 10.0 : 14.0;
+            final columns = math.max(
+              2,
+              ((box.maxWidth + gap) / ((compact ? 170 : 220) + gap)).floor(),
+            );
+            final width = (box.maxWidth - gap * (columns - 1)) / columns;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final item in items)
+                  SizedBox(
+                    width: width,
+                    child: _GenreTile(
+                      container: c,
+                      item: item,
+                      compact: compact,
+                      onTap: () => _tap(item),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -1517,7 +1935,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     String title,
     List<LibraryItem> items, {
     LibraryItem? within,
+    bool kindLabels = false,
   }) {
+    final s = l10n(context);
     final theme = Theme.of(context);
     final width = _cardWidth(layout);
     return Column(
@@ -1533,7 +1953,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           ),
         ),
         SizedBox(
-          height: width + (layout == LibraryLayout.short ? 46 : 52),
+          height: width + _cardText(context, layout),
           child: EdgeFade(
             axis: Axis.horizontal,
             child: ListView.separated(
@@ -1547,6 +1967,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                   container: c,
                   item: items[i],
                   compact: layout == LibraryLayout.short,
+                  kindLabel: kindLabels ? _kindName(s, items[i].kind) : null,
                   onTap: () => _tap(items[i], within: within),
                   onLongPress: (anchor) => _menu(anchor, items[i]),
                 ),
@@ -1628,30 +2049,53 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
         )) {
       return _rows(context, layout, pad, items);
     }
+    final spacing = layout == LibraryLayout.short ? 14.0 : 18.0;
+    // The widest a tile may be at Standard.
+    final widest = switch (layout) {
+      LibraryLayout.roomy => 180.0,
+      LibraryLayout.short => 140.0,
+      LibraryLayout.narrow => 200.0,
+    };
+    // Grid density adds or takes away a column, so each step shows.
+    final step = switch (c.settings.get(defs.libraryGridDensity)) {
+      'comfortable' => -1,
+      'compact' => 1,
+      _ => 0,
+    };
     return EdgeFade(
-      child: GridView.builder(
-        padding: pad,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: switch (layout) {
-            LibraryLayout.roomy => 180,
-            LibraryLayout.short => 140,
-            LibraryLayout.narrow => 200,
-          },
-          mainAxisSpacing: layout == LibraryLayout.short ? 14 : 20,
-          crossAxisSpacing: layout == LibraryLayout.short ? 14 : 18,
-          childAspectRatio: layout == LibraryLayout.short ? 0.74 : 0.76,
-        ),
-        itemCount: items.length + (more ? 1 : 0),
-        itemBuilder: (context, i) => i >= items.length
-            ? const Center(child: CircularProgressIndicator(strokeWidth: 2.5))
-            : _Card(
-                container: c,
-                item: items[i],
-                compact: layout == LibraryLayout.short,
-                onTap: () => _tap(items[i]),
-                onLongPress: (anchor) => _menu(anchor, items[i]),
-              ),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final width = box.maxWidth - pad.horizontal;
+          final columns = math.max(
+            2,
+            (width / (widest + spacing)).ceil() + step,
+          );
+          final tile = (width - spacing * (columns - 1)) / columns;
+          return GridView.builder(
+            padding: pad,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: layout == LibraryLayout.short ? 14 : 20,
+              crossAxisSpacing: spacing,
+              // The cover, then room for the title and subtitle, which keep
+              // their size whatever the density.
+              mainAxisExtent: tile + _cardText(context, layout),
+            ),
+            itemCount: items.length + (more ? 1 : 0),
+            itemBuilder: (context, i) => i >= items.length
+                ? const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
+                : _Card(
+                    container: c,
+                    item: items[i],
+                    compact: layout == LibraryLayout.short,
+                    onTap: () => _tap(items[i]),
+                    onLongPress: (anchor) => _menu(anchor, items[i]),
+                  ),
+          );
+        },
       ),
     );
   }
@@ -1703,6 +2147,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     LibraryKind.podcast => s.libraryKindPodcast,
     LibraryKind.episode => s.libraryKindEpisode,
     LibraryKind.audiobook => s.libraryKindAudiobook,
+    LibraryKind.genre => s.libraryKindGenre,
     _ => null,
   };
 
@@ -1748,7 +2193,8 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           );
         }
         final detail = data as LibraryDetail;
-        if (detail.item.kind == LibraryKind.artist) {
+        if (detail.item.kind == LibraryKind.artist ||
+            detail.item.kind == LibraryKind.genre) {
           return _artist(context, layout, pad, detail);
         }
         // Beside the tracks only where both columns have room: a tablet
@@ -1947,7 +2393,8 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           icon: const Icon(Icons.play_arrow_rounded),
           label: Text(s.libraryPlay),
         ),
-        if (_source?.hasRadioMode ?? false) ...[
+        if ((_source?.hasRadioMode ?? false) &&
+            item.kind == LibraryKind.artist) ...[
           const SizedBox(width: 10),
           OutlinedButton.icon(
             onPressed: () => _play(item, PlayMode.radio),
@@ -1971,7 +2418,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      s.libraryKindArtist.toUpperCase(),
+                      (_kindName(s, item.kind) ?? '').toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -2008,7 +2455,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           if (detail.tracks.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
-              s.libraryTopTracks,
+              item.kind == LibraryKind.artist
+                  ? s.libraryTopTracks
+                  : s.libraryTracks,
               style: theme.textTheme.titleLarge?.copyWith(fontSize: 21),
             ),
             const SizedBox(height: 6),
@@ -2428,11 +2877,15 @@ class _Card extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     this.compact = false,
+    this.kindLabel,
   });
 
   final AppContainer container;
   final LibraryItem item;
   final bool compact;
+
+  /// What the entry is, before its subtitle, on a shelf that mixes kinds.
+  final String? kindLabel;
   final VoidCallback onTap;
   final void Function(BuildContext anchor) onLongPress;
 
@@ -2464,9 +2917,13 @@ class _Card extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          if (item.subtitle.isNotEmpty)
+          if ([
+                ?kindLabel,
+                if (item.subtitle.isNotEmpty) item.subtitle,
+              ].join(' · ')
+              case final sub when sub.isNotEmpty)
             Text(
-              item.subtitle,
+              sub,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -2475,6 +2932,68 @@ class _Card extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// A genre on Discover: its name over a tinted tile, its picture on the
+/// right, as Music Assistant's Browse by genre draws it.
+class _GenreTile extends StatelessWidget {
+  const _GenreTile({
+    required this.container,
+    required this.item,
+    required this.onTap,
+    this.compact = false,
+  });
+
+  final AppContainer container;
+  final LibraryItem item;
+  final VoidCallback onTap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final height = compact ? 64.0 : 84.0;
+    return Material(
+      color: scheme.secondaryContainer,
+      borderRadius: BorderRadius.circular(compact ? 12 : 16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          height: height,
+          child: Stack(
+            children: [
+              // Large and cut by the tile's corner, as a backdrop.
+              Positioned(
+                right: -height * 0.12,
+                bottom: -height * 0.18,
+                child: Icon(
+                  genreIcon(item.title),
+                  size: height * 1.05,
+                  color: scheme.onSecondaryContainer.withValues(alpha: .22),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: height,
+                bottom: compact ? 10 : 14,
+                child: Text(
+                  item.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: compact ? 15 : 18,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -2511,21 +3030,40 @@ class _Row extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(Ks.radiusRow),
-      child: SizedBox(
-        height: dense ? 52 : 60,
+      // Taller with Text scale, so the rows keep their breathing room,
+      // and taller still where the text needs it.
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: math.max(
+            dense ? 52 : 60,
+            MediaQuery.textScalerOf(context).scale(dense ? 52 : 60),
+          ),
+        ),
         child: Row(
           children: [
             const SizedBox(width: 6),
             if (number != null)
               SizedBox(
                 width: 28,
-                child: Text(
-                  '$number',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: scheme.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                // The tap answered at once: a spinner in place of the
+                // number while the track starts.
+                child: ValueListenableBuilder<LibraryItem?>(
+                  valueListenable: container.musicLibrary.starting,
+                  builder: (context, starting, _) => starting?.id == item.id
+                      ? const Center(
+                          child: SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : Text(
+                          '$number',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
                 ),
               )
             else
@@ -2601,6 +3139,53 @@ class _Row extends StatelessWidget {
 /// A cover, fetched through the library (which knows each source's
 /// certificates and tokens), with the kind's icon until it lands or when
 /// there is none.
+/// A genre's icon, picked from words in its name, in the app's own icon
+/// set. A genre no word matches gets a note.
+IconData genreIcon(String name) {
+  final n = name.toLowerCase();
+  bool any(List<String> words) => words.any(n.contains);
+  return switch (n) {
+    _ when any(['hip hop', 'hip-hop', 'hiphop', 'rap', 'r&b', 'rnb', 'trap']) =>
+      Icons.mic_rounded,
+    _ when any(['classical', 'composer', 'orchestra', 'opera', 'piano']) =>
+      Icons.piano_rounded,
+    _ when any(['jazz', 'blues', 'swing', 'soul', 'funk', 'lounge']) =>
+      Icons.nightlife_rounded,
+    _ when any(['dance', 'disco', 'edm', 'house', 'club']) =>
+      Icons.celebration_rounded,
+    _ when any(['electro', 'techno', 'trance', 'dubstep', 'drum', 'synth']) =>
+      Icons.graphic_eq_rounded,
+    _ when any(['rock', 'metal', 'punk', 'grunge', 'alternative', 'indie']) =>
+      Icons.bolt_rounded,
+    _ when any(['ambient', 'chill', 'lo-fi', 'lofi', 'sleep', 'relax']) =>
+      Icons.nights_stay_rounded,
+    _ when any(['folk', 'singer']) => Icons.mic_external_on_rounded,
+    _ when any(['acoustic', 'unplugged']) => Icons.waves_rounded,
+    _ when any(['reggae', 'latin', 'salsa', 'samba', 'bossa', 'tropical']) =>
+      Icons.wb_sunny_rounded,
+    _ when any(['world', 'afro', 'celtic']) => Icons.public_rounded,
+    _ when any(['soundtrack', 'score', 'film', 'movie']) => Icons.movie_rounded,
+    _ when any(['game']) => Icons.sports_esports_rounded,
+    _ when any(['gospel', 'christian', 'worship']) => Icons.church_rounded,
+    _ when any(['kids', 'children']) => Icons.child_care_rounded,
+    _ when any(['christmas', 'holiday']) => Icons.ac_unit_rounded,
+    _ when any(['spoken', 'comedy', 'podcast', 'audiobook']) =>
+      Icons.record_voice_over_rounded,
+    _ when any(['love', 'romance']) => Icons.favorite_rounded,
+    _ when any(['pop']) => Icons.auto_awesome_rounded,
+    _ => Icons.music_note_rounded,
+  };
+}
+
+/// Music Assistant's provider logos are SVG.
+bool _isSvg(Uint8List bytes) {
+  final head = String.fromCharCodes(
+    bytes.take(256).where((b) => b < 128),
+  ).trimLeft();
+  return head.startsWith('<svg') ||
+      (head.startsWith('<?xml') && head.contains('<svg'));
+}
+
 class LibraryArt extends StatefulWidget {
   const LibraryArt({
     super.key,
@@ -2609,12 +3194,17 @@ class LibraryArt extends StatefulWidget {
     required this.size,
     this.radius = 12,
     this.square = false,
+    this.showStarting = true,
   });
 
   final AppContainer container;
   final LibraryItem item;
   final double size;
   final double radius;
+
+  /// A spinner over the cover while a play of this item starts. The
+  /// player bar's own cover leaves it out: the bar says so itself.
+  final bool showStarting;
 
   /// Square even for an artist, filling a tile's edge.
   final bool square;
@@ -2631,15 +3221,15 @@ class _LibraryArtState extends State<LibraryArt> {
   FetchTicket? _ticket;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _fetch();
   }
 
   @override
   void didUpdateWidget(LibraryArt old) {
     super.didUpdateWidget(old);
-    if (old.item.art != widget.item.art) _fetch();
+    _fetch();
   }
 
   @override
@@ -2649,7 +3239,11 @@ class _LibraryArtState extends State<LibraryArt> {
   }
 
   void _fetch() {
-    final url = widget.item.art ?? '';
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    // A genre is drawn by the app, not from the server's picture.
+    final url = widget.item.kind == LibraryKind.genre
+        ? ''
+        : (dark ? widget.item.artDark : null) ?? widget.item.art ?? '';
     if (url == _url) return;
     _url = url;
     _ticket?.cancel();
@@ -2665,7 +3259,10 @@ class _LibraryArtState extends State<LibraryArt> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final round = widget.item.round && !widget.square;
+    final round =
+        widget.item.round &&
+        !widget.square &&
+        !widget.container.settings.get(defs.librarySquareArtwork);
     final logo =
         widget.item.kind == LibraryKind.folder ||
         widget.item.kind == LibraryKind.other;
@@ -2674,17 +3271,35 @@ class _LibraryArtState extends State<LibraryArt> {
     final radius = round
         ? BorderRadius.circular(widget.size / 2)
         : BorderRadius.circular(widget.radius);
-    return ClipRRect(
+    final genre = widget.item.kind == LibraryKind.genre;
+    final art = ClipRRect(
       borderRadius: radius,
       child: SizedBox.square(
         dimension: widget.size,
-        child: bytes == null
+        child: genre
+            ? ColoredBox(
+                color: scheme.secondaryContainer,
+                child: Icon(
+                  genreIcon(widget.item.title),
+                  size: widget.size * 0.46,
+                  color: scheme.onSecondaryContainer,
+                ),
+              )
+            : bytes == null
             ? ColoredBox(
                 color: scheme.surfaceContainerHighest,
                 child: Icon(
                   _icon(widget.item.kind),
                   size: math.max(18, widget.size * 0.36),
                   color: scheme.onSurfaceVariant,
+                ),
+              )
+            : _isSvg(bytes)
+            ? ColoredBox(
+                color: scheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: EdgeInsets.all(widget.size * 0.18),
+                  child: SvgPicture.memory(bytes),
                 ),
               )
             : Image.memory(
@@ -2699,6 +3314,33 @@ class _LibraryArtState extends State<LibraryArt> {
               ),
       ),
     );
+    if (!widget.showStarting || widget.item.id.isEmpty) return art;
+    // The tap answered at once: a spinner over the cover while it starts.
+    return ValueListenableBuilder<LibraryItem?>(
+      valueListenable: widget.container.musicLibrary.starting,
+      child: art,
+      builder: (context, starting, art) => starting?.id != widget.item.id
+          ? art!
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                art!,
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: radius,
+                    child: const ColoredBox(color: Colors.black45),
+                  ),
+                ),
+                SizedBox.square(
+                  dimension: math.min(36, widget.size * 0.4),
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+    );
   }
 
   static IconData _icon(LibraryKind kind) => switch (kind) {
@@ -2709,6 +3351,7 @@ class _LibraryArtState extends State<LibraryArt> {
     LibraryKind.radio => Icons.radio_outlined,
     LibraryKind.podcast || LibraryKind.episode => Icons.podcasts_rounded,
     LibraryKind.audiobook => Icons.menu_book_outlined,
+    LibraryKind.genre => Icons.category_outlined,
     LibraryKind.folder => Icons.folder_outlined,
     LibraryKind.other => Icons.library_music_outlined,
   };
@@ -2750,6 +3393,13 @@ class _MiniPlayerState extends State<_MiniPlayer> {
   String? _repeat;
   double? _seekDrag;
   double? _volumeDrag;
+  bool? _wantPlaying;
+
+  /// The track a skip left, until the player reports another.
+  String? _skippedFrom;
+
+  /// Lets go of a press the player never reported.
+  Timer? _pending;
 
   @override
   void initState() {
@@ -2757,6 +3407,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
     c.sendspin.nowPlaying.addListener(_changed);
     c.sendspin.favorite.addListener(_changed);
     c.sendspin.queueItems.addListener(_changed);
+    c.musicLibrary.starting.addListener(_changed);
     _changed();
     _readQueue();
   }
@@ -2786,8 +3437,38 @@ class _MiniPlayerState extends State<_MiniPlayer> {
     c.sendspin.nowPlaying.removeListener(_changed);
     c.sendspin.favorite.removeListener(_changed);
     c.sendspin.queueItems.removeListener(_changed);
+    c.musicLibrary.starting.removeListener(_changed);
     _tick?.cancel();
+    _pending?.cancel();
     super.dispose();
+  }
+
+  static String _key(Map<String, Object?>? now) =>
+      '${now?['title'] ?? ''}|${now?['artist'] ?? ''}';
+
+  void _await() {
+    _pending?.cancel();
+    _pending = Timer(const Duration(seconds: 6), () {
+      if (!mounted) return;
+      setState(() {
+        _wantPlaying = null;
+        _skippedFrom = null;
+      });
+    });
+  }
+
+  /// Play or pause shows at once, the player's answer after.
+  Future<void> _toggle(Future<bool> Function() run, bool playing) async {
+    setState(() => _wantPlaying = !playing);
+    _await();
+    if (!await run() && mounted) setState(() => _wantPlaying = null);
+  }
+
+  /// A skip shows the ring until the player moves to another track.
+  Future<void> _skip(Future<Object?> Function() run) async {
+    setState(() => _skippedFrom = _key(c.sendspin.nowPlaying.value));
+    _await();
+    if (await run() == false && mounted) setState(() => _skippedFrom = null);
   }
 
   bool _hadTrack = false;
@@ -2798,6 +3479,10 @@ class _MiniPlayerState extends State<_MiniPlayer> {
     if (_hadTrack && now == null) _readQueue();
     _hadTrack = now != null;
     if (_shuffle != null && now?['shuffle'] == _shuffle) _shuffle = null;
+    if (_wantPlaying != null && (now?['playing'] == true) == _wantPlaying) {
+      _wantPlaying = null;
+    }
+    if (_skippedFrom != null && _key(now) != _skippedFrom) _skippedFrom = null;
     if (_repeat != null && now?['repeat'] == _repeat) _repeat = null;
     final playing = now?['playing'] == true;
     if (playing && _tick == null) {
@@ -2856,12 +3541,24 @@ class _MiniPlayerState extends State<_MiniPlayer> {
         ? _idle()
         : (current: null, before: null, after: null);
     final queued = idle.current;
-    final title = '${now?['title'] ?? queued?['title'] ?? ''}';
-    final artist = '${now?['artist'] ?? queued?['artist'] ?? ''}';
-    final playing = now?['playing'] == true;
-    final art = '${now?['artworkUrl'] ?? queued?['artworkUrl'] ?? ''}';
+    // A play from the library shows what it starts at once, the player's
+    // own report after.
+    final starting = c.musicLibrary.starting.value;
+    final title = starting != null
+        ? starting.title
+        : '${now?['title'] ?? queued?['title'] ?? ''}';
+    final artist = starting != null
+        ? s.commonLoading
+        : '${now?['artist'] ?? queued?['artist'] ?? ''}';
+    final playing =
+        _wantPlaying ?? (starting != null || now?['playing'] == true);
+    final art = starting != null
+        ? starting.art ?? ''
+        : '${now?['artworkUrl'] ?? queued?['artworkUrl'] ?? ''}';
+    final busy =
+        starting != null || _wantPlaying != null || _skippedFrom != null;
     VoidCallback? jump(String? id) =>
-        id == null ? null : () => c.sendspin.playQueueItem(id);
+        id == null ? null : () => _skip(() => c.sendspin.playQueueItem(id));
     final canOpen = now != null && c.settings.get(defs.sendspinFullscreen);
     final duration = (now?['durationMs'] as num?)?.toDouble() ?? 0;
     final position = now == null ? 0.0 : _position(now, duration);
@@ -2901,6 +3598,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
               title: title,
               art: art.isEmpty ? null : art,
             ),
+            showStarting: false,
             size: roomy ? 56 : 44,
             radius: 8,
           ),
@@ -2933,13 +3631,42 @@ class _MiniPlayerState extends State<_MiniPlayer> {
       ),
     );
 
-    final playButton = IconButton.filled(
-      tooltip: playing ? s.mediaPause : s.mediaPlay,
-      iconSize: roomy ? 30 : 26,
-      icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
-      onPressed: now != null
-          ? () => c.sendspin.control('toggle')
-          : jump(queued == null ? null : '${queued['id']}'),
+    final playButton = Stack(
+      alignment: Alignment.center,
+      // The ring spills past the button, which alone sizes the stack, so
+      // nothing around it moves when it shows.
+      clipBehavior: Clip.none,
+      children: [
+        IconButton.filled(
+          tooltip: playing ? s.mediaPause : s.mediaPlay,
+          iconSize: roomy ? 30 : 26,
+          icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
+          onPressed: now != null
+              ? () => _toggle(
+                  () => c.sendspin.control('toggle'),
+                  now['playing'] == true,
+                )
+              : jump(queued == null ? null : '${queued['id']}'),
+        ),
+        // A ring around it until the player answers a play, a pause or
+        // a skip.
+        if (busy)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: OverflowBox(
+                maxWidth: double.infinity,
+                maxHeight: double.infinity,
+                child: SizedBox.square(
+                  dimension: roomy ? 54 : 50,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: scheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
 
     if (narrow) {
@@ -2963,7 +3690,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
                         Icons.skip_next_rounded,
                         s.mediaNextTrack,
                         now != null
-                            ? () => c.sendspin.control('next')
+                            ? () => _skip(() => c.sendspin.control('next'))
                             : jump(idle.after),
                       ),
                     ],
@@ -3014,7 +3741,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
           Icons.skip_previous_rounded,
           s.mediaPreviousTrack,
           now != null
-              ? () => c.sendspin.control('previous')
+              ? () => _skip(() => c.sendspin.control('previous'))
               : jump(idle.before),
           size: 28,
         ),
@@ -3024,7 +3751,9 @@ class _MiniPlayerState extends State<_MiniPlayer> {
         button(
           Icons.skip_next_rounded,
           s.mediaNextTrack,
-          now != null ? () => c.sendspin.control('next') : jump(idle.after),
+          now != null
+              ? () => _skip(() => c.sendspin.control('next'))
+              : jump(idle.after),
           size: 28,
         ),
         if (now != null && (has('repeat') || has('repeat_all')))
@@ -3049,6 +3778,8 @@ class _MiniPlayerState extends State<_MiniPlayer> {
       color: off,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
+    // Room for "1:02:05" beside the seek bar, at the bar's text size.
+    final timeWidth = MediaQuery.textScalerOf(context).scale(44);
     final seekable = now != null && duration > 0 && has('seek');
     final shown = _seekDrag ?? position;
     // Nothing to seek in (nothing playing, a live stream): no bar, and
@@ -3057,7 +3788,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
         ? Row(
             children: [
               SizedBox(
-                width: 44,
+                width: timeWidth,
                 child: Text(
                   formatTrackLength(shown.round()).ifEmpty('0:00'),
                   textAlign: TextAlign.right,
@@ -3091,7 +3822,7 @@ class _MiniPlayerState extends State<_MiniPlayer> {
                 ),
               ),
               SizedBox(
-                width: 44,
+                width: timeWidth,
                 child: Text(
                   formatTrackLength(duration.round()),
                   style: timeStyle,

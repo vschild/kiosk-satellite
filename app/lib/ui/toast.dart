@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../managers/settings/definitions.dart' show toastSources;
 import 'theme.dart';
 
 /// The app's own toast: a compact themed card floated over the root overlay,
@@ -22,8 +23,14 @@ String? _tag;
 /// still up (another toast replaces it).
 String? get currentToastTag => _entry == null ? null : _tag;
 
+/// Whether toasts from [source], one of [toastSources], show. The app
+/// points it at Show system toast notifications at start. A toast without
+/// a source (feedback inside Settings) always shows.
+bool Function(String source) toastShown = (_) => true;
+
 /// Shows a toast in the root overlay above [context]. [sticky] keeps it up
-/// until [dismissToast] or the next toast replaces it.
+/// until [dismissToast] or the next toast replaces it. Nothing shows when
+/// [source] is turned off.
 void showToast(
   BuildContext context, {
   required String title,
@@ -34,6 +41,7 @@ void showToast(
   String? actionLabel,
   VoidCallback? onAction,
   String? tag,
+  String? source,
 }) => showToastIn(
   Overlay.of(context, rootOverlay: true),
   title: title,
@@ -44,6 +52,7 @@ void showToast(
   actionLabel: actionLabel,
   onAction: onAction,
   tag: tag,
+  source: source,
 );
 
 /// [showToast] against a pre-captured [OverlayState], for callers that tear
@@ -58,7 +67,10 @@ void showToastIn(
   String? actionLabel,
   VoidCallback? onAction,
   String? tag,
+  String? source,
 }) {
+  assert(source == null || toastSources.contains(source), source);
+  if (source != null && !toastShown(source)) return;
   _timer?.cancel();
   _timer = null;
   _removeNow();

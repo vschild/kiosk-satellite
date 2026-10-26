@@ -1455,8 +1455,8 @@ const launcherAutoReturnMedia = SettingDef<bool>(
   key: 'launcher.auto_return_media',
   type: SettingType.boolean,
   defaultValue: true,
-  title: 'Wait while media plays',
-  description: 'Do not come back while video or music is playing.',
+  title: 'Wait during media and calls',
+  description: 'Do not come back during video, music or calls.',
   category: 'Launcher',
   dependsOn: 'launcher.auto_return',
 );
@@ -5949,6 +5949,22 @@ const cameraDevice = SettingDef<String>(
   perDevice: true,
 );
 
+/// Whether the barcode scanner lights the code with a white screen around
+/// a smaller preview, for a front camera with little light on the code
+/// (issue #1148). Hidden: set from the button in the scanner, which
+/// remembers it for the next scan, the setup token scan and plugin scans
+/// alike. Per device, because it depends on where the kiosk hangs.
+const cameraScanScreenLight = SettingDef<bool>(
+  key: 'camera.scan_screen_light',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Screen light for scans',
+  description: 'Internal: whether the barcode scanner lights the code.',
+  category: 'Camera',
+  hidden: true,
+  perDevice: true,
+);
+
 // The tiers are the standard 4:3 ladder (640x480, 960x720, 1440x1080)
 // that Android cameras virtually always offer, so the "p" labels match
 // what actually comes out; CameraX still lands on the nearest size on
@@ -7437,6 +7453,29 @@ const voiceRealtimeTalkOver = SettingDef<bool>(
   dependsOn: 'voice.enabled',
 );
 
+/// How loud speech over an answer has to be to interrupt it. Per device:
+/// the level that works depends on the microphone and its echo canceller.
+/// 50 is the level every device used before the setting, see
+/// [RealtimeSession.talkOverLevel].
+const voiceRealtimeTalkOverSensitivity = SettingDef<num>(
+  key: 'voice.realtime_talk_over_sensitivity',
+  type: SettingType.number,
+  defaultValue: 50,
+  min: 0,
+  max: 100,
+  step: 5,
+  title: 'Talk over sensitivity',
+  description:
+      'How easily speaking interrupts an answer. Raise it if interrupting '
+      'does not work on a quiet microphone. Higher values can make it '
+      'interrupt itself.',
+  category: 'Voice Satellite',
+  subpage: 'Realtime',
+  section: 'Conversation',
+  perDevice: true,
+  dependsOn: 'voice.realtime_talk_over',
+);
+
 const voiceRealtimeTools = SettingDef<String>(
   key: 'voice.realtime_tools',
   type: SettingType.select,
@@ -7509,6 +7548,27 @@ const voiceWakeWordSensitivity = SettingDef<String>(
     'moderately': 'Moderately sensitive',
     'very': 'Very sensitive',
   },
+  dependsOn: 'voice.enabled',
+);
+
+/// Moves the wake words' gates between and past the Sensitivity presets,
+/// see [wakeTuneFor]. Per device: how loud the wake word reaches the model
+/// depends on the microphone. The presets stay a select because Home
+/// Assistant's sensitivity entities offer only those three.
+const voiceWakeWordFineTune = SettingDef<num>(
+  key: 'voice.wake_word_fine_tune',
+  type: SettingType.number,
+  defaultValue: 0,
+  min: -10,
+  max: 10,
+  step: 1,
+  title: 'Fine-tune sensitivity',
+  description:
+      'Adjusts the wake word sensitivity in smaller steps. Raise it if you '
+      'often have to repeat the wake word, lower it if it wakes by mistake.',
+  category: 'Voice Satellite',
+  subpage: 'Wake Word',
+  perDevice: true,
   dependsOn: 'voice.enabled',
 );
 
@@ -7607,48 +7667,75 @@ bool isPluginVoiceSkin(Object? value) =>
     value is String &&
     RegExp(r'^plugin:[a-z][a-z0-9_-]{0,63}$').hasMatch(value);
 
+const _voiceSkins = [
+  'kiosk-satellite',
+  'default',
+  'google-home',
+  'home-assistant',
+  'alexa',
+  'siri',
+  'retro-terminal',
+  'waveform',
+  'lens-flares',
+  'ink-blobs',
+  'jarvis',
+  'kitt',
+  'hal-9000',
+  'voice-only',
+];
+
+const _voiceSkinLabels = {
+  'kiosk-satellite': 'Kiosk Satellite',
+  'default': 'Default',
+  'google-home': 'Google Home',
+  'home-assistant': 'Home Assistant',
+  'alexa': 'Alexa',
+  'siri': 'Siri',
+  'retro-terminal': 'Retro Terminal',
+  'waveform': 'Waveform',
+  'lens-flares': 'Lens Flares',
+  'ink-blobs': 'Ink Blobs',
+  'jarvis': 'Jarvis',
+  'kitt': 'KITT',
+  'hal-9000': 'HAL 9000',
+  'voice-only': 'Voice Only',
+};
+
 const voiceSkin = SettingDef<String>(
   key: 'voice.skin',
   type: SettingType.select,
   defaultValue: 'kiosk-satellite',
-  title: 'Skin',
-  description: 'The look of the voice assistant overlay.',
+  title: 'Assistant 1 skin',
+  description: 'The look of the overlay when Assistant 1 answers.',
   category: 'Voice Satellite',
   subpage: 'Appearance',
-  options: [
-    'kiosk-satellite',
-    'default',
-    'google-home',
-    'home-assistant',
-    'alexa',
-    'siri',
-    'retro-terminal',
-    'waveform',
-    'lens-flares',
-    'ink-blobs',
-    'jarvis',
-    'kitt',
-    'hal-9000',
-    'voice-only',
-  ],
-  optionLabels: {
-    'kiosk-satellite': 'Kiosk Satellite',
-    'default': 'Default',
-    'google-home': 'Google Home',
-    'home-assistant': 'Home Assistant',
-    'alexa': 'Alexa',
-    'siri': 'Siri',
-    'retro-terminal': 'Retro Terminal',
-    'waveform': 'Waveform',
-    'lens-flares': 'Lens Flares',
-    'ink-blobs': 'Ink Blobs',
-    'jarvis': 'Jarvis',
-    'kitt': 'KITT',
-    'hal-9000': 'HAL 9000',
-    'voice-only': 'Voice Only',
-  },
+  options: _voiceSkins,
+  optionLabels: _voiceSkinLabels,
   dependsOn: 'voice.enabled',
 );
+
+/// The skin of a turn Assistant 2 answers: one that wake word 2 starts,
+/// or a vs_show on pipeline 2. Every other turn wears [voiceSkin].
+const voiceSkin2 = SettingDef<String>(
+  key: 'voice.skin_2',
+  type: SettingType.select,
+  defaultValue: 'kiosk-satellite',
+  title: 'Assistant 2 skin',
+  description: 'The look of the overlay when Assistant 2 answers.',
+  category: 'Voice Satellite',
+  subpage: 'Appearance',
+  options: _voiceSkins,
+  optionLabels: _voiceSkinLabels,
+  dependsOn: 'voice.enabled',
+);
+
+/// The Skin setting of [assistant], 1 or 2.
+SettingDef<String> voiceSkinOf(int assistant) =>
+    assistant == 2 ? voiceSkin2 : voiceSkin;
+
+/// Whether [key] is a Skin setting, which also takes plugin skins.
+bool isVoiceSkinSetting(String key) =>
+    key == voiceSkin.key || key == voiceSkin2.key;
 
 const voiceTheme = SettingDef<String>(
   key: 'voice.theme',
@@ -10067,6 +10154,78 @@ const libraryNowPlayingButton = SettingDef<bool>(
   section: 'Music Library',
 );
 
+/// Artists in square tiles like albums and playlists, instead of round.
+const librarySquareArtwork = SettingDef<bool>(
+  key: 'library.square_artwork',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Square artwork',
+  description: 'Show artists in square tiles, like albums and playlists.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'User Interface',
+);
+
+/// The size of the library's text, as a percentage of the device's own.
+const libraryTextScale = SettingDef<num>(
+  key: 'library.text_scale',
+  type: SettingType.number,
+  defaultValue: 100,
+  title: 'Text scale',
+  description: 'Size of the titles, names and labels in the library.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'User Interface',
+  min: 50,
+  max: 200,
+  step: 5,
+  unit: '%',
+);
+
+/// How large the library's tiles are: comfortable fits fewer in a row,
+/// compact more.
+const libraryGridDensity = SettingDef<String>(
+  key: 'library.grid_density',
+  type: SettingType.select,
+  defaultValue: 'standard',
+  title: 'Grid density',
+  description: 'Size of the tiles in the library. Compact fits more in a row.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'User Interface',
+  options: ['comfortable', 'standard', 'compact'],
+  optionLabels: {
+    'comfortable': 'Comfortable',
+    'standard': 'Standard',
+    'compact': 'Compact',
+  },
+);
+
+/// The order each library list was left in, as JSON: the list's key to
+/// a LibrarySort name, for example {"playlists": "recentlyPlayed"}.
+/// Hidden: set from the sort menu in the library, not a settings row.
+const librarySort = SettingDef<String>(
+  key: 'library.sort',
+  type: SettingType.string,
+  defaultValue: '{}',
+  title: 'Library sort',
+  description: 'Internal: the order each library list was left in.',
+  category: 'Sendspin',
+  hidden: true,
+);
+
+/// Artists lists only the artists credited on an album. Hidden: set from
+/// the sort menu in the library.
+const libraryAlbumArtists = SettingDef<bool>(
+  key: 'library.album_artists',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Album artists only',
+  description: 'Internal: Artists lists only album artists.',
+  category: 'Sendspin',
+  hidden: true,
+);
+
 /// Timer group position as "x,y" fractions of the free area.
 /// Saved by dragging and kept local to this device.
 const voiceTimerPosition = SettingDef<String>(
@@ -11690,6 +11849,15 @@ const fleetDefaultCredentials = {
   'intercom.key',
 };
 
+/// What [fleetDefaultCredentials] used to be, oldest first, for a profile
+/// saved before profiles recorded their default: one still holding exactly
+/// one of these (besides the realtime keys an upgrade added) never had its
+/// credentials touched and gains the ones that joined the default since.
+const fleetFormerDefaultCredentials = <Set<String>>[
+  // Before the intercom (2026.9.50).
+  {'sendspin.ma_token', 'screensaver.immich_api_key'},
+];
+
 /// Excluded from every new profile: what scales the UI, drives the
 /// backlight or sets a volume, files and picks that only resolve on the
 /// device that made them, and the tuning of its camera. A profile can bring
@@ -12388,6 +12556,77 @@ const uiScale = SettingDef<num>(
   unit: '%',
   perDevice: true,
 );
+
+// The app's own toasts outside Settings, by where they come from
+// (showToast's source). The value is a JSON list of the [toastSources]
+// turned off rather than the ones shown, so a source added later shows
+// until someone turns it off. A toast in Settings answers what was just
+// tapped there and always shows.
+const uiToastsHidden = SettingDef<String>(
+  key: 'ui.toasts_hidden',
+  type: SettingType.string,
+  defaultValue: '[]',
+  title: 'Show system toast notifications',
+  description:
+      'Choose the pop-up messages shown over the dashboard. Messages in '
+      'Settings always show.',
+  category: 'Device',
+  section: 'User Interface',
+  validator: _validateToastsHidden,
+  normalizer: _normalizeToastsHidden,
+);
+
+/// Every source Show system toast notifications can turn off, in the
+/// order both pickers list them.
+const toastSources = [
+  'back',
+  'gestures',
+  'hold_mode',
+  'links',
+  'downloads',
+  'network',
+  'updates',
+  'voice',
+  'timers',
+  'alarms',
+  'music_library',
+  'intercom',
+  'app_launcher',
+  'plugins',
+];
+
+/// The sources turned off, unknown ones and a malformed value dropped.
+Set<String> decodeToastsHidden(String value) {
+  try {
+    final decoded = json.decode(value);
+    if (decoded is List) {
+      return decoded.whereType<String>().where(toastSources.contains).toSet();
+    }
+  } catch (_) {}
+  return {};
+}
+
+/// [sources] as stored: known ones only, in [toastSources] order.
+String encodeToastsHidden(Iterable<String> sources) => jsonEncode([
+  for (final source in toastSources)
+    if (sources.contains(source)) source,
+]);
+
+String? _validateToastsHidden(Object? value) {
+  try {
+    final decoded = json.decode(value as String);
+    if (decoded is List &&
+        decoded.every(
+          (source) => source is String && toastSources.contains(source),
+        )) {
+      return null;
+    }
+  } catch (_) {}
+  return 'Choose from ${toastSources.join(', ')}.';
+}
+
+Object _normalizeToastsHidden(Object value) =>
+    value is String ? encodeToastsHidden(decodeToastsHidden(value)) : value;
 
 /// All settings, in display order.
 
@@ -13144,6 +13383,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverPostponeOnPerson,
   cameraEnabled,
   cameraDevice,
+  cameraScanScreenLight,
   cameraSnapshotResolution,
   cameraDisableDetectionSnapshots,
   cameraSnapshots,
@@ -13227,16 +13467,19 @@ const List<SettingDef<Object>> allSettings = [
   voiceRealtimeSpeed,
   voiceRealtimeHistoryHours,
   voiceRealtimeTalkOver,
+  voiceRealtimeTalkOverSensitivity,
   voiceRealtimeTools,
   voiceRealtimeMcpUrl,
   voiceRealtimeMcpToken,
   voiceWakeWordSensitivity,
+  voiceWakeWordFineTune,
   voiceNoiseGate,
   voiceStopWord,
   voiceWakeArbitration,
   voiceWakeArbitrationWindowMs,
   voiceWakeArbitrationOffsetDb,
   voiceSkin,
+  voiceSkin2,
   voiceTheme,
   voiceOverlayMode,
   voiceDockPosition,
@@ -13339,6 +13582,11 @@ const List<SettingDef<Object>> allSettings = [
   libraryMenu,
   libraryNowPlayingButton,
   libraryIdleCloseMinutes,
+  libraryTextScale,
+  librarySquareArtwork,
+  libraryGridDensity,
+  librarySort,
+  libraryAlbumArtists,
   sendspinSonosHosts,
   sendspinShowPlayer,
   sendspinPlayerSize,
@@ -13426,6 +13674,7 @@ const List<SettingDef<Object>> allSettings = [
   uiLanguage,
   uiTheme,
   uiScale,
+  uiToastsHidden,
   // The two pages, service first, close the Device page.
   serviceCpuAwake,
   remoteEnabled,

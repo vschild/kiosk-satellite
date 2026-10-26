@@ -55,7 +55,7 @@ Pick a weather entity under **Weather** to add the daily forecast to each day in
 
 ## How it reads Home Assistant
 
-The kiosk reads the calendars only while something on screen needs them: the calendar while it is open, and the Up next widget while the screensaver shows it. It uses the Home Assistant token from **Settings, Home Assistant**, and a token for a user who is not an administrator works.
+The kiosk reads the calendars only while something on screen needs them: the calendar while it is open, and the Up next widget while the screensaver shows it. It uses the Home Assistant token from **Settings, Home Assistant**. A token for a user who is not an administrator works for showing the calendar. [Managing it by voice](#managing-the-calendar-by-voice) needs an administrator's token.
 
 On Home Assistant 2026.5 and later each calendar is a live subscription, so a change in Home Assistant shows on the kiosk within seconds. Older versions are asked for the events every five minutes and when the view moves. Recurring events come from Home Assistant already expanded.
 
@@ -66,6 +66,8 @@ If Home Assistant is not reachable, the calendar keeps the events it has and say
 Home Assistant can only list events by voice, for today or the coming week, and has no way to add, move or cancel them. Kiosk Satellite ships a blueprint for an LLM conversation agent (Qwen, Gemma, Gemini, Claude, OpenAI or any other agent that can control Home Assistant) that does all of it on the calendars added to the kiosk. The agent understands the request in any language it speaks.
 
 The built-in **Home Assistant** conversation agent does not work for this. It only matches sentences against Home Assistant's own intents and cannot fill in the script's title, times or people. An LLM agent with **Prefer handling commands locally** turned on works fine.
+
+> **Info:** The long-lived token under **Settings, Home Assistant** must belong to a Home Assistant administrator. This applies to every request the script handles, including questions such as "When is the dentist?". Showing the calendar on the kiosk works with any user's token. The kiosk listens for the script over its own Home Assistant connection. Home Assistant only lets administrators fire and follow the events the script runs on.
 
 1. Import the blueprint:
 
@@ -98,10 +100,14 @@ When more than one event matches a change or a cancel, or the event repeats and 
 
 A request typed into Home Assistant's own chat reaches no kiosk until it names one, as in "add the dentist on the kitchen kiosk", which matches the kiosk's device name or ESPHome name. A kiosk named that way changes the calendar but does not open it.
 
-The kiosk listens for the script over its own Home Assistant connection, so the long-lived token under **Settings, Home Assistant** has to belong to an administrator, the same as [voice alarms](alarms.md#setting-alarms-by-voice) and [calls by voice](intercom.md#calling-by-voice). With any other token the kiosk does not listen for the script and the agent says that no kiosk answered.
-
 **Manage the calendar using Voice Satellite** under **Settings, Calendar, Voice Calendar** and on the remote admin's **Calendar** page opens this guide.
 
 ## Fleet
 
 The Calendar category carries the calendars with their names, colors and people, and the Display and Kiosk settings. The calendars hidden with their chips stay on each kiosk. See [Fleet Management](fleet.md).
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| The agent waits about 20 seconds, then says it cannot reach the calendar or that no kiosk answered | The kiosk never took the request. Check that the token under **Settings, Home Assistant** belongs to an administrator. With any other token the kiosk does not listen for the script. The app log says "voice alarms, calls, calendar and music need an administrator token, not listening". A request typed into Home Assistant's own chat also has to name a kiosk. |

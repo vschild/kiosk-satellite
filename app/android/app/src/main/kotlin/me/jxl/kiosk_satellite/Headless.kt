@@ -109,13 +109,8 @@ object Headless {
      */
     val pryon: Boolean by lazy { property("ro.biscuit.pryon") == "1" }
 
-    /**
-     * The same ROM updates itself from its GitHub releases through
-     * BiscuitService (`ro.biscuit.ota`), see [BiscuitSystemUpdate].
-     */
-    val systemUpdate: Boolean by lazy { property("ro.biscuit.ota") == "1" }
-
-    private fun property(name: String): String = runCatching {
+    /** A system property, empty when it is not set. */
+    fun property(name: String): String = runCatching {
         Class.forName("android.os.SystemProperties")
             .getMethod("get", String::class.java, String::class.java)
             .invoke(null, name, "") as String

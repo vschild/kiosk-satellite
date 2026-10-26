@@ -478,7 +478,12 @@ void main() {
         final result = switch (method) {
           'tools/list' => {
             'tools': [
-              for (final name in ['script__probe', 'HassTurnOn'])
+              for (final name in [
+                'script__probe',
+                'assist__script__probe',
+                'assist__HassTurnOn',
+                'HassTurnOn',
+              ])
                 {
                   'name': name,
                   'description': '',
@@ -540,6 +545,29 @@ void main() {
           McpClient.scriptDeviceArgument: 'made_up',
         });
         await mcp.callTool('HassTurnOn', {'name': 'Kitchen'});
+        expect(calls[0]['arguments'], {
+          'room': 'Kitchen',
+          McpClient.scriptDeviceArgument: 'dev1',
+        });
+        expect(calls[1]['arguments'], {'name': 'Kitchen'});
+      });
+
+      test('when the server puts the API name in front', () async {
+        final mcp = McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceId: () async => 'dev1',
+        );
+        final tools = {for (final t in await mcp.listTools()) t.name: t};
+        final script = tools['assist__script__probe']!.inputSchema;
+        expect((script['properties']! as Map).keys, ['room']);
+        expect(
+          (tools['assist__HassTurnOn']!.inputSchema['properties']! as Map).keys,
+          contains(McpClient.scriptDeviceArgument),
+        );
+
+        await mcp.callTool('assist__script__probe', {'room': 'Kitchen'});
+        await mcp.callTool('assist__HassTurnOn', {'name': 'Kitchen'});
         expect(calls[0]['arguments'], {
           'room': 'Kitchen',
           McpClient.scriptDeviceArgument: 'dev1',
@@ -2235,6 +2263,112 @@ void main() {
           h.backend.emit(const RealtimeSpeechStarted());
           time.flushMicrotasks();
           expect(h.player.flushes, 1);
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      });
+
+      /// The cleaned microphone under the speaking voice, chunk by chunk.
+      void underVoice(FakeAsync time, _Harness h, List<int> levels) {
+        for (final level in levels) {
+          time.elapse(const Duration(milliseconds: 80));
+          h.mic.speak(value: level);
+        }
+      }
+
+      /// Measured on an Android Things display (#1130): the canceller
+      /// leaves 3 under the voice and the user talking over it reads 110.
+      _Harness quietUserTalksOver(FakeAsync time, num sensitivity) {
+        final h = _Harness(
+          time,
+          options: RealtimeOptions(
+            talkOverLevel: RealtimeSession.talkOverLevel(sensitivity),
+          ),
+        );
+        h.backend.clientTurns = true;
+        h.wakeAndConnect();
+        h.answer('a1', seconds: 10);
+        time.elapse(RealtimeSession.settleAtLeast);
+        underVoice(time, h, List.filled(36, 3));
+        underVoice(time, h, [110, 110, 110]);
+        h.backend.emit(const RealtimeSpeechStarted());
+        time.flushMicrotasks();
+        underVoice(time, h, [110, 110]);
+        h.backend.emit(const RealtimeSpeechStopped());
+        time.flushMicrotasks();
+        return h;
+      }
+
+      test('a quiet microphone is too quiet at the default sensitivity', () {
+        fakeAsync((time) {
+          final h = quietUserTalksOver(time, 50);
+          expect(h.player.flushes, 0);
+          expect(h.backend.turns, [false]);
+          expect(
+            h.traces,
+            contains(
+              allOf(
+                startsWith('ignored speech too quiet to be the user: '),
+                contains('peak 110, 0 of 3 chunks at 1200'),
+              ),
+            ),
+          );
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      });
+
+      test('a higher sensitivity hears a quiet microphone', () {
+        fakeAsync((time) {
+          final h = quietUserTalksOver(time, 90);
+          expect(h.player.flushes, 1);
+          expect(h.backend.interruptions.single.$1, 'a1');
+          expect(h.backend.turns, [true]);
+          expect(h.traces, contains(startsWith('talked over the answer: ')));
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      });
+
+      test('the sensitivity keeps 1200 at 50 and spreads on a log scale', () {
+        expect(RealtimeSession.talkOverLevel(50), RealtimeSession.bargeInLevel);
+        expect(RealtimeSession.talkOverLevel(0), 4800);
+        expect(RealtimeSession.talkOverLevel(100), 40);
+        expect(RealtimeSession.talkOverLevel(90), lessThan(110));
+        expect(RealtimeSession.talkOverLevel(-5), 4800);
+        expect(RealtimeSession.talkOverLevel(120), 40);
+      });
+
+      test('echo leaking as loud as a quiet voice never stops the answer', () {
+        // What AEC3 leaves under the voice on a Galaxy Tab S8: 50 to 150,
+        // with bursts of a few hundred the provider takes for speech.
+        fakeAsync((time) {
+          final h = _Harness(time);
+          h.backend.clientTurns = true;
+          h.wakeAndConnect();
+          h.answer('a1', seconds: 10);
+          time.elapse(RealtimeSession.echoSettle);
+          underVoice(time, h, [
+            for (var i = 0; i < 6; i++) ...[60, 90, 140, 70, 120, 300],
+          ]);
+          underVoice(time, h, [350, 420, 380]);
+          h.backend.emit(const RealtimeSpeechStarted());
+          time.flushMicrotasks();
+          underVoice(time, h, [400, 260]);
+          h.backend.emit(const RealtimeSpeechStopped());
+          time.flushMicrotasks();
+          expect(h.player.flushes, 0);
+          expect(h.backend.interruptions, isEmpty);
+          expect(h.backend.turns, [false]);
+          expect(
+            h.traces,
+            contains(
+              allOf(
+                startsWith('ignored speech too quiet to be the user: '),
+                contains('peak 420'),
+              ),
+            ),
+          );
           h.session.cancel();
           time.flushMicrotasks();
         });

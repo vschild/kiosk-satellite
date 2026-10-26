@@ -348,6 +348,10 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "default": "voiceVadDefault",
     "voice-only": "voiceSkinVoiceOnly"
   },
+  "voice.skin_2": {
+    "default": "voiceVadDefault",
+    "voice-only": "voiceSkinVoiceOnly"
+  },
   "alarms.snooze_minutes": {
     "5": "alarmsOption5Minutes",
     "10": "alarmsOption10Minutes",
@@ -498,6 +502,11 @@ const settingOptionMessageIds = <String, Map<String, String>>{
   },
   "library.source": {
     "": "screenAudioAutomatic"
+  },
+  "library.grid_density": {
+    "comfortable": "libraryDensityComfortable",
+    "standard": "libraryDensityStandard",
+    "compact": "libraryDensityCompact"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

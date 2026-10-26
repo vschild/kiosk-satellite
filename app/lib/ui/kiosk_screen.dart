@@ -291,6 +291,7 @@ class _KioskScreenState extends State<KioskScreen>
         if (!c.homeLauncher.roleHeld.value) {
           showToast(
             context,
+            source: 'back',
             title: _backWouldLeaveApp
                 ? l10n(context).kioskBackClose
                 : l10n(context).kioskBackAgain,
@@ -604,11 +605,16 @@ class _KioskScreenState extends State<KioskScreen>
       if (e.value == true) {
         showToast(
           context,
+          source: 'hold_mode',
           title: l10n(context).kioskHoldOn,
           message: l10n(context).kioskHoldNotice,
         );
       } else {
-        showToast(context, title: l10n(context).kioskHoldOff);
+        showToast(
+          context,
+          source: 'hold_mode',
+          title: l10n(context).kioskHoldOff,
+        );
       }
       return;
     }
@@ -771,6 +777,10 @@ class _KioskScreenState extends State<KioskScreen>
               timeout: request.timeout,
               cancel: cancel,
               closeOnError: true,
+              screenLight: c.settings.get(defs.cameraScanScreenLight),
+              onScreenLight: (on) =>
+                  c.settings.set(defs.cameraScanScreenLight, on),
+              lightScreen: c.screen.holdScanLight,
             ),
           ),
         );
@@ -817,6 +827,7 @@ class _KioskScreenState extends State<KioskScreen>
       final outcome = localizedGestureOutcome(context, e.action, ok: e.ok);
       showToast(
         context,
+        source: 'gestures',
         title: gestureText(context, gestureActionKindTitle(e.action)),
         message: e.ok || error == null || error.isEmpty
             ? outcome
@@ -914,6 +925,7 @@ class _KioskScreenState extends State<KioskScreen>
       if (success) {
         showToast(
           context,
+          source: 'downloads',
           title: l10n(context).kioskDownloadComplete,
           message: name,
           kind: ToastKind.success,
@@ -924,6 +936,7 @@ class _KioskScreenState extends State<KioskScreen>
       } else {
         showToast(
           context,
+          source: 'downloads',
           title: l10n(context).kioskDownloadFailed,
           message: name,
           kind: ToastKind.error,
@@ -2061,6 +2074,7 @@ class _KioskScreenState extends State<KioskScreen>
           if (mounted) {
             showToast(
               context,
+              source: 'links',
               title: l10n(context).kioskUnknownLink,
               message: url.toString(),
               kind: ToastKind.error,
@@ -2072,6 +2086,7 @@ class _KioskScreenState extends State<KioskScreen>
         if (!result.ok && mounted) {
           showToast(
             context,
+            source: 'links',
             title: localizedGestureAction(context, action),
             message: gestureError(context, result.error ?? 'Failed'),
             kind: ToastKind.error,
@@ -2100,6 +2115,7 @@ class _KioskScreenState extends State<KioskScreen>
       if (!result.ok && mounted) {
         showToast(
           context,
+          source: 'links',
           title: l10n(context).kioskOpenAppFailed,
           message: launcherText(context, result.error ?? package),
           kind: ToastKind.error,
@@ -2257,6 +2273,7 @@ class _KioskScreenState extends State<KioskScreen>
       if (mounted) {
         showToast(
           context,
+          source: 'downloads',
           title: l10n(context).kioskDownloading,
           message: name,
         );

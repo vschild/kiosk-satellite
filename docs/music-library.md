@@ -14,7 +14,13 @@ The source picker sits at the top of the sidebar on a tablet, at the top of the 
 | Home Assistant | The media the picked speaker's integration offers, such as a Sonos speaker's favorites, a Spotify account, Radio Browser and My media. Search shows when the speaker's integration supports it. | A Home Assistant speaker picked as the speaker. The list changes with the speaker. |
 | Sonos | My Sonos favorites, Sonos playlists and the music library the speakers index from a shared folder. Lists with nothing in them stay hidden. | A Sonos speaker found or added under **Media Player > Sonos**. |
 
-Discover shows the recommendations Music Assistant makes. When it has none, it shows what was played recently, your playlists, recently added tracks and radio stations instead.
+Discover shows the rows Music Assistant's own Discover page shows, in the same order. To hide, show or reorder them, edit the Discover page in Music Assistant and the library follows. Music Assistant saves that layout for each of its users, so the library uses the layout of the user the token belongs to. When Music Assistant recommends nothing, Discover shows what was played recently, your playlists, recently added tracks and radio stations instead. A row that mixes kinds, such as Recently played, says under each entry whether it is a track, an album, an artist or a playlist.
+
+**Browse by genre** comes last on Discover, as on Music Assistant's page, with the eight genres that have the most music in your library. Each genre gets an icon picked from its name. Tap one to open the rows Music Assistant shows for that genre, such as its artists and albums.
+
+Browse shows each music provider with its logo, as Music Assistant does.
+
+The sort button next to the title of a Music Assistant list orders it **A to Z**, **Z to A**, **Recently played**, **Recently added** or **Most played**. Each list keeps its own order. On **Artists** the same menu has **Album artists only**, which leaves out artists who only appear on a few tracks, such as the contributors to a compilation. Home Assistant and Sonos lists keep the order the source gives them.
 
 Picture, camera and text-to-speech sources in Home Assistant's media are left out, since a speaker has nothing to play from them.
 
@@ -37,13 +43,13 @@ When a play needs a speaker of the source first, such as Home Assistant before a
 - Tap a radio station, a podcast episode or a track in a list to play it.
 - Tap the menu button on a row, or long press a card, for **Play now**, **Play next**, **Add to queue**, **Start radio**, **Go to artist** and **Add to favorites**. Start radio and favorites are Music Assistant only. Start radio keeps playing similar music after the track, album, artist or playlist ends.
 
-Play next and Add to queue show a message, and its **View** button opens the [queue](#the-queue).
+Play next and Add to queue show a message, and its **View** button opens the [queue](#the-queue). A play shows a spinner over the cover you tapped, and the player bar shows it with **Loading…** until the speaker starts it.
 
 The player bar at the bottom works like Music Assistant's. The track and its favorite heart sit on the left. Shuffle, previous, play or pause, next and repeat sit over the seek bar in the middle. The [queue](#the-queue), the volume and the button that opens Now Playing sit on the right. Each control shows only where the player supports it, as on Now Playing. With nothing playing, the bar shows the track the queue would resume from: play starts the queue there, and previous and next move through it. Tap the track to open the Now Playing view over the library, and close Now Playing to come back to the library. On a short screen the seek bar becomes a line along the top of the bar, and the volume button opens Speakers. On a phone the bar keeps the track, play or pause, next and the queue.
 
 ## The queue
 
-The queue button on the player bar opens the queue of the speaker the library plays on. On a tablet it docks to the right of the library, and on a short screen or a phone it takes the library's place until you close it. It also opens from **View** on the message after Play next or Add to queue.
+The queue button on the player bar opens the queue of the speaker the library plays on. On a tablet in landscape it docks to the right of the library. On a tablet in portrait, a short screen or a phone it takes the library's place until you close it. It also opens from **View** on the message after Play next or Add to queue.
 
 - The playing track sits at the top under **Now playing**, and what comes next is listed under **Up next**.
 - Drag a track by its handle to move it.
@@ -60,6 +66,8 @@ Kiosk Satellite ships a blueprint for an LLM conversation agent (Qwen, Gemma, Ge
 The built-in **Home Assistant** conversation agent does not work for this. It only matches sentences against Home Assistant's own intents and cannot fill in the script's title, artist or speaker. An LLM agent with **Prefer handling commands locally** turned on works fine.
 
 If you set up Music Assistant's own voice support for an LLM agent, delete the script you created from its blueprint or stop exposing it to Assist first. With both exposed the agent has two tools for the same request and picks either one.
+
+> **Info:** The long-lived token under **Settings, Home Assistant** must belong to a Home Assistant administrator. This applies to every request the script handles, including questions such as "What's playing?". Playing music from the Music Library on the kiosk works with any user's token. The kiosk listens for the script over its own Home Assistant connection. Home Assistant only lets administrators fire and follow the events the script runs on.
 
 1. Import the blueprint:
 
@@ -96,8 +104,6 @@ Music in your library or among your favorites comes before the same name found o
 
 A request typed into Home Assistant's own chat reaches no kiosk until it names one, as in "play jazz on the kitchen kiosk", which matches the kiosk's device name or ESPHome name.
 
-The kiosk listens for the script over its own Home Assistant connection, so the long-lived token under **Settings, Home Assistant** has to belong to an administrator, the same as [voice alarms](alarms.md#setting-alarms-by-voice) and [the calendar by voice](calendar.md#managing-the-calendar-by-voice). With any other token the kiosk does not listen for the script and the agent says that no kiosk answered.
-
 ## Screen sizes
 
 | Screen | Layout |
@@ -119,4 +125,12 @@ Under **Settings > Media Player > Music Library**:
 | Show on Now Playing | Adds the library button next to the close button on the Now Playing view. On by default. |
 | Close when idle | Returns to the dashboard after no touch for this long. Two minutes by default. The screensaver waits while the library is open. |
 
-The **Voice Control** group below them opens the guide to [playing music by voice](#playing-music-by-voice).
+The **User Interface** group below them sets how the library looks:
+
+| Setting | What it does |
+| --- | --- |
+| Text scale | The size of the text in the library, from 50% to 200%. Rows get taller with it, and the menus grow with it but keep their normal size below 100%. The title at the top, the navigation, the pickers and the player bar's track and times grow at a slower rate and keep their normal size below 100%. 100% by default. |
+| Square artwork | Shows artists in square tiles, like albums and playlists, instead of circles. Off by default. |
+| Grid density | The size of the tiles in the library's grids and rows. **Comfortable** makes them larger and **Compact** fits more in a row. **Standard** by default. |
+
+The **Voice Control** group opens the guide to [playing music by voice](#playing-music-by-voice).

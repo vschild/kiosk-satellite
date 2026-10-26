@@ -200,6 +200,7 @@ class _AlarmsScreenState extends State<_AlarmsScreen> {
   /// second alarm at the same time on the same days.
   void _toastDuplicate(Alarm existing) => showToast(
     context,
+    source: 'alarms',
     title: l10n(context).alarmsDuplicate(
       alarmTimeText(
         context,
@@ -270,6 +271,7 @@ class _AlarmsScreenState extends State<_AlarmsScreen> {
         : s.alarmsDurationHoursMinutes('$h', '$m');
     showToast(
       context,
+      source: 'alarms',
       title: s.alarmsSetToast,
       message: s.alarmsRingsIn(span),
       kind: ToastKind.success,

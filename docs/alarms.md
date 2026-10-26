@@ -86,6 +86,8 @@ Home Assistant has no alarm intent, so voice alarms go through an LLM conversati
 
 The built-in **Home Assistant** conversation agent does not work for this. It only matches sentences against Home Assistant's own intents and cannot fill in the script's time, days or label. An LLM agent with **Prefer handling commands locally** turned on works fine: Home Assistant still handles lights, timers and the rest itself and passes alarm requests on to the LLM.
 
+> **Info:** The long-lived token under **Settings, Home Assistant** must belong to a Home Assistant administrator. This applies to every request the script handles, including questions such as "What alarms do I have?". Alarms set on the kiosk work with any user's token. The kiosk listens for the script over its own Home Assistant connection. Home Assistant only lets administrators fire and follow the events the script runs on.
+
 1. Import the blueprint:
 
     [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjxlarrea%2Fkiosk-satellite%2Fblob%2Fmain%2Fblueprints%2Fscript%2Fkiosk_satellite_alarms.yaml)
@@ -101,7 +103,7 @@ It works in any language your agent speaks, with no sentences to set up per lang
 
 The alarm goes to the kiosk you are talking to. A request typed into Home Assistant's own chat reaches no kiosk until it names one, as in "set an alarm on the bedroom kiosk", which matches the kiosk's device name or ESPHome name.
 
-The kiosk listens for the script over its own Home Assistant connection, so it needs the Home Assistant long lived token under **Settings, Home Assistant** to belong to an administrator user. With any other token the kiosk leaves voice alarms off and asks Home Assistant nothing. [Calling another kiosk by voice](intercom.md#calling-by-voice) and [the calendar by voice](calendar.md#managing-the-calendar-by-voice) work the same way and need the same token. Nothing new appears in ESPHome.
+Nothing new appears in ESPHome.
 
 ### Good to know
 

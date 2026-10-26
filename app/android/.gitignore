@@ -15,3 +15,6 @@ key.properties
 
 # Kotlin compiler daemon session files
 .kotlin/
+
+# Gradle writes its reports here on every build
+/build/

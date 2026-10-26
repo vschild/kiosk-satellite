@@ -1,6 +1,6 @@
 # Echo Dot
 
-This setup has been verified on a 2nd generation Echo Dot (`biscuit`) running the [Kiosk Satellite Edition of LineageOS for the Echo Dot](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite), a LineageOS 14.1 (Android 7.1.2) image tuned for Kiosk Satellite. The Dot has no screen, so Kiosk Satellite runs headless on it: a voice satellite, intercom, alarm clock, timer and speaker for Home Assistant, set up and managed entirely from the remote admin.
+This setup has been verified on a 2nd generation Echo Dot (`biscuit`) running the [Kiosk Satellite Edition of LineageOS for the Echo Dot](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md), a LineageOS 18.1 (Android 11) image tuned for Kiosk Satellite. The Dot has no screen, so Kiosk Satellite runs headless on it: a voice satellite, intercom, alarm clock, timer and speaker for Home Assistant, set up and managed entirely from the remote admin.
 
 ## Headless Mode
 
@@ -19,15 +19,21 @@ Kiosk Satellite turns headless on its own on any device whose display is a stub 
 
 ## Before You Start
 
-The Dot needs the [Kiosk Satellite Edition of LineageOS for the Echo Dot](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite). Follow its README to unlock the Dot, install the image and join Wi-Fi. On first boot the latest Kiosk Satellite release is downloaded, installed, given every permission it needs and made the device owner, so there are no adb commands to run.
+The Dot needs the [Kiosk Satellite Edition of LineageOS for the Echo Dot](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md). Follow its guide to unlock the Dot, install the image and join Wi-Fi. Once the Dot is on Wi-Fi, the latest Kiosk Satellite release is downloaded, installed, given every permission it needs and made the device owner, so there are no adb commands to run.
 
-The image also improves on the upstream port in ways that matter for Kiosk Satellite: the wake word works over music at full volume, the microphone is louder, the light ring no longer strobes and more memory stays free. Its README lists every change.
+The image also improves on the upstream port in ways that matter for Kiosk Satellite: the wake word works over music at full volume, the microphone is louder, the light ring no longer flickers and more memory stays free. Its guide lists every change.
+
+The Dot names itself `echo-dot-ks` and the last three characters of its serial, `echo-dot-ks-he4` for example, so it shows up under its own name on your router. Kiosk Satellite shows its model as **Amzn Echo Dot (KS)**.
 
 ## Setup
 
-Open `http://<dot ip>:2324` in a browser. The image's README shows how to find the Dot's IP address. In the setup wizard, set an admin password, the Home Assistant connection and the Voice Satellite wake word. The wizard skips the dashboard step. Then add the Dot in Home Assistant under **Settings > Devices & services**, where it shows up as discovered.
+Open `http://<dot ip>:2324` in a browser. The image's guide shows how to find the Dot's [IP address](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md#after-installing). In the setup wizard, set an admin password, the Home Assistant connection and the Voice Satellite wake word. The wizard skips the dashboard step. Then add the Dot in Home Assistant under **Settings > Devices & services**, where it shows up as discovered.
 
-The Action button reaches Kiosk Satellite through an accessibility service, which is switched on at every boot. Force-stopping Kiosk Satellite, with `adb shell am force-stop` or **Force stop** in Android's app settings, switches the service off until the next reboot. **Restart app** does not switch it off.
+A fresh install starts with **Use real Wi-Fi MAC address** on, so the Dot's ESPHome device links with the entries your router and network integrations already have for it ([Device Identity](esphome.md#device-identity)).
+
+The Action button and the volume buttons reach Kiosk Satellite as broadcasts from the image, so Kiosk Satellite needs no accessibility service.
+
+On the CM14.1 image the Action button goes through an accessibility service instead, which is switched on at every boot. Force-stopping Kiosk Satellite there, with `adb shell am force-stop` or **Force stop** in Android's app settings, switches the service off until the next reboot. **Restart app** does not switch it off.
 
 ## Wake Word
 
@@ -38,7 +44,7 @@ Pick the engine with **Wake word engine** under **Voice Satellite > Wake Word**,
 | vsWakeWord | The default. Its models ship with the app. |
 | microWakeWord | The engine of Home Assistant's voice hardware. Its models ship with the app, and it also offers the custom models Home Assistant has. |
 | openWakeWord | Its models ship with the app. |
-| Amazon | The engine the Dot shipped with, running Amazon's own wake word models. Needs the Kiosk Satellite Edition image 2026.10.3 or newer. Other devices do not offer it. |
+| Amazon | The engine the Dot shipped with, running Amazon's own wake word models. On the CM14.1 image it needs 2026.10.3 or newer. Other devices do not offer it. |
 
 The first three also take your own models. See [Custom wake word models](custom-wake-words.md).
 
@@ -82,7 +88,7 @@ The image removes the speaker's sound from the Dot's microphones while music pla
 |---|---|
 | Action | Answers a ringing intercom call, stops a ringing alarm, dismisses a ringing timer or the voice turn, or ends an intercom call. With none of those happening, it starts a voice command. |
 | Microphone | Mutes and unmutes Voice Satellite. The mute follows the Dot's microphone mute both ways, so the button, the **VS Mute** switch in Home Assistant and the remote admin always agree, and the light ring shows it. |
-| Volume up and down | Change the volume. With **Volume buttons control the player** set to **While the player is playing** under Media Player, they control the followed player or the Music Assistant group the Dot plays in instead. This needs the Kiosk Satellite Edition image 2026.10.2 or newer. Each press is one step: holding a button does not repeat. |
+| Volume up and down | Change the volume. With **Volume buttons control the player** set to **While the player is playing** under Media Player, they control the followed player or the Music Assistant group the Dot plays in instead. On the CM14.1 image this needs 2026.10.2 or newer. Each press is one step: holding a button does not repeat. |
 
 The Action button can also run any gesture action. Add a **Button** gesture on the [Gestures](gestures.md) page for a press, a double press or a hold of the Action button. A press no gesture claims keeps the job above. The LineageOS build handles the microphone and volume buttons itself, so they cannot be mapped.
 
@@ -113,17 +119,26 @@ Then set up the Button gestures on the Dot's own remote admin. The other categor
 
 ## System Updates
 
-Images newer than 2026.10.3 update themselves, and Kiosk Satellite shows these updates. In the remote admin, **About > System** shows the installed release of the image. Click the version to check for a newer one. When there is one, **Install** shows its release notes and starts the update. The Overview lists a new release under **Needs attention**. Home Assistant gets a **Firmware** update entity that checks and installs the same way, next to **Update** for Kiosk Satellite itself.
+The image updates itself from the [Echo Dot releases](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/releases?q=biscuit) of its repository, and Kiosk Satellite shows these updates. In the remote admin, **About > System** shows the installed release of the image. Click the version to check for a newer one. When there is one, **Install** shows its release notes and starts the update. The Overview lists a new release under **Needs attention**. Home Assistant gets a **Firmware** update entity that checks and installs the same way, next to **Update** for Kiosk Satellite itself.
 
-The image downloads the release, checks its signature and then restarts twice to install it, once for each slot. The Dot is offline for about a minute and a half each time. Kiosk Satellite and its settings stay. The image checks for a new release a minute after every boot, and Kiosk Satellite asks it again twice a day. The image's [device commands](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite/blob/main/docs/device-commands.md#system-updates) do the same from adb.
+The image downloads the release, checks its signature and then restarts twice to install it, once for each slot. The Dot is offline for about a minute each time. Kiosk Satellite and its settings stay. The image checks for a new release a minute after every boot, and Kiosk Satellite asks it again twice a day. The image's [device commands](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md#system-updates) do the same from adb.
 
-## What to Know
+## Moving from the CM14.1 Image
 
-- **Updates.** Kiosk Satellite is the device owner on the image, so updates install silently, with no screen to confirm them on.
-- **Resources.** With the wake word listening, Kiosk Satellite uses about 5% of one core and 100 MB of the Dot's 480 MB of RAM while idle.
+The CM14.1 image updates only from its own repository, which gets no more releases, so it reports that it is up to date. Kiosk Satellite checks the new image's Echo Dot releases itself. When there is one, **About > System** shows **New image available** with a link to the guide, the Overview lists it under **Needs attention** and the **Firmware** entity in Home Assistant shows its version, with the guide as its release page.
+
+The new image installs by hand, not as an update, since the move from Android 7 to Android 11 needs an erased data partition. **Install** on the Firmware entity does nothing. Follow [Moving from the CM14.1 image](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md#moving-from-the-cm141-image):
+
+1. In the remote admin, use **Export configuration** and keep the file.
+2. Install the new image as its guide shows.
+3. Once Kiosk Satellite is back, choose **Restore from configuration file** in the setup wizard and pick the file you exported.
 
 ## Memory
 
-The Overview's RAM tile counts only memory nobody holds, usually about 0.3 GB on the Dot. Android keeps the rest filled with cached apps and files it gives back on demand. The image already leaves out the system apps the Dot does not need and sets up 256 MB of compressed swap (zram).
+The Overview's RAM tile counts the memory Android can give out, usually about 0.25 GB on the Dot. Android keeps the rest filled with cached apps and files it gives back on demand. The image already leaves out the system apps the Dot does not need and sets up about 240 MB of compressed swap (zram).
 
-Bluetooth is off on a fresh install, which saves 15 to 20 MB. If you want the [Bluetooth proxy](esphome.md), turn it on with `adb shell biscuit_service bt on`. It stays on across reboots, and `adb shell biscuit_service bt off` turns it off again.
+## Bluetooth
+
+Bluetooth is on, so the [Bluetooth proxy](esphome.md) works with no setup. The Dot starts out as a Bluetooth speaker that phones can play to. To play the Dot's audio on Bluetooth headphones or a speaker instead, put them in pairing mode and run `adb shell biscuit_service bt connect '<name>'`. The Dot does one or the other, not both. The image's guide covers [Bluetooth](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite/blob/main/docs/echo-dot.md#bluetooth).
+
+On the CM14.1 image Bluetooth is off on a fresh install, which saves 15 to 20 MB. Turn it on with `adb shell biscuit_service bt on`. It stays on across reboots, and `adb shell biscuit_service bt off` turns it off again.

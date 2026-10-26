@@ -133,5 +133,239 @@
         "Device > User Interface"
       ]
     }
+  },
+  "settingUiToastsHiddenTitle": "Show system toast notifications",
+  "@settingUiToastsHiddenTitle": {
+    "context": "Settings:Device:User Interface",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenDescription": "Choose the pop-up messages shown over the dashboard. Messages in Settings always show.",
+  "@settingUiToastsHiddenDescription": {
+    "context": "Settings:Device:User Interface",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsAll": "All",
+  "@deviceToastsAll": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast shows.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsNone": "None",
+  "@deviceToastsNone": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast is turned off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastBack": "Back button hints",
+  "@deviceToastBack": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the hint to press back again.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastGestures": "Gesture actions",
+  "@deviceToastGestures": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the outcome of a gesture's Home Assistant action.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastHoldMode": "Hold mode",
+  "@deviceToastHoldMode": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Hold mode turning on or off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastLinks": "Dashboard links",
+  "@deviceToastLinks": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: kiosk and app links on the dashboard that fail.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastDownloads": "Downloads",
+  "@deviceToastDownloads": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: file downloads from the dashboard.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastNetwork": "Network status",
+  "@deviceToastNetwork": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the pill that says the network is gone or back.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastUpdates": "Update checks",
+  "@deviceToastUpdates": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: checking for updates from the kiosk menu.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastVoice": "Voice Satellite notices",
+  "@deviceToastVoice": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Voice Satellite errors, warnings and notices.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastTimers": "Timers",
+  "@deviceToastTimers": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: voice timer pills.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAlarms": "Alarms",
+  "@deviceToastAlarms": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Alarms panel.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastMusicLibrary": "Music Library",
+  "@deviceToastMusicLibrary": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Music Library.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastIntercom": "Intercom",
+  "@deviceToastIntercom": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Intercom calls.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAppLauncher": "App Launcher",
+  "@deviceToastAppLauncher": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: apps opened from the App Launcher.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastPlugins": "Plugin actions",
+  "@deviceToastPlugins": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: plugin actions in the kiosk menu.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
   }
 }

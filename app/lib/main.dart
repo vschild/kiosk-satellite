@@ -25,6 +25,7 @@ import 'ui/kiosk_screen.dart';
 import 'ui/ui_scale.dart';
 import 'ui/setup_screen.dart';
 import 'ui/theme.dart';
+import 'ui/toast.dart';
 import 'package:kiosk_satellite/core/lifecycle.dart';
 
 Future<void> main() async {
@@ -224,6 +225,10 @@ class _KioskSatelliteAppState extends State<KioskSatelliteApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Read on every toast, so a change from the remote applies to the next.
+    toastShown = (source) => !defs
+        .decodeToastsHidden(widget.container.settings.get(defs.uiToastsHidden))
+        .contains(source);
     // Interface settings apply immediately, including remote changes.
     _sub = widget.container.bus.on<SettingChanged>().listen(
       (e) =>

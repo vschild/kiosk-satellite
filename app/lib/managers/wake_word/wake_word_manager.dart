@@ -611,6 +611,59 @@ class WakeWordManager extends Manager
     });
   }
 
+  /// Automatic retries after a lost microphone in the current window, and
+  /// when that window opened.
+  ///
+  /// Right after a boot the audio HAL can refuse AudioRecord for a few
+  /// seconds, and nothing else would ever retry: the card only pushes config
+  /// on page load, and that has already happened (issue #1145). A permission
+  /// revoked underneath us lands here too, but the retry asks for the mic
+  /// first, so it turns into micDeclined or micBlocked and the ladder stops.
+  int _micRetries = 0;
+  DateTime? _micRetryWindowStart;
+  Timer? _micRetry;
+
+  static const _micRetryDelays = [
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+    Duration(minutes: 1),
+    Duration(minutes: 2),
+    Duration(minutes: 5),
+  ];
+  static const _micRetryWindow = Duration(hours: 1);
+
+  void _scheduleMicRetry() {
+    final now = DateTime.now();
+    if (_micRetryWindowStart == null ||
+        now.difference(_micRetryWindowStart!) > _micRetryWindow) {
+      _micRetryWindowStart = now;
+      _micRetries = 0;
+    }
+    if (_micRetries >= _micRetryDelays.length) {
+      log.error(
+        name,
+        'the microphone failed $_micRetries times in the last hour; '
+        'giving up on reopening it',
+      );
+      return;
+    }
+    final delay = _micRetryDelays[_micRetries++];
+    log.warn(
+      name,
+      'reopening the microphone in ${delay.inSeconds}s '
+      '($_micRetries of ${_micRetryDelays.length} this hour)',
+    );
+    _micRetry?.cancel();
+    _micRetry = Timer(delay, () {
+      _micRetry = null;
+      // Something else may have retried or taken the mic back meanwhile.
+      if (!_failed || _failure != EngineFailure.micLost || _released) return;
+      log.info(name, 'reopening the microphone');
+      unawaited(retry());
+    });
+  }
+
   void _onEngineFailure(EngineFailure kind, String detail) {
     if (kind == EngineFailure.crashed && _crashes <= _maxCrashRestarts) {
       _onEngineCrash(detail);
@@ -623,6 +676,7 @@ class WakeWordManager extends Manager
       name,
       'engine unavailable ($detail); Voice Satellite keeps browser detection',
     );
+    if (kind == EngineFailure.micLost && !_released) _scheduleMicRetry();
     // Tell the page and the settings UIs, both of which may be showing
     // "Listening natively" over a microphone that no longer exists.
     bus.publish(
@@ -640,6 +694,7 @@ class WakeWordManager extends Manager
   /// allow" leaves the device deaf until something reloads it — and the person
   /// who tapped it has no idea that is the fix.
   Future<bool> retry() async {
+    _micRetry?.cancel();
     _failed = false;
     _failure = null;
     await _sync();
@@ -1471,6 +1526,7 @@ class WakeWordManager extends Manager
     String source = 'page',
   }) async {
     final changed = _config != config || _released || _failed;
+    _micRetry?.cancel(); // this push is the retry
     _released = false; // a fresh config takes the mic back
     _releaseReason = null;
     _failed = false; // and re-earns the right to claim availability
@@ -1502,6 +1558,7 @@ class WakeWordManager extends Manager
     _released = true;
     _releaseReason = reason;
     _resumeTimer?.cancel();
+    _micRetry?.cancel();
     _active = true; // a later config starts listening, not suspended
     await _engine.stop();
     log.info(name, 'released by $source (mic closed)');
@@ -1887,6 +1944,7 @@ class WakeWordManager extends Manager
     await _remoteObservers?.cancel();
     _stopMicLevelWatch();
     _resumeTimer?.cancel();
+    _micRetry?.cancel();
     await arbiter?.stop();
     await _engine.stop();
     diagnostics.dispose();

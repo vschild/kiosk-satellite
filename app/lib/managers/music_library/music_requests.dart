@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../core/command_registry.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
+import '../analytics/usage_counters.dart';
 import 'ha_library_source.dart';
 import 'library_model.dart';
 import 'music_library_manager.dart';
@@ -25,6 +26,9 @@ class MusicRequests {
 
   Future<Map<String, Object?>> handle(Map<String, Object?> p) async {
     final action = '${p['action'] ?? ''}'.trim();
+    if (action.isNotEmpty) {
+      unawaited(UsageCounters.bump(_settings, 'library_voice_requests'));
+    }
     String text(String key) => '${p[key] ?? ''}'.trim();
     try {
       return switch (action) {
@@ -113,6 +117,15 @@ class MusicRequests {
           },
         );
     if (error != null) return _fail(error, {'speaker': target.name});
+    // Counted like a tap in the library: by source, or as a queue add.
+    unawaited(
+      UsageCounters.bump(
+        _settings,
+        playMode == PlayMode.next || playMode == PlayMode.add
+            ? 'library_queue_adds'
+            : 'library_plays_${source.key}',
+      ),
+    );
     return _ok(
       switch (playMode) {
         PlayMode.next => 'playing_next',

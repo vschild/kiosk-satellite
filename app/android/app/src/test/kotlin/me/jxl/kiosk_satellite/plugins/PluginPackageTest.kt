@@ -220,6 +220,25 @@ class PluginPackageTest {
         assertNull(PluginManifest(manifest()).icon)
         for (bad in listOf("../icon.png", "icon.webp", "icon", "/icon.png", 7)) rejects { PluginManifest(manifest().put("icon", bad)) }
     }
+    @Test fun aMinimumAppVersionNamesARelease() {
+        assertEquals("2026.10.40", PluginManifest(manifest().put("minAppVersion", "2026.10.40")).minAppVersion)
+        assertEquals("2026.9.1", PluginManifest(manifest().put("minAppVersion", "2026.9.1")).minAppVersion)
+        assertNull(PluginManifest(manifest()).minAppVersion)
+        for (bad in listOf("2026.10", "2026.09.1", "2026.13.1", "v2026.10.40", "2026.10.40-beta", "26.10.40", 2026)) {
+            rejects { PluginManifest(manifest().put("minAppVersion", bad)) }
+        }
+    }
+    @Test fun comparesAppVersionsByEachNumber() {
+        assertTrue(PluginManifest.appVersionAtLeast("2026.10.40", "2026.10.40"))
+        assertTrue(PluginManifest.appVersionAtLeast("2026.10.40", "2026.9.12"))
+        assertTrue(PluginManifest.appVersionAtLeast("2027.1.1", "2026.12.30"))
+        assertFalse(PluginManifest.appVersionAtLeast("2026.10.39", "2026.10.40"))
+        assertFalse(PluginManifest.appVersionAtLeast("2026.9.40", "2026.10.1"))
+        // Months and releases compare as numbers, not text.
+        assertFalse(PluginManifest.appVersionAtLeast("2026.10.9", "2026.10.10"))
+        assertTrue(PluginManifest.appVersionAtLeast("2026.10.40+338", "2026.10.40"))
+        assertTrue(PluginManifest.appVersionAtLeast("", "2026.10.40"))
+    }
     @Test fun readsThePngHeader() {
         fun png(width: Int, height: Int) = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13) + "IHDR".toByteArray() +
             java.nio.ByteBuffer.allocate(8).putInt(width).putInt(height).array() + ByteArray(5)

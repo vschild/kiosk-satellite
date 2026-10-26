@@ -304,15 +304,43 @@
       ]
     }
   },
-  "aboutSystemInstallHelp": "Dot двічі перезапускається, щоб встановити оновлення, і щоразу приблизно півтори хвилини не в мережі.",
-  "@aboutSystemInstallHelp": {
+  "aboutSystemRestartHelp": "Пристрій двічі перезапускається, щоб встановити оновлення, і кілька хвилин не в мережі.",
+  "@aboutSystemRestartHelp": {
     "context": "Remote administration > About > System",
-    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "description": "Guidance below the release notes before a system update installs. The device is an Echo Dot or Echo Show running the Kiosk Satellite image.",
     "x-locations": {
       "remoteAdmin": [
         "About > System > install a version",
         "Overview > available system update"
       ]
+    }
+  },
+  "aboutSystemManual": "Доступний новий образ",
+  "@aboutSystemManual": {
+    "context": "Remote administration > About > System",
+    "description": "Row shown when a newer system image exists that the device cannot install as an update. It has to be installed by hand, following a guide. The Echo Dot smart speaker moves from its LineageOS 14.1 image to a LineageOS 18.1 one this way.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "aboutSystemManualHelp": "Версія {version} нового образу Echo Dot встановлюється вручну, а не як оновлення.",
+  "@aboutSystemManualHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Explanation below the row about a newer system image that has to be installed by hand. Next to it is a link to the guide. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the new Echo Dot system image, such as 2026.10.6."
+      }
     }
   },
   "alarmsTitle": "Будильники",
@@ -11290,6 +11318,180 @@
       ]
     }
   },
+  "librarySort": "Сортування",
+  "@librarySort": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that opens the sort menu of a library list such as Albums or Playlists.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortAToZ": "Від А до Я",
+  "@librarySortAToZ": {
+    "context": "Music Library",
+    "description": "Sort menu option: alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortZToA": "Від Я до А",
+  "@librarySortZToA": {
+    "context": "Music Library",
+    "description": "Sort menu option: reverse alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortMostPlayed": "Найчастіше відтворюване",
+  "@librarySortMostPlayed": {
+    "context": "Music Library",
+    "description": "Sort menu option: the most played entries first.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAlbumArtistsOnly": "Лише виконавці альбомів",
+  "@libraryAlbumArtistsOnly": {
+    "context": "Music Library",
+    "description": "Checkable option in the Artists sort menu. Lists only artists credited on an album, leaving out artists who only appear on single tracks of compilations.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindGenre": "Жанр",
+  "@libraryKindGenre": {
+    "context": "Music Library",
+    "description": "Kind of entry shown in lists and on a genre's page, like Artist or Album.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryBrowseByGenre": "Огляд за жанрами",
+  "@libraryBrowseByGenre": {
+    "context": "Music Library",
+    "description": "Discover section title: a grid of music genres to open.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "settingLibraryTextScaleDescription": "Розмір назв, імен і підписів у бібліотеці.",
+  "@settingLibraryTextScaleDescription": {
+    "context": "Music Library",
+    "description": "Setting description under Text scale, a percentage slider.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkTitle": "Квадратні обкладинки",
+  "@settingLibrarySquareArtworkTitle": {
+    "context": "Music Library",
+    "description": "Setting label: show artists in square tiles instead of circles.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkDescription": "Показує виконавців квадратними плитками, як альбоми та плейлисти.",
+  "@settingLibrarySquareArtworkDescription": {
+    "context": "Music Library",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityTitle": "Щільність сітки",
+  "@settingLibraryGridDensityTitle": {
+    "context": "Music Library",
+    "description": "Setting label: how large the tiles in the library's grids are.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityDescription": "Розмір плиток у бібліотеці. Компактна вміщує більше в ряд.",
+  "@settingLibraryGridDensityDescription": {
+    "context": "Music Library",
+    "description": "Setting description. Compact is one of the options.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityComfortable": "Простора",
+  "@libraryDensityComfortable": {
+    "context": "Music Library",
+    "description": "Grid density option: larger tiles, fewer in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityStandard": "Стандартна",
+  "@libraryDensityStandard": {
+    "context": "Music Library",
+    "description": "Grid density option: the default tile size.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityCompact": "Компактна",
+  "@libraryDensityCompact": {
+    "context": "Music Library",
+    "description": "Grid density option: smaller tiles, more in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
   "libraryMoreResults": "Інші результати",
   "@libraryMoreResults": {
     "context": "Music Library",
@@ -13599,6 +13801,25 @@
       ]
     }
   },
+  "pluginNeedsAppVersion": "Потрібна версія Kiosk Satellite {version} або новіша",
+  "@pluginNeedsAppVersion": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Shown on a listed plugin whose newest release needs a newer Kiosk Satellite than this kiosk runs.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "2026.10.40"
+      }
+    }
+  },
   "pluginStars": "Зірки",
   "@pluginStars": {
     "context": "Settings > Plugin Manager > Browse plugins",
@@ -15560,6 +15781,29 @@
       }
     }
   },
+  "pluginErrorAppVersion": "Плагін потребує Kiosk Satellite версії {required} або новішої. На цьому кіоску встановлено {current}.",
+  "@pluginErrorAppVersion": {
+    "context": "Settings > Plugin Manager > Add plugin, preview or install",
+    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ],
+      "remoteAdmin": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ]
+    },
+    "placeholders": {
+      "required": {
+        "type": "String",
+        "example": "2026.10.40"
+      },
+      "current": {
+        "type": "String",
+        "example": "2026.10.36"
+      }
+    }
+  },
   "pluginErrorInvalidField": "Недійсне поле {field}",
   "@pluginErrorInvalidField": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -16298,8 +16542,8 @@
       ]
     }
   },
-  "overviewSystemUpdateHelp": "Версія {version} образу Echo Dot готова до встановлення. Для цього Dot двічі перезапуститься.",
-  "@overviewSystemUpdateHelp": {
+  "overviewSystemImageUpdateHelp": "Версія {version} образу системи готова до встановлення. Для цього пристрій двічі перезапуститься.",
+  "@overviewSystemImageUpdateHelp": {
     "context": "Remote admin > Overview > Needs attention",
     "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
     "x-locations": {
@@ -16311,7 +16555,7 @@
     "placeholders": {
       "version": {
         "type": "String",
-        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+        "description": "Release of the device's system image, such as 2026.10.4."
       }
     }
   },
@@ -18050,29 +18294,29 @@
       ]
     }
   },
-  "settingLauncherAutoReturnMediaTitle": "Чекати під час відтворення",
-  "@settingLauncherAutoReturnMediaTitle": {
+  "settingLauncherAutoReturnHoldTitle": "Чекати під час відтворення та дзвінків",
+  "@settingLauncherAutoReturnHoldTitle": {
     "context": "Settings > App Launcher",
     "description": "Setting label.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
-  "settingLauncherAutoReturnMediaDescription": "Не повертатися, поки відтворюється відео або музика.",
-  "@settingLauncherAutoReturnMediaDescription": {
+  "settingLauncherAutoReturnHoldDescription": "Не повертатися під час відео, музики або дзвінків.",
+  "@settingLauncherAutoReturnHoldDescription": {
     "context": "Settings > App Launcher",
     "description": "Help below this setting.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
@@ -27384,6 +27628,240 @@
   "@deviceThemeSystem": {
     "context": "Settings:Device:User Interface",
     "description": "Label or explanation on this Device settings page.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenTitle": "Показувати системні спливні повідомлення",
+  "@settingUiToastsHiddenTitle": {
+    "context": "Settings:Device:User Interface",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenDescription": "Виберіть, які спливні повідомлення з'являються поверх панелі. Повідомлення в налаштуваннях з'являються завжди.",
+  "@settingUiToastsHiddenDescription": {
+    "context": "Settings:Device:User Interface",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsAll": "Усі",
+  "@deviceToastsAll": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast shows.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsNone": "Жодних",
+  "@deviceToastsNone": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast is turned off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastBack": "Підказки кнопки «Назад»",
+  "@deviceToastBack": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the hint to press back again.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastGestures": "Дії жестів",
+  "@deviceToastGestures": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the outcome of a gesture's Home Assistant action.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastHoldMode": "Режим утримання",
+  "@deviceToastHoldMode": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Hold mode turning on or off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastLinks": "Посилання на панелі",
+  "@deviceToastLinks": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: kiosk and app links on the dashboard that fail.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastDownloads": "Завантаження",
+  "@deviceToastDownloads": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: file downloads from the dashboard.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastNetwork": "Стан мережі",
+  "@deviceToastNetwork": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the pill that says the network is gone or back.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastUpdates": "Перевірка оновлень",
+  "@deviceToastUpdates": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: checking for updates from the kiosk menu.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastVoice": "Повідомлення Voice Satellite",
+  "@deviceToastVoice": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Voice Satellite errors, warnings and notices.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastTimers": "Таймери",
+  "@deviceToastTimers": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: voice timer pills.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAlarms": "Будильники",
+  "@deviceToastAlarms": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Alarms panel.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastMusicLibrary": "Музична бібліотека",
+  "@deviceToastMusicLibrary": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Music Library.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastIntercom": "Інтерком",
+  "@deviceToastIntercom": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Intercom calls.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAppLauncher": "Лаунчер застосунків",
+  "@deviceToastAppLauncher": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: apps opened from the App Launcher.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastPlugins": "Дії плагінів",
+  "@deviceToastPlugins": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: plugin actions in the kiosk menu.",
     "x-locations": {
       "device": [
         "Settings > Device > User Interface"
@@ -50203,6 +50681,58 @@
       ]
     }
   },
+  "voiceSkin1": "Оформлення Асистента 1",
+  "@voiceSkin1": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin1Help": "Вигляд накладення, коли відповідає Асистент 1.",
+  "@voiceSkin1Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2": "Оформлення Асистента 2",
+  "@voiceSkin2": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2Help": "Вигляд накладення, коли відповідає Асистент 2.",
+  "@voiceSkin2Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
   "voiceTheme": "Тема",
   "@voiceTheme": {
     "context": "Settings > Voice Satellite > Appearance",
@@ -52090,6 +52620,16 @@
     "context": "Settings > Voice Satellite > Realtime",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Чутливість перебивання",
+  "@settingVoiceRealtimeTalkOverSensitivityTitle": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Наскільки легко голос перебиває відповідь. Підвищте її, якщо перебити не вдається через тихий мікрофон. Вищі значення можуть змусити асистента перебивати самого себе.",
+  "@settingVoiceRealtimeTalkOverSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
   "settingVoiceRealtimeToolsTitle": "Інструменти",
   "@settingVoiceRealtimeToolsTitle": {
     "context": "Settings > Voice Satellite > Realtime",
@@ -53286,6 +53826,16 @@
   },
   "settingVoiceWakeWordSensitivityDescription": "Наскільки легко спрацьовує слово активації.",
   "@settingVoiceWakeWordSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneTitle": "Точне налаштування чутливості",
+  "@settingVoiceWakeWordFineTuneTitle": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneDescription": "Змінює чутливість слова активації меншими кроками. Підвищте її, якщо часто доводиться повторювати слово активації, і знизьте, якщо воно спрацьовує помилково.",
+  "@settingVoiceWakeWordFineTuneDescription": {
     "context": "Settings > Voice Satellite > Wake Word",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
@@ -54751,6 +55301,30 @@
     "x-locations": {
       "device": [
         "First-time setup > Connect > Scan token QR code"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOff": "Вимкнути підсвічування екраном",
+  "@setupQrScreenLightOff": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is on. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOn": "Увімкнути підсвічування екраном",
+  "@setupQrScreenLightOn": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is off. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
       ],
       "remoteAdmin": []
     }

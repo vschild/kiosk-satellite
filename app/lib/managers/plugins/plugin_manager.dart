@@ -138,6 +138,10 @@ class PluginManager extends Manager implements FleetPluginHost {
 
   final PluginRepository repository;
   final PluginDirectory directory;
+
+  /// The running Kiosk Satellite release, which Browse plugins compares
+  /// with each listed plugin's minAppVersion.
+  String Function() appVersion = () => '';
   List<Map<String, Object?>> _entities = [];
   final _runtimeEntities = <String, List<Map<String, Object?>>>{};
   static const maxZipBytes = PluginRepository.maxPackageBytes;
@@ -946,7 +950,11 @@ class PluginManager extends Manager implements FleetPluginHost {
         for (final entry in data['plugins'] as List)
           {
             ...entry as Map<String, Object?>,
-            ...PluginDirectory.installStatus(entry, byId[entry['id']]),
+            ...PluginDirectory.installStatus(
+              entry,
+              byId[entry['id']],
+              appVersion: appVersion(),
+            ),
           },
       ],
     };

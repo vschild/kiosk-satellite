@@ -762,6 +762,40 @@ void main() {
     );
   });
 
+  test('the Music Library reads as picks and ranges', () async {
+    await build({
+      'ks.library.source': 'sonos',
+      'ks.library.menu': false,
+      'ks.library.grid_density': 'compact',
+    }, firstDelay: const Duration(days: 1));
+    await UsageCounters.bump(settings, 'library_opens');
+    for (var i = 0; i < 6; i++) {
+      await UsageCounters.bump(settings, 'library_plays_sonos');
+    }
+    await UsageCounters.bump(settings, 'queue_edits');
+    expect(await analytics.sendSnapshot(force: true), isTrue);
+    var u = bodyOf(sent.single)['usage'] as Map;
+    expect(u['library_source'], 'sonos');
+    expect(u['library_menu'], isFalse);
+    expect(u['library_now_playing_button'], isTrue);
+    expect(u['library_kiosk_allowed'], isTrue);
+    expect(u['library_idle_close_minutes'], '2');
+    expect(u['library_grid_density'], 'compact');
+    expect(u['library_text_scale'], 100);
+    expect(u['library_opens'], '1-5');
+    expect(u['library_plays_sonos'], '6-20');
+    expect(u['library_plays_ma'], '0');
+    expect(u['queue_edits'], '1-5');
+    expect(u['library_voice_requests'], '0');
+    // Sent: the counts start over. No source picked reads as auto.
+    await settings.set(defs.librarySource, '');
+    sent.clear();
+    expect(await analytics.sendSnapshot(force: true), isTrue);
+    u = bodyOf(sent.single)['usage'] as Map;
+    expect(u['library_plays_sonos'], '0');
+    expect(u['library_source'], 'auto');
+  });
+
   test('alarms read as counts and picks, never as times or labels', () async {
     await build({
       'ks.alarms.list': jsonEncode([

@@ -7,6 +7,6 @@
   "settingLauncherAutoReturnDescription": "Повертатися до кіоска, якщо інший застосунок певний час не використовується.",
   "settingLauncherAutoReturnSecondsTitle": "Повертатися через (секунд)",
   "settingLauncherAutoReturnSecondsDescription": "Час без взаємодії в іншому застосунку до повернення кіоска.",
-  "settingLauncherAutoReturnMediaTitle": "Чекати під час відтворення",
-  "settingLauncherAutoReturnMediaDescription": "Не повертатися, поки відтворюється відео або музика."
+  "settingLauncherAutoReturnHoldTitle": "Чекати під час відтворення та дзвінків",
+  "settingLauncherAutoReturnHoldDescription": "Не повертатися під час відео, музики або дзвінків."
 }

@@ -23,5 +23,5 @@
   "overviewOpenService": "Dienst öffnen",
   "overviewPermissionMissing": "Berechtigung fehlt: {permission}",
   "overviewSystemUpdate": "Systemupdate verfügbar",
-  "overviewSystemUpdateHelp": "Version {version} des Echo-Dot-Images ist bereit zur Installation. Der Dot startet dafür zweimal neu."
+  "overviewSystemImageUpdateHelp": "Version {version} des System-Images ist bereit zur Installation. Das Gerät startet dafür zweimal neu."
 }

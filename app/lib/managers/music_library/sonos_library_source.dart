@@ -98,6 +98,8 @@ class SonosLibrarySource extends LibrarySource {
     LibraryCategory category, {
     int offset = 0,
     bool favorites = false,
+    LibrarySort? sort,
+    bool albumArtists = false,
   }) async {
     final id = _containers[category.key];
     if (id == null) return LibraryPage.empty;

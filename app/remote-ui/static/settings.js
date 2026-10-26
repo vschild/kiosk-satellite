@@ -848,7 +848,7 @@ async function renderSettings({ cached = false } = {}) {
     // the toggles in place rather than through a re-render, the same as
     // the device page.
     {
-      // Wait while media plays reads other apps' media sessions (issue
+      // Wait during media and calls reads other apps' media sessions (issue
       // #1055), which Android shows to no one without Notification access.
       const mediaRow = permRow('Notification access',
         'The kiosk stays away while video or music plays in another app.',

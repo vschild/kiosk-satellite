@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "Le moteur qui écoute. Tous les modèles sont fournis avec l'application.",
   "settingVoiceWakeWordSensitivityTitle": "Sensibilité du mot de réveil",
   "settingVoiceWakeWordSensitivityDescription": "La facilité avec laquelle le mot de réveil se déclenche.",
+  "settingVoiceWakeWordFineTuneTitle": "Réglage fin de la sensibilité",
+  "settingVoiceWakeWordFineTuneDescription": "Ajuste la sensibilité du mot de réveil par petits pas. Augmentez-la si vous devez souvent répéter le mot de réveil, baissez-la s'il se déclenche par erreur.",
   "settingVoiceNoiseGateTitle": "Porte de bruit du mot de réveil",
   "settingVoiceNoiseGateDescription": "Ignore la détection du mot de réveil tant que la pièce est calme, ce qui économise le processeur.",
   "settingVoiceStopWordTitle": "Interruption par mot d'arrêt",

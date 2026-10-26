@@ -23,6 +23,8 @@ Here is what enabling looks like per device:
 | Android 7 to 9 | The system's home settings open automatically so you can pick Kiosk Satellite. |
 | Amazon Fire tablets | Not supported: Fire OS strictly forbids replacing its launcher. The switches will not appear on a Fire tablet; the page simply explains why. |
 
+A fresh install on the [Echo Show images](https://github.com/jxlarrea/lineageos-echo-kiosk-satellite) turns the switch on by itself and takes the role silently as the device owner. Android 11 takes the microphone away from an app in the background, and the home screen is what comes back whenever another app took over the screen. An upgrade, a restored backup or an imported configuration keeps the value it had.
+
 While the switch is off, Kiosk Satellite has zero home screen footprint. It will not appear in any launcher chooser or default apps list.
 
 ## What Changes While It Holds

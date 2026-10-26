@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "Який рушій слухає. Усі моделі постачаються разом із застосунком.",
   "settingVoiceWakeWordSensitivityTitle": "Чутливість слова активації",
   "settingVoiceWakeWordSensitivityDescription": "Наскільки легко спрацьовує слово активації.",
+  "settingVoiceWakeWordFineTuneTitle": "Точне налаштування чутливості",
+  "settingVoiceWakeWordFineTuneDescription": "Змінює чутливість слова активації меншими кроками. Підвищте її, якщо часто доводиться повторювати слово активації, і знизьте, якщо воно спрацьовує помилково.",
   "settingVoiceNoiseGateTitle": "Шумовий поріг слова активації",
   "settingVoiceNoiseGateDescription": "Пропускає розпізнавання слова активації, поки в кімнаті тихо, заощаджуючи процесор.",
   "settingVoiceStopWordTitle": "Переривання стоп-словом",

@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../app_container.dart';
+import '../core/events.dart';
 import '../l10n/messages.dart';
+import '../managers/settings/definitions.dart' as defs;
 import 'theme.dart';
+import 'toast.dart';
 
 /// What the kiosk shows instead of Chromium's error page.
 ///
@@ -64,11 +67,16 @@ class _NetworkToastState extends State<NetworkToast> {
   bool _visible = false;
   bool _wasOffline = false;
   Timer? _hide;
+  StreamSubscription<SettingChanged>? _settingsSub;
 
   @override
   void initState() {
     super.initState();
     widget.container.device.networkUp.addListener(_onNetworkChanged);
+    // Network status turned off takes down a pill already up.
+    _settingsSub = widget.container.bus.on<SettingChanged>().listen((e) {
+      if (e.key == defs.uiToastsHidden.key && mounted) setState(() {});
+    });
     // An app that started during the outage was never told about it: the
     // state was already false before anything was listening.
     _wasOffline = !widget.container.device.networkUp.value;
@@ -78,6 +86,7 @@ class _NetworkToastState extends State<NetworkToast> {
   @override
   void dispose() {
     _hide?.cancel();
+    _settingsSub?.cancel();
     widget.container.device.networkUp.removeListener(_onNetworkChanged);
     super.dispose();
   }
@@ -108,6 +117,7 @@ class _NetworkToastState extends State<NetworkToast> {
 
   @override
   Widget build(BuildContext context) {
+    if (!toastShown('network')) return const SizedBox.shrink();
     final colors = Theme.of(context).colorScheme;
     final offline = !widget.container.device.networkUp.value;
     return IgnorePointer(

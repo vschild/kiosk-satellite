@@ -38,6 +38,8 @@
   "settingVoiceRealtimeHistoryHoursDescription": "Сказанное в это время переносится в следующий разговор.",
   "settingVoiceRealtimeTalkOverTitle": "Перебивать ответы",
   "settingVoiceRealtimeTalkOverDescription": "Прерывать ответ, начав говорить. Выключите, если ассистент перебивает сам себя.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Чувствительность перебивания",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Насколько легко голос прерывает ответ. Повысьте, если перебить не получается из-за тихого микрофона. Высокие значения могут заставить ассистента перебивать самого себя.",
   "settingVoiceRealtimeToolsTitle": "Инструменты",
   "settingVoiceRealtimeToolsDescription": "Чем ассистент может управлять. Home Assistant использует свою интеграцию MCP Server и сущности, предоставленные Assist.",
   "settingVoiceRealtimeMcpUrlTitle": "URL сервера MCP",

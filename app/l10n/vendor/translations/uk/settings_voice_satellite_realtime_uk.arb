@@ -37,6 +37,8 @@
   "settingVoiceRealtimeModelDescription": "Модель «мовлення в мовлення», яка відповідає.",
   "settingVoiceRealtimeTalkOverTitle": "Перебивати відповіді",
   "settingVoiceRealtimeTalkOverDescription": "Перебивайте відповідь голосом. Вимкніть, якщо асистент перебиває сам себе.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Чутливість перебивання",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Наскільки легко голос перебиває відповідь. Підвищте її, якщо перебити не вдається через тихий мікрофон. Вищі значення можуть змусити асистента перебивати самого себе.",
   "settingVoiceRealtimeToolsTitle": "Інструменти",
   "settingVoiceRealtimeToolsDescription": "Чим асистент може керувати. Home Assistant використовує свою інтеграцію MCP Server і сутності, відкриті для Assist.",
   "settingVoiceRealtimeVoiceTitle": "Голос",

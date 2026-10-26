@@ -82,6 +82,8 @@ class MaPluginSocket {
     }
     return command == 'info' ||
         command == 'providers' ||
+        command == 'providers/manifests' ||
+        command == 'providers/icon' ||
         const [
           'players/',
           'player_queues/',
@@ -104,6 +106,12 @@ class MaPluginSocket {
   /// The server's opening frame on the current connection: server_id,
   /// server_version, schema_version, name and the rest.
   Map<String, Object?> get serverInfo => _session?.serverInfo ?? const {};
+
+  /// The preferences of the token's user, as sign-in last handed them
+  /// over: what Music Assistant's own pages saved, the Discover layout
+  /// among them. Read again on every connect. Never handed to plugins.
+  Map<String, Object?> get userPreferences => _preferences;
+  Map<String, Object?> _preferences = const {};
 
   /// The owner of each call in flight, so a session's end fails them at
   /// once.
@@ -294,7 +302,16 @@ class MaPluginSocket {
       _socket = socket;
       _client = client;
       try {
-        await session.send('auth', {'token': key}, timeout: callTimeout);
+        final auth = await session.send('auth', {
+          'token': key,
+        }, timeout: callTimeout);
+        final user = auth is Map ? auth['user'] : null;
+        final preferences = user is Map ? user['preferences'] : null;
+        if (generation == _generation) {
+          _preferences = preferences is Map
+              ? preferences.cast<String, Object?>()
+              : const {};
+        }
       } on MusicAssistantError catch (e) {
         // A refusal carries Music Assistant's error code. A closed
         // connection does not.

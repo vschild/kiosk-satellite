@@ -358,6 +358,11 @@ class DeviceManager extends Manager {
       bus.publish(const ActivityAttached());
     };
 
+    BackgroundListening.onDeviceOwnerChanged = () {
+      log.info(name, 'device owner changed');
+      bus.publish(const DeviceOwnerChanged());
+    };
+
     // Default-network transitions from the platform side. The registration
     // replay (network already up at app start) arrives flagged initial and
     // is dropped here, so an `up` on the bus always means an outage ended.

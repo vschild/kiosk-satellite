@@ -16,8 +16,6 @@ abstract final class Headless {
 
   static bool _pryon = false;
 
-  static bool _systemUpdate = false;
-
   static bool get active => _active;
 
   /// Whether the ROM lets the kiosk claim the volume buttons, so they can
@@ -29,10 +27,6 @@ abstract final class Headless {
   /// (PryonCatalog). Only on a device without a screen.
   static bool get pryon => _pryon;
 
-  /// Whether the ROM updates itself from its GitHub releases
-  /// (SystemUpdateManager). Only on a device without a screen.
-  static bool get systemUpdate => _systemUpdate;
-
   static Future<void> detect() async {
     try {
       _active = await _channel.invokeMethod<bool>('isHeadless') ?? false;
@@ -40,8 +34,6 @@ abstract final class Headless {
         _volumeClaim =
             await _channel.invokeMethod<bool>('volumeClaim') ?? false;
         _pryon = await _channel.invokeMethod<bool>('pryon') ?? false;
-        _systemUpdate =
-            await _channel.invokeMethod<bool>('systemUpdate') ?? false;
       }
     } catch (_) {
       // No native side (a test): a device with a screen.
@@ -56,7 +48,4 @@ abstract final class Headless {
 
   /// Tests only.
   static set debugPryon(bool value) => _pryon = value;
-
-  /// Tests only.
-  static set debugSystemUpdate(bool value) => _systemUpdate = value;
 }

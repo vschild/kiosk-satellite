@@ -36,6 +36,13 @@ class ActivityAttached extends AppEvent {
   const ActivityAttached();
 }
 
+/// The device owner was set or cleared while the app runs. An Echo image's
+/// installer can make the kiosk the device owner after its first start,
+/// and the home role and the real Wi-Fi address wait for it.
+class DeviceOwnerChanged extends AppEvent {
+  const DeviceOwnerChanged();
+}
+
 class ScreenStateChanged extends AppEvent {
   const ScreenStateChanged({required this.on, this.source = 'system'});
   final bool on;

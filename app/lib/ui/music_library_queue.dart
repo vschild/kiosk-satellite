@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -6,7 +7,7 @@ import '../app_container.dart';
 import '../l10n/messages.dart';
 import '../managers/music_library/library_model.dart';
 import 'kit.dart';
-import 'music_library_overlay.dart' show LibraryArt;
+import 'music_library_overlay.dart' show LibraryArt, LibraryMenuText;
 import 'toast.dart';
 
 /// The queue of the player the library plays on, to manage rather than
@@ -95,6 +96,7 @@ class _LibraryQueuePanelState extends State<LibraryQueuePanel> {
     if (!ok) {
       showToast(
         context,
+        source: 'music_library',
         title: l10n(context).libraryQueueFailed,
         kind: ToastKind.error,
       );
@@ -162,12 +164,15 @@ class _LibraryQueuePanelState extends State<LibraryQueuePanel> {
           for (final (icon, label, run) in actions)
             PopupMenuItem(
               value: run,
-              child: Row(
-                children: [
-                  Icon(icon, size: 22),
-                  const SizedBox(width: 14),
-                  Text(label),
-                ],
+              child: LibraryMenuText(
+                container: c,
+                child: Row(
+                  children: [
+                    Icon(icon),
+                    const SizedBox(width: 14),
+                    Text(label),
+                  ],
+                ),
               ),
             ),
         ],
@@ -387,7 +392,8 @@ class _QueueRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: SizedBox(
-          height: 60,
+          // Taller with Text scale, so the rows keep their breathing room.
+          height: math.max(60, MediaQuery.textScalerOf(context).scale(60)),
           child: Row(
             children: [
               handle ?? const SizedBox(width: 16),

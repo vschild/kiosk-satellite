@@ -89,6 +89,7 @@ class BtProxyManager extends Manager {
 
   StreamSubscription<SettingChanged>? _settingsSub;
   StreamSubscription<ShizukuStateChanged>? _shizukuSub;
+  StreamSubscription<DeviceOwnerChanged>? _ownerSub;
   StreamSubscription<HaEventRequested>? _eventSub;
   Timer? _restartDebounce;
   Future<void> _transition = Future.value();
@@ -120,6 +121,10 @@ class BtProxyManager extends Manager {
   /// so a remote admin settings change that leaves it as it is does not
   /// restart the server.
   int _liveWebserverPort = 0;
+
+  /// The real Wi-Fi address the running server reports, or null for the
+  /// generated identity.
+  String? _liveMac;
   late final EspEntitySurface _entities = EspEntitySurface(
     bus,
     commands,
@@ -349,6 +354,14 @@ class BtProxyManager extends Manager {
     // catalog was served, or a Shizuku that stopped, changes what exists,
     // and only a restart re-lists it. Asked rather than assumed, so a
     // device owner's catalog never restarts over Shizuku.
+    // Only the device owner can read the real Wi-Fi address. Becoming it
+    // after the server started (an Echo image's installer) moves the
+    // server to the real address once, and the adoption keeps it there.
+    _ownerSub = bus.on<DeviceOwnerChanged>().listen((_) async {
+      if (!_running || !_settings.get(defs.esphomeRealMac)) return;
+      final mac = await adoptedWifiMac(_settings);
+      if (_running && mac != null && mac != _liveMac) _scheduleRestart();
+    });
     _shizukuSub = bus.on<ShizukuStateChanged>().listen((_) async {
       if (!_running) return;
       final support = await commands.execute(
@@ -617,6 +630,8 @@ class BtProxyManager extends Manager {
     _settingsSub = null;
     await _shizukuSub?.cancel();
     _shizukuSub = null;
+    await _ownerSub?.cancel();
+    _ownerSub = null;
     await _eventSub?.cancel();
     _eventSub = null;
     await _stop();
@@ -773,6 +788,7 @@ class BtProxyManager extends Manager {
       _running = true;
       _startError = null;
       _liveWebserverPort = webserverPort;
+      _liveMac = realMac;
       // Whatever name the server came up under is written back, so the
       // settings row shows the real one instead of a placeholder and the
       // next start reads it from there. Identical writes are ignored by

@@ -2161,6 +2161,101 @@ void main() {
     expect(fleet.defaultProfile.credentials, isEmpty);
   });
 
+  test('a profile from before the intercom gains its key where the default '
+      'credentials were never touched (issue #1156)', () async {
+    const realtime = [
+      'voice.realtime_openai_api_key',
+      'voice.realtime_xai_api_key',
+      'voice.realtime_mcp_token',
+    ];
+    await build(
+      prefs: {
+        'ks.fleet.leader': true,
+        'ks.fleet.profiles': jsonEncode([
+          // Saved before the realtime keys: the upgrade adds them too.
+          {
+            'id': 'default',
+            'name': 'Default',
+            'categories': ['Voice Satellite'],
+            'credentials': ['sendspin.ma_token', 'screensaver.immich_api_key'],
+            'dashboard': false,
+            'excluded': [],
+          },
+          // Saved by the realtime upgrade, which already offered the key.
+          {
+            'id': 'upgraded',
+            'name': 'Upgraded',
+            'categories': ['Voice Satellite'],
+            'credentials': [
+              'sendspin.ma_token',
+              'screensaver.immich_api_key',
+              ...realtime,
+            ],
+            'credentialsOffered': defs.fleetCredentialKeys.toList(),
+            'dashboard': false,
+            'excluded': [],
+          },
+          // A list someone edited is theirs.
+          {
+            'id': 'edited',
+            'name': 'Edited',
+            'categories': ['Gestures'],
+            'credentials': ['sendspin.ma_token'],
+            'credentialsOffered': defs.fleetCredentialKeys.toList(),
+            'dashboard': false,
+            'excluded': [],
+          },
+        ]),
+      },
+    );
+    final byId = {for (final p in fleet.profiles) p.id: p};
+    expect(byId['default']!.credentials, {
+      ...defs.fleetDefaultCredentials,
+      ...realtime,
+    });
+    expect(byId['upgraded']!.credentials, {
+      ...defs.fleetDefaultCredentials,
+      ...realtime,
+    });
+    expect(byId['edited']!.credentials, {'sendspin.ma_token'});
+    final stored = jsonDecode(settings.get(defs.fleetProfiles)) as List;
+    for (final p in stored) {
+      expect(
+        ((p as Map)['credentialsDefault'] as List).toSet(),
+        defs.fleetDefaultCredentials,
+      );
+    }
+    // Switched off now, the key stays off on the next load.
+    final off = await commands.execute('fleetSetProfile', {
+      'profile': {
+        ...byId['default']!.toJson(),
+        'credentials': ['sendspin.ma_token', 'screensaver.immich_api_key'],
+      },
+    });
+    expect(off.ok, isTrue);
+    await fleet.dispose();
+    await build(
+      prefs: {
+        'ks.fleet.leader': true,
+        'ks.fleet.profiles': settings.get(defs.fleetProfiles),
+      },
+    );
+    expect(fleet.defaultProfile.credentials, {
+      'sendspin.ma_token',
+      'screensaver.immich_api_key',
+    });
+  });
+
+  test('the recorded former default credentials lead to the current one', () {
+    var previous = <String>{};
+    for (final former in defs.fleetFormerDefaultCredentials) {
+      expect(former, isNot(equals(defs.fleetDefaultCredentials)));
+      expect(defs.fleetDefaultCredentials.containsAll(former), isTrue);
+      expect(former.containsAll(previous), isTrue);
+      previous = former;
+    }
+  });
+
   test('the brightness curve travels as one: its middle points go where '
       'Minimum brightness goes', () {
     final mids = [

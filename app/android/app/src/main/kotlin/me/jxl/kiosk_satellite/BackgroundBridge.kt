@@ -434,6 +434,18 @@ class BackgroundBridge(
                         result.success(watching)
                     }
                 }
+                // Whether another app holds a call (issue #1155): VoIP apps
+                // like Zoom put the audio mode in communication for the
+                // whole call. This app never sets the mode, so the answer
+                // is always someone else's.
+                "inCall" -> {
+                    val audio = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                    val mode = audio.mode
+                    result.success(
+                        mode == android.media.AudioManager.MODE_IN_COMMUNICATION ||
+                            mode == android.media.AudioManager.MODE_IN_CALL,
+                    )
+                }
                 "requestBringToFront" -> {
                     result.success(startSettings(overlayIntent()))
                 }
@@ -450,9 +462,6 @@ class BackgroundBridge(
                     Headless.active(context) && Headless.volumeClaim,
                 )
                 "pryon" -> result.success(Headless.active(context) && Headless.pryon)
-                "systemUpdate" -> result.success(
-                    Headless.active(context) && Headless.systemUpdate,
-                )
                 "bringToFront" -> result.success(bringToFront())
                 "isBehindAnotherApp" -> result.success(!ActivityState.frontmost)
                 // "Screen on" from the admin or the screensaver: light a
@@ -597,6 +606,15 @@ class BackgroundBridge(
         }
     }
 
+    // The device owner set or cleared while the app runs, by an image's
+    // installer that got to it after the first start. The home role and
+    // the real Wi-Fi address both wait for it.
+    private val ownerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            channel.invokeMethod("deviceOwnerChanged", null)
+        }
+    }
+
     // Default-network transitions, pushed to Dart so a manager holding a
     // dead connection retries NOW instead of waiting out its own timers
     // (a stale HA page after an offline boot, the glance socket).
@@ -701,6 +719,13 @@ class BackgroundBridge(
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
             },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        // A protected system broadcast. API 26 and up, never sent before.
+        ContextCompat.registerReceiver(
+            context,
+            ownerReceiver,
+            IntentFilter(DevicePolicyManager.ACTION_DEVICE_OWNER_CHANGED),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         try {
@@ -1308,6 +1333,10 @@ class BackgroundBridge(
         }
         try {
             context.unregisterReceiver(alarmReceiver)
+        } catch (_: Exception) {
+        }
+        try {
+            context.unregisterReceiver(ownerReceiver)
         } catch (_: Exception) {
         }
         try {

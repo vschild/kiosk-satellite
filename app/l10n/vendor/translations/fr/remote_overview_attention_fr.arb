@@ -23,5 +23,5 @@
   "overviewOpenService": "Ouvrir le service",
   "overviewPermissionMissing": "Autorisation manquante : {permission}",
   "overviewSystemUpdate": "Mise à jour du système disponible",
-  "overviewSystemUpdateHelp": "La version {version} de l'image de l'Echo Dot est prête à être installée. Le Dot redémarre deux fois pour l'installer."
+  "overviewSystemImageUpdateHelp": "La version {version} de l'image système est prête à être installée. L'appareil redémarre deux fois pour l'installer."
 }

@@ -43,6 +43,12 @@ class PluginManifest(val json: JSONObject) {
         require(value is String && PluginPackage.validAssetPath(value) && value.lowercase().endsWith(".png")) { "Invalid icon" }
         value
     }
+    /** The oldest Kiosk Satellite release the plugin works on, such as 2026.10.40, or null for any release with SDK 1. */
+    val minAppVersion: String? = json.opt("minAppVersion").let { value ->
+        if (value == null) return@let null
+        require(value is String && value.matches(APP_VERSION)) { "Invalid minAppVersion" }
+        value
+    }
     /** Overlays and screensavers are all a device without a screen would load such a plugin for, unless it says otherwise. */
     val needsScreen get() = !headless && ("overlay" in capabilities || "screensaver" in capabilities)
 
@@ -455,6 +461,20 @@ class PluginManifest(val json: JSONObject) {
         val TEXT_TYPES = setOf("string", "entity", "icon", "dashboard", "cameraView")
         /** Stands in for a saved secret, the same marker core password settings use. */
         const val SECRET_SET = "__set__"
+        /** A Kiosk Satellite release: year, month and the release within the month, without padding. */
+        private val APP_VERSION = Regex("[0-9]{4}\\.(?:[1-9]|1[0-2])\\.(?:0|[1-9][0-9]{0,3})")
+
+        /**
+         * Whether the running release [current], such as 2026.10.39 or a
+         * build of it, is [required] or newer. A version that is not a
+         * release, such as a local build's, never holds a plugin back.
+         */
+        fun appVersionAtLeast(current: String, required: String): Boolean {
+            val running = Regex("^([0-9]+)\\.([0-9]+)\\.([0-9]+)").find(current)?.groupValues?.drop(1)?.map { it.toLong() } ?: return true
+            val needed = required.split('.').map { it.toLong() }
+            for (i in 0 until 3) if (running[i] != needed[i]) return running[i] > needed[i]
+            return true
+        }
 
         fun text(json: JSONObject, key: String, limit: Int): String {
             val value = json.get(key)

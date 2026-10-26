@@ -140,6 +140,67 @@ void main() {
     expect(find.text('No plugins match your search.'), findsOneWidget);
   });
 
+  testWidgets('holds back a release that needs a newer Kiosk Satellite', (
+    tester,
+  ) async {
+    final body = jsonEncode({
+      'schemaVersion': 1,
+      'plugins': [
+        for (final (id, name, version) in [
+          ('newer', 'Newer Clock', '1.0.0'),
+          ('quiet', 'Quiet Clock', '1.1.0'),
+        ])
+          {
+            'id': id,
+            'name': name,
+            'author': 'Alice',
+            'version': version,
+            'minAppVersion': '2026.10.40',
+            'repository': 'https://github.com/alice/$id',
+            'status': 'ok',
+          },
+      ],
+    });
+    final plugins = PluginManager(
+      EventBus(),
+      CommandRegistry(Logger()),
+      Logger(),
+      directory: PluginDirectory(
+        clientFactory: () => MockClient((_) async => http.Response(body, 200)),
+        cacheFile: () async => null,
+      ),
+    )..appVersion = (() => '2026.10.39');
+    plugins.installed.value = [
+      {
+        'id': 'quiet',
+        'name': 'Quiet Clock',
+        'version': '1.0.0',
+        'source': {'repository': 'https://github.com/alice/quiet'},
+      },
+    ];
+    await tester.runAsync(() => plugins.directory.read());
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: PluginDirectoryPanel(plugins: plugins, onOpen: (_) {}),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+    expect(
+      find.text('Needs Kiosk Satellite 2026.10.40 or newer'),
+      findsNWidgets(2),
+    );
+    expect(find.byTooltip('Install'), findsNothing);
+    expect(find.text('Update'), findsNothing);
+    expect(find.text('Installed'), findsOneWidget);
+  });
+
   testWidgets('pages a long list and sorts it', (tester) async {
     final body = jsonEncode({
       'schemaVersion': 1,

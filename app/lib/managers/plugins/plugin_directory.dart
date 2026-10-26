@@ -236,6 +236,7 @@ class PluginDirectory {
     final installs = raw['installs'];
     final capabilities = raw['capabilities'];
     final sha256 = text('sha256', 64);
+    final minAppVersion = text('minAppVersion', 20);
     return {
       'id': id,
       'name': name,
@@ -261,6 +262,10 @@ class PluginDirectory {
       'downloads': count('downloads'),
       'installs': installs is int && installs >= 0 ? installs : null,
       'minAndroidSdk': raw['minAndroidSdk'] is int ? raw['minAndroidSdk'] : 24,
+      'minAppVersion':
+          minAppVersion != null && appVersionPattern.hasMatch(minAppVersion)
+          ? minAppVersion
+          : null,
       'capabilities': capabilities is List
           ? [
               for (final c in capabilities.take(20))
@@ -273,15 +278,46 @@ class PluginDirectory {
     };
   }
 
+  /// A Kiosk Satellite release, the way a manifest's minAppVersion names it.
+  static final appVersionPattern = RegExp(
+    r'^[0-9]{4}\.(?:[1-9]|1[0-2])\.(?:0|[1-9][0-9]{0,3})$',
+  );
+
+  /// Whether the running release [current], such as 2026.10.39 or a build
+  /// of it, is [required] or newer. A version that is not a release, such
+  /// as a local build's, never holds a plugin back. PluginManifest.kt
+  /// decides the same way at install.
+  static bool appVersionAtLeast(String current, String required) {
+    final running = RegExp(
+      r'^([0-9]+)\.([0-9]+)\.([0-9]+)',
+    ).firstMatch(current);
+    if (running == null) return true;
+    final needed = required.split('.').map(int.parse).toList();
+    for (var i = 0; i < 3; i++) {
+      final part = int.parse(running.group(i + 1)!);
+      if (part != needed[i]) return part > needed[i];
+    }
+    return true;
+  }
+
   /// How a listed plugin stands against the installed one with its ID:
   /// installed from this repository, and whether the list knows a newer
   /// release. A plugin with the same ID from elsewhere counts as installed
-  /// but never offers that update.
+  /// but never offers that update. A release that needs a newer
+  /// [appVersion] is neither offered to install nor as an update, and
+  /// `needsAppVersion` names the release it needs.
   static Map<String, Object?> installStatus(
     Map<String, Object?> entry,
-    Map<String, Object?>? plugin,
-  ) {
-    if (plugin == null) return const {'installed': false};
+    Map<String, Object?>? plugin, {
+    String appVersion = '',
+  }) {
+    final required = entry['minAppVersion'];
+    final needs = required is String && !appVersionAtLeast(appVersion, required)
+        ? required
+        : null;
+    if (plugin == null) {
+      return {'installed': false, 'needsAppVersion': ?needs};
+    }
     final source = plugin['source'];
     String? repository;
     try {
@@ -313,7 +349,8 @@ class PluginDirectory {
       'installed': true,
       'installedVersion': plugin['version'],
       'sameSource': same,
-      'updateAvailable': update,
+      'updateAvailable': update && needs == null,
+      if (update) 'needsAppVersion': ?needs,
     };
   }
 }

@@ -118,6 +118,7 @@ class PluginHostApi {
     'getCameraViews',
     'getDashboards',
     'getSendspinPlayer',
+    'getLauncherApps',
   ];
   static const controlNames = [
     'startScreensaver',
@@ -137,6 +138,7 @@ class PluginHostApi {
     'setWakeWordMuted',
     'showAppLauncher',
     'hideAppLauncher',
+    'launchApp',
     'showOverlayPage',
     'showLinkPage',
     'hideOverlayPage',
@@ -278,6 +280,12 @@ class PluginHostApi {
         return keys({'dashboard'}) && path('dashboard');
       case 'setScreensaverMode':
         return params.length == 1 && text('mode');
+      case 'launchApp':
+        return params.length == 1 &&
+            text('package') &&
+            RegExp(
+              r'^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$',
+            ).hasMatch(params['package'] as String);
       case 'haNavigate':
         return keys({'path'}) && viewPath('path');
       default:
@@ -377,6 +385,7 @@ class PluginHostApi {
       'enabled',
       'running',
       'connected',
+      'playing',
       'clientId',
       'playerName',
       'serverName',
@@ -611,13 +620,15 @@ class PluginHostApi {
           : CommandResult.ok(text).toJson();
     }
     try {
-      if (name == 'getCameraViews' || name == 'getDashboards') {
+      if (name == 'getCameraViews' ||
+          name == 'getDashboards' ||
+          name == 'getLauncherApps') {
         final scoped = commands.as('plugin:${session.id}');
-        final data =
-            await (name == 'getCameraViews'
-                    ? _cameraViews(scoped)
-                    : _dashboards(scoped))
-                .timeout(const Duration(seconds: 8));
+        final data = await (switch (name) {
+          'getCameraViews' => _cameraViews(scoped),
+          'getDashboards' => _dashboards(scoped),
+          _ => _launcherApps(scoped),
+        }).timeout(const Duration(seconds: 8));
         if (_session(args) != session) {
           return const CommandResult.fail(
             'Plugin session is no longer active',
@@ -643,6 +654,7 @@ class PluginHostApi {
               'getVoiceState' => 'voiceStatus',
               'getIntercomState' => 'intercomSensors',
               'getSendspinPlayer' => 'sendspinPlayer',
+              'launchApp' => 'pluginLaunchApp',
               _ => name,
             },
             name == 'screenOff'
@@ -948,6 +960,18 @@ class PluginHostApi {
     ];
   }
 
+  /// The launcher apps this kiosk lets a plugin open, for launchApp.
+  static Future<List<Map<String, Object?>>?> _launcherApps(
+    CommandRegistry commands,
+  ) async {
+    final result = await commands.execute('pluginLauncherApps', const {});
+    if (!result.ok || result.data is! List) return null;
+    return [
+      for (final app in (result.data as List).whereType<Map>())
+        {'package': '${app['package']}', 'label': '${app['label']}'},
+    ];
+  }
+
   /// Home Assistant's dashboards and their views, through the same commands
   /// the dashboard picker reads. Each view's path is what haNavigate takes.
   static Future<List<Map<String, Object?>>?> _dashboards(
@@ -1052,9 +1076,37 @@ class PluginHostApi {
     _ => null,
   };
 
-  /// Whether the Skin setting picks this session's plugin.
-  bool _skinSelected(_HostSession session) =>
-      voice?.settings.get(defs.voiceSkin) == 'plugin:${session.id}';
+  /// Whether this session's plugin draws the overlay: the Skin setting of
+  /// the assistant on screen picks it. While nothing shows, either
+  /// assistant's does.
+  bool _skinSelected(_HostSession session) {
+    final feed = voice;
+    if (feed == null) return false;
+    final id = 'plugin:${session.id}';
+    final view = feed.view.value;
+    if (view.visible) {
+      return feed.settings.get(defs.voiceSkinOf(view.assistant)) == id;
+    }
+    return feed.settings.get(defs.voiceSkin) == id ||
+        feed.settings.get(defs.voiceSkin2) == id;
+  }
+
+  /// Sends voice.skin to each session whose answer changed. Before the
+  /// overlay event of the same change, so a plugin knows it draws by the
+  /// time the overlay shows.
+  void _onVoiceSkin() {
+    for (final session in _sessions.values) {
+      if (!session.subscriptions.contains('voice.skin')) continue;
+      final selected = _skinSelected(session);
+      if (selected == session.skinSelectedSent) continue;
+      session.skinSelectedSent = selected;
+      session.pending['voice.skin'] = {
+        'selected': selected,
+        'time': DateTime.now().toUtc().toIso8601String(),
+      };
+      _schedule(session);
+    }
+  }
 
   /// The turn's words as the overlay would show them: a line whose
   /// Conversation setting is off is empty.
@@ -1087,6 +1139,7 @@ class PluginHostApi {
 
   void _onVoice() {
     _onVoiceLevel();
+    _onVoiceSkin();
     final overlay = _overlay();
     if (overlay != _overlaySent) {
       _overlaySent = overlay;
@@ -1192,15 +1245,8 @@ class PluginHostApi {
       _onVoice();
       return;
     }
-    if (event is SettingChanged && event.key == defs.voiceSkin.key) {
-      for (final session in _sessions.values) {
-        if (!session.subscriptions.contains('voice.skin')) continue;
-        session.pending['voice.skin'] = {
-          'selected': event.value == 'plugin:${session.id}',
-          'time': DateTime.now().toUtc().toIso8601String(),
-        };
-        _schedule(session);
-      }
+    if (event is SettingChanged && defs.isVoiceSkinSetting(event.key)) {
+      _onVoiceSkin();
       return;
     }
     if (event is PluginHaStateChanged) {
@@ -1350,6 +1396,9 @@ class _HostSession {
   final String token;
   String get owner => '$id:$token';
   final subscriptions = <String>{};
+
+  /// The last voice.skin answer sent, null before the first.
+  bool? skinSelectedSent;
   final pending = <String, Map<String, Object?>>{};
   final ordered = <MapEntry<String, Map<String, Object?>>>[];
   final orderedDropped = <String, int>{};

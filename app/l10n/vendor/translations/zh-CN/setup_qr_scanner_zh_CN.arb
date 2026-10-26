@@ -5,5 +5,7 @@
   "setupQrTitle": "扫描令牌二维码",
   "setupQrHelp": "二维码显示在 Home Assistant 个人资料中新创建的令牌旁。",
   "setupQrFlashOff": "关闭手电筒",
-  "setupQrFlashOn": "开启手电筒"
+  "setupQrFlashOn": "开启手电筒",
+  "setupQrScreenLightOff": "关闭屏幕补光",
+  "setupQrScreenLightOn": "开启屏幕补光"
 }

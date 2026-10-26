@@ -93,8 +93,16 @@ class UiStringsFr extends UiStrings {
   String get aboutSystemInstalling => 'Installation…';
 
   @override
-  String get aboutSystemInstallHelp =>
-      'Le Dot redémarre deux fois pour installer la mise à jour et reste hors ligne environ une minute et demie à chaque fois.';
+  String get aboutSystemRestartHelp =>
+      'L\'appareil redémarre deux fois pour installer la mise à jour et reste hors ligne quelques minutes.';
+
+  @override
+  String get aboutSystemManual => 'Nouvelle image disponible';
+
+  @override
+  String aboutSystemManualHelp(String version) {
+    return 'La version $version de la nouvelle image de l\'Echo Dot s\'installe à la main, pas comme une mise à jour.';
+  }
 
   @override
   String get alarmsTitle => 'Alarmes';
@@ -2948,6 +2956,54 @@ class UiStringsFr extends UiStrings {
   String get libraryRecentlyAdded => 'Ajoutés récemment';
 
   @override
+  String get librarySort => 'Trier';
+
+  @override
+  String get librarySortAToZ => 'De A à Z';
+
+  @override
+  String get librarySortZToA => 'De Z à A';
+
+  @override
+  String get librarySortMostPlayed => 'Les plus écoutés';
+
+  @override
+  String get libraryAlbumArtistsOnly => 'Artistes d\'album uniquement';
+
+  @override
+  String get libraryKindGenre => 'Genre';
+
+  @override
+  String get libraryBrowseByGenre => 'Parcourir par genre';
+
+  @override
+  String get settingLibraryTextScaleDescription =>
+      'Taille des titres, noms et libellés de la bibliothèque.';
+
+  @override
+  String get settingLibrarySquareArtworkTitle => 'Images carrées';
+
+  @override
+  String get settingLibrarySquareArtworkDescription =>
+      'Affiche les artistes en vignettes carrées, comme les albums et les playlists.';
+
+  @override
+  String get settingLibraryGridDensityTitle => 'Densité de la grille';
+
+  @override
+  String get settingLibraryGridDensityDescription =>
+      'Taille des vignettes de la bibliothèque. Compacte en affiche plus par ligne.';
+
+  @override
+  String get libraryDensityComfortable => 'Confortable';
+
+  @override
+  String get libraryDensityStandard => 'Standard';
+
+  @override
+  String get libraryDensityCompact => 'Compacte';
+
+  @override
   String get libraryMoreResults => 'Autres résultats';
 
   @override
@@ -3596,6 +3652,11 @@ class UiStringsFr extends UiStrings {
   String get pluginInstalled => 'Installé';
 
   @override
+  String pluginNeedsAppVersion(String version) {
+    return 'Nécessite Kiosk Satellite $version ou plus récent';
+  }
+
+  @override
   String get pluginStars => 'Étoiles';
 
   @override
@@ -4128,6 +4189,11 @@ class UiStringsFr extends UiStrings {
   }
 
   @override
+  String pluginErrorAppVersion(String required, String current) {
+    return 'Le plugin nécessite Kiosk Satellite $required ou plus récent. Ce kiosque exécute $current.';
+  }
+
+  @override
   String pluginErrorInvalidField(String field) {
     return '$field invalide';
   }
@@ -4344,8 +4410,8 @@ class UiStringsFr extends UiStrings {
   String get overviewSystemUpdate => 'Mise à jour du système disponible';
 
   @override
-  String overviewSystemUpdateHelp(String version) {
-    return 'La version $version de l\'image de l\'Echo Dot est prête à être installée. Le Dot redémarre deux fois pour l\'installer.';
+  String overviewSystemImageUpdateHelp(String version) {
+    return 'La version $version de l\'image système est prête à être installée. L\'appareil redémarre deux fois pour l\'installer.';
   }
 
   @override
@@ -4853,12 +4919,12 @@ class UiStringsFr extends UiStrings {
       'Durée sans interaction dans l\'autre application avant que le kiosque revienne.';
 
   @override
-  String get settingLauncherAutoReturnMediaTitle =>
-      'Attendre pendant la lecture';
+  String get settingLauncherAutoReturnHoldTitle =>
+      'Attendre pendant la lecture et les appels';
 
   @override
-  String get settingLauncherAutoReturnMediaDescription =>
-      'Ne pas revenir tant qu\'une vidéo ou de la musique est en lecture.';
+  String get settingLauncherAutoReturnHoldDescription =>
+      'Ne pas revenir pendant une vidéo, de la musique ou un appel.';
 
   @override
   String get launcherOverlayHeld =>
@@ -7373,6 +7439,62 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get deviceThemeSystem => 'Système';
+
+  @override
+  String get settingUiToastsHiddenTitle =>
+      'Afficher les messages contextuels du système';
+
+  @override
+  String get settingUiToastsHiddenDescription =>
+      'Choisissez les messages contextuels affichés par-dessus le tableau de bord. Les messages dans Paramètres s\'affichent toujours.';
+
+  @override
+  String get deviceToastsAll => 'Tous';
+
+  @override
+  String get deviceToastsNone => 'Aucun';
+
+  @override
+  String get deviceToastBack => 'Indications du bouton Retour';
+
+  @override
+  String get deviceToastGestures => 'Actions des gestes';
+
+  @override
+  String get deviceToastHoldMode => 'Mode maintien';
+
+  @override
+  String get deviceToastLinks => 'Liens du tableau de bord';
+
+  @override
+  String get deviceToastDownloads => 'Téléchargements';
+
+  @override
+  String get deviceToastNetwork => 'État du réseau';
+
+  @override
+  String get deviceToastUpdates => 'Recherche de mises à jour';
+
+  @override
+  String get deviceToastVoice => 'Avis de Voice Satellite';
+
+  @override
+  String get deviceToastTimers => 'Minuteurs';
+
+  @override
+  String get deviceToastAlarms => 'Alarmes';
+
+  @override
+  String get deviceToastMusicLibrary => 'Bibliothèque musicale';
+
+  @override
+  String get deviceToastIntercom => 'Interphone';
+
+  @override
+  String get deviceToastAppLauncher => 'Lanceur d\'applications';
+
+  @override
+  String get deviceToastPlugins => 'Actions des plugins';
 
   @override
   String get settingDlnaEnabledTitle => 'Activer le récepteur DLNA';
@@ -13587,6 +13709,20 @@ class UiStringsFr extends UiStrings {
       'L\'apparence de la superposition de l\'assistant vocal.';
 
   @override
+  String get voiceSkin1 => 'Habillage de l\'Assistant 1';
+
+  @override
+  String get voiceSkin1Help =>
+      'L\'apparence de la superposition quand l\'Assistant 1 répond.';
+
+  @override
+  String get voiceSkin2 => 'Habillage de l\'Assistant 2';
+
+  @override
+  String get voiceSkin2Help =>
+      'L\'apparence de la superposition quand l\'Assistant 2 répond.';
+
+  @override
   String get voiceTheme => 'Mode du thème';
 
   @override
@@ -14474,6 +14610,14 @@ class UiStringsFr extends UiStrings {
       'Interrompez une réponse en parlant. Désactivez si l\'assistant s\'interrompt tout seul.';
 
   @override
+  String get settingVoiceRealtimeTalkOverSensitivityTitle =>
+      'Sensibilité d\'interruption';
+
+  @override
+  String get settingVoiceRealtimeTalkOverSensitivityDescription =>
+      'Facilité avec laquelle la parole interrompt une réponse. Augmentez-la si l\'interruption ne fonctionne pas avec un micro peu sensible. Des réglages plus élevés peuvent amener l\'assistant à s\'interrompre tout seul.';
+
+  @override
   String get settingVoiceRealtimeToolsTitle => 'Outils';
 
   @override
@@ -14912,6 +15056,14 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingVoiceWakeWordSensitivityDescription =>
       'La facilité avec laquelle le mot de réveil se déclenche.';
+
+  @override
+  String get settingVoiceWakeWordFineTuneTitle =>
+      'Réglage fin de la sensibilité';
+
+  @override
+  String get settingVoiceWakeWordFineTuneDescription =>
+      'Ajuste la sensibilité du mot de réveil par petits pas. Augmentez-la si vous devez souvent répéter le mot de réveil, baissez-la s\'il se déclenche par erreur.';
 
   @override
   String get settingVoiceNoiseGateTitle => 'Porte de bruit du mot de réveil';
@@ -15453,6 +15605,12 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get setupQrFlashOn => 'Allumer la lampe torche';
+
+  @override
+  String get setupQrScreenLightOff => 'Éteindre l’éclairage de l’écran';
+
+  @override
+  String get setupQrScreenLightOn => 'Allumer l’éclairage de l’écran';
 
   @override
   String get setupPasswordFirst =>
