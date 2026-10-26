@@ -18,6 +18,7 @@ class RealtimeOptions {
     this.seamless = false,
     this.idleSeconds = 10,
     this.talkOver = true,
+    this.talkOverLevel = RealtimeSession.bargeInLevel,
     this.language = '',
     this.historyHours = 0,
   });
@@ -35,6 +36,10 @@ class RealtimeOptions {
   /// it on a device whose echo canceller lets it through, and only the
   /// stop word interrupts.
   final bool talkOver;
+
+  /// How loud the microphone has to be, chunk after chunk, for speech over
+  /// an answer to be the user, from [RealtimeSession.talkOverLevel].
+  final int talkOverLevel;
 
   /// The kiosk's language, a transcription hint.
   final String language;
@@ -387,6 +392,10 @@ class RealtimeSession {
     if (playing) _watchSettling(level);
     _recent.add(echo && _settling ? 0 : level);
     if (_recent.length > _recentChunks) _recent.removeAt(0);
+    if (playing && !_settling && !_suspect && !_talkingOver) {
+      _echoUnder.add(level);
+      if (_echoUnder.length > _echoUnderChunks) _echoUnder.removeAt(0);
+    }
     if (_suspect) _weighSuspect(gen, level);
     if (playing && _settling) {
       // The canceller has not caught up with this answer yet: the room's
@@ -510,12 +519,69 @@ class RealtimeSession {
   final _recent = <int>[];
   static const _recentChunks = 12;
 
-  bool _loud(int level) => level >= math.max(bargeInLevel, _room.level * 10);
+  /// The level for the talk over sensitivity setting, 0 to 100:
+  /// [bargeInLevel] at 50, down to 40 at 100 and up to 4800 at 0, evenly
+  /// spaced on a log scale. Some microphones come out of the canceller far
+  /// quieter than a Galaxy Tab S8's (110 for a user talking over an answer
+  /// on an Android Things display, heard from about 90). The canceller's
+  /// own echo bursts into the hundreds or thousands on most devices, which
+  /// is why a lower level is not the default. Below 50 helps a device that
+  /// keeps interrupting itself.
+  static int talkOverLevel(num sensitivity) {
+    final s = sensitivity.clamp(0, 100).toDouble();
+    final range = s > 50 ? 1 / 30 : 4.0;
+    return (bargeInLevel * math.pow(range, (s - 50).abs() / 50)).round();
+  }
+
+  /// The level and the room's floor scale together, so a noisy room does
+  /// not undo a lower level.
+  int get _bargeInThreshold {
+    final level = options().talkOverLevel;
+    return math.max(level, _room.level * 10 * level ~/ bargeInLevel);
+  }
+
+  bool _loud(int level) => level >= _bargeInThreshold;
+
+  /// The cleaned microphone under the settled voice, the last few seconds
+  /// of it across answers: what is left of the echo on this device, for
+  /// the log.
+  final _echoUnder = <int>[];
+  static const _echoUnderChunks = 60;
+
+  /// The loudest chunk of the speech being weighed, and whether the
+  /// canceller was still settling while it was heard.
+  int _suspectPeak = 0;
+  bool _suspectSettling = false;
+
+  /// Speech heard over an answer, starting now with what the microphone
+  /// already holds. The echo estimate drops that stretch: it was the user.
+  void _startSuspect() {
+    final drop = math.min(_recentChunks, _echoUnder.length);
+    _echoUnder.removeRange(_echoUnder.length - drop, _echoUnder.length);
+    _suspectLoud = _recent.where(_loud).length;
+    _suspectPeak = _recent.fold(0, math.max);
+    _suspectSettling = _settling;
+  }
+
+  /// Why speech over an answer was or was not the user, for the log.
+  String get _talkOverDetail {
+    final sorted = List.of(_echoUnder)..sort();
+    final echo = sorted.isEmpty
+        ? 'echo unknown'
+        : 'echo median ${sorted[sorted.length ~/ 2]}, '
+              'p90 ${sorted[sorted.length * 9 ~/ 10]}';
+    return 'peak $_suspectPeak, $_suspectLoud of $bargeInChunks chunks at '
+        '$_bargeInThreshold, $echo, room ${_room.level}'
+        '${_suspectSettling ? ', while settling' : ''}';
+  }
 
   void _weighSuspect(int gen, int level) {
+    _suspectPeak = math.max(_suspectPeak, level);
+    if (_settling) _suspectSettling = true;
     if (!_loud(level)) return;
     if (++_suspectLoud < bargeInChunks) return;
     _suspect = false;
+    onTrace?.call('talked over the answer: $_talkOverDetail');
     unawaited(_confirmBargeIn(gen));
   }
 
@@ -543,7 +609,8 @@ class RealtimeSession {
       _backend?.sendAudio(_resampler?.convert(chunk) ?? chunk);
     }
     _heldBack.clear();
-    onTrace?.call('talked over the answer');
+    _startSuspect();
+    onTrace?.call('talked over the answer: $_talkOverDetail');
     unawaited(_confirmBargeIn(gen));
   }
 
@@ -609,8 +676,10 @@ class RealtimeSession {
         if (_clientTurns && (_playing || _responding)) {
           // Maybe the user, maybe a trace of the answer's own voice: the
           // microphone shows which, starting with what it already heard.
-          _suspectLoud = _recent.where(_loud).length;
+          _startSuspect();
+          onTrace?.call('speech over the answer: $_talkOverDetail');
           if (_suspectLoud >= bargeInChunks) {
+            onTrace?.call('talked over the answer: $_talkOverDetail');
             await _confirmBargeIn(gen);
             return;
           }
@@ -635,7 +704,9 @@ class RealtimeSession {
           // It never got loud: not the user. The answer carries on and the
           // model never hears it.
           _suspect = false;
-          onTrace?.call('ignored speech too quiet to be the user');
+          onTrace?.call(
+            'ignored speech too quiet to be the user: $_talkOverDetail',
+          );
           _backend?.userTurn(keep: false);
           _touch();
           return;
@@ -1072,6 +1143,9 @@ class RealtimeSession {
     _heldBack.clear();
     _suspect = false;
     _suspectLoud = 0;
+    _suspectPeak = 0;
+    _suspectSettling = false;
+    _echoUnder.clear();
     _ready = false;
     _held.clear();
     _heldBytes = 0;

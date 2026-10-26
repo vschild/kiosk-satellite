@@ -13,5 +13,7 @@
   "aboutSystemVersion": "Versión de la ROM",
   "aboutSystemVerifying": "Verificando…",
   "aboutSystemInstalling": "Instalando…",
-  "aboutSystemInstallHelp": "El Dot se reinicia dos veces para instalar la actualización y queda sin conexión aproximadamente un minuto y medio cada vez."
+  "aboutSystemRestartHelp": "El dispositivo se reinicia dos veces para instalar la actualización y queda sin conexión unos minutos.",
+  "aboutSystemManual": "Nueva imagen disponible",
+  "aboutSystemManualHelp": "La versión {version} de la nueva imagen del Echo Dot se instala a mano, no como una actualización."
 }

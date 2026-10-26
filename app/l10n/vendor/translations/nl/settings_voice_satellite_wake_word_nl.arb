@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "Welke engine naar het wekwoord luistert. Alle modellen worden met de app meegeleverd.",
   "settingVoiceWakeWordSensitivityTitle": "Wekwoordgevoeligheid",
   "settingVoiceWakeWordSensitivityDescription": "Hoe gemakkelijk de detectie op het wekwoord reageert.",
+  "settingVoiceWakeWordFineTuneTitle": "Gevoeligheid fijnafstellen",
+  "settingVoiceWakeWordFineTuneDescription": "Past de wekwoordgevoeligheid in kleinere stappen aan. Verhoog dit als je het wekwoord vaak moet herhalen en verlaag het als het per ongeluk reageert.",
   "settingVoiceNoiseGateTitle": "Ruisfilter voor wekwoord",
   "settingVoiceNoiseGateDescription": "Sla wekwoorddetectie over wanneer de kamer stil is om processorkracht te besparen.",
   "settingVoiceStopWordTitle": "Onderbreken met stopwoord",

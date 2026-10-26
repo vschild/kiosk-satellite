@@ -28,6 +28,7 @@
   "pluginErrorSettingType": "Непідтримуваний тип налаштування",
   "pluginErrorInvalidManifest": "Недійсний маніфест плагіна",
   "pluginErrorAndroidApi": "Плагін потребує Android API {version}",
+  "pluginErrorAppVersion": "Плагін потребує Kiosk Satellite версії {required} або новішої. На цьому кіоску встановлено {current}.",
   "pluginErrorInvalidField": "Недійсне поле {field}",
   "pluginErrorTooManyTriggers": "Занадто багато тригерів",
   "pluginErrorTriggerId": "Недійсний або дубльований ідентифікатор тригера",

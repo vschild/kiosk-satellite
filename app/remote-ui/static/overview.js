@@ -4,7 +4,7 @@ import { fleetStatusText } from './fleet-messages.js';
 import { overviewText, overviewStatus, cameraError, deviceText, deviceOperationError, fleetText, intercomText, mediaText, mediaError, navigationText, t, voiceText } from './localization.js';
 import { watchUpdates } from './live.js';
 import { $, api, cmd, state } from './core.js';
-import { attachSystemUpdateInstall, attachUpdateInstall, refreshUpdateBadge } from './device.js';
+import { attachSystemUpdateInstall, attachUpdateInstall, refreshUpdateBadge, systemUpdateBusy } from './device.js';
 import { readFilterStatus } from './filter_status.js';
 import { agoLabel } from './notices.js';
 import { loadScreenshot, quick, renderQuickControls } from './panels.js';
@@ -403,9 +403,9 @@ const SOURCES = {
       ['getServiceStatus', 'getSystemPermissions', 'hasUiGuard'].map((c) => ask(c)));
   } },
   update: { topics: ['update'], read: async () => { health.upd = await ask('getUpdateStatus'); } },
-  // The Echo Dot image's own update, only there.
+  // The system image's own update, where its updater reports one.
   sys: { topics: ['update'], read: async () => {
-    const sys = isHeadless() ? await ask('getSystemUpdateStatus') : null;
+    const sys = await ask('getSystemUpdateStatus');
     health.sys = sys?.supported ? sys : null;
   } },
   fleet: { topics: ['fleetsync'], read: async () => { health.fleet = await ask('fleetStatus'); } },
@@ -597,10 +597,21 @@ function paintHealth({ filter = true } = {}) {
     items.push({
       key: 'system-update',
       name: t('overviewSystemUpdate'),
-      desc: t('overviewSystemUpdateHelp', {version: health.sys.availableVersion}),
+      desc: t('overviewSystemImageUpdateHelp', {version: health.sys.availableVersion}),
       action: (btn) => {
         overviewLabel(btn, 'Install');
         attachSystemUpdateInstall(btn, () => health.sys, () => { refreshUpdateBadge(); refreshHealth(); });
+      },
+    });
+  } else if (health.sys?.manualVersion && !systemUpdateBusy(health.sys)) {
+    // A newer image the updater cannot install: only its guide.
+    items.push({
+      key: 'system-manual',
+      name: t('aboutSystemManual'),
+      desc: t('aboutSystemManualHelp', {version: health.sys.manualVersion}),
+      action: (btn) => {
+        overviewLabel(btn, 'Open guide');
+        btn.onclick = () => window.open(health.sys.manualUrl, '_blank', 'noreferrer');
       },
     });
   }

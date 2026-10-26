@@ -8,6 +8,7 @@ import '../l10n/messages.dart';
 import '../managers/music_library/music_library_manager.dart';
 import '../managers/sendspin/remote_player.dart';
 import 'kit.dart';
+import 'music_library_overlay.dart' show LibraryMenuText;
 import 'theme.dart';
 
 /// The Speakers sheet: the player the music plays on, its volume and its
@@ -27,7 +28,10 @@ Future<void> showSpeakersSheet(
   final size = MediaQuery.sizeOf(context);
   final narrow = size.width < 640;
   final short = !narrow && size.height < 600;
-  final sheet = _SpeakersSheet(container: c, source: source, prompt: prompt);
+  final sheet = LibraryMenuText(
+    container: c,
+    child: _SpeakersSheet(container: c, source: source, prompt: prompt),
+  );
   if (narrow) {
     return showModalBottomSheet<void>(
       context: context,
@@ -157,7 +161,10 @@ class _SpeakersSheetState extends State<_SpeakersSheet> {
   Future<void> _openGroup() async {
     await showDialog<void>(
       context: context,
-      builder: (_) => _GroupDialog(container: c, initial: _group),
+      builder: (_) => LibraryMenuText(
+        container: c,
+        child: _GroupDialog(container: c, initial: _group),
+      ),
     );
     if (mounted) unawaited(_load());
   }

@@ -20,6 +20,7 @@ const ICONS = {
   back: 'M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z',
   up: 'M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z',
   down: 'M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z',
+  hidden: 'M11.83,9L15,12.16C15,12.11 15,12.05 15,12A3,3 0 0,0 12,9C11.94,9 11.89,9 11.83,9M7.53,9.8L9.08,11.35C9.03,11.56 9,11.77 9,12A3,3 0 0,0 12,15C12.22,15 12.44,14.97 12.65,14.92L14.2,16.47C13.53,16.8 12.79,17 12,17A5,5 0 0,1 7,12C7,11.21 7.2,10.47 7.53,9.8M2,4.27L4.28,6.55L4.73,7C3.08,8.3 1.78,10 1,12C2.73,16.39 7,19.5 12,19.5C13.55,19.5 15.03,19.2 16.38,18.66L16.81,19.08L19.73,22L21,20.73L3.27,3M12,7A5,5 0 0,1 17,12C17,12.64 16.87,13.26 16.64,13.82L19.57,16.75C21.07,15.5 22.27,13.86 23,12C21.27,7.61 17,4.5 12,4.5C10.6,4.5 9.26,4.75 8,5.2L10.17,7.35C10.74,7.13 11.35,7 12,7Z',
   drag: 'M9,3H11V5H9V3M13,3H15V5H13V3M9,7H11V9H9V7M13,7H15V9H13V7M9,11H11V13H9V11M13,11H15V13H13V11M9,15H11V17H9V15M13,15H15V17H13V15M9,19H11V21H9V19M13,19H15V21H13V19Z',
 };
 
@@ -69,7 +70,9 @@ const findIn = (list, id) => (list ? list.items.find((i) => i.id === id) || null
 
 // Home Assistant's entities, all of them, filtered here per picker. One
 // list serves every entity picker.
-export function entitySpec({ domains = [], deviceClass = null } = {}) {
+// Entities Home Assistant hides stay out unless includeHidden asks for
+// them.
+export function entitySpec({ domains = [], deviceClass = null, includeHidden = false } = {}) {
   return {
     key: 'entities',
     loader: loadEntities,
@@ -78,8 +81,8 @@ export function entitySpec({ domains = [], deviceClass = null } = {}) {
     chips: domains.length !== 1,
     headings: true,
     byGroupName: true,
-    keep: (!domains.length && !deviceClass) ? null : (item) =>
-      (!domains.length || domains.includes(item.raw.domain))
+    keep: (item) => (includeHidden || item.raw.hidden !== true)
+      && (!domains.length || domains.includes(item.raw.domain))
       && (!deviceClass || matchesDeviceClass(item.raw, deviceClass)),
   };
 }
@@ -329,7 +332,17 @@ function itemRow(item, { picked, multiple, disabled, query, onClick }) {
   }
   b.appendChild(disc(item));
   const text = el('span', 'dp-text');
-  text.appendChild(highlighted(item.name, query, 'dp-title'));
+  const title = highlighted(item.name, query, 'dp-title');
+  // An entity Home Assistant hides, marked the way Home Assistant marks it.
+  if (item.raw?.hidden === true) {
+    const line = el('span', 'ep-title-line');
+    const mark = el('span', 'ep-hidden');
+    mark.appendChild(svgPath(ICONS.hidden, 16));
+    line.append(title, mark);
+    text.appendChild(line);
+  } else {
+    text.appendChild(title);
+  }
   if (item.sub) text.appendChild(highlighted(item.sub, query, item.subMono ? 'dp-mono' : 'dp-sub'));
   b.appendChild(text);
   const state = itemState(item);

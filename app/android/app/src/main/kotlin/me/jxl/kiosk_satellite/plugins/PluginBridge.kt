@@ -89,6 +89,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "plugin-manager").apply { isDaemon = true } }
     private val prefs = context.getSharedPreferences("kiosk_plugins", Context.MODE_PRIVATE)
     private val headless = Headless.active(context)
+    private val appVersion = try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" } catch (_: Exception) { "" }
     private val root = File(context.filesDir, "plugins-v1").apply { mkdirs() }
     // Each installed package as it arrived, by its hash, so a fleet leader
     // can hand its followers the exact bytes it runs.
@@ -800,6 +801,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                                 val manifest = PluginManifest(JSONObject(args["manifest"] as String))
                                 require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Plugin needs Android API ${manifest.minAndroidSdk}" }
                                 requireScreen(manifest)
+                                requireAppVersion(manifest)
                                 mapOf("compatible" to true, "compatibilityError" to "")
                             } catch (error: Exception) {
                                 mapOf("compatible" to false, "compatibilityError" to (error.message ?: "Invalid plugin manifest"))
@@ -1056,6 +1058,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             }
             require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Plugin needs Android API ${manifest.minAndroidSdk}" }
             requireScreen(manifest)
+            requireAppVersion(manifest)
             manifest.voiceSkinThumbnail?.let {
                 require(PluginPackage.assetFile(staging, it).length() <= MAX_THUMBNAIL_BYTES) { "voiceSkinThumbnail must be at most 256 KB" }
             }
@@ -1161,6 +1164,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             val manifest = manifest(id)
             require(manifest.minAndroidSdk <= Build.VERSION.SDK_INT) { "Android version is too old" }
             requireScreen(manifest)
+            requireAppVersion(manifest)
             val config = manifest.config(record.optJSONObject("config") ?: JSONObject())
             check(jar.setReadOnly())
             val digests = record.optJSONObject("nativeSha256") ?: JSONObject()
@@ -1201,6 +1205,11 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
      */
     private fun requireScreen(manifest: PluginManifest) =
         require(!headless || !manifest.needsScreen) { "This plugin needs a screen" }
+
+    private fun requireAppVersion(manifest: PluginManifest) {
+        val required = manifest.minAppVersion ?: return
+        require(PluginManifest.appVersionAtLeast(appVersion, required)) { "Plugin needs Kiosk Satellite $required or newer. This kiosk runs $appVersion." }
+    }
 
     private fun stopSession(id: String) {
         val session = sessions.remove(id) ?: return

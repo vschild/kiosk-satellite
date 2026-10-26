@@ -57,6 +57,7 @@ class AssistView {
     this.reactive = true,
     this.docked = false,
     this.lingering = false,
+    this.assistant = 1,
   });
 
   static const hidden = AssistView();
@@ -93,6 +94,10 @@ class AssistView {
   /// listens or speaks, so the skin's bar is down.
   final bool lingering;
 
+  /// Who answers, 1 or 2, which picks the skin: 2 for wake word 2 and a
+  /// vs_show on pipeline 2.
+  final int assistant;
+
   bool get visible => phase != AssistPhase.hidden;
 
   /// The turn in progress, as it would be kept once the next one starts.
@@ -110,6 +115,7 @@ class AssistView {
     bool? reactive,
     bool? docked,
     bool? lingering,
+    int? assistant,
   }) => AssistView(
     phase: phase ?? this.phase,
     earlier: earlier ?? this.earlier,
@@ -121,6 +127,7 @@ class AssistView {
     reactive: reactive ?? this.reactive,
     docked: docked ?? this.docked,
     lingering: lingering ?? this.lingering,
+    assistant: assistant ?? this.assistant,
   );
 }
 

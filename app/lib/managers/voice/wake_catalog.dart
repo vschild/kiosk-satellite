@@ -243,19 +243,37 @@ const _pryonStopOffsets = {
 
 /// What Amazon's engine adds to its own threshold, which it reports with
 /// each detection.
-double pryonThresholdOffsetFor(String sensitivity, {bool stop = false}) =>
-    (stop ? _pryonStopOffsets : _pryonOffsets)[sensitivity] ?? 0.0;
+double pryonThresholdOffsetFor(
+  String sensitivity, {
+  bool stop = false,
+  double tune = 0,
+}) =>
+    ((stop ? _pryonStopOffsets : _pryonOffsets)[sensitivity] ?? 0.0) -
+    0.06 * tune;
 
 /// The factor every confidence gate of a model is multiplied by.
-double confidenceScaleFor(String sensitivity, {bool stop = false}) =>
-    (stop ? _stopConfFactors : _confFactors)[sensitivity] ?? 1.0;
+/// [tune] is the Sensitivity fine-tune slider, see [wakeTuneFor].
+double confidenceScaleFor(
+  String sensitivity, {
+  bool stop = false,
+  double tune = 0,
+}) =>
+    ((stop ? _stopConfFactors : _confFactors)[sensitivity] ?? 1.0) - 0.2 * tune;
 
 /// openWakeWord's absolute cutoff, which ships no manifest to scale.
-double owwCutoffFor(String sensitivity, {bool stop = false}) {
+double owwCutoffFor(String sensitivity, {bool stop = false, double tune = 0}) {
   final base = stop ? 0.65 : 0.5;
   final offset = (stop ? _owwStopOffsets : _owwWakeOffsets)[sensitivity] ?? 0.0;
-  return (base + offset).clamp(0.1, 0.99).toDouble();
+  return (base + offset - 0.1 * tune).clamp(0.1, 0.99).toDouble();
 }
+
+/// The Sensitivity fine-tune slider (-10 to 10) as -1 to 1, positive
+/// meaning more sensitive. It moves the wake words between and past the
+/// presets: at the ends, the confidence gates by 0.2, openWakeWord's
+/// cutoff by 0.1 and Amazon's threshold by 0.06, the step between its
+/// Moderately and Very sensitive. The stop word keeps the preset, since a
+/// stop word that fires too easily cuts answers short.
+double wakeTuneFor(num fineTune) => fineTune.clamp(-10, 10) / 10;
 
 EnergyGateConfig energyGateFor(String sensitivity, {required bool enabled}) =>
     EnergyGateConfig(
@@ -280,12 +298,14 @@ List<OfferedWakeWord> listenedWakeWords(
 
 /// The engine config for the settings: the active wake words (slot 1
 /// first), the stop classifier when stop word interruption is on, the gates
-/// the sensitivity resolves to. Ids the engine does not offer are dropped;
-/// with none left, slot 1 falls back to the engine's first.
+/// the sensitivity and its fine-tune resolve to. Ids the engine does not
+/// offer are dropped; with none left, slot 1 falls back to the engine's
+/// first.
 WakeWordConfig buildWakeConfig({
   required WakeWordEngineType engine,
   required List<String> activeIds,
   required String sensitivity,
+  num fineTune = 0,
   required bool noiseGate,
   required bool stopWord,
   List<ExternalWakeWord> external = const [],
@@ -301,17 +321,21 @@ WakeWordConfig buildWakeConfig({
   final models = listenedWakeWords(activeIds, offered);
   final oww = engine == WakeWordEngineType.openWakeWord;
   final pryon = engine == WakeWordEngineType.pryon;
-  WakeWordModelRef ref(OfferedWakeWord w, {bool stop = false}) =>
-      WakeWordModelRef(
-        id: w.id,
-        wakeWord: w.phrase,
-        manifestUrl: w.manifestUrl,
-        confidenceScale: confidenceScaleFor(sensitivity, stop: stop),
-        cutoff: oww ? owwCutoffFor(sensitivity, stop: stop) : null,
-        thresholdOffset: pryon
-            ? pryonThresholdOffsetFor(sensitivity, stop: stop)
-            : 0.0,
-      );
+  final tune = wakeTuneFor(fineTune);
+  WakeWordModelRef ref(OfferedWakeWord w, {bool stop = false}) {
+    final t = stop ? 0.0 : tune;
+    return WakeWordModelRef(
+      id: w.id,
+      wakeWord: w.phrase,
+      manifestUrl: w.manifestUrl,
+      confidenceScale: confidenceScaleFor(sensitivity, stop: stop, tune: t),
+      cutoff: oww ? owwCutoffFor(sensitivity, stop: stop, tune: t) : null,
+      thresholdOffset: pryon
+          ? pryonThresholdOffsetFor(sensitivity, stop: stop, tune: t)
+          : 0.0,
+    );
+  }
+
   // Amazon's stop word is part of each model: the one of the first wake
   // word's model, so listening needs no other model.
   final pryonStop = pryon && models.isNotEmpty

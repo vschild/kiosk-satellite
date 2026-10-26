@@ -33,7 +33,8 @@ void main() {
 
   /// A German Home Assistant stand-in. [asked] records each translation
   /// lookup as `category:integrations`. While [registryFails] says so, the
-  /// registry lookup fails the way an old server's would.
+  /// registry lookup fails the way an old server's would. Like the real
+  /// server it rejects an id that is not higher than the last one.
   Future<(HttpServer, HomeAssistantManager)> start(
     List<String> asked, {
     bool registryFails = false,
@@ -42,6 +43,7 @@ void main() {
     server.listen((request) async {
       final socket = await WebSocketTransformer.upgrade(request);
       socket.add(jsonEncode({'type': 'auth_required'}));
+      var lastId = 0;
       socket.listen((raw) {
         final msg = jsonDecode(raw as String) as Map<String, dynamic>;
         final type = '${msg['type']}';
@@ -49,6 +51,19 @@ void main() {
           socket.add(jsonEncode({'type': 'auth_ok'}));
           return;
         }
+        final id = msg['id'] as int;
+        if (id <= lastId) {
+          socket.add(
+            jsonEncode({
+              'id': id,
+              'type': 'result',
+              'success': false,
+              'error': {'code': 'id_reuse'},
+            }),
+          );
+          return;
+        }
+        lastId = id;
         Map<String, Object?> result(Object? value) => {
           'id': msg['id'],
           'type': 'result',
@@ -56,6 +71,8 @@ void main() {
           'result': value,
         };
         switch (type) {
+          case 'ping':
+            socket.add(jsonEncode({'id': id, 'type': 'pong'}));
           case 'subscribe_entities':
             socket.add(jsonEncode(result(null)));
           case 'frontend/get_user_data':
@@ -161,6 +178,27 @@ void main() {
     expect(got.label('binary_sensor.window', 'window', 'off'), 'Geschlossen');
     expect(got.label('sensor.backup_state', null, 'idle'), isNull);
     expect(asked, ['entity_component:binary_sensor,sensor']);
+  });
+
+  test('pings after the language lookup still get a pong', () async {
+    GlanceSubscription.heartbeat = const Duration(milliseconds: 50);
+    GlanceSubscription.pongTimeout = const Duration(milliseconds: 50);
+    addTearDown(() {
+      GlanceSubscription.heartbeat = const Duration(seconds: 30);
+      GlanceSubscription.pongTimeout = const Duration(seconds: 10);
+    });
+    final (server, ha) = await start(<String>[]);
+    addTearDown(() => server.close(force: true));
+    final got = Completer<void>();
+    final live = await ha.subscribeEntities(
+      ['binary_sensor.window'],
+      (_, _) {},
+      onStateLabels: (_) => got.complete(),
+    );
+    addTearDown(() => live?.close());
+    await got.future.timeout(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(live!.isClosed, false);
   });
 
   test('parseStateLabels leaves out names and attribute states', () {

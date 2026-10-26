@@ -469,6 +469,9 @@ class EspEntitySurface {
         light.ok && light.data is Map && (light.data as Map)['present'] == true;
     final cam = await commands.execute('hasDeviceCamera', const {});
     final cameraPresent = !(cam.ok && cam.data == false);
+    final sys = await commands.execute('getSystemUpdateStatus', const {});
+    final systemUpdate =
+        sys.ok && sys.data is Map && (sys.data as Map)['supported'] == true;
     // The proximity switch is the one pessimistic entity: rare hardware,
     // so it exists only once the probe has said there is a sensor.
     final prox = await commands.execute('getProximitySupport', const {});
@@ -820,8 +823,8 @@ class EspEntitySurface {
         'name': 'Update',
         'deviceClass': 'firmware',
       },
-      // The Echo Dot image's own releases, installed through TWRP.
-      if (Headless.systemUpdate)
+      // The system image's own releases, where its updater reports them.
+      if (systemUpdate)
         {
           'type': 'update',
           'objectId': 'firmware',
@@ -2813,13 +2816,15 @@ class EspEntitySurface {
     });
   }
 
-  /// The Echo Dot image on the Firmware entity, the twin of
-  /// [_sendUpdateState]. Progress covers the whole update, both slots.
+  /// The system image on the Firmware entity, the twin of
+  /// [_sendUpdateState]. Progress covers the whole update, both slots of
+  /// the Echo Dot. A newer image that installs by hand shows as the latest
+  /// version, with its guide as the release page, while the image's own
+  /// updater has nothing newer to install.
   Future<void> _sendFirmwareState() async {
-    if (!Headless.systemUpdate) return;
     final result = await commands.execute('getSystemUpdateStatus', const {});
     final data = result.data;
-    if (!result.ok || data is! Map) return;
+    if (!result.ok || data is! Map || data['supported'] != true) return;
     final current = data['currentVersion'] as String?;
     if (current == null || current.isEmpty) return;
     final progress = data['progress'] as num?;
@@ -2828,13 +2833,26 @@ class EspEntitySurface {
       'verifying',
       'installing',
     }.contains(data['state']);
-    final notes = (data['availableNotes'] as String? ?? '').trim();
+    final available = data['availableVersion'] as String?;
+    final manual = available == null && !busy
+        ? data['manualVersion'] as String?
+        : null;
+    final manualUrl = data['manualUrl'] as String? ?? '';
+    final notes = manual != null
+        ? 'Version $manual is a new image that installs by hand, not as an '
+              'update. Follow the [guide]($manualUrl).\n\n'
+              '${(data['manualNotes'] as String? ?? '').trim()}'
+        : (data['availableNotes'] as String? ?? '').trim();
     await _send('firmware', {
       'current': current,
-      'latest': data['availableVersion'] as String? ?? current,
-      'title': 'LineageOS for the Echo Dot',
-      'summary': _fitNotes(notes),
-      'url': data['releaseUrl'] is String ? data['releaseUrl'] : '',
+      'latest': available ?? manual ?? current,
+      'title': data['title'] is String ? data['title'] : 'Firmware',
+      'summary': _fitNotes(notes.trim()),
+      'url': manual != null
+          ? manualUrl
+          : data['releaseUrl'] is String
+          ? data['releaseUrl']
+          : '',
       if (progress != null) 'progress': progress.toDouble() * 100,
       'inProgress': busy,
     });

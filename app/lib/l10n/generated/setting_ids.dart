@@ -36,6 +36,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingUiScaleTitle",
     "description": "settingUiScaleDescription",
   },
+  "ui.toasts_hidden": {
+    "title": "settingUiToastsHiddenTitle",
+    "description": "settingUiToastsHiddenDescription",
+  },
   "device.hostname": {
     "title": "settingDeviceHostnameTitle",
     "description": "settingDeviceHostnameDescription",
@@ -1409,8 +1413,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingLauncherAutoReturnSecondsDescription",
   },
   "launcher.auto_return_media": {
-    "title": "settingLauncherAutoReturnMediaTitle",
-    "description": "settingLauncherAutoReturnMediaDescription",
+    "title": "settingLauncherAutoReturnHoldTitle",
+    "description": "settingLauncherAutoReturnHoldDescription",
   },
   "gestures.clap_strictness": {
     "title": "settingClapStrictnessTitle",
@@ -1808,6 +1812,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingVoiceWakeWordSensitivityTitle",
     "description": "settingVoiceWakeWordSensitivityDescription",
   },
+  "voice.wake_word_fine_tune": {
+    "title": "settingVoiceWakeWordFineTuneTitle",
+    "description": "settingVoiceWakeWordFineTuneDescription",
+  },
   "voice.noise_gate": {
     "title": "settingVoiceNoiseGateTitle",
     "description": "settingVoiceNoiseGateDescription",
@@ -1829,8 +1837,12 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingVoiceWakeArbitrationOffsetDescription",
   },
   "voice.skin": {
-    "title": "voiceSkin",
-    "description": "voiceSkinHelp",
+    "title": "voiceSkin1",
+    "description": "voiceSkin1Help",
+  },
+  "voice.skin_2": {
+    "title": "voiceSkin2",
+    "description": "voiceSkin2Help",
   },
   "voice.theme": {
     "title": "settingVoiceThemeTitle",
@@ -1987,6 +1999,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "voice.realtime_talk_over": {
     "title": "settingVoiceRealtimeTalkOverTitle",
     "description": "settingVoiceRealtimeTalkOverDescription",
+  },
+  "voice.realtime_talk_over_sensitivity": {
+    "title": "settingVoiceRealtimeTalkOverSensitivityTitle",
+    "description": "settingVoiceRealtimeTalkOverSensitivityDescription",
   },
   "voice.realtime_tools": {
     "title": "settingVoiceRealtimeToolsTitle",
@@ -2471,5 +2487,17 @@ const settingMessageIds = <String, Map<String, String>>{
   "library.now_playing_button": {
     "title": "settingLibraryNowPlayingButtonTitle",
     "description": "settingLibraryNowPlayingButtonDescription",
+  },
+  "library.square_artwork": {
+    "title": "settingLibrarySquareArtworkTitle",
+    "description": "settingLibrarySquareArtworkDescription",
+  },
+  "library.grid_density": {
+    "title": "settingLibraryGridDensityTitle",
+    "description": "settingLibraryGridDensityDescription",
+  },
+  "library.text_scale": {
+    "title": "settingSendspinFullscreenTextScaleTitle",
+    "description": "settingLibraryTextScaleDescription",
   },
 };

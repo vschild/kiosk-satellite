@@ -13,6 +13,7 @@ enum LibraryKind {
   podcast,
   episode,
   audiobook,
+  genre,
   folder,
   other,
 }
@@ -25,6 +26,7 @@ class LibraryItem {
     required this.title,
     this.subtitle = '',
     this.art,
+    this.artDark,
     this.playable = true,
     this.expandable = false,
     this.durationMs,
@@ -45,6 +47,10 @@ class LibraryItem {
 
   /// The cover's address, loaded through [LibrarySource.loadArt].
   final String? art;
+
+  /// The cover drawn on a dark theme instead, where the source has one:
+  /// a provider logo made for dark backgrounds.
+  final String? artDark;
 
   final bool playable;
 
@@ -134,6 +140,9 @@ class LibraryCategory {
   final LibraryKind kind;
 }
 
+/// An order a library list comes in.
+enum LibrarySort { name, nameDesc, recentlyPlayed, recentlyAdded, mostPlayed }
+
 /// Thrown by a source when it cannot answer, with a message fit for the
 /// screen.
 class LibraryError implements Exception {
@@ -161,6 +170,13 @@ abstract class LibrarySource {
   /// The library lists the sidebar shows under Library.
   List<LibraryCategory> get categories => const [];
 
+  /// The orders [list] takes, the first its default. Empty when the
+  /// source lists in an order of its own.
+  List<LibrarySort> get sorts => const [];
+
+  /// Whether [list] can leave out the artists credited on no album.
+  bool get hasAlbumArtists => false;
+
   /// [categories] down to the ones worth showing.
   Future<List<LibraryCategory>> availableCategories() async => categories;
 
@@ -172,10 +188,14 @@ abstract class LibrarySource {
 
   Future<List<LibraryShelf>> search(String query) async => const [];
 
+  /// A page of [category] in [sort], one of [sorts]. [albumArtists]
+  /// lists only album artists, where [hasAlbumArtists].
   Future<LibraryPage> list(
     LibraryCategory category, {
     int offset = 0,
     bool favorites = false,
+    LibrarySort? sort,
+    bool albumArtists = false,
   }) async => LibraryPage.empty;
 
   /// The children of a folder in the source's own tree; null is its root.

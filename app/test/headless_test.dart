@@ -66,6 +66,7 @@ void main() {
     expect(hidden, contains(defs.haKioskMode.key));
     expect(hidden, contains(defs.voiceSkin.key));
     expect(hidden, contains(defs.remoteEnabled.key));
+    expect(hidden, contains(defs.uiToastsHidden.key));
     expect(hidden, isNot(contains(defs.haUrl.key)));
     expect(hidden, isNot(contains(defs.haToken.key)));
     expect(hidden, isNot(contains(defs.mediaVolume.key)));

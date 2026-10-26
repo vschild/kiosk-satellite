@@ -26,7 +26,8 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'aboutSystemVersion' => strings.aboutSystemVersion,
       'aboutSystemVerifying' => strings.aboutSystemVerifying,
       'aboutSystemInstalling' => strings.aboutSystemInstalling,
-      'aboutSystemInstallHelp' => strings.aboutSystemInstallHelp,
+      'aboutSystemRestartHelp' => strings.aboutSystemRestartHelp,
+      'aboutSystemManual' => strings.aboutSystemManual,
       'alarmsTitle' => strings.alarmsTitle,
       'alarmsSetAnAlarm' => strings.alarmsSetAnAlarm,
       'alarmsNone' => strings.alarmsNone,
@@ -773,6 +774,26 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'librarySonosPlaylists' => strings.librarySonosPlaylists,
       'libraryRecentlyPlayed' => strings.libraryRecentlyPlayed,
       'libraryRecentlyAdded' => strings.libraryRecentlyAdded,
+      'librarySort' => strings.librarySort,
+      'librarySortAToZ' => strings.librarySortAToZ,
+      'librarySortZToA' => strings.librarySortZToA,
+      'librarySortMostPlayed' => strings.librarySortMostPlayed,
+      'libraryAlbumArtistsOnly' => strings.libraryAlbumArtistsOnly,
+      'libraryKindGenre' => strings.libraryKindGenre,
+      'libraryBrowseByGenre' => strings.libraryBrowseByGenre,
+      'settingLibraryTextScaleDescription' =>
+        strings.settingLibraryTextScaleDescription,
+      'settingLibrarySquareArtworkTitle' =>
+        strings.settingLibrarySquareArtworkTitle,
+      'settingLibrarySquareArtworkDescription' =>
+        strings.settingLibrarySquareArtworkDescription,
+      'settingLibraryGridDensityTitle' =>
+        strings.settingLibraryGridDensityTitle,
+      'settingLibraryGridDensityDescription' =>
+        strings.settingLibraryGridDensityDescription,
+      'libraryDensityComfortable' => strings.libraryDensityComfortable,
+      'libraryDensityStandard' => strings.libraryDensityStandard,
+      'libraryDensityCompact' => strings.libraryDensityCompact,
       'libraryMoreResults' => strings.libraryMoreResults,
       'libraryTopTracks' => strings.libraryTopTracks,
       'libraryKindArtist' => strings.libraryKindArtist,
@@ -1312,10 +1333,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingLauncherAutoReturnSecondsTitle,
       'settingLauncherAutoReturnSecondsDescription' =>
         strings.settingLauncherAutoReturnSecondsDescription,
-      'settingLauncherAutoReturnMediaTitle' =>
-        strings.settingLauncherAutoReturnMediaTitle,
-      'settingLauncherAutoReturnMediaDescription' =>
-        strings.settingLauncherAutoReturnMediaDescription,
+      'settingLauncherAutoReturnHoldTitle' =>
+        strings.settingLauncherAutoReturnHoldTitle,
+      'settingLauncherAutoReturnHoldDescription' =>
+        strings.settingLauncherAutoReturnHoldDescription,
       'launcherOverlayHeld' => strings.launcherOverlayHeld,
       'launcherOverlayMissing' => strings.launcherOverlayMissing,
       'launcherOverlayRemote' => strings.launcherOverlayRemote,
@@ -2067,6 +2088,25 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'deviceThemeDark' => strings.deviceThemeDark,
       'deviceThemeLight' => strings.deviceThemeLight,
       'deviceThemeSystem' => strings.deviceThemeSystem,
+      'settingUiToastsHiddenTitle' => strings.settingUiToastsHiddenTitle,
+      'settingUiToastsHiddenDescription' =>
+        strings.settingUiToastsHiddenDescription,
+      'deviceToastsAll' => strings.deviceToastsAll,
+      'deviceToastsNone' => strings.deviceToastsNone,
+      'deviceToastBack' => strings.deviceToastBack,
+      'deviceToastGestures' => strings.deviceToastGestures,
+      'deviceToastHoldMode' => strings.deviceToastHoldMode,
+      'deviceToastLinks' => strings.deviceToastLinks,
+      'deviceToastDownloads' => strings.deviceToastDownloads,
+      'deviceToastNetwork' => strings.deviceToastNetwork,
+      'deviceToastUpdates' => strings.deviceToastUpdates,
+      'deviceToastVoice' => strings.deviceToastVoice,
+      'deviceToastTimers' => strings.deviceToastTimers,
+      'deviceToastAlarms' => strings.deviceToastAlarms,
+      'deviceToastMusicLibrary' => strings.deviceToastMusicLibrary,
+      'deviceToastIntercom' => strings.deviceToastIntercom,
+      'deviceToastAppLauncher' => strings.deviceToastAppLauncher,
+      'deviceToastPlugins' => strings.deviceToastPlugins,
       'settingDlnaEnabledTitle' => strings.settingDlnaEnabledTitle,
       'settingDlnaEnabledDescription' => strings.settingDlnaEnabledDescription,
       'settingDlnaAudioBackgroundTitle' =>
@@ -4571,6 +4611,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'voiceAppearanceHint' => strings.voiceAppearanceHint,
       'voiceSkin' => strings.voiceSkin,
       'voiceSkinHelp' => strings.voiceSkinHelp,
+      'voiceSkin1' => strings.voiceSkin1,
+      'voiceSkin1Help' => strings.voiceSkin1Help,
+      'voiceSkin2' => strings.voiceSkin2,
+      'voiceSkin2Help' => strings.voiceSkin2Help,
       'voiceTheme' => strings.voiceTheme,
       'voiceThemeHelp' => strings.voiceThemeHelp,
       'voiceReactive' => strings.voiceReactive,
@@ -4882,6 +4926,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingVoiceRealtimeTalkOverTitle,
       'settingVoiceRealtimeTalkOverDescription' =>
         strings.settingVoiceRealtimeTalkOverDescription,
+      'settingVoiceRealtimeTalkOverSensitivityTitle' =>
+        strings.settingVoiceRealtimeTalkOverSensitivityTitle,
+      'settingVoiceRealtimeTalkOverSensitivityDescription' =>
+        strings.settingVoiceRealtimeTalkOverSensitivityDescription,
       'settingVoiceRealtimeToolsTitle' =>
         strings.settingVoiceRealtimeToolsTitle,
       'settingVoiceRealtimeToolsDescription' =>
@@ -5026,6 +5074,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingVoiceWakeWordSensitivityTitle,
       'settingVoiceWakeWordSensitivityDescription' =>
         strings.settingVoiceWakeWordSensitivityDescription,
+      'settingVoiceWakeWordFineTuneTitle' =>
+        strings.settingVoiceWakeWordFineTuneTitle,
+      'settingVoiceWakeWordFineTuneDescription' =>
+        strings.settingVoiceWakeWordFineTuneDescription,
       'settingVoiceNoiseGateTitle' => strings.settingVoiceNoiseGateTitle,
       'settingVoiceNoiseGateDescription' =>
         strings.settingVoiceNoiseGateDescription,
@@ -5185,6 +5237,8 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'setupQrHelp' => strings.setupQrHelp,
       'setupQrFlashOff' => strings.setupQrFlashOff,
       'setupQrFlashOn' => strings.setupQrFlashOn,
+      'setupQrScreenLightOff' => strings.setupQrScreenLightOff,
+      'setupQrScreenLightOn' => strings.setupQrScreenLightOn,
       'setupPasswordFirst' => strings.setupPasswordFirst,
       'setupPasswordBeforeImport' => strings.setupPasswordBeforeImport,
       'setupPasswordFailed' => strings.setupPasswordFailed,

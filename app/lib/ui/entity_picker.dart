@@ -155,23 +155,24 @@ class PickSpec {
 }
 
 /// Home Assistant's entities, all of them, filtered on the device per
-/// picker. One list serves every entity picker.
+/// picker. One list serves every entity picker. Entities Home Assistant
+/// hides stay out unless [includeHidden] asks for them.
 PickSpec entitySpec(
   BuildContext context,
   CommandRegistry commands, {
   List<String> domains = const [],
   String? deviceClass,
+  bool includeHidden = false,
 }) => PickSpec(
   key: 'entities',
   loader: () => _loadEntities(commands),
   searchHint: haText(context, 'Search entities'),
   noGroup: haText(context, 'No area'),
   chips: domains.length != 1,
-  keep: domains.isEmpty && deviceClass == null
-      ? null
-      : (item) =>
-            (domains.isEmpty || domains.contains(item.raw['domain'])) &&
-            (deviceClass == null || matchesDeviceClass(item.raw, deviceClass)),
+  keep: (item) =>
+      (includeHidden || item.raw['hidden'] != true) &&
+      (domains.isEmpty || domains.contains(item.raw['domain'])) &&
+      (deviceClass == null || matchesDeviceClass(item.raw, deviceClass)),
 );
 
 /// Loads the entity list every entity picker shares, for a screen that
@@ -1281,16 +1282,32 @@ class _ItemRow extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _Highlighted(
-                          item.name,
-                          query,
-                          style: TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: picked
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: scheme.onSurface,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: _Highlighted(
+                                item.name,
+                                query,
+                                style: TextStyle(
+                                  fontSize: 15.5,
+                                  fontWeight: picked
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                            ),
+                            // An entity Home Assistant hides, marked the way
+                            // Home Assistant marks it.
+                            if (item.raw['hidden'] == true) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.visibility_off,
+                                size: 16,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ],
                         ),
                         if (item.sub != null && item.sub!.isNotEmpty) ...[
                           const SizedBox(height: 2),

@@ -21,6 +21,7 @@
   "pluginSearchPlugins": "Пошук плагінів",
   "pluginUpdate": "Оновити",
   "pluginInstalled": "Встановлено",
+  "pluginNeedsAppVersion": "Потрібна версія Kiosk Satellite {version} або новіша",
   "pluginStars": "Зірки",
   "pluginDownloads": "Завантаження",
   "pluginActiveInstalls": "Активні встановлення",

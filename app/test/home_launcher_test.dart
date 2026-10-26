@@ -31,6 +31,9 @@ void main() {
   late List<MethodCall> backgroundCalls;
   late List<MethodCall> lockCalls;
 
+  /// The calls init made, before [build] clears the lists.
+  late List<String> bootCalls;
+
   /// The scripted native status the mock returns.
   late Map<String, Object?> nativeStatus;
 
@@ -38,10 +41,13 @@ void main() {
   /// without one the acquire path must stage instead of throwing.
   late bool activityUp;
 
+  /// Whether a kiosk screen is attached to the engine (isActivityAttached).
+  late bool screenAttached;
+
   Future<void> settle() =>
       Future<void>.delayed(const Duration(milliseconds: 20));
 
-  Future<void> build(Map<String, Object> initial) async {
+  Future<void> build(Map<String, Object> initial, {bool screen = true}) async {
     // Global and mutated by init on unsupported devices; each scenario
     // starts from a clean slate.
     defs.deviceHiddenKeys.clear();
@@ -55,6 +61,7 @@ void main() {
     backgroundCalls = [];
     lockCalls = [];
     activityUp = true;
+    screenAttached = screen;
     binding.defaultBinaryMessenger.setMockMethodCallHandler(backgroundChannel, (
       call,
     ) async {
@@ -64,6 +71,8 @@ void main() {
           return Map<String, Object?>.from(nativeStatus);
         case 'homeRoleAcquireSilent':
           return true;
+        case 'isActivityAttached':
+          return screenAttached;
         default:
           return true;
       }
@@ -81,6 +90,7 @@ void main() {
     home = HomeLauncherManager(bus, commands, log, settings);
     home.active = true;
     await home.init();
+    bootCalls = [for (final c in backgroundCalls) c.method];
     backgroundCalls.clear();
     lockCalls.clear();
   }
@@ -256,6 +266,77 @@ void main() {
       expect(settings.get(defs.homeLauncherEnabled), isFalse);
       expect(methods(backgroundCalls), contains('homeRoleRelease'));
     });
+  });
+
+  // A stored true the device does not act on: an import or restore, an
+  // Echo image's first start (EchoDefaults), or an alias staged before the
+  // kiosk became the device owner.
+  group('boot reconciliation', () {
+    test('device owner, alias never enabled: silent acquire', () async {
+      nativeStatus = status(deviceOwner: true);
+      await build({'ks.home.enabled': true});
+      expect(bootCalls, contains('homeRoleAcquireSilent'));
+      expect(home.roleHeld.value, isTrue);
+      // The kiosk screen is already up: nothing to bring forward.
+      expect(bootCalls, isNot(contains('bringToFront')));
+    });
+
+    test('started by a broadcast with no kiosk screen up: the silent '
+        'acquire brings the kiosk forward', () async {
+      nativeStatus = status(deviceOwner: true);
+      await build({'ks.home.enabled': true}, screen: false);
+      expect(
+        bootCalls,
+        containsAllInOrder(['homeRoleAcquireSilent', 'bringToFront']),
+      );
+    });
+
+    test(
+      'device owner, alias staged earlier without it: silent acquire',
+      () async {
+        nativeStatus = status(deviceOwner: true, aliasEnabled: true);
+        await build({'ks.home.enabled': true});
+        expect(bootCalls, contains('homeRoleAcquireSilent'));
+      },
+    );
+
+    test('role already held: nothing to do', () async {
+      nativeStatus = status(deviceOwner: true, aliasEnabled: true, held: true);
+      await build({'ks.home.enabled': true});
+      expect(bootCalls, isNot(contains('homeRoleAcquireSilent')));
+      expect(bootCalls, isNot(contains('homeAliasEnable')));
+    });
+
+    test('no device owner: the alias goes on and the setting stays', () async {
+      nativeStatus = status();
+      await build({'ks.home.enabled': true});
+      expect(bootCalls, contains('homeAliasEnable'));
+      expect(bootCalls, isNot(contains('homeRoleAcquireSilent')));
+      expect(settings.get(defs.homeLauncherEnabled), isTrue);
+    });
+
+    test('the device owner arriving later takes the role', () async {
+      nativeStatus = status(aliasEnabled: true);
+      await build({'ks.home.enabled': true});
+      expect(bootCalls, isNot(contains('homeRoleAcquireSilent')));
+      nativeStatus = status(deviceOwner: true, aliasEnabled: true);
+      bus.publish(const DeviceOwnerChanged());
+      await settle();
+      expect(methods(backgroundCalls), contains('homeRoleAcquireSilent'));
+      expect(home.roleHeld.value, isTrue);
+    });
+
+    test(
+      'the device owner arriving with the setting off does nothing',
+      () async {
+        nativeStatus = status();
+        await build({});
+        nativeStatus = status(deviceOwner: true);
+        bus.publish(const DeviceOwnerChanged());
+        await settle();
+        expect(methods(backgroundCalls), isEmpty);
+      },
+    );
   });
 
   group('roleHeld cache (the PopScope veto)', () {

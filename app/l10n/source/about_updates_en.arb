@@ -148,15 +148,43 @@
       ]
     }
   },
-  "aboutSystemInstallHelp": "The Dot restarts twice to install the update and is offline for about a minute and a half each time.",
-  "@aboutSystemInstallHelp": {
+  "aboutSystemRestartHelp": "The device restarts twice to install the update and is offline for a few minutes.",
+  "@aboutSystemRestartHelp": {
     "context": "Remote administration > About > System",
-    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "description": "Guidance below the release notes before a system update installs. The device is an Echo Dot or Echo Show running the Kiosk Satellite image.",
     "x-locations": {
       "remoteAdmin": [
         "About > System > install a version",
         "Overview > available system update"
       ]
+    }
+  },
+  "aboutSystemManual": "New image available",
+  "@aboutSystemManual": {
+    "context": "Remote administration > About > System",
+    "description": "Row shown when a newer system image exists that the device cannot install as an update. It has to be installed by hand, following a guide. The Echo Dot smart speaker moves from its LineageOS 14.1 image to a LineageOS 18.1 one this way.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "aboutSystemManualHelp": "Version {version} of the new Echo Dot image installs by hand, not as an update.",
+  "@aboutSystemManualHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Explanation below the row about a newer system image that has to be installed by hand. Next to it is a link to the guide. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the new Echo Dot system image, such as 2026.10.6."
+      }
     }
   }
 }

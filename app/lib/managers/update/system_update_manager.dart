@@ -1,140 +1,122 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
-import '../../core/headless.dart';
 import '../../core/manager.dart';
+import 'system_update_source.dart';
+import 'update_http_client.dart';
 
-/// The ROM's system update as BiscuitService reports it.
+export 'system_update_source.dart';
+
+/// A release of the image the device moves to by hand ([ImageSuccessor]).
 @immutable
-class SystemUpdateStatus {
-  const SystemUpdateStatus({
-    required this.current,
-    required this.latest,
-    required this.available,
+class ManualImageUpdate {
+  const ManualImageUpdate({
+    required this.version,
     required this.notes,
     required this.url,
-    required this.state,
-    required this.progress,
-    required this.error,
-    required this.checkError,
-    required this.checked,
   });
 
-  factory SystemUpdateStatus.fromJson(Map<String, Object?> json) {
-    String s(String key) => json[key] is String ? json[key] as String : '';
-    final progress = json['progress'];
-    final checked = json['checked'];
-    return SystemUpdateStatus(
-      current: s('current'),
-      latest: s('latest'),
-      available: json['available'] == true,
-      notes: s('notes'),
-      url: s('url'),
-      state: s('state').isEmpty ? 'idle' : s('state'),
-      progress: progress is num ? progress.toDouble().clamp(0.0, 1.0) : null,
-      error: s('error'),
-      checkError: s('checkError'),
-      checked: checked is num ? checked.toInt() : 0,
-    );
-  }
+  /// The release, such as 2026.10.6, without the device's tag prefix.
+  final String version;
 
-  /// The installed image release, such as 2026.10.4.
-  final String current;
-
-  /// The newest release on GitHub, or [current] when there is none.
-  final String latest;
-  final bool available;
-
-  /// What changed since [current]: every newer release's notes, newest
-  /// first, each under a "# Version" heading.
+  /// The release's notes.
   final String notes;
 
-  /// The newest release's GitHub page.
+  /// The guide to the move.
   final String url;
 
-  /// idle, checking, downloading, verifying, installing or failed.
-  final String state;
+  @override
+  bool operator ==(Object other) =>
+      other is ManualImageUpdate &&
+      other.version == version &&
+      other.notes == notes &&
+      other.url == url;
 
-  /// 0 to 1 while downloading or installing, otherwise null.
-  final double? progress;
-
-  /// Why the last install failed, empty when it did not.
-  final String error;
-
-  /// Why the last check failed, empty when it did not.
-  final String checkError;
-
-  /// When GitHub last answered, in milliseconds since the epoch, 0 before.
-  final int checked;
-
-  /// A download or install runs: no check or second install until it ends.
-  bool get busy =>
-      state == 'downloading' || state == 'verifying' || state == 'installing';
-
-  Map<String, Object?> toJson() => {
-    'supported': true,
-    'currentVersion': current,
-    'availableVersion': available ? latest : null,
-    'availableNotes': available ? notes : null,
-    'releaseUrl': url,
-    'state': state,
-    'progress': progress,
-    'lastError': error,
-    'checkError': checkError,
-    'checked': checked,
-  };
+  @override
+  int get hashCode => Object.hash(version, notes, url);
 }
 
-/// System updates of the Echo Dot's Kiosk Satellite Edition image
-/// (BiscuitSystemUpdate.kt).
+/// System updates of the system image, through its own updater
+/// ([SystemUpdateSource]).
 ///
-/// The image checks its GitHub releases itself, a minute after every boot
-/// and when asked, and installs the newest through TWRP: it downloads the
-/// zip, checks its signature and reboots twice, once for each slot, taking
-/// the kiosk with it. This manager relays that to the remote admin's About
-/// page and the Home Assistant Firmware entity. Elsewhere it registers its
-/// commands and reports itself unsupported.
+/// The updater checks the image's GitHub releases itself and installs the
+/// newest, rebooting the device. This manager relays that to the remote
+/// admin's About page and the Home Assistant Firmware entity. On an image
+/// that moves to a newer one by hand, it also reads the new image's
+/// releases and reports the newest as an update to install by hand. On a
+/// device whose image has no updater it registers its commands and reports
+/// itself unsupported.
 class SystemUpdateManager extends Manager {
   SystemUpdateManager(super.bus, super.commands, super.log);
 
   @override
   String get name => 'system-update';
 
-  static const _channel = MethodChannel('kiosk_satellite/system_update');
-
   /// The longest a check waits for GitHub before reporting what it has.
   static const _checkWait = Duration(seconds: 45);
 
   final status = ValueNotifier<SystemUpdateStatus?>(null);
 
-  bool get supported => Headless.systemUpdate;
+  /// The newest release of the image this one moves to by hand, if any.
+  final manual = ValueNotifier<ManualImageUpdate?>(null);
+
+  /// Finds the image's updater, null when the image has none. Tests swap
+  /// it.
+  Future<SystemUpdateSource?> Function() detectSource = _detectSource;
+
+  /// The client for the successor image's releases. Tests swap it.
+  http.Client Function() clientFactory = createUpdateHttpClient;
+
+  SystemUpdateSource? _source;
+
+  bool get supported => _source != null;
 
   Timer? _timer;
 
+  static Future<SystemUpdateSource?> _detectSource() async {
+    switch (await RomSystemUpdateSource.detect()) {
+      case 'biscuit':
+        final android = await DeviceInfoPlugin().androidInfo;
+        return BiscuitSystemUpdateSource(
+          sdkInt: android.version.sdkInt,
+          device: android.device,
+        );
+      case 'echo':
+        return EchoSystemUpdateSource();
+    }
+    return null;
+  }
+
   @override
   Future<void> init() async {
+    try {
+      _source = await detectSource();
+    } catch (e) {
+      log.warn(name, 'could not detect the system updater: $e');
+    }
     commands
       ..register(
         Command(
           name: 'getSystemUpdateStatus',
           description:
-              'The Echo Dot image release, the newer GitHub release if any, '
-              'and the state of its download and install. supported=false '
-              'on any other device',
+              'The system image release, the newer GitHub release if any, '
+              'and the state of its download and install. manualVersion is '
+              'a newer image that installs by hand, with its guide in '
+              'manualUrl. supported=false on a device whose image does not '
+              'update itself',
           quiet: true,
           handler: (_) async {
             if (!supported) return const CommandResult.ok({'supported': false});
             await refresh();
             final s = status.value;
-            if (s == null) {
-              return CommandResult.fail('BiscuitService did not answer');
-            }
-            return CommandResult.ok(s.toJson());
+            if (s == null) return _noAnswer();
+            return CommandResult.ok(_json(s));
           },
         ),
       )
@@ -142,17 +124,15 @@ class SystemUpdateManager extends Manager {
         Command(
           name: 'checkSystemUpdateNow',
           description:
-              'Ask GitHub for a newer Echo Dot image release now and report '
+              'Ask GitHub for a newer system image release now and report '
               'the result in getSystemUpdateStatus shape, plus '
               'reachable=false when GitHub could not be queried',
           handler: (_) async {
             if (!supported) return _unsupported();
             final s = await check();
-            if (s == null) {
-              return CommandResult.fail('BiscuitService did not answer');
-            }
+            if (s == null) return _noAnswer();
             return CommandResult.ok({
-              ...s.toJson(),
+              ..._json(s),
               'reachable': s.checkError.isEmpty,
             });
           },
@@ -162,20 +142,25 @@ class SystemUpdateManager extends Manager {
         Command(
           name: 'installSystemUpdate',
           description:
-              'Download the newer Echo Dot image release, check its '
-              'signature and install it. The Dot reboots into TWRP twice and '
-              'is offline for about a minute and a half each time',
+              'Download the newer system image release, check its signature '
+              'and install it. The device reboots into TWRP and back and is '
+              'offline meanwhile',
           handler: (_) async {
             if (!supported) return _unsupported();
             await refresh();
             final s = status.value;
-            if (s == null) {
-              return CommandResult.fail('BiscuitService did not answer');
-            }
+            if (s == null) return _noAnswer();
             if (s.busy) {
               return CommandResult.fail('an update is already running');
             }
             if (!s.available) {
+              final m = manual.value;
+              if (m != null) {
+                return CommandResult.fail(
+                  'version ${m.version} is a new image that installs by '
+                  'hand, see ${m.url}',
+                );
+              }
               return CommandResult.fail('no update available');
             }
             if (!await install()) {
@@ -185,13 +170,12 @@ class SystemUpdateManager extends Manager {
           },
         ),
       );
-    if (!supported) return;
-    _channel.setMethodCallHandler((call) async {
-      if (call.method == 'changed') await refresh();
-      return null;
-    });
+    final source = _source;
+    if (source == null) return;
+    source.listen(() => unawaited(refresh()));
     await refresh();
-    // The image checks a minute after every boot. A Dot that runs for
+    unawaited(_checkSuccessor());
+    // The image checks a minute after every boot. A device that runs for
     // weeks also hears about a release through this.
     _timer = Timer.periodic(
       const Duration(hours: 12),
@@ -200,19 +184,30 @@ class SystemUpdateManager extends Manager {
   }
 
   CommandResult _unsupported() =>
-      CommandResult.fail('system updates need the Echo Dot image');
+      CommandResult.fail('system updates need the Echo Dot or Echo Show image');
+
+  CommandResult _noAnswer() =>
+      CommandResult.fail('the system updater did not answer');
+
+  Map<String, Object?> _json(SystemUpdateStatus s) {
+    final m = manual.value;
+    return {
+      ...s.toJson(),
+      'title': _source?.title,
+      'repository': _source?.repository,
+      'manualVersion': m?.version,
+      'manualNotes': m?.notes,
+      'manualUrl': m?.url,
+    };
+  }
 
   /// Reads the status again and publishes it when it changed.
   Future<void> refresh() async {
-    if (!supported) return;
+    final source = _source;
+    if (source == null) return;
     SystemUpdateStatus? next;
     try {
-      final raw = await _channel.invokeMethod<String>('status');
-      if (raw != null && raw.isNotEmpty) {
-        next = SystemUpdateStatus.fromJson(
-          (jsonDecode(raw) as Map).cast<String, Object?>(),
-        );
-      }
+      next = await source.status();
     } catch (e) {
       log.warn(name, 'status failed: $e');
     }
@@ -224,15 +219,25 @@ class SystemUpdateManager extends Manager {
   }
 
   /// Asks GitHub through the image and waits for the answer. Null when
-  /// BiscuitService could not be reached.
+  /// the updater could not be reached.
   Future<SystemUpdateStatus?> check() async {
-    if (!supported) return null;
+    final source = _source;
+    if (source == null) return null;
+    final successor = _checkSuccessor();
+    try {
+      return await _checkSource(source);
+    } finally {
+      await successor;
+    }
+  }
+
+  Future<SystemUpdateStatus?> _checkSource(SystemUpdateSource source) async {
     await refresh();
     final before = status.value;
     if (before == null) return null;
     if (before.busy) return before;
     try {
-      await _channel.invokeMethod<bool>('check');
+      await source.check();
     } catch (e) {
       log.warn(name, 'check failed: $e');
       return before;
@@ -248,8 +253,10 @@ class SystemUpdateManager extends Manager {
   }
 
   Future<bool> install() async {
+    final source = _source;
+    if (source == null) return false;
     try {
-      final started = await _channel.invokeMethod<bool>('install') ?? false;
+      final started = await source.install();
       log.info(name, 'install ${started ? 'started' : 'refused'}');
       await refresh();
       return started;
@@ -257,6 +264,91 @@ class SystemUpdateManager extends Manager {
       log.warn(name, 'install failed: $e');
       return false;
     }
+  }
+
+  /// Reads the releases of the image this one moves to by hand, which its
+  /// updater never sees. Keeps what it knew when GitHub does not answer.
+  Future<void> _checkSuccessor() async {
+    final successor = _source?.successor;
+    if (successor == null) return;
+    final client = clientFactory();
+    try {
+      final res = await client
+          .get(
+            successor.releasesUrl,
+            headers: const {'Accept': 'application/vnd.github+json'},
+          )
+          .timeout(_checkWait);
+      if (res.statusCode != 200) {
+        log.warn(
+          name,
+          'new image check failed: HTTP ${res.statusCode} from '
+          '${successor.repository}',
+        );
+        return;
+      }
+      final next = newestManualUpdate(
+        jsonDecode(res.body) as List<Object?>,
+        successor,
+      );
+      if (next == manual.value) return;
+      log.info(
+        name,
+        next == null
+            ? 'no ${successor.device} release in ${successor.repository}'
+            : 'new image ${next.version} in ${successor.repository}, '
+                  'installs by hand',
+      );
+      manual.value = next;
+      bus.publish(const SystemUpdateStateChanged());
+    } catch (e) {
+      log.warn(name, 'new image check failed: $e');
+    } finally {
+      client.close();
+    }
+  }
+
+  /// The newest of the device's own releases in a GitHub releases list:
+  /// tagged with its codename and a dash, neither draft nor prerelease.
+  /// Never GitHub's latest release, which can be another device's.
+  @visibleForTesting
+  static ManualImageUpdate? newestManualUpdate(
+    List<Object?> releases,
+    ImageSuccessor successor,
+  ) {
+    final prefix = '${successor.device}-';
+    ManualImageUpdate? newest;
+    List<int>? newestParts;
+    for (final r in releases.whereType<Map<Object?, Object?>>()) {
+      if (r['draft'] == true || r['prerelease'] == true) continue;
+      final tag = r['tag_name'];
+      if (tag is! String || !tag.startsWith(prefix)) continue;
+      final version = tag.substring(prefix.length);
+      final parts = _versionParts(version);
+      if (parts == null) continue;
+      if (newestParts != null && _compare(parts, newestParts) <= 0) continue;
+      newestParts = parts;
+      newest = ManualImageUpdate(
+        version: version,
+        notes: r['body'] is String ? (r['body'] as String).trim() : '',
+        url: successor.guide,
+      );
+    }
+    return newest;
+  }
+
+  static List<int>? _versionParts(String version) {
+    final parts = version.split('.').map(int.tryParse).toList();
+    if (parts.isEmpty || parts.contains(null)) return null;
+    return parts.cast<int>();
+  }
+
+  static int _compare(List<int> a, List<int> b) {
+    for (var i = 0; i < a.length || i < b.length; i++) {
+      final d = (i < a.length ? a[i] : 0) - (i < b.length ? b[i] : 0);
+      if (d != 0) return d;
+    }
+    return 0;
   }
 
   @override

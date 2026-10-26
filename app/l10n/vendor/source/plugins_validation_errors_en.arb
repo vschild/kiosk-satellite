@@ -370,6 +370,29 @@
       }
     }
   },
+  "pluginErrorAppVersion": "Plugin needs Kiosk Satellite {required} or newer. This kiosk runs {current}.",
+  "@pluginErrorAppVersion": {
+    "context": "Settings > Plugin Manager > Add plugin, preview or install",
+    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ],
+      "remoteAdmin": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ]
+    },
+    "placeholders": {
+      "required": {
+        "type": "String",
+        "example": "2026.10.40"
+      },
+      "current": {
+        "type": "String",
+        "example": "2026.10.36"
+      }
+    }
+  },
   "pluginErrorInvalidField": "Invalid {field}",
   "@pluginErrorInvalidField": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",

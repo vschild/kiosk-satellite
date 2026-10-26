@@ -503,7 +503,9 @@ export function pluginError(error) {
     if (match) return t('pluginErrorAssetUrl', {name: match[1]});
     match = /^Plugin needs Android API ([0-9]+)$/.exec(text);
     if (match) return t('pluginErrorAndroidApi', {version: match[1]});
-    match = /^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle|headless|input)$/.exec(text);
+    match = /^Plugin needs Kiosk Satellite (\S+) or newer\. This kiosk runs (\S*)\.$/.exec(text);
+    if (match) return t('pluginErrorAppVersion', {required: match[1], current: match[2]});
+    match = /^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle|headless|input|minAppVersion)$/.exec(text);
     if (match) return t('pluginErrorInvalidField', {field: match[1]});
     match = /^Unexpected or duplicate ZIP entry: ([\s\S]*)$/.exec(text);
     if (match) return t('pluginErrorZipEntry', {name: match[1]});

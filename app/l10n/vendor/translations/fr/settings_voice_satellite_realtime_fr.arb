@@ -37,6 +37,8 @@
   "settingVoiceRealtimeModelDescription": "Le modèle de parole à parole qui répond.",
   "settingVoiceRealtimeTalkOverTitle": "Parler pendant les réponses",
   "settingVoiceRealtimeTalkOverDescription": "Interrompez une réponse en parlant. Désactivez si l'assistant s'interrompt tout seul.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Sensibilité d'interruption",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Facilité avec laquelle la parole interrompt une réponse. Augmentez-la si l'interruption ne fonctionne pas avec un micro peu sensible. Des réglages plus élevés peuvent amener l'assistant à s'interrompre tout seul.",
   "settingVoiceRealtimeToolsTitle": "Outils",
   "settingVoiceRealtimeToolsDescription": "Ce que l'assistant peut contrôler. Home Assistant utilise son intégration MCP Server et les entités exposées à Assist.",
   "settingVoiceRealtimeVoiceTitle": "Voix",

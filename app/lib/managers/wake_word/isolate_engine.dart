@@ -382,8 +382,8 @@ abstract class IsolateWakeEngine extends WakeWordEngine {
   /// A dropped mic is silent in every sense: no audio arrives, nothing throws
   /// again, and the engine goes on reporting `running` while hearing nothing.
   /// Meanwhile Voice Satellite has stopped its own browser detection because we
-  /// said we had this. So tear down and say so — the manager reports
-  /// unavailable, and the next config push retries from scratch.
+  /// said we had this. So tear down and say so. The manager reports
+  /// unavailable and retries from scratch on a backoff (issue #1145).
   ///
   /// Seen for real: revoking the microphone permission (an app-data clear does
   /// this) leaves `AudioRecord init failed` here and a satellite that looks

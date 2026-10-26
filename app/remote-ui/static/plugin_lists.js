@@ -686,7 +686,8 @@ function fieldControl(field, values, fields, { refresh, rerender, openEntry, plu
     }
     case 'entity': case 'cameraView': {
       const domains = Array.isArray(field.domain) ? field.domain.map(String) : (field.domain ? [String(field.domain)] : []);
-      const spec = field.type === 'entity' ? entitySpec({ domains }) : cameraViewSpec();
+      const spec = field.type === 'entity'
+        ? entitySpec({ domains, includeHidden: field.includeHidden === true }) : cameraViewSpec();
       const picker = pickField({
         spec, value,
         placeholder: field.type === 'cameraView' ? pluginText('Choose a camera view') : null,

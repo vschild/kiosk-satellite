@@ -696,29 +696,30 @@ String voiceSkinName(
           voiceText(context, 'Unavailable plugin skin')
     : skinName(context, assistSkinById(value));
 
-/// The Skin row: the current skin's name, opening the picker.
+/// A Skin row, Skin or Assistant 2 skin: the current skin's name,
+/// opening the picker.
 class VoiceSkinRow extends StatelessWidget {
   const VoiceSkinRow({
     super.key,
     required this.container,
     required this.onChanged,
+    this.def = defs.voiceSkin,
   });
 
   final AppContainer container;
   final VoidCallback onChanged;
+  final defs.SettingDef<String> def;
 
   @override
   Widget build(BuildContext context) {
-    final skin = container.settings.get(defs.voiceSkin);
+    final skin = container.settings.get(def);
     return SettingsRow(
-      title: Text(voiceText(context, 'Skin')),
-      subtitle: Text(
-        voiceText(context, 'The look of the voice assistant overlay.'),
-      ),
+      title: Text(def.localizedTitle(context)),
+      subtitle: Text(def.localizedDescription(context)),
       onTap: () async {
-        final picked = await showVoiceSkinPicker(context, container);
+        final picked = await showVoiceSkinPicker(context, container, def: def);
         if (picked != null) {
-          await container.settings.set(defs.voiceSkin, picked);
+          await container.settings.set(def, picked);
           onChanged();
         }
       },
@@ -784,13 +785,14 @@ class _PluginSkinThumbnail extends StatelessWidget {
   }
 }
 
-/// Every skin as a thumbnail, the current one ringed. Installed plugins
-/// that offer a voice skin follow the built-in ones.
+/// Every skin as a thumbnail, the current one of [def] ringed. Installed
+/// plugins that offer a voice skin follow the built-in ones.
 Future<String?> showVoiceSkinPicker(
   BuildContext context,
-  AppContainer container,
-) {
-  final current = container.settings.get(defs.voiceSkin);
+  AppContainer container, {
+  defs.SettingDef<String> def = defs.voiceSkin,
+}) {
+  final current = container.settings.get(def);
   return showDialog<String>(
     context: context,
     builder: (context) {
@@ -810,7 +812,7 @@ Future<String?> showVoiceSkinPicker(
           ),
       ];
       return AlertDialog(
-        title: Text(voiceText(context, 'Skin')),
+        title: Text(def.localizedTitle(context)),
         contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         content: SizedBox(
           width: wide ? 560 : 320,

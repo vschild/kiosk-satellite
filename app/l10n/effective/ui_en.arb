@@ -304,15 +304,43 @@
       ]
     }
   },
-  "aboutSystemInstallHelp": "The Dot restarts twice to install the update and is offline for about a minute and a half each time.",
-  "@aboutSystemInstallHelp": {
+  "aboutSystemRestartHelp": "The device restarts twice to install the update and is offline for a few minutes.",
+  "@aboutSystemRestartHelp": {
     "context": "Remote administration > About > System",
-    "description": "Guidance below the release notes before a system update installs. The Dot is the Echo Dot smart speaker.",
+    "description": "Guidance below the release notes before a system update installs. The device is an Echo Dot or Echo Show running the Kiosk Satellite image.",
     "x-locations": {
       "remoteAdmin": [
         "About > System > install a version",
         "Overview > available system update"
       ]
+    }
+  },
+  "aboutSystemManual": "New image available",
+  "@aboutSystemManual": {
+    "context": "Remote administration > About > System",
+    "description": "Row shown when a newer system image exists that the device cannot install as an update. It has to be installed by hand, following a guide. The Echo Dot smart speaker moves from its LineageOS 14.1 image to a LineageOS 18.1 one this way.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    }
+  },
+  "aboutSystemManualHelp": "Version {version} of the new Echo Dot image installs by hand, not as an update.",
+  "@aboutSystemManualHelp": {
+    "context": "Remote administration > About > System",
+    "description": "Explanation below the row about a newer system image that has to be installed by hand. Next to it is a link to the guide. The Dot is the Echo Dot smart speaker.",
+    "x-locations": {
+      "remoteAdmin": [
+        "About > System",
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "description": "Release of the new Echo Dot system image, such as 2026.10.6."
+      }
     }
   },
   "alarmsTitle": "Alarms",
@@ -11290,6 +11318,180 @@
       ]
     }
   },
+  "librarySort": "Sort",
+  "@librarySort": {
+    "context": "Music Library",
+    "description": "Tooltip of the button that opens the sort menu of a library list such as Albums or Playlists.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortAToZ": "A to Z",
+  "@librarySortAToZ": {
+    "context": "Music Library",
+    "description": "Sort menu option: alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortZToA": "Z to A",
+  "@librarySortZToA": {
+    "context": "Music Library",
+    "description": "Sort menu option: reverse alphabetical order by name.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "librarySortMostPlayed": "Most played",
+  "@librarySortMostPlayed": {
+    "context": "Music Library",
+    "description": "Sort menu option: the most played entries first.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryAlbumArtistsOnly": "Album artists only",
+  "@libraryAlbumArtistsOnly": {
+    "context": "Music Library",
+    "description": "Checkable option in the Artists sort menu. Lists only artists credited on an album, leaving out artists who only appear on single tracks of compilations.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryKindGenre": "Genre",
+  "@libraryKindGenre": {
+    "context": "Music Library",
+    "description": "Kind of entry shown in lists and on a genre's page, like Artist or Album.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "libraryBrowseByGenre": "Browse by genre",
+  "@libraryBrowseByGenre": {
+    "context": "Music Library",
+    "description": "Discover section title: a grid of music genres to open.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Music Library"
+      ]
+    }
+  },
+  "settingLibraryTextScaleDescription": "Size of the titles, names and labels in the library.",
+  "@settingLibraryTextScaleDescription": {
+    "context": "Music Library",
+    "description": "Setting description under Text scale, a percentage slider.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkTitle": "Square artwork",
+  "@settingLibrarySquareArtworkTitle": {
+    "context": "Music Library",
+    "description": "Setting label: show artists in square tiles instead of circles.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibrarySquareArtworkDescription": "Show artists in square tiles, like albums and playlists.",
+  "@settingLibrarySquareArtworkDescription": {
+    "context": "Music Library",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityTitle": "Grid density",
+  "@settingLibraryGridDensityTitle": {
+    "context": "Music Library",
+    "description": "Setting label: how large the tiles in the library's grids are.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "settingLibraryGridDensityDescription": "Size of the tiles in the library. Compact fits more in a row.",
+  "@settingLibraryGridDensityDescription": {
+    "context": "Music Library",
+    "description": "Setting description. Compact is one of the options.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityComfortable": "Comfortable",
+  "@libraryDensityComfortable": {
+    "context": "Music Library",
+    "description": "Grid density option: larger tiles, fewer in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityStandard": "Standard",
+  "@libraryDensityStandard": {
+    "context": "Music Library",
+    "description": "Grid density option: the default tile size.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
+  "libraryDensityCompact": "Compact",
+  "@libraryDensityCompact": {
+    "context": "Music Library",
+    "description": "Grid density option: smaller tiles, more in a row.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
   "libraryMoreResults": "More results",
   "@libraryMoreResults": {
     "context": "Music Library",
@@ -13599,6 +13801,25 @@
       ]
     }
   },
+  "pluginNeedsAppVersion": "Needs Kiosk Satellite {version} or newer",
+  "@pluginNeedsAppVersion": {
+    "context": "Settings > Plugin Manager > Browse plugins",
+    "description": "Shown on a listed plugin whose newest release needs a newer Kiosk Satellite than this kiosk runs.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Browse plugins"
+      ],
+      "remoteAdmin": [
+        "Plugin Manager > Browse plugins"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "2026.10.40"
+      }
+    }
+  },
   "pluginStars": "Stars",
   "@pluginStars": {
     "context": "Settings > Plugin Manager > Browse plugins",
@@ -15560,6 +15781,29 @@
       }
     }
   },
+  "pluginErrorAppVersion": "Plugin needs Kiosk Satellite {required} or newer. This kiosk runs {current}.",
+  "@pluginErrorAppVersion": {
+    "context": "Settings > Plugin Manager > Add plugin, preview or install",
+    "description": "Explain the failure. Keep technical identifiers, file names and product names unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ],
+      "remoteAdmin": [
+        "Settings > Plugin Manager > Add plugin, preview or install"
+      ]
+    },
+    "placeholders": {
+      "required": {
+        "type": "String",
+        "example": "2026.10.40"
+      },
+      "current": {
+        "type": "String",
+        "example": "2026.10.36"
+      }
+    }
+  },
   "pluginErrorInvalidField": "Invalid {field}",
   "@pluginErrorInvalidField": {
     "context": "Settings > Plugin Manager > Add plugin, preview or install",
@@ -16298,8 +16542,8 @@
       ]
     }
   },
-  "overviewSystemUpdateHelp": "Version {version} of the Echo Dot image is ready to install. The Dot restarts twice to install it.",
-  "@overviewSystemUpdateHelp": {
+  "overviewSystemImageUpdateHelp": "Version {version} of the system image is ready to install. The device restarts twice to install it.",
+  "@overviewSystemImageUpdateHelp": {
     "context": "Remote admin > Overview > Needs attention",
     "description": "Translate the interface text. Keep external names, versions and technical details unchanged.",
     "x-locations": {
@@ -16311,7 +16555,7 @@
     "placeholders": {
       "version": {
         "type": "String",
-        "description": "Release of the Echo Dot's system image, such as 2026.10.4."
+        "description": "Release of the device's system image, such as 2026.10.4."
       }
     }
   },
@@ -18050,29 +18294,29 @@
       ]
     }
   },
-  "settingLauncherAutoReturnMediaTitle": "Wait while media plays",
-  "@settingLauncherAutoReturnMediaTitle": {
+  "settingLauncherAutoReturnHoldTitle": "Wait during media and calls",
+  "@settingLauncherAutoReturnHoldTitle": {
     "context": "Settings > App Launcher",
     "description": "Setting label.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
-  "settingLauncherAutoReturnMediaDescription": "Do not come back while video or music is playing.",
-  "@settingLauncherAutoReturnMediaDescription": {
+  "settingLauncherAutoReturnHoldDescription": "Do not come back during video, music or calls.",
+  "@settingLauncherAutoReturnHoldDescription": {
     "context": "Settings > App Launcher",
     "description": "Help below this setting.",
     "x-locations": {
       "device": [
-        "Settings > App Launcher > Wait while media plays"
+        "Settings > App Launcher > Wait during media and calls"
       ],
       "remoteAdmin": [
-        "App Launcher > Wait while media plays"
+        "App Launcher > Wait during media and calls"
       ]
     }
   },
@@ -27384,6 +27628,240 @@
   "@deviceThemeSystem": {
     "context": "Settings:Device:User Interface",
     "description": "Label or explanation on this Device settings page.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenTitle": "Show system toast notifications",
+  "@settingUiToastsHiddenTitle": {
+    "context": "Settings:Device:User Interface",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "settingUiToastsHiddenDescription": "Choose the pop-up messages shown over the dashboard. Messages in Settings always show.",
+  "@settingUiToastsHiddenDescription": {
+    "context": "Settings:Device:User Interface",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsAll": "All",
+  "@deviceToastsAll": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast shows.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastsNone": "None",
+  "@deviceToastsNone": {
+    "context": "Settings:Device:User Interface",
+    "description": "Value of Show system toast notifications when every toast is turned off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastBack": "Back button hints",
+  "@deviceToastBack": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the hint to press back again.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastGestures": "Gesture actions",
+  "@deviceToastGestures": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the outcome of a gesture's Home Assistant action.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastHoldMode": "Hold mode",
+  "@deviceToastHoldMode": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Hold mode turning on or off.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastLinks": "Dashboard links",
+  "@deviceToastLinks": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: kiosk and app links on the dashboard that fail.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastDownloads": "Downloads",
+  "@deviceToastDownloads": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: file downloads from the dashboard.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastNetwork": "Network status",
+  "@deviceToastNetwork": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the pill that says the network is gone or back.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastUpdates": "Update checks",
+  "@deviceToastUpdates": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: checking for updates from the kiosk menu.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastVoice": "Voice Satellite notices",
+  "@deviceToastVoice": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Voice Satellite errors, warnings and notices.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastTimers": "Timers",
+  "@deviceToastTimers": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: voice timer pills.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAlarms": "Alarms",
+  "@deviceToastAlarms": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Alarms panel.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastMusicLibrary": "Music Library",
+  "@deviceToastMusicLibrary": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: the Music Library.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastIntercom": "Intercom",
+  "@deviceToastIntercom": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: Intercom calls.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastAppLauncher": "App Launcher",
+  "@deviceToastAppLauncher": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: apps opened from the App Launcher.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > User Interface"
+      ],
+      "remoteAdmin": [
+        "Device > User Interface"
+      ]
+    }
+  },
+  "deviceToastPlugins": "Plugin actions",
+  "@deviceToastPlugins": {
+    "context": "Settings:Device:User Interface",
+    "description": "Toast source: plugin actions in the kiosk menu.",
     "x-locations": {
       "device": [
         "Settings > Device > User Interface"
@@ -50203,6 +50681,58 @@
       ]
     }
   },
+  "voiceSkin1": "Assistant 1 skin",
+  "@voiceSkin1": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin1Help": "The look of the overlay when Assistant 1 answers.",
+  "@voiceSkin1Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2": "Assistant 2 skin",
+  "@voiceSkin2": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
+  "voiceSkin2Help": "The look of the overlay when Assistant 2 answers.",
+  "@voiceSkin2Help": {
+    "context": "Settings > Voice Satellite > Appearance",
+    "description": "Translate the visible label or help. Keep model names and technical identifiers unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Voice Satellite > Appearance"
+      ],
+      "remoteAdmin": [
+        "Voice Satellite > Appearance"
+      ]
+    }
+  },
   "voiceTheme": "Theme mode",
   "@voiceTheme": {
     "context": "Settings > Voice Satellite > Appearance",
@@ -52090,6 +52620,16 @@
     "context": "Settings > Voice Satellite > Realtime",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Talk over sensitivity",
+  "@settingVoiceRealtimeTalkOverSensitivityTitle": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "How easily speaking interrupts an answer. Raise it if interrupting does not work on a quiet microphone. Higher values can make it interrupt itself.",
+  "@settingVoiceRealtimeTalkOverSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Realtime",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
   "settingVoiceRealtimeToolsTitle": "Tools",
   "@settingVoiceRealtimeToolsTitle": {
     "context": "Settings > Voice Satellite > Realtime",
@@ -53286,6 +53826,16 @@
   },
   "settingVoiceWakeWordSensitivityDescription": "How easily the wake word triggers.",
   "@settingVoiceWakeWordSensitivityDescription": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneTitle": "Fine-tune sensitivity",
+  "@settingVoiceWakeWordFineTuneTitle": {
+    "context": "Settings > Voice Satellite > Wake Word",
+    "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
+  },
+  "settingVoiceWakeWordFineTuneDescription": "Adjusts the wake word sensitivity in smaller steps. Raise it if you often have to repeat the wake word, lower it if it wakes by mistake.",
+  "@settingVoiceWakeWordFineTuneDescription": {
     "context": "Settings > Voice Satellite > Wake Word",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
@@ -54751,6 +55301,30 @@
     "x-locations": {
       "device": [
         "First-time setup > Connect > Scan token QR code"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOff": "Turn off the screen light",
+  "@setupQrScreenLightOff": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is on. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOn": "Turn on the screen light",
+  "@setupQrScreenLightOn": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is off. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
       ],
       "remoteAdmin": []
     }

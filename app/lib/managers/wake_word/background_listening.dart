@@ -143,6 +143,14 @@ class BackgroundListening {
   /// that was evicted while this isolate kept running.
   static void Function(String detail)? _onActivityAttached;
 
+  /// The device owner was set or cleared while the app runs.
+  static void Function()? _onDeviceOwnerChanged;
+
+  static set onDeviceOwnerChanged(void Function()? handler) {
+    _onDeviceOwnerChanged = handler;
+    _installHandler();
+  }
+
   static set onActivityAttached(void Function(String detail)? handler) {
     _onActivityAttached = handler;
     _installHandler();
@@ -199,7 +207,8 @@ class BackgroundListening {
         _onAmbientDisplayChanged == null &&
         _onNetworkChanged == null &&
         _onTouchSeen == null &&
-        _onActivityAttached == null) {
+        _onActivityAttached == null &&
+        _onDeviceOwnerChanged == null) {
       _channel.setMethodCallHandler(null);
       return;
     }
@@ -214,6 +223,7 @@ class BackgroundListening {
       }
       if (call.method == 'volumeChanged') _onVolumeChanged?.call();
       if (call.method == 'touchSeen') _onTouchSeen?.call();
+      if (call.method == 'deviceOwnerChanged') _onDeviceOwnerChanged?.call();
       if (call.method == 'activityAttached') {
         _onActivityAttached?.call('${call.arguments ?? ''}');
       }

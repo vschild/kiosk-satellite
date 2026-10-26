@@ -7,6 +7,6 @@
   "settingLauncherAutoReturnDescription": "Revenir au kiosque une fois que l'autre application est restée inutilisée un moment.",
   "settingLauncherAutoReturnSecondsTitle": "Retour après (secondes)",
   "settingLauncherAutoReturnSecondsDescription": "Durée sans interaction dans l'autre application avant que le kiosque revienne.",
-  "settingLauncherAutoReturnMediaTitle": "Attendre pendant la lecture",
-  "settingLauncherAutoReturnMediaDescription": "Ne pas revenir tant qu'une vidéo ou de la musique est en lecture."
+  "settingLauncherAutoReturnHoldTitle": "Attendre pendant la lecture et les appels",
+  "settingLauncherAutoReturnHoldDescription": "Ne pas revenir pendant une vidéo, de la musique ou un appel."
 }

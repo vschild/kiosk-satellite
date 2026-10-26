@@ -5,5 +5,7 @@
   "setupQrTitle": "Scan de token QR-code",
   "setupQrHelp": "Deze verschijnt naast een nieuw aangemaakt token in je Home Assistant-profiel.",
   "setupQrFlashOff": "Zaklamp uitschakelen",
-  "setupQrFlashOn": "Zaklamp inschakelen"
+  "setupQrFlashOn": "Zaklamp inschakelen",
+  "setupQrScreenLightOff": "Schermlicht uitschakelen",
+  "setupQrScreenLightOn": "Schermlicht inschakelen"
 }

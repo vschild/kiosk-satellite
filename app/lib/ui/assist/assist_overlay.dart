@@ -65,7 +65,9 @@ class AssistPluginSkinTouch extends StatelessWidget {
         final view = c.voice.view.value;
         if (!view.visible ||
             view.docked ||
-            !c.plugins.voiceSkinRunning(c.settings.get(defs.voiceSkin))) {
+            !c.plugins.voiceSkinRunning(
+              c.settings.get(defs.voiceSkinOf(view.assistant)),
+            )) {
           return const SizedBox.shrink();
         }
         return GestureDetector(
@@ -146,7 +148,7 @@ class _AssistOverlayState extends State<AssistOverlay>
       'rasterMs': avg((t) => t.rasterDuration).toStringAsFixed(1),
       'vsyncMs': avg((t) => t.vsyncOverhead).toStringAsFixed(1),
       'totalMs': avg((t) => t.totalSpan).toStringAsFixed(1),
-      'skin': c.settings.get(defs.voiceSkin),
+      'skin': c.settings.get(defs.voiceSkinOf(_shown.assistant)),
       'artStepMs': ArtCost.stepMs.toStringAsFixed(1),
       'artPaintMs': ArtCost.paintMs.toStringAsFixed(1),
       'artSnapshotMs': ArtCost.snapshotMs.toStringAsFixed(1),
@@ -198,11 +200,12 @@ class _AssistOverlayState extends State<AssistOverlay>
     super.dispose();
   }
 
-  /// A plugin draws the turn: the Skin setting picks a plugin's voice skin
-  /// and that plugin runs. Otherwise the overlay falls back to a built-in
-  /// skin.
-  bool get _pluginSkin =>
-      c.plugins.voiceSkinRunning(c.settings.get(defs.voiceSkin));
+  /// A plugin draws [view]: the Skin setting of its assistant picks a
+  /// plugin's voice skin and that plugin runs. Otherwise the overlay falls
+  /// back to a built-in skin.
+  bool _pluginSkin(AssistView view) => c.plugins.voiceSkinRunning(
+    c.settings.get(defs.voiceSkinOf(view.assistant)),
+  );
 
   void _onPlugins() {
     if (mounted && _shown.visible) setState(() {});
@@ -215,9 +218,15 @@ class _AssistOverlayState extends State<AssistOverlay>
     if (next.visible) _clock.running = true;
     // A docked conversation has no backdrop to blur.
     if (next.visible && !_shown.visible && !next.docked) {
-      unawaited(_freezeBackdrop());
+      unawaited(_freezeBackdrop(next));
     } else if (!next.visible) {
       _frozenGen++;
+    } else if (next.assistant != _shown.assistant) {
+      // A wake word took over an announcement: the frozen screen was
+      // blurred for the other skin, and the live filter stands in.
+      _frozenGen++;
+      _frozen?.dispose();
+      _frozen = null;
     }
     setState(() {
       if (next.visible) {
@@ -228,11 +237,13 @@ class _AssistOverlayState extends State<AssistOverlay>
     });
   }
 
-  Future<void> _freezeBackdrop() async {
+  Future<void> _freezeBackdrop(AssistView view) async {
     final gen = ++_frozenGen;
     // A plugin skin draws over the live screen.
-    if (_pluginSkin) return;
-    final skin = assistSkinById(c.settings.get(defs.voiceSkin));
+    if (_pluginSkin(view)) return;
+    final skin = assistSkinById(
+      c.settings.get(defs.voiceSkinOf(view.assistant)),
+    );
     final chosen = c.settings.get(defs.voiceBackgroundOpacity).toDouble();
     final opacity = chosen < 0 ? skin.light.opacity : chosen / 100;
     if (skin.blur <= 0 || opacity >= 0.99) return;
@@ -288,6 +299,7 @@ class _AssistOverlayState extends State<AssistOverlay>
         : voiceText(context, notice.category);
     showToast(
       context,
+      source: 'voice',
       title: voiceText(context, switch (notice.severity) {
         VoiceSeverity.error => 'Voice Satellite error',
         VoiceSeverity.warning => 'Voice Satellite warning',
@@ -337,7 +349,7 @@ class _AssistOverlayState extends State<AssistOverlay>
             ? const SizedBox.shrink()
             // A plugin skin draws the turn in its own overlays, under this
             // one, and touches reach them. Results still show here.
-            : _pluginSkin
+            : _pluginSkin(_shown)
             ? _shown.docked
                   ? const SizedBox.shrink()
                   : _pluginContent(context, _shown)
@@ -368,7 +380,7 @@ class _AssistOverlayState extends State<AssistOverlay>
 
   Widget _content(BuildContext context, AssistView view) {
     final settings = c.settings;
-    final skin = assistSkinById(settings.get(defs.voiceSkin));
+    final skin = assistSkinById(settings.get(defs.voiceSkinOf(view.assistant)));
     final theme = settings.get(defs.voiceTheme);
     final dark =
         skin.darkOnly ||
@@ -643,7 +655,7 @@ class _AssistOverlayState extends State<AssistOverlay>
   /// under it stays visible and usable.
   Widget _docked(BuildContext context, AssistView view) {
     final settings = c.settings;
-    final skin = assistSkinById(settings.get(defs.voiceSkin));
+    final skin = assistSkinById(settings.get(defs.voiceSkinOf(view.assistant)));
     final theme = settings.get(defs.voiceTheme);
     final dark =
         skin.darkOnly ||

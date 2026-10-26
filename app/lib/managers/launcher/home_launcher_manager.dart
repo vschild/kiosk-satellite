@@ -51,6 +51,7 @@ class HomeLauncherManager extends Manager {
 
   StreamSubscription<SettingChanged>? _settingSub;
   StreamSubscription<HomeRoleChanged>? _roleSub;
+  StreamSubscription<DeviceOwnerChanged>? _ownerSub;
 
   /// The role machinery is Android's; the headless tests flip this on to
   /// drive it against mocked channels (KioskManager.pushFlags precedent).
@@ -205,17 +206,41 @@ class HomeLauncherManager extends Manager {
       if (_settings.get(defs.homeLauncherEnabled)) {
         await _settings.set(defs.homeLauncherEnabled, false);
       }
-    } else if (_settings.get(defs.homeLauncherEnabled) &&
-        status['aliasEnabled'] != true) {
-      // A settings import (or restore) landed on a device whose alias was
-      // never enabled: re-engage. Silent where possible; otherwise the
-      // status row carries the call to action.
-      log.info(name, 're-enabling the home alias after a settings import');
-      if (status['deviceOwner'] == true) {
-        await _invoke<bool>('homeRoleAcquireSilent');
-      } else {
-        await _invoke<bool>('homeAliasEnable');
+    } else if (_settings.get(defs.homeLauncherEnabled)) {
+      await _reengage(status);
+    }
+
+    // The device owner arriving after the first start turns a staged
+    // alias into the role.
+    _ownerSub = bus.on<DeviceOwnerChanged>().listen((_) async {
+      if (!_settings.get(defs.homeLauncherEnabled)) return;
+      final status = await _status();
+      if (status['supported'] == true) await _reengage(status);
+    });
+  }
+
+  /// The setting is on but the device does not act on it: a settings
+  /// import or restore on a device whose alias was never enabled, an Echo
+  /// image's first start (EchoDefaults), or an alias staged before the
+  /// kiosk became the device owner. Silent with the device owner;
+  /// otherwise the alias goes on and the status row carries the call to
+  /// action.
+  Future<void> _reengage(Map<String, Object?> status) async {
+    if (status['deviceOwner'] == true) {
+      if (status['held'] == true) return;
+      log.info(name, 'taking the home role as device owner');
+      if (await _invoke<bool>('homeRoleAcquireSilent') ?? false) {
+        roleHeld.value = true;
+        // Taking the role launches nothing. An Echo image's installer
+        // starts the process with a broadcast, so on the first start no
+        // kiosk screen is up and the stock launcher stays in front.
+        if (await _invoke<bool>('isActivityAttached') == false) {
+          await _invoke<bool>('bringToFront');
+        }
       }
+    } else if (status['aliasEnabled'] != true) {
+      log.info(name, 're-enabling the home alias');
+      await _invoke<bool>('homeAliasEnable');
     }
   }
 
@@ -290,5 +315,6 @@ class HomeLauncherManager extends Manager {
   Future<void> dispose() async {
     await _settingSub?.cancel();
     await _roleSub?.cancel();
+    await _ownerSub?.cancel();
   }
 }

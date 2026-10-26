@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/managers/wake_word/near_miss.dart';
 import 'package:kiosk_satellite/managers/wake_word/vsww/ctc_decoder.dart';
 import 'package:kiosk_satellite/managers/wake_word/vsww/detection_gate.dart';
 import 'package:kiosk_satellite/managers/wake_word/vsww/log_mel.dart';
@@ -270,6 +271,57 @@ void main() {
       final logits = _logitsFor(_ctc.wakeWordTargets[0], 64, 52, logit: 3.0);
       final d = dec.decode(logits, 64, 52);
       expect(dec.match(d).matched, isFalse);
+    });
+
+    test('a below-gate match reports how close it got', () {
+      // logit 3.0 against target 0's 3.2 gate: rejected, but the score and
+      // the gate it missed must survive for near-miss diagnostics.
+      final logits = _logitsFor(_ctc.wakeWordTargets[0], 64, 52, logit: 3.0);
+      final r = dec.match(dec.decode(logits, 64, 52));
+      expect(r.matched, isFalse);
+      expect(r.score, closeTo(3.0, 1e-6));
+      expect(r.threshold, closeTo(3.2, 1e-6));
+      expect(r.scoredEditDistance, 0);
+    });
+
+    test('the near score is the one closest to its own gate', () {
+      // "okay nabu" with a mumbled "o k" aligns with both targets. Target 0
+      // averages far under its 3.2 gate, while target 1 ("kay nabu") gets
+      // 5.5 against 6.0, so target 1 is the near miss to report.
+      final ids = _ctc.wakeWordTargets[0];
+      final conf = [-30.0, -30.0, ...List.filled(ids.length - 2, 5.5)];
+      final r = dec.match(CtcDecode(ids, conf));
+      expect(r.matched, isFalse);
+      expect(r.score, closeTo(5.5, 1e-6));
+      expect(r.threshold, closeTo(6.0, 1e-6));
+    });
+
+    test('a hit scores its match, and unrelated speech scores nothing', () {
+      final hit = dec.match(dec.decode(
+          _logitsFor(_ctc.wakeWordTargets[0], 64, 52, logit: 5.0), 64, 52));
+      expect(hit.score, hit.matchedConfidence);
+      expect(hit.threshold, hit.gateThreshold);
+
+      final other = dec.match(dec.decode(
+          _logitsFor([4, 5, 6, 7, 8, 9], 64, 52, logit: 5.0), 64, 52));
+      expect(other.score, double.negativeInfinity);
+      expect(other.scoredEditDistance, -1);
+    });
+
+    test('a below-gate match is recorded as a near miss', () {
+      final tracker = NearMissTracker();
+      final near = dec.match(dec.decode(
+          _logitsFor(_ctc.wakeWordTargets[0], 64, 52, logit: 3.0), 64, 52));
+      final silence = dec.match(dec.decode(_logitsFor([], 64, 52), 64, 52));
+      expect(
+          tracker.update(
+              score: near.score, threshold: near.threshold, fired: false),
+          isNull);
+      final report = tracker.update(
+          score: silence.score, threshold: 3.2, fired: false);
+      expect(report, isNotNull);
+      expect(report!['score'], closeTo(3.0, 1e-6));
+      expect(report['threshold'], closeTo(3.2, 1e-6));
     });
 
     test('one substitution still matches target 0 (maxEdit 1)', () {

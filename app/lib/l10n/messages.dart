@@ -751,7 +751,13 @@ String pluginError(BuildContext context, String error) => _ownedError(error, (
   match = RegExp(r'^Plugin needs Android API ([0-9]+)$').firstMatch(text);
   if (match != null) return strings.pluginErrorAndroidApi(match.group(1)!);
   match = RegExp(
-    r'^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle|input)$',
+    r'^Plugin needs Kiosk Satellite (\S+) or newer\. This kiosk runs (\S*)\.$',
+  ).firstMatch(text);
+  if (match != null) {
+    return strings.pluginErrorAppVersion(match.group(1)!, match.group(2)!);
+  }
+  match = RegExp(
+    r'^Invalid (id|name|version|entryClass|description|author|license|key|title|group|readingsTitle|input|minAppVersion)$',
   ).firstMatch(text);
   if (match != null) return strings.pluginErrorInvalidField(match.group(1)!);
   match = RegExp(

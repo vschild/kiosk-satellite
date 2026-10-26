@@ -115,6 +115,7 @@ class _LauncherScreenState extends State<_LauncherScreen> {
     if (!result.ok && overlay.mounted) {
       showToastIn(
         overlay,
+        source: 'app_launcher',
         title: l10n(overlay.context).launcherOpenFailed(app.label),
         message: launcherText(overlay.context, 'It may have been uninstalled.'),
         kind: ToastKind.error,

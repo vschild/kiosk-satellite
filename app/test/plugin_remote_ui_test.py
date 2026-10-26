@@ -98,7 +98,8 @@ def api(route):
         result = readings
     elif name == 'haListEntities':
         result = [{'entity_id': 'sensor.room', 'name': 'Room temperature', 'state': '21 °C', 'domain': 'sensor'},
-                  {'entity_id': 'light.porch', 'name': 'Porch light', 'state': 'On', 'domain': 'light'}]
+                  {'entity_id': 'light.porch', 'name': 'Porch light', 'state': 'On', 'domain': 'light'},
+                  {'entity_id': 'light.art', 'name': 'Art lights', 'state': 'Off', 'domain': 'light', 'hidden': True}]
     elif name == 'checkPluginUpdate':
         assert params == {'id': 'hello-world'}
         result = {**preview, 'installedVersion': installed[0]['version'], 'updateAvailable': update_available, 'compatible': compatible, 'compatibilityError': 'Unsupported SDK' if not compatible else ''}
@@ -209,6 +210,10 @@ try:
         modal = page.locator('.dash-picker-card')
         modal.locator('.dp-search').fill('room')
         expect(modal.get_by_text('Porch light', exact=True)).to_have_count(0)
+        # Entities Home Assistant hides stay out of a setting that does not ask for them.
+        modal.locator('.dp-search').fill('art')
+        expect(modal.get_by_text('Art lights', exact=True)).to_have_count(0)
+        modal.locator('.dp-search').fill('room')
         modal.get_by_text('Room temperature', exact=True).click()
         expect(field).to_contain_text('Room temperature')
         assert installed[0]['values']['entity'] == 'sensor.room'
@@ -216,6 +221,15 @@ try:
         page.locator('.dash-picker-card').get_by_role('button', name='Clear', exact=True).click()
         expect(field).not_to_contain_text('Room temperature')
         assert installed[0]['values']['entity'] == ''
+        # A picker that asks for hidden entities lists them with the hidden mark.
+        page.evaluate("async () => { const p = await import('/static/entity_picker.js');"
+                      " p.pickItem({ title: 'Hidden', spec: p.entitySpec({ includeHidden: true }) }); }")
+        modal = page.locator('.dash-picker-card')
+        expect(modal.get_by_text('Art lights', exact=True)).to_have_count(1)
+        expect(modal.locator('.ep-row:has-text("Art lights") .ep-hidden svg')).to_have_count(1)
+        expect(modal.locator('.ep-hidden')).to_have_count(1)
+        modal.get_by_role('button', name='Cancel', exact=True).click()
+        expect(modal).to_have_count(0)
         root.get_by_role('textbox', name='Greeting').fill('Changed on the subpage')
         root.get_by_role('textbox', name='Greeting').press('Tab')
         expect(root.get_by_role('button', name='Save settings')).to_have_count(0)

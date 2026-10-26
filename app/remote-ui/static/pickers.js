@@ -269,6 +269,82 @@ export function openWakeSourcesPicker(title, current, touchReady) {
   });
 }
 
+/* ---- Show system toast notifications ---- */
+// Where the app's toasts outside Settings come from, in the device's order
+// (toastSources in definitions.dart). The setting stores the ones turned
+// off.
+export const TOAST_SOURCES = ['back', 'gestures', 'hold_mode', 'links', 'downloads', 'network',
+  'updates', 'voice', 'timers', 'alarms', 'music_library', 'intercom', 'app_launcher', 'plugins'];
+
+export function decodeToastsHidden(value) {
+  try {
+    const list = JSON.parse(value || '[]');
+    if (Array.isArray(list)) return new Set(list.filter((source) => TOAST_SOURCES.includes(source)));
+  } catch (_) {}
+  return new Set();
+}
+
+function toastSourceLabel(source) {
+  return deviceText({
+    back: 'Back button hints',
+    gestures: 'Gesture actions',
+    hold_mode: 'Hold mode',
+    links: 'Dashboard links',
+    downloads: 'Downloads',
+    network: 'Network status',
+    updates: 'Update checks',
+    voice: 'Voice Satellite notices',
+    timers: 'Timers',
+    alarms: 'Alarms',
+    music_library: 'Music Library',
+    intercom: 'Intercom',
+    app_launcher: 'App Launcher',
+    plugins: 'Plugin actions',
+  }[source]);
+}
+
+// The row's value: All, None or the toasts shown by name.
+export function toastsShownText(hidden) {
+  if (!hidden.size) return deviceText('All');
+  if (hidden.size === TOAST_SOURCES.length) return deviceText('None');
+  return TOAST_SOURCES.filter((source) => !hidden.has(source)).map(toastSourceLabel).join(', ');
+}
+
+// The device's checkbox dialog, a box ticked per toast shown. Resolves to
+// the Set turned off, or null on cancel.
+export function openToastsPicker(title, hidden) {
+  return new Promise((resolve) => {
+    const off = new Set(hidden);
+    const shell = modalShell({ title, width: 520, onDismiss: () => close(null) });
+    const close = (val) => { shell.close(); resolve(val); };
+    for (const source of TOAST_SOURCES) {
+      const r = document.createElement('label');
+      r.className = 'row';
+      r.style.cursor = 'pointer';
+      const info = document.createElement('div'); info.className = 'info';
+      info.innerHTML = `<div class="name"></div>`;
+      info.querySelector('.name').textContent = toastSourceLabel(source);
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = !off.has(source);
+      box.addEventListener('change', () => {
+        if (box.checked) off.delete(source);
+        else off.add(source);
+      });
+      // The checkbox leads the row, the whole row toggles it.
+      r.append(box, info);
+      shell.body.appendChild(r);
+    }
+    const cancel = document.createElement('button');
+    cancel.className = 'btn-text'; cancel.textContent = deviceText('Cancel');
+    cancel.addEventListener('click', () => close(null));
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn-primary'; okBtn.textContent = deviceText('Save');
+    okBtn.addEventListener('click', () => close(off));
+    shell.foot.append(cancel, okBtn);
+  });
+}
+
 // The struck-out eye a person hidden in Immich wears, the device's
 // Icons.visibility_off_outlined traced in the page's stroke style.
 const HIDDEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"'

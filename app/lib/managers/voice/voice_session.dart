@@ -230,6 +230,9 @@ class VoiceSession {
   Timer? _linger;
 
   bool get busy => _phase != _Phase.idle;
+
+  /// An announcement plays, which a wake word takes over.
+  bool get announcing => _phase == _Phase.announcing;
   AssistView get view => _view;
 
   void _show(AssistView view) {

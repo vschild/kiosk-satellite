@@ -92,8 +92,16 @@ class UiStringsRu extends UiStrings {
   String get aboutSystemInstalling => 'Установка…';
 
   @override
-  String get aboutSystemInstallHelp =>
-      'Dot дважды перезагружается для установки обновления и каждый раз около полутора минут не в сети.';
+  String get aboutSystemRestartHelp =>
+      'Устройство дважды перезагружается для установки обновления и несколько минут не в сети.';
+
+  @override
+  String get aboutSystemManual => 'Доступен новый образ';
+
+  @override
+  String aboutSystemManualHelp(String version) {
+    return 'Версия $version нового образа Echo Dot устанавливается вручную, а не как обновление.';
+  }
 
   @override
   String get alarmsTitle => 'Будильники';
@@ -2933,6 +2941,54 @@ class UiStringsRu extends UiStrings {
   String get libraryRecentlyAdded => 'Недавно добавленное';
 
   @override
+  String get librarySort => 'Сортировка';
+
+  @override
+  String get librarySortAToZ => 'От А до Я';
+
+  @override
+  String get librarySortZToA => 'От Я до А';
+
+  @override
+  String get librarySortMostPlayed => 'Самое прослушиваемое';
+
+  @override
+  String get libraryAlbumArtistsOnly => 'Только исполнители альбомов';
+
+  @override
+  String get libraryKindGenre => 'Жанр';
+
+  @override
+  String get libraryBrowseByGenre => 'Обзор по жанрам';
+
+  @override
+  String get settingLibraryTextScaleDescription =>
+      'Размер заголовков, имён и подписей в библиотеке.';
+
+  @override
+  String get settingLibrarySquareArtworkTitle => 'Квадратные обложки';
+
+  @override
+  String get settingLibrarySquareArtworkDescription =>
+      'Показывает исполнителей квадратными плитками, как альбомы и плейлисты.';
+
+  @override
+  String get settingLibraryGridDensityTitle => 'Плотность сетки';
+
+  @override
+  String get settingLibraryGridDensityDescription =>
+      'Размер плиток в библиотеке. Компактная вмещает больше в ряд.';
+
+  @override
+  String get libraryDensityComfortable => 'Просторная';
+
+  @override
+  String get libraryDensityStandard => 'Стандартная';
+
+  @override
+  String get libraryDensityCompact => 'Компактная';
+
+  @override
   String get libraryMoreResults => 'Другие результаты';
 
   @override
@@ -3578,6 +3634,11 @@ class UiStringsRu extends UiStrings {
   String get pluginInstalled => 'Установлен';
 
   @override
+  String pluginNeedsAppVersion(String version) {
+    return 'Нужен Kiosk Satellite $version или новее';
+  }
+
+  @override
   String get pluginStars => 'Звёзды';
 
   @override
@@ -4097,6 +4158,11 @@ class UiStringsRu extends UiStrings {
   }
 
   @override
+  String pluginErrorAppVersion(String required, String current) {
+    return 'Плагину нужен Kiosk Satellite $required или новее. На этом киоске установлен $current.';
+  }
+
+  @override
   String pluginErrorInvalidField(String field) {
     return 'Недопустимое поле $field';
   }
@@ -4309,8 +4375,8 @@ class UiStringsRu extends UiStrings {
   String get overviewSystemUpdate => 'Доступно обновление системы';
 
   @override
-  String overviewSystemUpdateHelp(String version) {
-    return 'Версия $version образа Echo Dot готова к установке. Для этого Dot дважды перезагрузится.';
+  String overviewSystemImageUpdateHelp(String version) {
+    return 'Версия $version образа системы готова к установке. Для этого устройство дважды перезагрузится.';
   }
 
   @override
@@ -4817,12 +4883,12 @@ class UiStringsRu extends UiStrings {
       'Время без касаний в другом приложении до возврата в киоск.';
 
   @override
-  String get settingLauncherAutoReturnMediaTitle =>
-      'Ждать во время воспроизведения';
+  String get settingLauncherAutoReturnHoldTitle =>
+      'Ждать во время воспроизведения и звонков';
 
   @override
-  String get settingLauncherAutoReturnMediaDescription =>
-      'Не возвращаться, пока играет видео или музыка.';
+  String get settingLauncherAutoReturnHoldDescription =>
+      'Не возвращаться во время видео, музыки или звонков.';
 
   @override
   String get launcherOverlayHeld =>
@@ -7301,6 +7367,62 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get deviceThemeSystem => 'Системная';
+
+  @override
+  String get settingUiToastsHiddenTitle =>
+      'Показывать всплывающие системные уведомления';
+
+  @override
+  String get settingUiToastsHiddenDescription =>
+      'Выберите, какие всплывающие сообщения появляются поверх панели. Сообщения в настройках показываются всегда.';
+
+  @override
+  String get deviceToastsAll => 'Все';
+
+  @override
+  String get deviceToastsNone => 'Нет';
+
+  @override
+  String get deviceToastBack => 'Подсказки кнопки «Назад»';
+
+  @override
+  String get deviceToastGestures => 'Действия жестов';
+
+  @override
+  String get deviceToastHoldMode => 'Режим удержания';
+
+  @override
+  String get deviceToastLinks => 'Ссылки на панели';
+
+  @override
+  String get deviceToastDownloads => 'Загрузки';
+
+  @override
+  String get deviceToastNetwork => 'Состояние сети';
+
+  @override
+  String get deviceToastUpdates => 'Проверка обновлений';
+
+  @override
+  String get deviceToastVoice => 'Уведомления Voice Satellite';
+
+  @override
+  String get deviceToastTimers => 'Таймеры';
+
+  @override
+  String get deviceToastAlarms => 'Будильники';
+
+  @override
+  String get deviceToastMusicLibrary => 'Музыкальная библиотека';
+
+  @override
+  String get deviceToastIntercom => 'Интерком';
+
+  @override
+  String get deviceToastAppLauncher => 'Лаунчер приложений';
+
+  @override
+  String get deviceToastPlugins => 'Действия плагинов';
 
   @override
   String get settingDlnaEnabledTitle => 'Включить рендерер DLNA';
@@ -13415,6 +13537,18 @@ class UiStringsRu extends UiStrings {
   String get voiceSkinHelp => 'Вид наложения голосового ассистента.';
 
   @override
+  String get voiceSkin1 => 'Облик Ассистента 1';
+
+  @override
+  String get voiceSkin1Help => 'Вид наложения, когда отвечает Ассистент 1.';
+
+  @override
+  String get voiceSkin2 => 'Облик Ассистента 2';
+
+  @override
+  String get voiceSkin2Help => 'Вид наложения, когда отвечает Ассистент 2.';
+
+  @override
   String get voiceTheme => 'Режим темы';
 
   @override
@@ -14286,6 +14420,14 @@ class UiStringsRu extends UiStrings {
       'Прерывать ответ, начав говорить. Выключите, если ассистент перебивает сам себя.';
 
   @override
+  String get settingVoiceRealtimeTalkOverSensitivityTitle =>
+      'Чувствительность перебивания';
+
+  @override
+  String get settingVoiceRealtimeTalkOverSensitivityDescription =>
+      'Насколько легко голос прерывает ответ. Повысьте, если перебить не получается из-за тихого микрофона. Высокие значения могут заставить ассистента перебивать самого себя.';
+
+  @override
   String get settingVoiceRealtimeToolsTitle => 'Инструменты';
 
   @override
@@ -14719,6 +14861,14 @@ class UiStringsRu extends UiStrings {
   @override
   String get settingVoiceWakeWordSensitivityDescription =>
       'Насколько легко срабатывает слово пробуждения.';
+
+  @override
+  String get settingVoiceWakeWordFineTuneTitle =>
+      'Точная настройка чувствительности';
+
+  @override
+  String get settingVoiceWakeWordFineTuneDescription =>
+      'Меняет чувствительность слова пробуждения более мелкими шагами. Повысьте, если слово пробуждения часто приходится повторять, и понизьте, если оно срабатывает по ошибке.';
 
   @override
   String get settingVoiceNoiseGateTitle => 'Шумовой порог слова пробуждения';
@@ -15252,6 +15402,12 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get setupQrFlashOn => 'Включить фонарик';
+
+  @override
+  String get setupQrScreenLightOff => 'Выключить подсветку экраном';
+
+  @override
+  String get setupQrScreenLightOn => 'Включить подсветку экраном';
 
   @override
   String get setupPasswordFirst => 'Сначала задайте пароль администратора';

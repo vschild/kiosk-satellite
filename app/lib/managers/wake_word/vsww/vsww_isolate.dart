@@ -392,17 +392,21 @@ class _IsolateWorker {
         targetIndex: combined.targetIndex,
         nowMs: nowMs,
       );
+      // What to report: the match on a hit, otherwise the window's closest
+      // below-gate alignment. Not the stream's: it reuses its last verdict
+      // until new phonemes arrive, so its near score would outlive the word.
+      final scored = combined.matched ? combined : perWindow;
       if (!k.isStop && _nearMisses) {
         final miss = k.nearMiss.update(
-          score: combined.matchedConfidence,
-          threshold: combined.gateThreshold.isFinite
-              ? combined.gateThreshold
+          score: scored.score,
+          threshold: scored.threshold.isFinite
+              ? scored.threshold
               : k.manifest.ctc.minMatchedConfidence,
           fired: fired,
           detail: () => {
             'decoded': k.manifest.ctc.phonemesFor(decode.ids),
-            'editDistance': combined.editDistance < (1 << 20)
-                ? combined.editDistance
+            'editDistance': scored.scoredEditDistance < (1 << 20)
+                ? scored.scoredEditDistance
                 : -1,
           },
         );
@@ -423,7 +427,7 @@ class _IsolateWorker {
         // that it heard [ax l eh k s ax] and how far that is from the
         // target. Blank frames dropped; only rendered when speech is
         // present, so the log is signal not silence.
-        final conf = combined.matchedConfidence;
+        final conf = scored.score;
         final decoded = k.manifest.ctc.phonemesFor(decode.ids);
         _chunkTelemetry.add({
           'type': WakeMsg.telemetry,
@@ -431,15 +435,15 @@ class _IsolateWorker {
           'wakeWord': k.wakeWord,
           't': nowMs,
           'score': conf.isFinite ? conf : 0.0,
-          'threshold': combined.gateThreshold.isFinite
-              ? combined.gateThreshold
+          'threshold': scored.threshold.isFinite
+              ? scored.threshold
               : (k.manifest.ctc.minMatchedConfidence.isFinite
                     ? k.manifest.ctc.minMatchedConfidence
                     : 0.0),
           'fired': fired,
           'nearMiss': conf.isFinite && !fired,
-          'editDistance': combined.editDistance < (1 << 20)
-              ? combined.editDistance
+          'editDistance': scored.scoredEditDistance < (1 << 20)
+              ? scored.scoredEditDistance
               : -1,
           'matchedConfidence': conf.isFinite ? conf : null,
           'decoded': decoded,

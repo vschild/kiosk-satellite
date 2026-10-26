@@ -62,6 +62,40 @@ void main() {
     expect(gate.sleepAfterChunks, 30);
   });
 
+  test('the fine-tune moves the wake words past the presets', () {
+    expect(wakeTuneFor(0), 0);
+    expect(wakeTuneFor(5), 0.5);
+    expect(wakeTuneFor(-20), -1);
+    expect(confidenceScaleFor('very', tune: 1), closeTo(0.70, 1e-9));
+    expect(confidenceScaleFor('slightly', tune: -1), closeTo(1.30, 1e-9));
+    expect(owwCutoffFor('very', tune: 1), closeTo(0.3, 1e-9));
+    expect(owwCutoffFor('slightly', tune: -1), closeTo(0.7, 1e-9));
+    expect(pryonThresholdOffsetFor('very', tune: 1), closeTo(-0.12, 1e-9));
+
+    WakeWordConfig config(WakeWordEngineType engine, num fineTune) =>
+        buildWakeConfig(
+          engine: engine,
+          activeIds: const [],
+          sensitivity: 'very',
+          fineTune: fineTune,
+          noiseGate: false,
+          stopWord: true,
+        );
+    // Very sensitive plus 3 steps: Hey Luna's 8.0 gate lands at 6.72.
+    final vsww = config(WakeWordEngineType.vsWakeWord, 3);
+    expect(vsww.models.single.confidenceScale, closeTo(0.84, 1e-9));
+    final oww = config(WakeWordEngineType.openWakeWord, -10);
+    expect(oww.models.single.cutoff, closeTo(0.5, 1e-9));
+    // The stop word keeps the preset.
+    expect(vsww.stopModel?.confidenceScale, 0.95);
+    expect(oww.stopModel?.cutoff, closeTo(0.6, 1e-9));
+    // 0 leaves the preset alone.
+    expect(
+      config(WakeWordEngineType.vsWakeWord, 0).models.single.confidenceScale,
+      0.90,
+    );
+  });
+
   test('the config keeps two known wake words, slot 1 first', () {
     final config = buildWakeConfig(
       engine: WakeWordEngineType.openWakeWord,

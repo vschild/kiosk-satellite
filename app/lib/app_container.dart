@@ -61,6 +61,7 @@ import 'managers/screensaver/screensaver_manager.dart';
 import 'managers/sendspin/sendspin_manager.dart';
 import 'managers/service/service_manager.dart';
 import 'managers/sound/sound_manager.dart';
+import 'managers/settings/echo_defaults.dart';
 import 'managers/settings/headless_settings.dart';
 import 'managers/settings/provisioning.dart';
 import 'managers/settings/settings_manager.dart';
@@ -195,6 +196,7 @@ class AppContainer {
     glance = GlanceManager(bus, commands, log, settings, homeAssistant);
     shizuku = ShizukuManager(bus, commands, log);
     plugins = PluginManager(bus, commands, log)
+      ..appVersion = (() => device.appVersion)
       ..voice = PluginVoiceFeed(
         view: voice.view,
         level: voice.level,
@@ -227,7 +229,13 @@ class AppContainer {
     alarms = AlarmManager(bus, commands, log, settings)
       ..screensaverModeOverride = () => screensaver.modeOverride.value;
     calendar = CalendarManager(bus, commands, log, settings);
-    musicLibrary = MusicLibraryManager(bus, commands, log, settings);
+    musicLibrary = MusicLibraryManager(
+      bus,
+      commands,
+      log,
+      settings,
+      nowPlaying: sendspin.nowPlaying,
+    );
     // The library is opaque and full screen too.
     musicLibrary.visible.addListener(
       () => browser.setCovered(
@@ -385,6 +393,9 @@ class AppContainer {
     // the other managers through the bus, so starting before them costs
     // nothing.
     leds,
+    // Before btProxy too: its first catalog lists the Firmware entity only
+    // once getSystemUpdateStatus says the image updates itself.
+    systemUpdate,
     btProxy,
     files,
     glance,
@@ -396,7 +407,6 @@ class AppContainer {
     voice,
     notifications,
     update,
-    systemUpdate,
     shizuku,
     plugins,
     remote,
@@ -423,6 +433,9 @@ class AppContainer {
 
   Future<void> init() async {
     await settings.init();
+    // An Echo image's first start: before the provisioning below, which
+    // may override it, and before any manager reads its settings.
+    await EchoDefaults(settings, log).apply();
     // Apply any adb/MDM intent provisioning before other managers read
     // their settings; the channel also handles pushes while running.
     await ProvisioningChannel(settings, log).init();

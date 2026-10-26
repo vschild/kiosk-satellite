@@ -1201,29 +1201,34 @@ class KsEyebrow extends StatelessWidget {
     required this.label,
     this.trail,
     this.compact = false,
+    this.scale = 1,
   });
 
   final String label;
   final String? trail;
   final bool compact;
 
+  /// Grows the mark and the caps together, for a screen with a text scale
+  /// of its own.
+  final double scale;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final style = TextStyle(
-      fontSize: 12.5,
+      fontSize: 12.5 * scale,
       fontWeight: FontWeight.w600,
-      letterSpacing: .8,
+      letterSpacing: .8 * scale,
       color: scheme.onSurfaceVariant,
     );
-    final size = compact ? 24.0 : 28.0;
+    final size = (compact ? 24.0 : 28.0) * scale;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset('assets/branding/mark.svg', width: size, height: size),
-        const SizedBox(width: 10),
+        SizedBox(width: 10 * scale),
         Padding(
-          padding: const EdgeInsets.only(top: 3),
+          padding: EdgeInsets.only(top: 3 * scale),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

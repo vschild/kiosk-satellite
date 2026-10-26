@@ -21,6 +21,7 @@
   "pluginSearchPlugins": "Rechercher des plugins",
   "pluginUpdate": "Mettre à jour",
   "pluginInstalled": "Installé",
+  "pluginNeedsAppVersion": "Nécessite Kiosk Satellite {version} ou plus récent",
   "pluginStars": "Étoiles",
   "pluginDownloads": "Téléchargements",
   "pluginActiveInstalls": "Installations actives",

@@ -119,6 +119,9 @@ class SyncProfile {
     // What this version offered, so a later one tells the credentials
     // left off from the ones it adds (_loadProfiles).
     'credentialsOffered': defs.fleetCredentialKeys.toList(),
+    // The default then, so a later one adds what joined it only where
+    // nothing of it was switched off (_loadProfiles).
+    'credentialsDefault': defs.fleetDefaultCredentials.toList(),
     'dashboard': dashboard,
     'excluded': excluded.toList(),
     'plugins': plugins.toList(),
@@ -587,6 +590,33 @@ class FleetSyncManager extends Manager {
             )) {
               p = p.copyWith(excluded: defs.fleetDefaultExcluded);
               changed = true;
+            }
+            // A default credential that joined after the profile was saved
+            // travels where the old default still does (the intercom key
+            // joined after the first profiles). Before profiles recorded
+            // their default, an untouched list tells it.
+            Set<String>? savedDefault;
+            if (item is Map && item['credentialsDefault'] is List) {
+              savedDefault = {
+                for (final k in item['credentialsDefault'] as List) '$k',
+              };
+            } else {
+              final own = p.credentials.difference(
+                defs.fleetFormerCategoryCredentials.keys.toSet(),
+              );
+              for (final former in defs.fleetFormerDefaultCredentials) {
+                if (setEquals(own, former)) savedDefault = former;
+              }
+            }
+            if (savedDefault != null &&
+                p.credentials.containsAll(savedDefault)) {
+              final joined = defs.fleetDefaultCredentials.difference(
+                savedDefault,
+              );
+              if (joined.isNotEmpty) {
+                p = p.copyWith(credentials: {...p.credentials, ...joined});
+                changed = true;
+              }
             }
             // A credential its version did not offer traveled with its
             // category then, and still does.

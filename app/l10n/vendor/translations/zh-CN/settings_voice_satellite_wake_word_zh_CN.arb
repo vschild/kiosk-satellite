@@ -59,6 +59,8 @@
   "settingVoiceWakeWordEngineDescription": "监听使用的引擎。所有模型均随应用提供。",
   "settingVoiceWakeWordSensitivityTitle": "唤醒词灵敏度",
   "settingVoiceWakeWordSensitivityDescription": "唤醒词触发的难易程度。",
+  "settingVoiceWakeWordFineTuneTitle": "灵敏度微调",
+  "settingVoiceWakeWordFineTuneDescription": "以更小的幅度调整唤醒词灵敏度。如果经常需要重复唤醒词，请调高；如果经常误唤醒，请调低。",
   "settingVoiceNoiseGateTitle": "房间安静时暂停唤醒词识别",
   "settingVoiceNoiseGateDescription": "房间安静时暂停本地唤醒词识别，减少 CPU 使用。",
   "settingVoiceStopWordTitle": "停止词打断",

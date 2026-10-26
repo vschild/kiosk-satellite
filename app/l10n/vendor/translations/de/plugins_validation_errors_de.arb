@@ -28,6 +28,7 @@
   "pluginErrorSettingType": "Dieser Einstellungstyp wird nicht unterstützt",
   "pluginErrorInvalidManifest": "Das Plugin-Manifest ist ungültig",
   "pluginErrorAndroidApi": "Das Plugin benötigt Android-API {version}",
+  "pluginErrorAppVersion": "Das Plugin benötigt Kiosk Satellite {required} oder neuer. Auf diesem Kiosk läuft {current}.",
   "pluginErrorInvalidField": "Das Feld {field} ist ungültig",
   "pluginErrorTooManyTriggers": "Zu viele Auslöser",
   "pluginErrorTriggerId": "Die Auslöser-ID ist ungültig oder bereits vorhanden",

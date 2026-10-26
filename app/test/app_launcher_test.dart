@@ -210,6 +210,76 @@ void main() {
     });
   });
 
+  group('apps a plugin may open (issue #1122)', () {
+    final launched = <String>[];
+
+    Future<CommandResult> run(String name, [Map<String, Object?>? p]) =>
+        launcher.commands.execute(name, p ?? const {});
+
+    Future<List<Object?>> listed() async => [
+      for (final app in (await run('pluginLauncherApps')).data as List)
+        (app as Map)['package'],
+    ];
+
+    Future<void> plugin(Map<String, Object> initial) async {
+      await build({
+        'ks.launcher.enabled': true,
+        'ks.launcher.apps': twoApps,
+        'ks.kiosk.allowed_apps': '["com.b"]',
+        ...initial,
+      });
+      launched.clear();
+      launcher.commands.register(
+        Command(
+          name: 'launchApp',
+          description: 'stub',
+          handler: (p) async {
+            launched.add('${p['package']}');
+            return const CommandResult.ok();
+          },
+        ),
+      );
+    }
+
+    test('are the launcher\'s apps', () async {
+      await plugin({});
+      expect(await listed(), ['com.a', 'com.b']);
+      expect((await run('pluginLaunchApp', {'package': 'com.a'})).ok, isTrue);
+      expect(launched, ['com.a']);
+    });
+
+    test('never include an app the launcher lacks', () async {
+      await plugin({});
+      final result = await run('pluginLaunchApp', {'package': 'com.other'});
+      expect(result.ok, isFalse);
+      expect(launched, isEmpty);
+    });
+
+    test('are the kiosk\'s apps while kiosk mode is on', () async {
+      await plugin({'ks.kiosk.enabled': true});
+      expect(await listed(), ['com.b']);
+      expect((await run('pluginLaunchApp', {'package': 'com.a'})).ok, isFalse);
+      expect((await run('pluginLaunchApp', {'package': 'com.b'})).ok, isTrue);
+      expect(launched, ['com.b']);
+    });
+
+    test('are none while kiosk mode does not allow apps', () async {
+      await plugin({'ks.kiosk.enabled': true, 'ks.kiosk.allow_apps': false});
+      expect(await listed(), isEmpty);
+      expect((await run('pluginLaunchApp', {'package': 'com.b'})).ok, isFalse);
+    });
+
+    test('are none while the launcher is off or Lockdown Mode holds', () async {
+      await plugin({'ks.launcher.enabled': false});
+      expect(await listed(), isEmpty);
+      await settings.setFromJson('launcher.enabled', true);
+      await settings.setFromJson('lockdown.enabled', true);
+      expect(await listed(), isEmpty);
+      expect((await run('pluginLaunchApp', {'package': 'com.a'})).ok, isFalse);
+      expect(launched, isEmpty);
+    });
+  });
+
   test('the whitelist reads live from settings', () async {
     await build({});
     expect(launcher.apps, isEmpty);
@@ -370,18 +440,21 @@ void main() {
     });
   });
 
-  group('auto-return waits for media (issue #1055)', () {
+  group('auto-return waits for media and calls (issues #1055, #1155)', () {
     const background = MethodChannel('kiosk_satellite/background');
     const sessions = MethodChannel('kiosk_satellite/media_sessions');
     late bool playing;
+    late bool calling;
     late int asked;
 
     setUp(() {
       playing = false;
+      calling = false;
       asked = 0;
       final messenger =
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       messenger.setMockMethodCallHandler(background, (call) async {
+        if (call.method == 'inCall') return calling;
         return call.method == 'watchTouches' ? true : null;
       });
       messenger.setMockMethodCallHandler(sessions, (call) async {
@@ -478,6 +551,39 @@ void main() {
         async.flushMicrotasks();
         expect(executed, ['bringToFront']);
         expect(asked, 0);
+      });
+    });
+
+    test('holds the return during a call (issue #1155)', () async {
+      await armed();
+      fakeAsync((async) {
+        calling = true;
+        launch(async);
+        async.elapse(const Duration(minutes: 10));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        // A call needs no media session to hold.
+        expect(asked, 0);
+        calling = false;
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 28));
+        async.flushMicrotasks();
+        expect(executed, isEmpty);
+        async.elapse(const Duration(seconds: 3));
+        async.flushMicrotasks();
+        expect(executed, ['bringToFront']);
+      });
+    });
+
+    test('ignores a call with the switch off', () async {
+      await armed(wait: false);
+      fakeAsync((async) {
+        calling = true;
+        launch(async);
+        async.elapse(const Duration(seconds: 31));
+        async.flushMicrotasks();
+        expect(executed, ['bringToFront']);
       });
     });
 

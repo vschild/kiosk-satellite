@@ -90,9 +90,28 @@ class TlsIdentity {
   String get hostname =>
       effectiveHostname(settings.get(deviceHostname), settings.get(deviceName));
 
+  /// Reads a native reply, warning when the stored identity could not be
+  /// opened. That happens after a restore to another device or ROM, which
+  /// never brings the Keystore key along, so an imported certificate is gone
+  /// and clients that trusted the old one need to trust the new one.
+  TlsMaterial _read(Map<Object?, Object?> data) {
+    final reason = data['unreadable'];
+    if (reason is String) {
+      settings.log.warn(
+        'tls',
+        'The stored TLS identity could not be read because $reason. It was '
+            'moved to tls-identity.unreadable and a new certificate was created. '
+            'If you imported a certificate, import it again. Home Assistant and '
+            'other clients that trusted the old certificate need to trust the '
+            'new one',
+      );
+    }
+    return TlsMaterial(data);
+  }
+
   Future<TlsMaterial> load() => _serial(() async {
     if (_material != null) return _material!;
-    return _material = TlsMaterial(
+    return _material = _read(
       (await channel.invokeMapMethod<Object?, Object?>('load', {
         'hostname': hostname,
       }))!,
@@ -107,7 +126,7 @@ class TlsIdentity {
       ...params,
       'hostname': hostname,
     });
-    final material = TlsMaterial(data!);
+    final material = _read(data!);
     material.securityContext();
     _material = material;
     settings.bus.publish(const TlsIdentityChanged());

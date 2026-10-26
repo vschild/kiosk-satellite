@@ -89,7 +89,15 @@ class UiStringsZh extends UiStrings {
   String get aboutSystemInstalling => '正在安装…';
 
   @override
-  String get aboutSystemInstallHelp => 'Dot 会重启两次以安装更新，每次离线约一分半钟。';
+  String get aboutSystemRestartHelp => '设备会重启两次以安装更新，期间离线几分钟。';
+
+  @override
+  String get aboutSystemManual => '有新镜像可用';
+
+  @override
+  String aboutSystemManualHelp(String version) {
+    return '新的 Echo Dot 镜像 $version 版需要手动安装，无法作为更新安装。';
+  }
 
   @override
   String get alarmsTitle => '闹钟';
@@ -2855,6 +2863,51 @@ class UiStringsZh extends UiStrings {
   String get libraryRecentlyAdded => '最近添加';
 
   @override
+  String get librarySort => '排序';
+
+  @override
+  String get librarySortAToZ => 'A 到 Z';
+
+  @override
+  String get librarySortZToA => 'Z 到 A';
+
+  @override
+  String get librarySortMostPlayed => '最常播放';
+
+  @override
+  String get libraryAlbumArtistsOnly => '仅专辑艺人';
+
+  @override
+  String get libraryKindGenre => '流派';
+
+  @override
+  String get libraryBrowseByGenre => '按流派浏览';
+
+  @override
+  String get settingLibraryTextScaleDescription => '音乐库中标题、名称和标签的大小。';
+
+  @override
+  String get settingLibrarySquareArtworkTitle => '方形封面';
+
+  @override
+  String get settingLibrarySquareArtworkDescription => '像专辑和播放列表一样，以方形卡片显示艺人。';
+
+  @override
+  String get settingLibraryGridDensityTitle => '网格密度';
+
+  @override
+  String get settingLibraryGridDensityDescription => '音乐库中卡片的大小。紧凑可在每行显示更多。';
+
+  @override
+  String get libraryDensityComfortable => '宽松';
+
+  @override
+  String get libraryDensityStandard => '标准';
+
+  @override
+  String get libraryDensityCompact => '紧凑';
+
+  @override
   String get libraryMoreResults => '更多结果';
 
   @override
@@ -3478,6 +3531,11 @@ class UiStringsZh extends UiStrings {
   String get pluginInstalled => '已安装';
 
   @override
+  String pluginNeedsAppVersion(String version) {
+    return '需要 Kiosk Satellite $version 或更高版本';
+  }
+
+  @override
   String get pluginStars => '星标';
 
   @override
@@ -3950,6 +4008,11 @@ class UiStringsZh extends UiStrings {
   }
 
   @override
+  String pluginErrorAppVersion(String required, String current) {
+    return '插件需要 Kiosk Satellite $required 或更高版本。本机运行的是 $current。';
+  }
+
+  @override
   String pluginErrorInvalidField(String field) {
     return '$field 无效';
   }
@@ -4153,8 +4216,8 @@ class UiStringsZh extends UiStrings {
   String get overviewSystemUpdate => '有可用的系统更新';
 
   @override
-  String overviewSystemUpdateHelp(String version) {
-    return 'Echo Dot 镜像 $version 版已可安装。安装时 Dot 会重启两次。';
+  String overviewSystemImageUpdateHelp(String version) {
+    return '系统镜像 $version 版已可安装。安装时设备会重启两次。';
   }
 
   @override
@@ -4629,10 +4692,10 @@ class UiStringsZh extends UiStrings {
       '在其他应用中连续多久没有触屏操作后，自动返回 Kiosk。';
 
   @override
-  String get settingLauncherAutoReturnMediaTitle => '媒体播放时等待';
+  String get settingLauncherAutoReturnHoldTitle => '媒体播放或通话时等待';
 
   @override
-  String get settingLauncherAutoReturnMediaDescription => '正在播放视频或音乐时不自动返回。';
+  String get settingLauncherAutoReturnHoldDescription => '正在播放视频、音乐或通话时不自动返回。';
 
   @override
   String get launcherOverlayHeld => 'Kiosk Satellite 可以自动返回前台，并检测其他应用中的触屏操作。';
@@ -6955,6 +7018,60 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get deviceThemeSystem => '系统';
+
+  @override
+  String get settingUiToastsHiddenTitle => '显示系统提示消息';
+
+  @override
+  String get settingUiToastsHiddenDescription => '选择在仪表盘上方弹出的提示消息。设置中的消息始终显示。';
+
+  @override
+  String get deviceToastsAll => '全部';
+
+  @override
+  String get deviceToastsNone => '无';
+
+  @override
+  String get deviceToastBack => '返回键提示';
+
+  @override
+  String get deviceToastGestures => '手势操作';
+
+  @override
+  String get deviceToastHoldMode => '页面保持模式';
+
+  @override
+  String get deviceToastLinks => '仪表盘链接';
+
+  @override
+  String get deviceToastDownloads => '下载';
+
+  @override
+  String get deviceToastNetwork => '网络状态';
+
+  @override
+  String get deviceToastUpdates => '检查更新';
+
+  @override
+  String get deviceToastVoice => 'Voice Satellite 通知';
+
+  @override
+  String get deviceToastTimers => '计时器';
+
+  @override
+  String get deviceToastAlarms => '闹钟';
+
+  @override
+  String get deviceToastMusicLibrary => '音乐库';
+
+  @override
+  String get deviceToastIntercom => '对讲';
+
+  @override
+  String get deviceToastAppLauncher => '应用启动器';
+
+  @override
+  String get deviceToastPlugins => '插件操作';
 
   @override
   String get settingDlnaEnabledTitle => '启用 DLNA 渲染器';
@@ -12646,6 +12763,18 @@ class UiStringsZh extends UiStrings {
   String get voiceSkinHelp => '语音助手浮层的外观。';
 
   @override
+  String get voiceSkin1 => '助手 1 的皮肤';
+
+  @override
+  String get voiceSkin1Help => '助手 1 回答时浮层的外观。';
+
+  @override
+  String get voiceSkin2 => '助手 2 的皮肤';
+
+  @override
+  String get voiceSkin2Help => '助手 2 回答时浮层的外观。';
+
+  @override
   String get voiceTheme => '主题模式';
 
   @override
@@ -13461,6 +13590,13 @@ class UiStringsZh extends UiStrings {
       '允许你通过说话打断助手的回复。如果助手会被自己播放的声音打断，请关闭此项。';
 
   @override
+  String get settingVoiceRealtimeTalkOverSensitivityTitle => '语音打断灵敏度';
+
+  @override
+  String get settingVoiceRealtimeTalkOverSensitivityDescription =>
+      '说话打断回复的难易程度。如果麦克风音量较小导致无法打断，请调高此项。设置过高可能导致助手被自己的声音打断。';
+
+  @override
   String get settingVoiceRealtimeToolsTitle => '工具';
 
   @override
@@ -13858,6 +13994,13 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingVoiceWakeWordSensitivityDescription => '唤醒词触发的难易程度。';
+
+  @override
+  String get settingVoiceWakeWordFineTuneTitle => '灵敏度微调';
+
+  @override
+  String get settingVoiceWakeWordFineTuneDescription =>
+      '以更小的幅度调整唤醒词灵敏度。如果经常需要重复唤醒词，请调高；如果经常误唤醒，请调低。';
 
   @override
   String get settingVoiceNoiseGateTitle => '房间安静时暂停唤醒词识别';
@@ -14364,6 +14507,12 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get setupQrFlashOn => '开启手电筒';
+
+  @override
+  String get setupQrScreenLightOff => '关闭屏幕补光';
+
+  @override
+  String get setupQrScreenLightOn => '开启屏幕补光';
 
   @override
   String get setupPasswordFirst => '请先设置管理密码';
@@ -14818,7 +14967,15 @@ class UiStringsZhCn extends UiStringsZh {
   String get aboutSystemInstalling => '正在安装…';
 
   @override
-  String get aboutSystemInstallHelp => 'Dot 会重启两次以安装更新，每次离线约一分半钟。';
+  String get aboutSystemRestartHelp => '设备会重启两次以安装更新，期间离线几分钟。';
+
+  @override
+  String get aboutSystemManual => '有新镜像可用';
+
+  @override
+  String aboutSystemManualHelp(String version) {
+    return '新的 Echo Dot 镜像 $version 版需要手动安装，无法作为更新安装。';
+  }
 
   @override
   String get alarmsTitle => '闹钟';
@@ -17584,6 +17741,51 @@ class UiStringsZhCn extends UiStringsZh {
   String get libraryRecentlyAdded => '最近添加';
 
   @override
+  String get librarySort => '排序';
+
+  @override
+  String get librarySortAToZ => 'A 到 Z';
+
+  @override
+  String get librarySortZToA => 'Z 到 A';
+
+  @override
+  String get librarySortMostPlayed => '最常播放';
+
+  @override
+  String get libraryAlbumArtistsOnly => '仅专辑艺人';
+
+  @override
+  String get libraryKindGenre => '流派';
+
+  @override
+  String get libraryBrowseByGenre => '按流派浏览';
+
+  @override
+  String get settingLibraryTextScaleDescription => '音乐库中标题、名称和标签的大小。';
+
+  @override
+  String get settingLibrarySquareArtworkTitle => '方形封面';
+
+  @override
+  String get settingLibrarySquareArtworkDescription => '像专辑和播放列表一样，以方形卡片显示艺人。';
+
+  @override
+  String get settingLibraryGridDensityTitle => '网格密度';
+
+  @override
+  String get settingLibraryGridDensityDescription => '音乐库中卡片的大小。紧凑可在每行显示更多。';
+
+  @override
+  String get libraryDensityComfortable => '宽松';
+
+  @override
+  String get libraryDensityStandard => '标准';
+
+  @override
+  String get libraryDensityCompact => '紧凑';
+
+  @override
   String get libraryMoreResults => '更多结果';
 
   @override
@@ -18207,6 +18409,11 @@ class UiStringsZhCn extends UiStringsZh {
   String get pluginInstalled => '已安装';
 
   @override
+  String pluginNeedsAppVersion(String version) {
+    return '需要 Kiosk Satellite $version 或更高版本';
+  }
+
+  @override
   String get pluginStars => '星标';
 
   @override
@@ -18679,6 +18886,11 @@ class UiStringsZhCn extends UiStringsZh {
   }
 
   @override
+  String pluginErrorAppVersion(String required, String current) {
+    return '插件需要 Kiosk Satellite $required 或更高版本。本机运行的是 $current。';
+  }
+
+  @override
   String pluginErrorInvalidField(String field) {
     return '$field 无效';
   }
@@ -18882,8 +19094,8 @@ class UiStringsZhCn extends UiStringsZh {
   String get overviewSystemUpdate => '有可用的系统更新';
 
   @override
-  String overviewSystemUpdateHelp(String version) {
-    return 'Echo Dot 镜像 $version 版已可安装。安装时 Dot 会重启两次。';
+  String overviewSystemImageUpdateHelp(String version) {
+    return '系统镜像 $version 版已可安装。安装时设备会重启两次。';
   }
 
   @override
@@ -19358,10 +19570,10 @@ class UiStringsZhCn extends UiStringsZh {
       '在其他应用中连续多久没有触屏操作后，自动返回 Kiosk。';
 
   @override
-  String get settingLauncherAutoReturnMediaTitle => '媒体播放时等待';
+  String get settingLauncherAutoReturnHoldTitle => '媒体播放或通话时等待';
 
   @override
-  String get settingLauncherAutoReturnMediaDescription => '正在播放视频或音乐时不自动返回。';
+  String get settingLauncherAutoReturnHoldDescription => '正在播放视频、音乐或通话时不自动返回。';
 
   @override
   String get launcherOverlayHeld => 'Kiosk Satellite 可以自动返回前台，并检测其他应用中的触屏操作。';
@@ -21684,6 +21896,60 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get deviceThemeSystem => '系统';
+
+  @override
+  String get settingUiToastsHiddenTitle => '显示系统提示消息';
+
+  @override
+  String get settingUiToastsHiddenDescription => '选择在仪表盘上方弹出的提示消息。设置中的消息始终显示。';
+
+  @override
+  String get deviceToastsAll => '全部';
+
+  @override
+  String get deviceToastsNone => '无';
+
+  @override
+  String get deviceToastBack => '返回键提示';
+
+  @override
+  String get deviceToastGestures => '手势操作';
+
+  @override
+  String get deviceToastHoldMode => '页面保持模式';
+
+  @override
+  String get deviceToastLinks => '仪表盘链接';
+
+  @override
+  String get deviceToastDownloads => '下载';
+
+  @override
+  String get deviceToastNetwork => '网络状态';
+
+  @override
+  String get deviceToastUpdates => '检查更新';
+
+  @override
+  String get deviceToastVoice => 'Voice Satellite 通知';
+
+  @override
+  String get deviceToastTimers => '计时器';
+
+  @override
+  String get deviceToastAlarms => '闹钟';
+
+  @override
+  String get deviceToastMusicLibrary => '音乐库';
+
+  @override
+  String get deviceToastIntercom => '对讲';
+
+  @override
+  String get deviceToastAppLauncher => '应用启动器';
+
+  @override
+  String get deviceToastPlugins => '插件操作';
 
   @override
   String get settingDlnaEnabledTitle => '启用 DLNA 渲染器';
@@ -27375,6 +27641,18 @@ class UiStringsZhCn extends UiStringsZh {
   String get voiceSkinHelp => '语音助手浮层的外观。';
 
   @override
+  String get voiceSkin1 => '助手 1 的皮肤';
+
+  @override
+  String get voiceSkin1Help => '助手 1 回答时浮层的外观。';
+
+  @override
+  String get voiceSkin2 => '助手 2 的皮肤';
+
+  @override
+  String get voiceSkin2Help => '助手 2 回答时浮层的外观。';
+
+  @override
   String get voiceTheme => '主题模式';
 
   @override
@@ -28190,6 +28468,13 @@ class UiStringsZhCn extends UiStringsZh {
       '允许你通过说话打断助手的回复。如果助手会被自己播放的声音打断，请关闭此项。';
 
   @override
+  String get settingVoiceRealtimeTalkOverSensitivityTitle => '语音打断灵敏度';
+
+  @override
+  String get settingVoiceRealtimeTalkOverSensitivityDescription =>
+      '说话打断回复的难易程度。如果麦克风音量较小导致无法打断，请调高此项。设置过高可能导致助手被自己的声音打断。';
+
+  @override
   String get settingVoiceRealtimeToolsTitle => '工具';
 
   @override
@@ -28587,6 +28872,13 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingVoiceWakeWordSensitivityDescription => '唤醒词触发的难易程度。';
+
+  @override
+  String get settingVoiceWakeWordFineTuneTitle => '灵敏度微调';
+
+  @override
+  String get settingVoiceWakeWordFineTuneDescription =>
+      '以更小的幅度调整唤醒词灵敏度。如果经常需要重复唤醒词，请调高；如果经常误唤醒，请调低。';
 
   @override
   String get settingVoiceNoiseGateTitle => '房间安静时暂停唤醒词识别';
@@ -29093,6 +29385,12 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get setupQrFlashOn => '开启手电筒';
+
+  @override
+  String get setupQrScreenLightOff => '关闭屏幕补光';
+
+  @override
+  String get setupQrScreenLightOn => '开启屏幕补光';
 
   @override
   String get setupPasswordFirst => '请先设置管理密码';

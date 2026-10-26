@@ -4005,6 +4005,7 @@ class _CategoryContentState extends State<_CategoryContent> {
           final native = [
             voiceWakeWordEngine,
             voiceWakeWordSensitivity,
+            voiceWakeWordFineTune,
             voiceNoiseGate,
             voiceStopWord,
           ];
@@ -4049,6 +4050,11 @@ class _CategoryContentState extends State<_CategoryContent> {
               voiceSkin.key: VoiceSkinRow(
                 container: container,
                 onChanged: changed,
+              ),
+              voiceSkin2.key: VoiceSkinRow(
+                container: container,
+                onChanged: changed,
+                def: voiceSkin2,
               ),
               voiceBackgroundOpacity.key: VoiceBackgroundRow(
                 container: container,
@@ -4954,7 +4960,7 @@ class _LauncherPermissionsTileState extends State<_LauncherPermissionsTile>
           ),
           onGrant: BackgroundListening.requestBatteryUnrestricted,
         ),
-        // Wait while media plays reads other apps' media sessions
+        // Wait during media and calls reads other apps' media sessions
         // (issue #1055), which Android shows to no one without this.
         if (widget.container.settings.get(launcherAutoReturnMedia))
           _row(
@@ -11502,6 +11508,16 @@ class SettingTile extends StatelessWidget {
             onTap: () => _pickImmichNamed(context, immichNamed),
           );
         }
+        // Show system toast notifications: the toasts shown, ticked off in a
+        // dialog from a dropdown-style box rather than typed as JSON.
+        if (def.key == uiToastsHidden.key) {
+          return _ToastsHiddenRow(
+            container: c,
+            def: def,
+            value: value as String,
+            onChanged: onChanged,
+          );
+        }
         // Wake to screensaver: what wakes to the screensaver, ticked off in a
         // dialog from a dropdown-style box rather than typed as JSON.
         if (def.key == screensaverScreenOffWakeToScreensaver.key) {
@@ -12932,6 +12948,110 @@ String _subpageDisplayTitle(
     if (profile != null) return fleetProfileName(context, profile);
   }
   return settingsPageText(context, category, subpage);
+}
+
+/// The labels of Show system toast notifications' sources.
+String _toastSourceLabel(BuildContext context, String source) =>
+    deviceText(context, switch (source) {
+      'back' => 'Back button hints',
+      'gestures' => 'Gesture actions',
+      'hold_mode' => 'Hold mode',
+      'links' => 'Dashboard links',
+      'downloads' => 'Downloads',
+      'network' => 'Network status',
+      'updates' => 'Update checks',
+      'voice' => 'Voice Satellite notices',
+      'timers' => 'Timers',
+      'alarms' => 'Alarms',
+      'music_library' => 'Music Library',
+      'intercom' => 'Intercom',
+      'app_launcher' => 'App Launcher',
+      _ => 'Plugin actions',
+    });
+
+/// Show system toast notifications as a settings row: the toasts shown at
+/// rest in a dropdown-style box, opening a dialog of checkboxes. The
+/// setting stores the ones turned off.
+class _ToastsHiddenRow extends StatelessWidget {
+  const _ToastsHiddenRow({
+    required this.container,
+    required this.def,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final AppContainer container;
+  final SettingDef<Object> def;
+  final String value;
+  final VoidCallback onChanged;
+
+  Future<void> _open(BuildContext context) async {
+    final hidden = decodeToastsHidden(value);
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(def.localizedTitle(context)),
+          content: SizedBox(
+            width: 420,
+            child: EdgeFade(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final source in toastSources)
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: !hidden.contains(source),
+                      title: Text(_toastSourceLabel(context, source)),
+                      onChanged: (on) => setState(() {
+                        if (on == true) {
+                          hidden.remove(source);
+                        } else {
+                          hidden.add(source);
+                        }
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(deviceText(context, 'Cancel')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(deviceText(context, 'Save')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved != true) return;
+    await container.settings.setFromJson(def.key, encodeToastsHidden(hidden));
+    onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hidden = decodeToastsHidden(value);
+    final text = hidden.isEmpty
+        ? deviceText(context, 'All')
+        : hidden.length == toastSources.length
+        ? deviceText(context, 'None')
+        : [
+            for (final source in toastSources)
+              if (!hidden.contains(source)) _toastSourceLabel(context, source),
+          ].join(', ');
+    final field = ChoiceBox(text: text, onTap: () => _open(context));
+    return SettingsRow(
+      title: Text(def.localizedTitle(context)),
+      stack: true,
+      subtitle: Text(def.localizedDescription(context)),
+      trailing: tightPane(context) ? field : SizedBox(width: 300, child: field),
+    );
+  }
 }
 
 /// The labels of Wake to screensaver's sources.

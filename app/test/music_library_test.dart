@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/managers/analytics/usage_counters.dart';
 import 'package:kiosk_satellite/app_container.dart';
 import 'package:kiosk_satellite/managers/music_library/ha_library_source.dart';
 import 'package:kiosk_satellite/managers/music_library/library_model.dart';
@@ -7,10 +8,12 @@ import 'package:kiosk_satellite/managers/music_library/ma_library_source.dart';
 import 'package:kiosk_satellite/managers/music_library/music_requests.dart';
 import 'package:kiosk_satellite/managers/music_library/sonos_library_source.dart';
 import 'package:kiosk_satellite/managers/sendspin/music_assistant_api.dart';
+import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
 import 'package:kiosk_satellite/ui/music_library_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A Music Assistant answering from canned results, recording each call.
+/// An answer that is a function is handed the call's arguments.
 class _FakeMa {
   final calls = <(String, Map<String, Object?>)>[];
   final answers = <String, Object?>{};
@@ -26,7 +29,13 @@ class _FakeMa {
         'error': {'code': 'unknown', 'message': 'no $command'},
       };
     }
-    return {'ok': true, 'result': answers[command]};
+    final answer = answers[command];
+    return {
+      'ok': true,
+      'result': answer is Object? Function(Map<String, Object?>)
+          ? answer(args)
+          : answer,
+    };
   }
 }
 
@@ -58,7 +67,7 @@ void main() {
       final ma = _FakeMa()
         ..answers['music/tracks/library_items'] = [
           _track('1', 'Tidelines'),
-          {'media_type': 'genre', 'name': 'skipped'},
+          {'media_type': 'mystery', 'name': 'skipped'},
         ];
       final page = await source(
         ma,
@@ -86,6 +95,268 @@ void main() {
         expect(shelves.map((s) => s.key), ['recent', 'added']);
       },
     );
+
+    Map<String, Object?> row(String id, {bool on = true}) => {
+      'item_id': id,
+      'provider': 'recommendations',
+      'name': id,
+      'uri': 'library://folder/$id',
+      'media_type': 'folder',
+      'items': <Object>[],
+      'enabled_by_default': on,
+    };
+
+    test(
+      'Discover loads each recommendation row on its own, hidden rows left out',
+      () async {
+        final ma = _FakeMa()
+          ..answers['music/recommendations'] = [
+            row('recently_added_albums'),
+            row('random_artists', on: false),
+            row('recently_played'),
+            row('in_progress'),
+          ]
+          ..answers['music/recommendations/items'] = (args) => switch (args) {
+            {'item_id': 'in_progress'} => <Object>[],
+            {'item_id': final String id} => [_track(id, id)],
+            _ => null,
+          };
+        final shelves = await source(ma).discover();
+        // In progress is empty, so Recently played leads.
+        expect(shelves.map((s) => s.title), [
+          'recently_played',
+          'recently_added_albums',
+        ]);
+        expect(shelves.first.items.single.title, 'recently_played');
+        final asked = [
+          for (final (command, args) in ma.calls)
+            if (command == 'music/recommendations/items') args,
+        ];
+        expect(asked, hasLength(3));
+        expect(asked.first, {
+          'provider': 'recommendations',
+          'item_id': 'in_progress',
+        });
+      },
+    );
+
+    test('Discover follows the layout saved in Music Assistant', () {
+      final folders = [
+        row('in_progress'),
+        row('recently_played'),
+        row('recently_added_albums'),
+        row('random_artists', on: false),
+        row('forgotten_tracks', on: false),
+      ];
+      List<String?> ids(Map<String, Object?> preferences) => [
+        for (final f in MaLibrarySource.discoverRows(folders, preferences))
+          (f['item_id'] ?? f['uri']) as String?,
+      ];
+      // Browse by genre comes last unless moved.
+      expect(ids(const {}), [
+        'in_progress',
+        'recently_played',
+        'recently_added_albums',
+        'genres',
+      ]);
+      expect(
+        ids({
+          'discover.rows': {
+            'hidden': ['genres'],
+          },
+        }),
+        ['in_progress', 'recently_played', 'recently_added_albums'],
+      );
+      expect(
+        ids({
+          'discover.rows': {
+            'hidden': ['library://folder/in_progress'],
+            'shown': ['library://folder/random_artists'],
+            'order': [
+              'players',
+              'library://folder/random_artists',
+              'library://folder/recently_added_albums',
+              'library://folder/recently_played',
+            ],
+          },
+        }),
+        [
+          'random_artists',
+          'genres',
+          'recently_added_albums',
+          'recently_played',
+        ],
+      );
+      // Older pages saved a position and an enabled flag per row.
+      expect(
+        ids({
+          'discoverRowSettings': {
+            'library://folder/recently_added_albums': {
+              'position': 0,
+              'enabled': true,
+            },
+            'library://folder/recently_played': {
+              'position': 1,
+              'enabled': false,
+            },
+          },
+        }),
+        // In progress, unsaved, goes where it has no row before it: first.
+        ['in_progress', 'recently_added_albums', 'genres'],
+      );
+    });
+
+    Map<String, Object?> genre(String id, String name) => {
+      'media_type': 'genre',
+      'item_id': id,
+      'provider': 'library',
+      'uri': 'library://genre/$id',
+      'name': name,
+    };
+
+    test(
+      'Browse by genre offers the eight genres with the most music',
+      () async {
+        final ma = _FakeMa()
+          ..answers['music/recommendations'] = <Object>[]
+          ..answers['music/genres/library_items'] = [
+            for (var i = 1; i <= 10; i++) genre('$i', 'Genre $i'),
+          ]
+          ..answers['music/genres/media_counts'] = {
+            '3': {'track': 9, 'album': 1},
+            '7': {'track': 4},
+          };
+        final shelves = await source(ma).discover();
+        final genres = shelves.single;
+        expect(genres.key, 'genres');
+        expect(genres.items.map((g) => g.title), [
+          'Genre 3',
+          'Genre 7',
+          'Genre 1',
+          'Genre 2',
+          'Genre 4',
+          'Genre 5',
+          'Genre 6',
+          'Genre 8',
+        ]);
+        expect(genres.items.first.kind, LibraryKind.genre);
+        expect(genres.items.first.expandable, isTrue);
+      },
+    );
+
+    test("a genre opens on Music Assistant's rows, else its tracks", () async {
+      final ma = _FakeMa()
+        ..answers['music/genres/overview'] = [
+          {
+            'item_id': 'genre_artist',
+            'name': 'Artists',
+            'items': [
+              {
+                'media_type': 'artist',
+                'item_id': '1',
+                'provider': 'library',
+                'uri': 'library://artist/1',
+                'name': 'Juniper Lane',
+              },
+            ],
+          },
+          {'item_id': 'genre_album', 'name': 'Albums', 'items': <Object>[]},
+        ];
+      final item = LibraryItem(
+        id: 'library://genre/15',
+        kind: LibraryKind.genre,
+        title: 'Dance',
+        raw: genre('15', 'Dance'),
+      );
+      final detail = await source(ma).open(item);
+      expect(detail.shelves.map((s) => s.title), ['Artists']);
+      expect(detail.tracks, isEmpty);
+      expect(ma.calls.single.$2, {
+        'item_id': '15',
+        'provider_instance_id_or_domain': 'library',
+      });
+
+      ma.answers['music/genres/overview'] = <Object>[];
+      ma.answers['music/genres/tracks'] = [_track('4', 'Four')];
+      final tracks = await source(ma).open(item);
+      expect(tracks.tracks.single.title, 'Four');
+    });
+
+    test('the Browse root shows each provider with its logo', () async {
+      final ma = _FakeMa()
+        ..answers['music/browse'] = [
+          {
+            'media_type': 'folder',
+            'name': 'Spotify',
+            'path': 'spotify--x://',
+            'provider': 'spotify',
+            'uri': 'spotify--x://',
+          },
+          {
+            'media_type': 'folder',
+            'name': 'Ambient Sounds',
+            'path': 'ambient_sounds://',
+            'provider': 'ambient_sounds',
+            'uri': 'ambient_sounds://',
+          },
+        ]
+        ..answers['providers/manifests'] = [
+          {
+            'domain': 'spotify',
+            'icon_images': ['default', 'monochrome'],
+          },
+          {
+            'domain': 'ambient_sounds',
+            'icon_images': ['default', 'dark'],
+          },
+        ]
+        ..answers['providers/icon'] = (args) =>
+            'data:image/svg+xml;base64,${args['provider']}-${args['variant']}';
+      final s = source(ma);
+      final page = await s.browse(null);
+      expect(page.items.map((i) => (i.art, i.artDark)), [
+        ('data:image/svg+xml;base64,spotify-default', null),
+        (
+          'data:image/svg+xml;base64,ambient_sounds-default',
+          'data:image/svg+xml;base64,ambient_sounds-dark',
+        ),
+      ]);
+      // The logos are asked for once.
+      await s.browse(null);
+      expect(ma.calls.where((c) => c.$1 == 'providers/icon'), hasLength(3));
+      expect(
+        ma.calls.where((c) => c.$1 == 'providers/manifests'),
+        hasLength(1),
+      );
+    });
+
+    test('lists in the order picked, artists only on an album', () async {
+      final ma = _FakeMa()
+        ..answers['music/artists/library_items'] = <Object>[]
+        ..answers['music/playlists/library_items'] = <Object>[];
+      final s = source(ma);
+      const artists = LibraryCategory('artists', LibraryKind.artist);
+      const playlists = LibraryCategory('playlists', LibraryKind.playlist);
+      await s.list(playlists);
+      await s.list(playlists, sort: LibrarySort.recentlyPlayed);
+      await s.list(playlists, sort: LibrarySort.mostPlayed, albumArtists: true);
+      await s.list(artists, sort: LibrarySort.nameDesc, albumArtists: true);
+      await s.list(artists, sort: LibrarySort.recentlyAdded);
+      expect(
+        [for (final (_, args) in ma.calls) args['order_by']],
+        [
+          'sort_name',
+          'last_played_desc',
+          'play_count_desc',
+          'sort_name_desc',
+          'timestamp_added_desc',
+        ],
+      );
+      expect(
+        [for (final (_, args) in ma.calls) args['album_artists_only']],
+        [null, null, null, true, null],
+      );
+    });
 
     test('a track tapped in a playlist plays the playlist from it', () async {
       final ma = _FakeMa()..answers['player_queues/play_media'] = null;
@@ -428,7 +699,26 @@ void main() {
       });
       expect(none['ok'], isFalse);
       expect(none['error'], 'nothing_found');
+      // Both requests count for usage analytics, the Play next that went
+      // through as a queue add.
+      final counts = UsageCounters.read(c.settings);
+      expect(counts['library_voice_requests'], 2);
+      expect(counts['library_queue_adds'], 1);
     });
+  });
+
+  test('a genre gets an icon from its name, a note when nothing fits', () {
+    expect(genreIcon('Hip-Hop'), Icons.mic_rounded);
+    expect(genreIcon('Classical'), Icons.piano_rounded);
+    expect(genreIcon('Composer'), Icons.piano_rounded);
+    expect(genreIcon('Dance'), Icons.celebration_rounded);
+    expect(genreIcon('Synthpop'), Icons.graphic_eq_rounded);
+    expect(genreIcon('Indie Rock'), Icons.bolt_rounded);
+    expect(genreIcon('Folk'), Icons.mic_external_on_rounded);
+    expect(genreIcon('Acoustic'), Icons.waves_rounded);
+    expect(genreIcon('Country'), Icons.music_note_rounded);
+    expect(genreIcon('K-Pop'), Icons.auto_awesome_rounded);
+    expect(genreIcon('Unknown'), Icons.music_note_rounded);
   });
 
   group('the overlay', () {
@@ -441,8 +731,12 @@ void main() {
       raw: const {'year': 2024},
     );
 
-    Future<AppContainer> container() async {
+    Future<AppContainer> container({
+      LibrarySource? source,
+      int textScale = 100,
+    }) async {
       SharedPreferences.setMockInitialValues({
+        'ks.library.text_scale': textScale,
         'ks.ha.url': '',
         'ks.ha.token': '',
         'ks.sendspin.ma_url': 'ma.local:8095',
@@ -453,7 +747,7 @@ void main() {
       });
       final c = AppContainer();
       await c.settings.init();
-      c.musicLibrary.sourceFactory = (_) => _FakeSource(album);
+      c.musicLibrary.sourceFactory = (_) => source ?? _FakeSource(album);
       // No test reaches a real Music Assistant.
       c.sendspin.apiFactory = ({required baseUrl, required token}) =>
           _QueueApi();
@@ -496,6 +790,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(tester.takeException(), isNull);
         expect(find.text('Glass Harbor'), findsWidgets);
+        // A shelf that mixes kinds says what each entry is.
+        expect(find.text('Track · Juniper Lane'), findsOneWidget);
+        expect(find.text('Album · Juniper Lane'), findsOneWidget);
+        // Below the fold on a short screen, so not built there.
+        if (size.height >= 600) {
+          expect(find.text('Browse by genre'), findsOneWidget);
+        }
         await tester.tap(find.text('Glass Harbor').first);
         await tester.pump(const Duration(milliseconds: 100));
         // The album loads after the frame that asked for it.
@@ -511,6 +812,240 @@ void main() {
         await tester.pump();
       });
     }
+
+    for (final (name, size) in [
+      ('a tablet', const Size(1280, 800)),
+      ('a phone', const Size(390, 844)),
+    ]) {
+      testWidgets('a list sorts and keeps its order on $name', (tester) async {
+        final source = _FakeSource(album);
+        final c = await container(source: source);
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        c.musicLibrary.visible.value = true;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Stack(children: [MusicLibraryOverlay(container: c)]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byTooltip('Sort'), findsNothing);
+        if (size.width < 600) {
+          await tester.tap(find.text('Library'));
+          await tester.pumpAndSettle();
+        }
+        await tester.ensureVisible(find.text('Artists').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Artists').first);
+        await tester.pumpAndSettle();
+        expect(source.listed.last, ('artists', LibrarySort.name, false));
+
+        await tester.tap(find.byTooltip('Sort'));
+        await tester.pumpAndSettle();
+        expect(find.text('Album artists only'), findsOneWidget);
+        await tester.tap(find.text('Recently played'));
+        await tester.pumpAndSettle();
+        expect(source.listed.last, (
+          'artists',
+          LibrarySort.recentlyPlayed,
+          false,
+        ));
+
+        await tester.tap(find.byTooltip('Sort'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Album artists only'));
+        await tester.pumpAndSettle();
+        expect(source.listed.last, (
+          'artists',
+          LibrarySort.recentlyPlayed,
+          true,
+        ));
+        expect(tester.takeException(), isNull);
+
+        // Albums keeps its own order and has no album artist filter.
+        await tester.ensureVisible(find.text('Albums').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Albums').first);
+        await tester.pumpAndSettle();
+        expect(source.listed.last, ('albums', LibrarySort.name, false));
+        await tester.tap(find.byTooltip('Sort'));
+        await tester.pumpAndSettle();
+        expect(find.text('Album artists only'), findsNothing);
+        await tester.tap(find.text('Z to A'));
+        await tester.pumpAndSettle();
+        expect(source.listed.last, ('albums', LibrarySort.nameDesc, false));
+        expect(
+          c.musicLibrary.sortFor(
+            source,
+            const LibraryCategory('artists', LibraryKind.artist),
+          ),
+          LibrarySort.recentlyPlayed,
+        );
+        c.musicLibrary.visible.value = false;
+        await tester.pump();
+      });
+    }
+
+    for (final (name, size) in [
+      ('a tablet', const Size(1280, 800)),
+      ('a tablet in portrait', const Size(753, 1205)),
+      ('an Echo Show 5', const Size(960, 480)),
+      ('a phone', const Size(390, 844)),
+    ]) {
+      for (final scale in [50, 200]) {
+        testWidgets('text at $scale% fits on $name', (tester) async {
+          final c = await container(textScale: scale);
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+          c.musicLibrary.visible.value = true;
+          c.sendspin.nowPlaying.value = {
+            'title': 'A long track title that goes on for a while',
+            'artist': 'Juniper Lane',
+            'playing': true,
+            'durationMs': 200000,
+            'positionMs': 60000,
+            'receivedAt': DateTime.now().millisecondsSinceEpoch,
+            'shuffle': false,
+            'repeat': 'off',
+            'supportedCommands': const <String>[],
+          };
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: Stack(children: [MusicLibraryOverlay(container: c)]),
+              ),
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 200));
+          expect(tester.takeException(), isNull, reason: 'Discover');
+          // The Albums grid.
+          c.musicLibrary.opening = (query: null, category: 'albums');
+          c.musicLibrary.reopened.value++;
+          await tester.pump(const Duration(milliseconds: 200));
+          await tester.pump(const Duration(milliseconds: 200));
+          expect(tester.takeException(), isNull, reason: 'Albums');
+          expect(find.text('Glass Harbor'), findsWidgets);
+          // An album.
+          await tester.tap(find.text('Glass Harbor').first);
+          await tester.pump(const Duration(milliseconds: 200));
+          await tester.pump(const Duration(milliseconds: 200));
+          expect(tester.takeException(), isNull, reason: 'the album');
+          // The Speakers sheet, a route of its own.
+          c.musicLibrary.backHandler?.call();
+          await tester.pumpAndSettle();
+          await tester.tap(find.bySemanticsLabel(RegExp(r'^Speakers: ')).first);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: 'Speakers');
+          await tester.tapAt(const Offset(4, 4));
+          await tester.pumpAndSettle();
+          // The sort menu.
+          await tester.tap(find.byTooltip('Sort'));
+          await tester.pumpAndSettle();
+          expect(find.text('Most played'), findsOneWidget);
+          expect(tester.takeException(), isNull, reason: 'the sort menu');
+          await tester.tapAt(const Offset(4, 4));
+          await tester.pumpAndSettle();
+          // The queue.
+          await tester.tap(find.byTooltip('Show queue').first);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: 'the queue');
+          c.musicLibrary.visible.value = false;
+          c.sendspin.nowPlaying.value = null;
+          await tester.pump(const Duration(seconds: 1));
+        });
+      }
+    }
+
+    testWidgets('a play shows what it starts until the player reports it', (
+      tester,
+    ) async {
+      final c = await container();
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      c.musicLibrary.visible.value = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(children: [MusicLibraryOverlay(container: c)]),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      c.musicLibrary.pick.value = 'ma:living';
+      // Queuing changes nothing that plays: no wait.
+      await c.musicLibrary.play(album, PlayMode.add);
+      expect(c.musicLibrary.starting.value, isNull);
+      await c.musicLibrary.play(album, PlayMode.replace);
+      expect(c.musicLibrary.starting.value, album);
+      await tester.pump();
+      // The bar names it at once, and the cover spins.
+      expect(find.text('Loading…'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      // The player's report ends the wait.
+      c.sendspin.nowPlaying.value = {
+        'title': 'Glass Harbor',
+        'artist': 'Juniper Lane',
+        'playing': true,
+      };
+      expect(c.musicLibrary.starting.value, isNull);
+      await tester.pump();
+      expect(find.text('Loading…'), findsNothing);
+      // A player that never reports lets go after a while.
+      await c.musicLibrary.play(album, PlayMode.now);
+      expect(c.musicLibrary.starting.value, album);
+      // Two plays by their source, one queue add, for usage analytics.
+      final counts = UsageCounters.read(c.settings);
+      expect(counts['library_queue_adds'], 1);
+      expect(
+        counts.entries
+            .where((e) => e.key.startsWith('library_plays_'))
+            .map((e) => e.value),
+        [2],
+      );
+      await tester.pump(const Duration(seconds: 16));
+      expect(c.musicLibrary.starting.value, isNull);
+      c.musicLibrary.visible.value = false;
+      c.sendspin.nowPlaying.value = null;
+      await tester.pump(const Duration(seconds: 7));
+    });
+
+    testWidgets('each grid density step changes the tile size', (tester) async {
+      final source = _FakeSource(album);
+      final c = await container(source: source);
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      c.musicLibrary.visible.value = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(children: [MusicLibraryOverlay(container: c)]),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Albums').first);
+      await tester.pumpAndSettle();
+      // Changed while the list is open, as from the remote admin.
+      Future<double> tile(String density) async {
+        await c.settings.set(defs.libraryGridDensity, density);
+        await tester.pumpAndSettle();
+        return tester.getSize(find.byType(LibraryArt).first).width;
+      }
+
+      final standard = await tile('standard');
+      final compact = await tile('compact');
+      final comfortable = await tile('comfortable');
+      expect(compact, lessThan(standard));
+      expect(comfortable, greaterThan(standard));
+      c.musicLibrary.visible.value = false;
+      await tester.pump();
+    });
 
     for (final (name, close) in [
       (
@@ -628,8 +1163,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Nothing playing'), findsNothing);
       expect(find.text('Track A'), findsOneWidget);
-      // Play resumes the queue on its current track.
+      // Play resumes the queue on its current track, with a ring around
+      // the button until the player reports it.
+      final before = tester.getRect(find.byTooltip('Play').last);
+      final next = tester.getRect(find.byTooltip('Next track').last);
       await tester.tap(find.byTooltip('Play').last);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // The ring takes no room: nothing around the button moves.
+      expect(tester.getRect(find.byTooltip('Play').last), before);
+      expect(tester.getRect(find.byTooltip('Next track').last), next);
       await tester.pumpAndSettle();
       expect(api.calls, contains('player_queues/play_index'));
       expect(api.args['player_queues/play_index'], containsPair('index', 'a'));
@@ -700,12 +1243,57 @@ class _FakeSource extends LibrarySource {
   List<LibraryCategory> get categories => const [
     LibraryCategory('albums', LibraryKind.album),
     LibraryCategory('tracks', LibraryKind.track),
+    LibraryCategory('artists', LibraryKind.artist),
   ];
+
+  @override
+  List<LibrarySort> get sorts => LibrarySort.values;
+
+  @override
+  bool get hasAlbumArtists => true;
+
+  /// Each list asked for: the category, the order and album artists only.
+  final listed = <(String, LibrarySort?, bool)>[];
+
+  @override
+  Future<LibraryPage> list(
+    LibraryCategory category, {
+    int offset = 0,
+    bool favorites = false,
+    LibrarySort? sort,
+    bool albumArtists = false,
+  }) async {
+    listed.add((category.key, sort, albumArtists));
+    return LibraryPage(items: [album]);
+  }
 
   @override
   Future<List<LibraryShelf>> discover() async => [
     LibraryShelf(key: 'recent', items: [album]),
-    LibraryShelf(title: 'From the server', items: [album]),
+    LibraryShelf(
+      title: 'From the server',
+      items: [
+        album,
+        const LibraryItem(
+          id: 'library://track/9',
+          kind: LibraryKind.track,
+          title: 'Tidelines',
+          subtitle: 'Juniper Lane',
+        ),
+      ],
+    ),
+    LibraryShelf(
+      key: 'genres',
+      items: [
+        for (final name in ['Dance', 'Electronic', 'Folk', 'Jazz'])
+          LibraryItem(
+            id: 'library://genre/$name',
+            kind: LibraryKind.genre,
+            title: name,
+            expandable: true,
+          ),
+      ],
+    ),
   ];
 
   @override

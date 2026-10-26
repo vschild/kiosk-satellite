@@ -1449,6 +1449,7 @@
 .plugin-directory-row > button, .plugin-directory-row > .plugin-directory-installed { flex: none; align-self: center; }
 .plugin-directory-pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 0 4px; font-size: 14px; }
 .plugin-directory-pager .icon-btn:disabled { opacity: 0.35; cursor: default; }
+.plugin-directory-needs { margin-top: 2px; color: var(--error); }
 .plugin-directory-description { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .plugin-directory-meta { display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px; row-gap: 2px; }
 .plugin-directory-meta span { display: inline-flex; align-items: center; gap: 4px; }
@@ -1746,6 +1747,8 @@
 /* A phone keeps the width for the names: no icon disc on the rows. */
 .dp.narrow .ep-row .ep-disc { display: none; }
 .ep-row:disabled { cursor: default; }
+.ep-title-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ep-hidden { flex: none; display: grid; color: var(--muted); }
 .ep-state { flex: none; max-width: 34%; font-size: 13px; color: var(--muted); text-align: right;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ep-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; padding: 0 0 10px;

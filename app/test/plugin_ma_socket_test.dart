@@ -48,7 +48,17 @@ void main() {
         );
         if (msg['command'] == 'auth') {
           if ((msg['args'] as Map)['token'] == 'good') {
-            result({'authenticated': true});
+            result({
+              'authenticated': true,
+              'user': {
+                'username': 'kiosk',
+                'preferences': {
+                  'discover.rows': {
+                    'hidden': ['library://folder/in_progress'],
+                  },
+                },
+              },
+            });
           } else {
             error(23, 'Invalid token');
           }
@@ -111,6 +121,10 @@ void main() {
         ],
       });
       expect(socket.serverInfo['server_id'], 'abc123');
+      // The user's preferences come with the sign-in, for the library.
+      expect(socket.userPreferences['discover.rows'], {
+        'hidden': ['library://folder/in_progress'],
+      });
       expect(
         await socket.call('a', 'music/tracks/library_items', {'limit': 3}),
         {

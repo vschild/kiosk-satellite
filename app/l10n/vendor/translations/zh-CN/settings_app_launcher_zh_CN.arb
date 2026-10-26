@@ -7,6 +7,6 @@
   "settingLauncherAutoReturnDescription": "其他应用一段时间未收到触屏操作后，返回 Kiosk。",
   "settingLauncherAutoReturnSecondsTitle": "无触屏操作后返回（秒）",
   "settingLauncherAutoReturnSecondsDescription": "在其他应用中连续多久没有触屏操作后，自动返回 Kiosk。",
-  "settingLauncherAutoReturnMediaTitle": "媒体播放时等待",
-  "settingLauncherAutoReturnMediaDescription": "正在播放视频或音乐时不自动返回。"
+  "settingLauncherAutoReturnHoldTitle": "媒体播放或通话时等待",
+  "settingLauncherAutoReturnHoldDescription": "正在播放视频、音乐或通话时不自动返回。"
 }

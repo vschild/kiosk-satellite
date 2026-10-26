@@ -1334,7 +1334,8 @@ class _PluginSettingsState extends State<_PluginSettings> {
     }
     if (raw['type'] == 'entity') {
       final value = '${_values[raw['key']] ?? raw['default']}';
-      // A plugin may narrow the picker to one domain or a few.
+      // A plugin may narrow the picker to one domain or a few, and may
+      // list the entities Home Assistant hides.
       final domain = raw['domain'];
       return PickRow(
         title: '${raw['title']}',
@@ -1347,6 +1348,7 @@ class _PluginSettingsState extends State<_PluginSettings> {
             if (domain is List)
               for (final d in domain) '$d',
           ],
+          includeHidden: raw['includeHidden'] == true,
         ),
         value: value,
         allowClear: true,

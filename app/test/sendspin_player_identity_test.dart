@@ -66,6 +66,7 @@ void main() {
   late SendspinManager sendspin;
   late CommandRegistry commands;
   late List<Map<String, Object?>> events;
+  _FakeRemote? remote;
 
   Future<void> fromNative(String method, Map<String, Object?> args) =>
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -80,6 +81,7 @@ void main() {
   Future<void> build(Map<String, Object> prefs) async {
     _FakeApi.calls.clear();
     _FakeApi.listed = true;
+    remote = null;
     SharedPreferences.setMockInitialValues({
       'ks.sendspin.enabled': true,
       'ks.sendspin.client_id': 'abc123',
@@ -106,7 +108,7 @@ void main() {
           required log,
           String label = 'remote player',
           bool showInputs = false,
-        }) => _FakeRemote(
+        }) => remote = _FakeRemote(
           baseUrl: baseUrl,
           token: token,
           playerId: playerId,
@@ -138,6 +140,7 @@ void main() {
       'enabled': true,
       'running': true,
       'connected': true,
+      'playing': false,
       'clientId': 'abc123',
       'playerName': 'Kitchen Tablet',
       'serverName': 'Music Assistant',
@@ -175,6 +178,42 @@ void main() {
     expect(events.last, containsPair('maConfigured', false));
     expect(events.last, containsPair('maPlayerId', ''));
     expect(_FakeApi.calls, isEmpty);
+  });
+
+  test('playing follows the local player', () async {
+    await build(const {});
+    await fromNative('stateChanged', {'connected': true});
+    await fromNative('metadataChanged', {'title': 'Song'});
+    await fromNative('playingChanged', {'playing': true});
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events.last, containsPair('playing', true));
+    final read = await commands.execute('sendspinPlayer', const {});
+    expect((read.data as Map)['playing'], isTrue);
+    // A pause is heard once the track-change grace has ruled out a song
+    // boundary.
+    await fromNative('playingChanged', {'playing': false});
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events.last, containsPair('playing', true));
+    await Future<void>.delayed(const Duration(milliseconds: 2600));
+    expect(events.last, containsPair('playing', false));
+  });
+
+  test('playing follows the followed player', () async {
+    await build({
+      'ks.sendspin.ma_url': 'ma.local',
+      'ks.sendspin.ma_token': 'token',
+      'ks.sendspin.player': 'ma:p1',
+      'ks.sendspin.player_source': 'ma',
+      'ks.sendspin.player_name': 'Kitchen',
+    });
+    expect(remote, isNotNull);
+    expect(remote!.playerId, 'p1');
+    remote!.onSnapshot({'title': 'Song', 'playing': true});
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events.last, containsPair('playing', true));
+    remote!.onSnapshot({'title': 'Song', 'playing': false});
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events.last, containsPair('playing', false));
   });
 
   test('turning the player off is heard', () async {

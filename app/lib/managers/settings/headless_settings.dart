@@ -47,6 +47,7 @@ class HeadlessSettings {
     // Device: the on-device interface and the WebView renderer.
     defs.uiTheme.key,
     defs.uiScale.key,
+    defs.uiToastsHidden.key,
     defs.disableImpeller.key,
     defs.legacyWebView.key,
     defs.remoteEnabled.key,

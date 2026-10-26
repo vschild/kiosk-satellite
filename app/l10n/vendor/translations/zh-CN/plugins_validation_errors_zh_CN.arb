@@ -28,6 +28,7 @@
   "pluginErrorSettingType": "不支持此设置类型",
   "pluginErrorInvalidManifest": "插件清单无效",
   "pluginErrorAndroidApi": "插件需要 Android API {version}",
+  "pluginErrorAppVersion": "插件需要 Kiosk Satellite {required} 或更高版本。本机运行的是 {current}。",
   "pluginErrorInvalidField": "{field} 无效",
   "pluginErrorTooManyTriggers": "触发器过多",
   "pluginErrorTriggerId": "触发器 ID 无效或重复",

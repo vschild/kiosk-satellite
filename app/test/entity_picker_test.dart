@@ -32,6 +32,15 @@ const _entities = <Map<String, Object?>>[
     'area': 'Kitchen',
   },
   {
+    'entity_id': 'light.all_art_lights',
+    'name': 'All Art Lights',
+    'state': 'Off',
+    'domain': 'light',
+    'domain_title': 'Light',
+    'area': 'Living Room',
+    'hidden': true,
+  },
+  {
     'entity_id': 'weather.forecast_home',
     'name': 'Forecast Home',
     'state': 'Partly cloudy',
@@ -141,6 +150,43 @@ void main() {
     await tester.tap(find.text('Kitchen Light Level'));
     await tester.pumpAndSettle();
     expect(outcome?.id, 'sensor.kitchen_illuminance');
+  });
+
+  testWidgets('hidden entities stay out unless the picker asks for them, '
+      'and then carry the hidden mark', (tester) async {
+    final commands = _commands();
+    for (final includeHidden in [false, true]) {
+      await _pump(
+        tester,
+        const Size(1200, 800),
+        (context) => TextButton(
+          onPressed: () => showItemPicker(
+            context,
+            title: 'Entity',
+            spec: entitySpec(
+              context,
+              commands,
+              domains: const ['light'],
+              includeHidden: includeHidden,
+            ),
+          ),
+          child: const Text('open'),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Living Room Lamp'), findsOneWidget);
+      expect(
+        find.text('All Art Lights'),
+        includeHidden ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byIcon(Icons.visibility_off),
+        includeHidden ? findsOneWidget : findsNothing,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('Clear reports an empty pick, Cancel nothing', (tester) async {

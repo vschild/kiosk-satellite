@@ -37,6 +37,8 @@
   "settingVoiceRealtimeModelDescription": "El modelo de voz a voz que responde.",
   "settingVoiceRealtimeTalkOverTitle": "Hablar sobre las respuestas",
   "settingVoiceRealtimeTalkOverDescription": "Interrumpe una respuesta hablando. Desactívalo si se interrumpe solo.",
+  "settingVoiceRealtimeTalkOverSensitivityTitle": "Sensibilidad de interrupción",
+  "settingVoiceRealtimeTalkOverSensitivityDescription": "Qué tan fácil es interrumpir una respuesta hablando. Súbela si interrumpir no funciona con un micrófono silencioso. Los valores más altos pueden hacer que se interrumpa solo.",
   "settingVoiceRealtimeToolsTitle": "Herramientas",
   "settingVoiceRealtimeToolsDescription": "Lo que el asistente puede controlar. Home Assistant usa su integración MCP Server y las entidades expuestas a Assist.",
   "settingVoiceRealtimeVoiceTitle": "Voz",

@@ -396,5 +396,21 @@ export const deviceTextMessageIds = {
   "This device has no screen. Grant it over adb: adb shell dumpsys deviceidle whitelist +me.jxl.kiosk_satellite": "deviceHeadlessAdbBattery",
   "This device has no screen. Grant it over adb: adb shell pm grant me.jxl.kiosk_satellite android.permission.READ_EXTERNAL_STORAGE, then the same for WRITE_EXTERNAL_STORAGE": "deviceHeadlessAdbStorage",
   "This device has no screen. Switch it on over adb: adb shell settings put secure enabled_accessibility_services me.jxl.kiosk_satellite/.HeadlessKeyService, then adb shell settings put secure accessibility_enabled 1": "deviceHeadlessAdbButtons",
-  "The button service is switched on but has not started. Restart the device to start it: adb reboot": "deviceHeadlessAdbButtonsRestart"
+  "The button service is switched on but has not started. Restart the device to start it: adb reboot": "deviceHeadlessAdbButtonsRestart",
+  "All": "deviceToastsAll",
+  "None": "deviceToastsNone",
+  "Back button hints": "deviceToastBack",
+  "Gesture actions": "deviceToastGestures",
+  "Hold mode": "deviceToastHoldMode",
+  "Dashboard links": "deviceToastLinks",
+  "Downloads": "deviceToastDownloads",
+  "Network status": "deviceToastNetwork",
+  "Update checks": "deviceToastUpdates",
+  "Voice Satellite notices": "deviceToastVoice",
+  "Timers": "deviceToastTimers",
+  "Alarms": "deviceToastAlarms",
+  "Music Library": "deviceToastMusicLibrary",
+  "Intercom": "deviceToastIntercom",
+  "App Launcher": "deviceToastAppLauncher",
+  "Plugin actions": "deviceToastPlugins"
 };

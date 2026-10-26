@@ -65,5 +65,29 @@
       ],
       "remoteAdmin": []
     }
+  },
+  "setupQrScreenLightOff": "Turn off the screen light",
+  "@setupQrScreenLightOff": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is on. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
+  },
+  "setupQrScreenLightOn": "Turn on the screen light",
+  "@setupQrScreenLightOn": {
+    "context": "First-time setup > Connect > Scan token QR code",
+    "description": "Button label when the screen light is off. The screen light turns the screen white around a smaller camera preview to light the code.",
+    "x-locations": {
+      "device": [
+        "First-time setup > Connect > Scan token QR code",
+        "Kiosk screen > plugin barcode scanner"
+      ],
+      "remoteAdmin": []
+    }
   }
 }

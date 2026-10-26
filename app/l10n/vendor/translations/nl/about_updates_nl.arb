@@ -13,5 +13,7 @@
   "aboutSystemVersion": "ROM-versie",
   "aboutSystemVerifying": "Verifiëren…",
   "aboutSystemInstalling": "Installeren…",
-  "aboutSystemInstallHelp": "De Dot start twee keer opnieuw op om de update te installeren en is elke keer ongeveer anderhalve minuut offline."
+  "aboutSystemRestartHelp": "Het apparaat start twee keer opnieuw op om de update te installeren en is een paar minuten offline.",
+  "aboutSystemManual": "Nieuwe image beschikbaar",
+  "aboutSystemManualHelp": "Versie {version} van de nieuwe Echo Dot-image installeer je met de hand, niet als update."
 }

@@ -28,6 +28,7 @@
   "pluginErrorSettingType": "Type de paramètre non pris en charge",
   "pluginErrorInvalidManifest": "Manifeste de plugin invalide",
   "pluginErrorAndroidApi": "Le plugin nécessite l'API Android {version}",
+  "pluginErrorAppVersion": "Le plugin nécessite Kiosk Satellite {required} ou plus récent. Ce kiosque exécute {current}.",
   "pluginErrorInvalidField": "{field} invalide",
   "pluginErrorTooManyTriggers": "Trop de déclencheurs",
   "pluginErrorTriggerId": "Identifiant de déclencheur invalide ou en double",

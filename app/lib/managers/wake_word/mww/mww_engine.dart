@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import '../engine.dart';
 import '../isolate_engine.dart';
+import 'mww_gate.dart';
 import 'mww_isolate.dart';
 import 'mww_model_store.dart';
 
@@ -72,7 +73,10 @@ class MwwEngine extends IsolateWakeEngine {
         // The card resolved its Sensitivity setting into this multiplier; we
         // only apply it. Raising the cutoff makes the model harder to trigger,
         // which is what "Slightly sensitive" (x1.10) means.
-        'cutoff': model.manifest.probabilityCutoff * ref.confidenceScale,
+        'cutoff': mwwCutoffFor(
+          model.manifest.probabilityCutoff,
+          ref.confidenceScale,
+        ),
         'slidingWindowSize': model.manifest.slidingWindowSize,
       };
 }

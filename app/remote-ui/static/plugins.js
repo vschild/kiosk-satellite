@@ -353,12 +353,15 @@ function directoryRow(entry) {
   meta.append(...stats.children);
   text.append(meta);
   if (entry.description) text.append(element('div', entry.description, 'desc plugin-directory-description'));
+  if (entry.needsAppVersion) text.append(element('div', t('pluginNeedsAppVersion', { version: entry.needsAppVersion }), 'desc plugin-directory-needs'));
   let action;
   if (entry.updateAvailable) {
     action = element('button', pluginText('Update'), 'btn-ghost');
     action.onclick = (event) => { event.stopPropagation(); installListed(entry, true, action); };
   } else if (entry.installed) {
     action = element('span', pluginText('Installed'), 'plugin-directory-installed');
+  } else if (entry.needsAppVersion) {
+    action = element('span');
   } else {
     action = iconButton(pluginText('Install'), 'M12 5v14M5 12h14');
     action.onclick = (event) => { event.stopPropagation(); installListed(entry, false, action); };
@@ -615,11 +618,12 @@ function settingRow(plugin, setting, value, save) {
     control.append(input, output); settingRow.append(control);
   } else if (setting.type === 'entity') {
     // The entity picker, narrowed to the plugin's domain when it
-    // declares one; Clear empties the setting.
+    // declares one and listing hidden entities when it asks; Clear
+    // empties the setting.
     let current = value ?? setting.default ?? '';
     const domains = Array.isArray(setting.domain) ? setting.domain.map(String)
       : (setting.domain ? [String(setting.domain)] : []);
-    const spec = entitySpec({ domains });
+    const spec = entitySpec({ domains, includeHidden: setting.includeHidden === true });
     const field = pickField({
       spec, value: current,
       onClick: async () => {

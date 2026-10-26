@@ -13,5 +13,7 @@
   "aboutSystemVersion": "Версия ROM",
   "aboutSystemVerifying": "Проверка…",
   "aboutSystemInstalling": "Установка…",
-  "aboutSystemInstallHelp": "Dot дважды перезагружается для установки обновления и каждый раз около полутора минут не в сети."
+  "aboutSystemRestartHelp": "Устройство дважды перезагружается для установки обновления и несколько минут не в сети.",
+  "aboutSystemManual": "Доступен новый образ",
+  "aboutSystemManualHelp": "Версия {version} нового образа Echo Dot устанавливается вручную, а не как обновление."
 }

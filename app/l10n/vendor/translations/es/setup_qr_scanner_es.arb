@@ -5,5 +5,7 @@
   "setupQrHelp": "Aparece junto a un token recién creado en tu perfil de Home Assistant.",
   "setupQrFlashOff": "Apagar la linterna",
   "setupQrFlashOn": "Encender la linterna",
-  "setupQrFlipCamera": "Cambiar de cámara"
+  "setupQrFlipCamera": "Cambiar de cámara",
+  "setupQrScreenLightOff": "Apagar la luz de pantalla",
+  "setupQrScreenLightOn": "Encender la luz de pantalla"
 }

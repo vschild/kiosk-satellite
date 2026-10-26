@@ -22,6 +22,24 @@
 /// instead (see WakeWordEngine.startAudioStream).
 library;
 
+import 'dart:math' as math;
+
+/// A model's `probability_cutoff` moved by the sensitivity multiplier.
+///
+/// Wake word cutoffs sit at 0.95 to 0.97, so x1.10 alone puts them past
+/// 1.0, where no window mean reaches them and the wake word never fires.
+/// So a raise stops where the room left below 1.0 is halved at x1.10, as
+/// in Voice Satellite's browser engine. Lowering a cutoff, or raising a
+/// low one such as the stop word's 0.5, still just multiplies.
+double mwwCutoffFor(double cutoff, double scale) {
+  var scaled = cutoff * scale;
+  if (scale > 1) {
+    final margin = (1 - cutoff) / (1 + 10 * (scale - 1));
+    scaled = math.min(scaled, 1 - margin);
+  }
+  return scaled.clamp(0.1, 0.99).toDouble();
+}
+
 /// How a trigger cleared the gate. Diagnostic only.
 enum MwwTrigger { immediate, confirmed }
 

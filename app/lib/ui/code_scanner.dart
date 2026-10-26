@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -53,6 +54,13 @@ List<BarcodeFormat> codeScanFormats(List<String> names) => [
 /// its reason or, with [closeOnError], a camera that does not start
 /// (`camera_failed`). The camera stops before the scanner pops, so the
 /// next session can bind it at once.
+///
+/// The screen light button turns the screen white around a smaller
+/// preview, so a front camera has light on the code (issue #1148). It
+/// starts as [screenLight] and reports each change to [onScreenLight], so
+/// the caller can keep it for the next scan. [lightScreen] runs with true
+/// while the light is up and false once it goes or the scanner closes, to
+/// put the panel at full brightness meanwhile.
 class CodeScanner extends StatefulWidget {
   const CodeScanner({
     super.key,
@@ -64,6 +72,9 @@ class CodeScanner extends StatefulWidget {
     this.timeout,
     this.cancel,
     this.closeOnError = false,
+    this.screenLight = false,
+    this.onScreenLight,
+    this.lightScreen,
     this.result = _outcome,
   });
 
@@ -77,6 +88,9 @@ class CodeScanner extends StatefulWidget {
   final Duration? timeout;
   final Future<String>? cancel;
   final bool closeOnError;
+  final bool screenLight;
+  final ValueChanged<bool>? onScreenLight;
+  final ValueChanged<bool>? lightScreen;
 
   /// What the route pops with for an outcome.
   final Object? Function(CodeScanOutcome outcome) result;
@@ -97,6 +111,8 @@ class _CodeScannerState extends State<CodeScanner> {
   bool _done = false;
   bool _switching = false;
   bool _initialCamera = true;
+  late bool _light = widget.screenLight;
+  bool _lit = false;
   Timer? _timeout;
   Timer? _failure;
 
@@ -123,6 +139,15 @@ class _CodeScannerState extends State<CodeScanner> {
       );
     }
     widget.cancel?.then((reason) => _finish(CodeScanOutcome.failed(reason)));
+    _syncBrightness();
+  }
+
+  /// Full brightness only while the light shows and the scanner is open.
+  void _syncBrightness() {
+    final lit = _light && !_done;
+    if (lit == _lit) return;
+    _lit = lit;
+    widget.lightScreen?.call(lit);
   }
 
   void _onCameraChanged() {
@@ -166,12 +191,22 @@ class _CodeScannerState extends State<CodeScanner> {
     }
   }
 
+  /// Only the layout changes: the camera keeps running and the timeout
+  /// keeps counting.
+  void _toggleLight() {
+    setState(() => _light = !_light);
+    widget.onScreenLight?.call(_light);
+    _syncBrightness();
+  }
+
   @override
   void dispose() {
     _timeout?.cancel();
     _failure?.cancel();
     _controller.removeListener(_onCameraChanged);
     _controller.dispose();
+    _done = true;
+    _syncBrightness();
     super.dispose();
   }
 
@@ -193,6 +228,7 @@ class _CodeScannerState extends State<CodeScanner> {
   Future<void> _finish(CodeScanOutcome outcome) async {
     if (_done) return;
     _done = true;
+    _syncBrightness();
     _timeout?.cancel();
     _failure?.cancel();
     try {
@@ -203,47 +239,78 @@ class _CodeScannerState extends State<CodeScanner> {
     if (mounted) Navigator.of(context).pop(widget.result(outcome));
   }
 
+  /// The preview under the screen light: the viewfinder's shape, small
+  /// enough to leave most of the screen white.
+  Size _previewSize(Size screen) {
+    final scale = math.min(1.0, screen.shortestSide * 0.45 / 240);
+    return _square ? Size.square(240 * scale) : Size(320 * scale, 200 * scale);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // The screen, not a LayoutBuilder: the scanner starts its camera as it
+    // mounts, which must not happen during layout.
+    final full = MediaQuery.sizeOf(context);
+    final small = _previewSize(full);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _finish(const CodeScanOutcome.failed('canceled'));
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: _light ? Colors.white : Colors.black,
         body: Stack(
           fit: StackFit.expand,
           children: [
-            MobileScanner(
-              controller: _controller,
-              onDetect: _onDetect,
-              errorBuilder: (context, error) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(
-                    l10n(context).setupQrCameraFailed,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
+            // The preview keeps its place in the tree in both layouts and
+            // only changes size, because a remounted MobileScanner restarts
+            // the camera.
+            Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                width: _light ? small.width : full.width,
+                height: _light ? small.height : full.height,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(
+                    _light ? Ks.radiusCard : 0,
+                  ),
+                ),
+                child: MobileScanner(
+                  controller: _controller,
+                  onDetect: _onDetect,
+                  errorBuilder: (context, error) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Text(
+                        l10n(context).setupQrCameraFailed,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
             // Viewfinder: a rounded frame in the middle, the copy above and
-            // below it, everything readable over any camera image.
-            Center(
-              child: Container(
-                width: _square ? 260 : 320,
-                height: _square ? 260 : 200,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white70, width: 3),
-                  borderRadius: BorderRadius.circular(Ks.radiusCard),
+            // below it, everything readable over any camera image. Under
+            // the screen light the preview's own edge is the frame.
+            if (!_light)
+              Center(
+                child: Container(
+                  width: _square ? 260 : 320,
+                  height: _square ? 260 : 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white70, width: 3),
+                    borderRadius: BorderRadius.circular(Ks.radiusCard),
+                  ),
                 ),
               ),
-            ),
             SafeArea(
               child: Column(
                 children: [
@@ -255,7 +322,7 @@ class _CodeScannerState extends State<CodeScanner> {
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontFamily: Ks.displayFont,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: _light ? Colors.black87 : Colors.white,
                       ),
                     ),
                   ),
@@ -266,7 +333,7 @@ class _CodeScannerState extends State<CodeScanner> {
                       widget.help,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
+                        color: _light ? Colors.black54 : Colors.white70,
                       ),
                     ),
                   ),
@@ -277,7 +344,7 @@ class _CodeScannerState extends State<CodeScanner> {
                         widget.source!,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white54,
+                          color: _light ? Colors.black45 : Colors.white54,
                         ),
                       ),
                     ),
@@ -328,6 +395,15 @@ class _CodeScannerState extends State<CodeScanner> {
                                 ? _controller.toggleTorch
                                 : null,
                           ),
+                        ),
+                        _RoundAction(
+                          icon: _light
+                              ? Icons.light_mode
+                              : Icons.light_mode_outlined,
+                          tooltip: _light
+                              ? l10n(context).setupQrScreenLightOff
+                              : l10n(context).setupQrScreenLightOn,
+                          onTap: _toggleLight,
                         ),
                       ],
                     ),

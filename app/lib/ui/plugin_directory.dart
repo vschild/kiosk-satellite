@@ -345,6 +345,7 @@ class _PluginDirectoryPanelState extends State<PluginDirectoryPanel> {
                       status: PluginDirectory.installStatus(
                         entry,
                         byId[entry['id']],
+                        appVersion: widget.plugins.appVersion(),
                       ),
                       busy: _busyId == entry['id'],
                       enabled: _busyId == null,
@@ -485,6 +486,7 @@ class _DirectoryRow extends StatelessWidget {
     );
     final installed = status['installed'] == true;
     final update = status['updateAvailable'] == true;
+    final needs = status['needsAppVersion'] as String?;
     final icon = entry['icon'] as String?;
     Widget stat(IconData icon, String label, int value) => Tooltip(
       message: label,
@@ -518,6 +520,8 @@ class _DirectoryRow extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
           )
+        : needs != null
+        ? const SizedBox.shrink()
         : IconButton(
             tooltip: pluginText(context, 'Install'),
             onPressed: enabled ? () => onInstall(false) : null,
@@ -561,6 +565,16 @@ class _DirectoryRow extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium,
+            ),
+          ),
+        if (needs != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              l10n(context).pluginNeedsAppVersion(needs),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
           ),
       ],
