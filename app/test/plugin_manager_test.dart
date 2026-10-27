@@ -3547,4 +3547,55 @@ void main() {
     expect(plugins.triggers.single['available'], isFalse);
     await sub.cancel();
   });
+
+  test('setting actions run only for the live session', () async {
+    final ran = <Map<String, Object?>>[];
+    plugins.runAction = (action) async {
+      ran.add(action);
+      return action['type'] == 'refresh'
+          ? const CommandResult.ok()
+          : const CommandResult.fail('Lockdown Mode is on');
+    };
+    Future<Object?> run(String session, Object? action) async {
+      final reply = Completer<Object?>();
+      await messenger.handlePlatformMessage(
+        'kiosk_satellite/plugins',
+        codec.encodeMethodCall(
+          MethodCall('runAction', {
+            'id': 'hello-world',
+            'session': session,
+            'action': action,
+          }),
+        ),
+        (data) => reply.complete(codec.decodeEnvelope(data!)),
+      );
+      return reply.future;
+    }
+
+    await native('hostSession', {
+      'id': 'hello-world',
+      'session': 'live',
+      'capabilities': [],
+    });
+    expect(await run('stale', {'type': 'refresh'}), {
+      'ok': false,
+      'error': 'Plugin session has ended',
+    });
+    expect(ran, isEmpty);
+    expect(await run('live', {'type': 'refresh'}), {'ok': true});
+    expect(await run('live', {'type': 'app_launcher'}), {
+      'ok': false,
+      'error': 'Lockdown Mode is on',
+    });
+    expect(ran, [
+      {'type': 'refresh'},
+      {'type': 'app_launcher'},
+    ]);
+    expect(plugins.actionNames('hello-world', 'show'), (
+      plugin: 'Hello World',
+      title: 'Show window',
+    ));
+    expect(plugins.actionNames('hello-world', 'gone'), isNull);
+    expect(plugins.actionNames('other', 'show'), isNull);
+  });
 }

@@ -6854,7 +6854,7 @@ const voiceWakeWordEngine = SettingDef<String>(
   description: 'Which engine listens. All models ship with the app.',
   category: 'Voice Satellite',
   subpage: 'Wake Word',
-  // pryon is Amazon's engine, only on the Echo Dot image (PryonCatalog
+  // pryon is Amazon's engine, only on the Echo images (PryonCatalog
   // hides it everywhere else).
   options: ['vswakeword', 'microwakeword', 'openwakeword', 'pryon'],
   optionLabels: {
@@ -6867,7 +6867,7 @@ const voiceWakeWordEngine = SettingDef<String>(
 );
 
 /// The locale of Amazon's wake word models, under the Amazon engine. Empty
-/// follows the app's language. The options are the locales the Echo Dot
+/// follows the app's language. The options are the locales the Echo
 /// image's service lists (PryonCatalog), so SettingsManager fills them in.
 const voiceAmazonLocale = SettingDef<String>(
   key: 'voice.amazon_locale',
@@ -9380,8 +9380,8 @@ const sendspinMaToken = SettingDef<String>(
 );
 
 /// The Music Assistant follower's side of [sendspinSonosInputs]: Music
-/// Assistant names a Sonos input as the player's active source, `tv` or
-/// `line_in`, with the input's name for a title. Off, the followed room
+/// Assistant names a Sonos or WiiM input as the player's active source,
+/// such as `tv`, `hdmi` or `line_in`, with the input's name for a title. Off, the followed room
 /// reads as idle while one plays, as it does on the Sonos source.
 const sendspinMaInputs = SettingDef<bool>(
   key: 'sendspin.ma_inputs',

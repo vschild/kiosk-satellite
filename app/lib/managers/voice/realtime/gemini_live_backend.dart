@@ -42,10 +42,6 @@ class GeminiLiveBackend implements RealtimeBackend {
   /// it, never the user starting to talk over the answer still playing.
   static const lateTranscript = Duration(seconds: 1);
 
-  /// The model ended the conversation and Gemini goes on with its turn
-  /// after the tool's output. Past this, the turn counts as done.
-  static const endGrace = Duration(seconds: 5);
-
   final _events = StreamController<RealtimeEvent>();
   RealtimeSocket? _socket;
   StreamSubscription<Object?>? _sub;
@@ -53,7 +49,6 @@ class GeminiLiveBackend implements RealtimeBackend {
   bool _ready = false;
   Timer? _readyTimer;
   Timer? _quietTimer;
-  Timer? _endTimer;
 
   /// An answer is open: Gemini has started its turn and not completed it.
   bool _responding = false;
@@ -471,7 +466,6 @@ class GeminiLiveBackend implements RealtimeBackend {
   }
 
   void _closeAnswer() {
-    _endTimer?.cancel();
     _responding = false;
     _answerEnded = DateTime.now();
     _answer.clear();
@@ -514,21 +508,12 @@ class GeminiLiveBackend implements RealtimeBackend {
         },
       });
     }
-    if (output.endConversation) {
-      _emit(const RealtimeEndRequested());
-      _endTimer?.cancel();
-      _endTimer = Timer(endGrace, () {
-        if (!_responding) return;
-        _completeExchange();
-        _emit(const RealtimeResponseDone());
-      });
-    }
+    if (output.endConversation) _emit(const RealtimeEndRequested());
   }
 
   void _finish({String? error}) {
     _readyTimer?.cancel();
     _quietTimer?.cancel();
-    _endTimer?.cancel();
     if (_events.isClosed) return;
     if (error != null) log?.call('closed: $error');
     _emit(RealtimeClosed(error: error));
@@ -541,7 +526,6 @@ class GeminiLiveBackend implements RealtimeBackend {
     _closing = true;
     _readyTimer?.cancel();
     _quietTimer?.cancel();
-    _endTimer?.cancel();
     await _sub?.cancel();
     await _socket?.close();
     toolbox.close();

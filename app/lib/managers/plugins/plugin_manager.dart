@@ -299,6 +299,12 @@ class PluginManager extends Manager implements FleetPluginHost {
   /// The voice turn plugins follow. Set by the app container before [init].
   PluginVoiceFeed? voice;
 
+  /// Runs an action the user chose in a plugin's action setting. The plugin
+  /// names the setting and the host reads the action from the saved
+  /// settings, so a plugin only decides when it runs. Set by the app
+  /// container.
+  Future<CommandResult> Function(Map<String, Object?> action)? runAction;
+
   /// The screensaver mode plugins with the screensaver.mode capability
   /// read and hold. Set by the app container before [init].
   PluginScreensaverModes? screensaverModes;
@@ -341,6 +347,23 @@ class PluginManager extends Manager implements FleetPluginHost {
           'available': enabled.value && plugin['running'] == true,
         },
   ];
+
+  /// The current names of an installed plugin's command, for a saved
+  /// plugin action that keeps only the IDs.
+  ({String plugin, String title})? actionNames(
+    String pluginId,
+    String command,
+  ) {
+    final plugin = installed.value
+        .where((p) => p['id'] == pluginId)
+        .firstOrNull;
+    final entry = (plugin?['commands'] as List? ?? const [])
+        .whereType<Map>()
+        .where((c) => c['id'] == command)
+        .firstOrNull;
+    if (plugin == null || entry == null) return null;
+    return (plugin: '${plugin['name']}', title: '${entry['title']}');
+  }
 
   List<Map<String, Object?>> get drawerActions => actions
       .where(
@@ -504,6 +527,21 @@ class PluginManager extends Manager implements FleetPluginHost {
               ),
             );
           }
+        case 'runAction':
+          final data = call.arguments as Map;
+          if (_runtimeSessions[data['id']] != data['session'] ||
+              data['session'] == null ||
+              data['action'] is! Map) {
+            return const {'ok': false, 'error': 'Plugin session has ended'};
+          }
+          final run = runAction;
+          if (run == null) {
+            return const {'ok': false, 'error': 'Actions are unavailable'};
+          }
+          final action =
+              jsonDecode(jsonEncode(data['action'])) as Map<String, Object?>;
+          final result = await run(action);
+          return {'ok': result.ok, if (!result.ok) 'error': result.error};
         case 'screensavers':
           final data = call.arguments as Map;
           if (_runtimeSessions[data['id']] == data['session'] &&

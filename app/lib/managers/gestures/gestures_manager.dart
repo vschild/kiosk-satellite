@@ -338,6 +338,20 @@ class GesturesManager extends Manager {
     await runGestureAction(mapping.action);
   }
 
+  /// Run the action a user chose in a plugin's action setting, when the
+  /// plugin asks for it (issue #1165). Lockdown Mode refuses it. Disable
+  /// Gestures does not, since the plugin runs it from a control of its own,
+  /// such as a navigation bar button, not from a gesture.
+  Future<CommandResult> runPluginSettingAction(
+    Map<String, Object?> action,
+  ) async {
+    if (_settings.get(defs.lockdownEnabled)) {
+      return const CommandResult.fail('Lockdown Mode is on');
+    }
+    log.info(name, 'plugin setting: ${describeGestureAction(action)}');
+    return runGestureAction(action);
+  }
+
   /// Run one action object. Public so the editors' "Try it" affordances
   /// (device and remote) can exercise an action without a gesture.
   Future<CommandResult> runGestureAction(Map<String, Object?> action) async {

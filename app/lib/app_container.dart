@@ -22,6 +22,7 @@ import 'managers/airplay/airplay_manager.dart';
 import 'managers/dlna/dlna_manager.dart';
 import 'managers/dlna/headless_dlna_player.dart';
 import 'managers/files/files_manager.dart';
+import 'managers/gestures/gesture_mappings.dart' show pluginActionNames;
 import 'managers/gestures/gestures_manager.dart';
 import 'managers/gestures/hardware_buttons.dart';
 import 'managers/glance/glance_manager.dart';
@@ -212,7 +213,9 @@ class AppContainer {
         commands: commands,
         settings: settings,
         log: log,
-      );
+      )
+      ..runAction = gestures.runPluginSettingAction;
+    pluginActionNames = plugins.actionNames;
     // A snapshot binding the camera mid-scan would take it from the scanner.
     deviceCamera.scannerActive = () => motion.scannerHeld;
     settings.pluginScreensavers = () => plugins.screensaverOptions;

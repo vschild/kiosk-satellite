@@ -60,7 +60,7 @@ Future<void> main() async {
   // before init: every connection from here on should trust them.
   await trustUserAuthorities();
   // Before init: the settings it serves hide Amazon's wake word engine
-  // unless the Echo Dot image's service answered.
+  // unless an Echo image's service answered.
   await PryonCatalog.init(container.log);
   await container.init();
   // Framework and uncaught Dart errors into the app log, where reports

@@ -84,14 +84,18 @@ object CrashJournal {
     /** A deliberate abnormal end (the frame watchdog's process restart):
      *  no exception fires, so without this entry the death is invisible
      *  after the restart — the very gap the journal exists to close. */
-    fun note(context: Context, reason: String) {
+    fun note(
+        context: Context,
+        reason: String,
+        thread: Thread = Thread.currentThread(),
+        stack: Array<StackTraceElement>? = null,
+    ) {
         try {
-            val thread = Thread.currentThread()
-            record(
-                context.applicationContext,
-                thread,
-                RuntimeException("process restarted deliberately: $reason"),
-            )
+            val throwable = RuntimeException("process restarted deliberately: $reason")
+            // Another thread's frames when that thread is the one stuck
+            // (MainThreadWatchdog).
+            if (stack != null) throwable.stackTrace = stack
+            record(context.applicationContext, thread, throwable)
         } catch (_: Throwable) {
         }
     }

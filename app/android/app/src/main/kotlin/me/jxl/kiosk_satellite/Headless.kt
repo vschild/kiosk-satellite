@@ -103,12 +103,6 @@ object Headless {
      */
     val volumeClaim: Boolean by lazy { property("ro.biscuit.volume_claim") == "1" }
 
-    /**
-     * The same ROM runs Amazon's wake word engine as a service
-     * (`ro.biscuit.pryon`), on the biscuit-pryon socket (PryonCatalog).
-     */
-    val pryon: Boolean by lazy { property("ro.biscuit.pryon") == "1" }
-
     /** A system property, empty when it is not set. */
     fun property(name: String): String = runCatching {
         Class.forName("android.os.SystemProperties")

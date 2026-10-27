@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiosk_satellite/core/headless.dart';
 import 'package:kiosk_satellite/core/logging.dart';
 import 'package:kiosk_satellite/core/permissions.dart';
 import 'package:kiosk_satellite/managers/settings/definitions.dart' as defs;
@@ -12,7 +14,7 @@ import 'package:kiosk_satellite/managers/wake_word/engine.dart';
 import 'package:kiosk_satellite/managers/wake_word/pryon/pryon_catalog.dart';
 import 'package:kiosk_satellite/managers/wake_word/pryon/pryon_engine.dart';
 
-/// What biscuit-pryond says first on the Echo Dot image, shortened to three
+/// What biscuit-pryond says first on the Echo images, shortened to three
 /// of its models: en-US first, as the service orders them.
 const _hello =
     '{"event":"hello","version":1,"models":['
@@ -26,7 +28,7 @@ const _hello =
     '"wake_words":["ECHO"],"stop_words":["STOP"],'
     '"accept_thresholds":{"ECHO":0.751,"STOP":0.18}}]}';
 
-/// Amazon's wake word engine on the Echo Dot image: the catalog the
+/// Amazon's wake word engine on the Echo images: the catalog the
 /// service's hello fills, the config the settings resolve to, and the engine
 /// against a stand-in for the service.
 void main() {
@@ -84,8 +86,52 @@ void main() {
       expect(PryonCatalog.resolveLocale('fr-FR', 'zh-CN'), 'en-US');
     });
 
+    // The Echo Dot image says so with ro.biscuit.pryon, the Echo Show images
+    // with ro.echo.pryon (PryonService.kt), and the Shows have a screen.
+    for (final headless in [false, true]) {
+      test(
+        'offers the engine where the image runs the service, '
+        '${headless ? 'without' : 'with'} a screen',
+        () async {
+          final messenger = TestWidgetsFlutterBinding.ensureInitialized()
+              .defaultBinaryMessenger;
+          const channel = MethodChannel('kiosk_satellite/background');
+          messenger.setMockMethodCallHandler(
+            channel,
+            (call) async => call.method == 'pryon' ? true : null,
+          );
+          final dir = await Directory.systemTemp.createTemp('pryon');
+          PryonCatalog.socketPath = '${dir.path}/sock';
+          final service = await _FakeService.start(PryonCatalog.socketPath);
+          Headless.debugActive = headless;
+          addTearDown(() async {
+            messenger.setMockMethodCallHandler(channel, null);
+            Headless.debugActive = false;
+            PryonCatalog.socketPath = '/dev/socket/biscuit-pryon';
+            await service.close();
+            await dir.delete(recursive: true);
+            defs.deviceHiddenOptions.remove(defs.voiceWakeWordEngine.key);
+            defs.deviceHiddenKeys.remove(defs.voiceAmazonLocale.key);
+          });
+
+          await PryonCatalog.init(Logger());
+          expect(PryonCatalog.available, isTrue);
+          expect(PryonCatalog.locales, ['en-US', 'en-CA', 'de-DE']);
+          expect(
+            defs.deviceHiddenOptions[defs.voiceWakeWordEngine.key],
+            isNull,
+          );
+          expect(
+            defs.deviceHiddenKeys,
+            isNot(contains(defs.voiceAmazonLocale.key)),
+          );
+        },
+      );
+    }
+
     test('hides the engine and its language without the image', () async {
-      // A tablet, or an Echo Dot on another ROM: no ro.biscuit.pryon.
+      // A tablet, or an Echo on another ROM: neither ro.biscuit.pryon nor
+      // ro.echo.pryon.
       await PryonCatalog.init(Logger());
       addTearDown(() {
         defs.deviceHiddenOptions.remove(defs.voiceWakeWordEngine.key);

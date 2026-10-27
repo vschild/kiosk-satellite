@@ -5,7 +5,7 @@ import '../isolate_engine.dart';
 import 'pryon_catalog.dart';
 import 'pryon_isolate.dart';
 
-/// Amazon's wake word engine, on the Echo Dot image only.
+/// Amazon's wake word engine, on the Echo images only.
 ///
 /// The image runs the engine and its models as a service (PryonCatalog).
 /// [pryonIsolateEntry] streams the mic to it and turns what it spots into

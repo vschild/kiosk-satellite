@@ -1,9 +1,9 @@
-/// Amazon's wake word engine on the Echo Dot image.
+/// Amazon's wake word engine on the Echo images.
 ///
-/// The Kiosk Satellite Edition image for the Echo Dot runs Amazon's own
-/// engine (Pryon), with the models the Dot shipped with, as a service:
-/// biscuit-pryond, on a local socket. When an app connects, the service
-/// first lists every model it has and the keywords each one spots. This
+/// The Kiosk Satellite Edition images for the Echo Dot and the Echo Shows
+/// run Amazon's own engine (Pryon), with the models the Dot shipped with, as
+/// a service: biscuit-pryond, on a local socket. When an app connects, the
+/// service first lists every model it has and the keywords each one spots. This
 /// reads that list once at boot, so the wake word selects offer exactly what
 /// the service has, and leaves the engine out on every other device.
 ///
@@ -15,7 +15,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../../../core/headless.dart';
+import 'package:flutter/services.dart';
+
 import '../../../core/logging.dart';
 import '../../settings/definitions.dart' as defs;
 import 'pryon_isolate.dart';
@@ -68,6 +69,8 @@ class PryonWord {
 }
 
 abstract final class PryonCatalog {
+  static const _channel = MethodChannel('kiosk_satellite/background');
+
   /// The service's socket. Tests point it at a fake one.
   static String socketPath = pryonSocketPath;
 
@@ -160,11 +163,22 @@ abstract final class PryonCatalog {
   /// A locale by its own name, as the app's language picker names languages.
   static String localeLabel(String locale) => _localeNames[locale] ?? locale;
 
+  /// Whether the image says it runs the service (PryonService.kt), with a
+  /// screen or without one.
+  static Future<bool> _imageHasService() async {
+    try {
+      return await _channel.invokeMethod<bool>('pryon') ?? false;
+    } catch (_) {
+      // No native side (a test): no image.
+      return false;
+    }
+  }
+
   /// Read the service's list on the image, then hide the engine wherever
   /// there is nothing to listen with. Before the settings render: both
   /// settings UIs and the ESPHome select read the hidden options.
   static Future<void> init(Logger log) async {
-    if (Headless.pryon) {
+    if (await _imageHasService()) {
       try {
         _words = parseHello(await _hello());
         log.info(

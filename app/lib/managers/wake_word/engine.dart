@@ -48,7 +48,7 @@ enum EngineFailure {
 /// say something truer than "it isn't working". [detail] is for the log.
 typedef EngineFailureCallback = void Function(EngineFailure kind, String detail);
 
-/// [pryon] is Amazon's own engine, which only the Echo Dot image ships
+/// [pryon] is Amazon's own engine, which only the Echo images ship
 /// (PryonCatalog).
 enum WakeWordEngineType { microWakeWord, openWakeWord, vsWakeWord, pryon }
 

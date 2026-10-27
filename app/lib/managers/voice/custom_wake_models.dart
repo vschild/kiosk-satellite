@@ -79,7 +79,7 @@ class CustomWakeModels {
   static const _extensions = {'.json', '.tflite', '.onnx'};
 
   /// The engines that take custom models: Amazon's listens only with the
-  /// models the Echo Dot image has.
+  /// models the Echo image has.
   static final _engines = [
     for (final e in WakeWordEngineType.values)
       if (e != WakeWordEngineType.pryon) e,

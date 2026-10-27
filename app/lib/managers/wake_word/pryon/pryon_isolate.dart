@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 import '../wake_msg.dart';
 
-/// The Echo Dot image's wake word service (biscuit-pryond).
+/// The Echo images' wake word service (biscuit-pryond).
 ///
 /// A leaf like wake_msg.dart: the compute isolate depends on it.
 const pryonSocketPath = '/dev/socket/biscuit-pryon';

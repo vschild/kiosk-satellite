@@ -139,8 +139,30 @@ export function describeGestureTrigger(trigger) {
   return gestureText('Gesture');
 }
 
+// The installed plugins' names and command titles by "pluginId/command". A
+// plugin action saves only its IDs, since a plugin can rename itself or its
+// commands in any update, so every row looks the names up when it draws.
+let pluginActionNames = new Map();
+let pluginActionsLoad = null;
+
+export function loadPluginActionNames({ refresh = false } = {}) {
+  if (!pluginActionsLoad || refresh) {
+    pluginActionsLoad = cmd('getPluginActions').then((result) => {
+      if (!result.ok || !Array.isArray(result.data)) return pluginActionNames;
+      pluginActionNames = new Map(result.data.map((action) =>
+        [`${action.pluginId}/${action.command}`, { plugin: action.pluginName, title: action.title }]));
+      return pluginActionNames;
+    }).catch(() => pluginActionNames);
+  }
+  return pluginActionsLoad;
+}
+
 export function describeGestureAction(a) {
-  if (a.type === 'plugin_action') return `${a.pluginName || a.pluginId}: ${a.title || a.command}`;
+  if (a.type === 'plugin_action') {
+    // Actions saved before the names were looked up carry their own.
+    const names = pluginActionNames.get(`${a.pluginId}/${a.command}`);
+    return `${names?.plugin || a.pluginName || a.pluginId}: ${names?.title || a.title || a.command}`;
+  }
   switch (a.type) {
     case 'navigate': return t('gestureGoTo', {value: a.path});
     case 'url': return t('gestureOpen', {value: a.url});
@@ -516,7 +538,7 @@ export async function pickGestureAction(current) {
       if (!actions.length) { await messageBox({ title: gestureText('Plugin actions'), message: gestureText('Enable a plugin with actions in Plugin Manager first.') }); return null; }
       return gestureListModal(gestureText('Plugin action'), actions.map((action) => ({
         name: action.title, desc: action.pluginName,
-        value: { type, pluginId: action.pluginId, command: action.command, pluginName: action.pluginName, title: action.title },
+        value: { type, pluginId: action.pluginId, command: action.command },
         selected: carried?.pluginId === action.pluginId && carried?.command === action.command,
       })));
     }
@@ -784,6 +806,7 @@ export async function editGesture(existing) {
 }
 
 export async function loadGestures() {
+  await loadPluginActionNames({ refresh: true });
   const root = document.getElementById('tab-gestures');
   // Boot and live updates own the settings cache and language. A page visit
   // must not replace them with a separate settings response.

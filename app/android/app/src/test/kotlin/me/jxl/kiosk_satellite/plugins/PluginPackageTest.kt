@@ -139,6 +139,79 @@ class PluginPackageTest {
         rejects { PluginManifest(listManifest().also { it.getJSONArray("settings").getJSONObject(1).put("visibleWhen", JSONObject().put("key", "items").put("notEmpty", true)) }) }
     }
 
+    private fun actionManifest() = manifest().put("settings", org.json.JSONArray("""[
+      {"key":"tap","type":"action","title":"Tap","default":{}},
+      {"key":"items","type":"list","title":"Items","default":[],
+       "row":{"title":"label","subtitle":"action"},
+       "fields":[
+         {"key":"label","type":"string","title":"Label"},
+         {"key":"action","type":"action","title":"Action","required":true}
+       ]}
+    ]"""))
+
+    @Test fun actionSettingsStoreWhatThePickerChose() {
+        val value = PluginManifest(actionManifest())
+        assertEquals(emptyMap<String, Any>(), value.config(JSONObject())["tap"])
+        val script = JSONObject("""{"type":"ha_script","entityId":"script.doorbell"}""")
+        val tap = value.config(JSONObject().put("tap", script))["tap"] as Map<*, *>
+        assertEquals("script.doorbell", tap["entityId"])
+        assertThrows(UnsupportedOperationException::class.java) { (tap as MutableMap<Any?, Any?>)["entityId"] = "script.other" }
+        // A service call carries its data. Actions arriving from Dart are plain maps.
+        val service = mapOf("type" to "ha_service", "domain" to "light", "service" to "turn_on", "data" to mapOf("brightness_pct" to 60))
+        assertEquals(service, value.config(JSONObject(mapOf("tap" to service)))["tap"])
+        for (bad in listOf("ha_script", JSONObject().put("entityId", "script.x"), JSONObject().put("type", "Bad type"),
+            JSONObject().put("type", "url").put("bad key", "x"), JSONObject().put("type", "url").put("url", "x".repeat(5000)))) {
+            rejects { value.config(JSONObject().put("tap", bad)) }
+        }
+        // A shown row needs its required action.
+        rejects { value.config(JSONObject().put("items", org.json.JSONArray("""[{"label":"Door"}]"""))) }
+        value.config(JSONObject().put("items", org.json.JSONArray().put(JSONObject().put("label", "Door").put("action", script))))
+    }
+
+    @Test fun aManifestCannotPresetAnAction() {
+        fun with(change: (JSONObject) -> Unit) = actionManifest().also { change(it.getJSONArray("settings").getJSONObject(0)) }
+        rejects { PluginManifest(with { it.put("default", JSONObject().put("type", "refresh")) }) }
+        rejects { PluginManifest(with { it.put("default", "") }) }
+        rejects { PluginManifest(actionManifest().also { it.getJSONArray("settings").getJSONObject(1).getJSONArray("fields").getJSONObject(1).put("default", JSONObject().put("type", "refresh")) }) }
+        rejects { PluginManifest(actionManifest().also { it.getJSONArray("settings").getJSONObject(1).put("row", JSONObject().put("title", "action")) }) }
+        // Nothing can show or hide on an action.
+        rejects { PluginManifest(actionManifest().also { it.getJSONArray("settings").put(JSONObject("""{"key":"x","type":"string","title":"X","default":"","visibleWhen":{"key":"tap","notEmpty":true}}""")) }) }
+    }
+
+    @Test fun actionPathsNameATopLevelSettingOrAListRowField() {
+        val value = PluginManifest(actionManifest())
+        assertEquals(setOf("tap", "items"), value.actionKeys)
+        assertTrue(value.isActionPath("tap"))
+        assertTrue(value.isActionPath("items.0.action"))
+        assertTrue(value.isActionPath("items.31.action"))
+        for (path in listOf("", "label", "items", "items.action", "items.x.action", "items.01.action", "items.-1.action", "items.0.label", "tap.0", "items.0.action.x")) {
+            assertFalse(path, value.isActionPath(path))
+        }
+        val saved = JSONObject(value.config(JSONObject()
+            .put("tap", JSONObject().put("type", "refresh"))
+            .put("items", org.json.JSONArray().put(JSONObject().put("label", "Door").put("action", JSONObject().put("type", "now_playing"))))))
+        assertEquals("refresh", value.action(saved, "tap")?.getString("type"))
+        assertEquals("now_playing", value.action(saved, "items.0.action")?.getString("type"))
+        assertNull(value.action(saved, "items.1.action"))
+        assertEquals(0, value.action(JSONObject(value.config(JSONObject())), "tap")?.length())
+    }
+
+    @Test fun pluginWritesKeepTheUsersActions() {
+        val value = PluginManifest(actionManifest().also {
+            it.getJSONArray("settings").put(JSONObject("""{"key":"message","type":"string","title":"Message","default":""}"""))
+        })
+        assertEquals(setOf("tap", "items"), value.actionKeys)
+        val saved = JSONObject(value.config(JSONObject().put("tap", JSONObject().put("type", "refresh"))))
+        val written = JSONObject().put("message", "Hi").put("tap", JSONObject("""{"type":"ha_service","domain":"lock","service":"unlock"}"""))
+            .put("items", org.json.JSONArray().put(JSONObject().put("action", JSONObject().put("type", "voice_wake"))))
+        val config = value.config(value.keepActions(written, saved))
+        assertEquals("Hi", config["message"])
+        assertEquals(mapOf("type" to "refresh"), config["tap"])
+        assertEquals(emptyList<Any>(), config["items"])
+        // A setting the user never saved falls back to its empty default.
+        assertEquals(emptyMap<String, Any>(), value.config(value.keepActions(written, JSONObject()))["tap"])
+    }
+
     @Test fun pickerSettingTypesStoreTheirOwnFormats() {
         val value = PluginManifest(manifest().put("settings", org.json.JSONArray("""[
           {"key":"icon","type":"icon","title":"Icon","default":"mdi:home-outline"},
