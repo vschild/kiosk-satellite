@@ -84,6 +84,9 @@ class KioskApplication : Application(), CameraXConfig.Provider {
         // after the restart (see CrashJournal - logcat rotates faster than
         // reporters can copy it).
         CrashJournal.install(this)
+        // A deadlocked main thread takes every other recovery down with it
+        // (issue #1166), so this one watches from its own thread.
+        MainThreadWatchdog.start(this)
 
         // Before any bridge: they all read volume state through it.
         VolumeController.init(applicationContext)

@@ -197,6 +197,43 @@ void main() {
         'Open Music Library',
       );
     });
+
+    test('a plugin action reads the names the plugin has now', () {
+      addTearDown(() => pluginActionNames = null);
+      const saved = {
+        'type': 'plugin_action',
+        'pluginId': 'hello-world',
+        'command': 'show',
+      };
+      expect(describeGestureAction(saved), 'hello-world: show');
+      // An action picked before only the IDs were saved keeps its names
+      // while nothing newer is known.
+      expect(
+        describeGestureAction({
+          ...saved,
+          'pluginName': 'Old Name',
+          'title': 'Old title',
+        }),
+        'Old Name: Old title',
+      );
+      pluginActionNames = (pluginId, command) =>
+          pluginId == 'hello-world' && command == 'show'
+          ? (plugin: 'Hello World', title: 'Show window')
+          : null;
+      expect(describeGestureAction(saved), 'Hello World: Show window');
+      expect(
+        describeGestureAction({
+          ...saved,
+          'pluginName': 'Old Name',
+          'title': 'Old title',
+        }),
+        'Hello World: Show window',
+      );
+      expect(
+        describeGestureAction({...saved, 'command': 'gone'}),
+        'hello-world: gone',
+      );
+    });
   });
 
   group('GesturesManager', () {
@@ -895,6 +932,26 @@ void main() {
         await trigger('other-plugin', 'hardwareKey');
         expect(executed, hasLength(1));
       });
+    });
+
+    group('plugin setting actions (issue #1165)', () {
+      test(
+        'Lockdown Mode refuses them and Disable Gestures does not',
+        () async {
+          await build('[]');
+          const action = {'type': 'app_launcher'};
+          await settings.set(defs.lockdownEnabled, true);
+          final refused = await gestures.runPluginSettingAction(action);
+          expect(refused.ok, isFalse);
+          expect(refused.error, 'Lockdown Mode is on');
+          expect(executed, isEmpty);
+          await settings.set(defs.lockdownEnabled, false);
+          await settings.set(defs.kioskEnabled, true);
+          await settings.set(defs.kioskDisableGestures, true);
+          expect((await gestures.runPluginSettingAction(action)).ok, isTrue);
+          expect(executed.map((e) => e.$1), ['showAppLauncher']);
+        },
+      );
     });
 
     test('hold_mode toggles the setting each time (issue #266)', () async {

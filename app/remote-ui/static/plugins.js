@@ -8,7 +8,7 @@ import { updatePluginCharts } from './plugin-charts.js';
 import { updatePluginReadings } from './plugin-readings.js';
 import { currentPath, showTab, subpageEntry } from './tabs.js';
 import { dashboardField } from './dashboard_picker.js';
-import { cameraViewSpec, fieldVisible, iconField, listSetting, numberControl } from './plugin_lists.js';
+import { actionField, cameraViewSpec, fieldVisible, iconField, listSetting, numberControl } from './plugin_lists.js';
 import { choiceControl, refreshPluginSetup, setupButtonRow } from './plugin_setup.js';
 import { hintRow, introRow, messageBox, modalShell, showToast, swatch } from './widgets.js';
 import { SUBPAGE_ICONS, subpageIcon } from './icons.js';
@@ -635,6 +635,10 @@ function settingRow(plugin, setting, value, save) {
         field.setValue(current);
       },
     });
+    settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
+    settingRow.classList.add('dp-field-row');
+  } else if (setting.type === 'action') {
+    const field = actionField({ value: value ?? setting.default ?? {}, onPick: (action) => save(setting.key, action, field.el) });
     settingRow.replaceChildren(info(setting.title, setting.description || ''), field.el);
     settingRow.classList.add('dp-field-row');
   } else if (setting.type === 'icon' || setting.type === 'dashboard' || setting.type === 'cameraView') {

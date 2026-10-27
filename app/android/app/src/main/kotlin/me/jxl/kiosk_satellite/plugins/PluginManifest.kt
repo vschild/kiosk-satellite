@@ -139,6 +139,59 @@ class PluginManifest(val json: JSONObject) {
         }
     }
 
+    /**
+     * Top-level settings that are, or hold, an action. Only the user picks an action: a plugin's own writes keep
+     * these as they are saved, so a plugin decides when an action runs and never what it does.
+     */
+    val actionKeys: Set<String> = topLevel.filterValues(::holdsAction).keys
+
+    private fun holdsAction(field: JSONObject): Boolean = when (field.getString("type")) {
+        "action" -> true
+        "list" -> field.getJSONArray("fields").let { fields -> (0 until fields.length()).any { holdsAction(fields.getJSONObject(it)) } }
+        else -> false
+    }
+
+    /** [values] with each of [actionKeys] put back to its value in [saved]. */
+    fun keepActions(values: JSONObject, saved: JSONObject): JSONObject = JSONObject(values.toString()).also { kept ->
+        for (key in actionKeys) if (saved.has(key)) kept.put(key, saved.get(key)) else kept.remove(key)
+    }
+
+    /**
+     * Whether [path] names an action setting: its key, or for a list row field the list key, a row index and the
+     * field key, such as `items.2.action`.
+     */
+    fun isActionPath(path: String) = actionField(path, null) != null
+
+    /** The action saved at [path] in [config], `{}` when none is chosen, or null when the row is missing. */
+    fun action(config: JSONObject, path: String): JSONObject? = actionField(path, config)?.let { it as? JSONObject }
+
+    /** Walks [path] through the declared settings and, with [config], the saved rows. Returns the value at the end, or Unit without [config]. */
+    private fun actionField(path: String, config: JSONObject?): Any? {
+        if (path.length > 200) return null
+        val parts = path.split('.')
+        var fields = topLevel
+        var values = config
+        var i = 0
+        while (i < parts.size) {
+            val field = fields[parts[i]] ?: return null
+            when (field.getString("type")) {
+                "action" -> {
+                    if (i != parts.size - 1) return null
+                    return if (values == null) Unit else values.opt(parts[i])
+                }
+                "list" -> {
+                    val row = parts.getOrNull(i + 1)?.takeIf { it.matches(Regex("0|[1-9][0-9]?")) }?.toInt() ?: return null
+                    if (values != null) values = (values.opt(parts[i]) as? JSONArray)?.optJSONObject(row) ?: return null
+                    val rowFields = field.getJSONArray("fields")
+                    fields = (0 until rowFields.length()).associate { rowFields.getJSONObject(it).let { f -> f.getString("key") to f } }
+                    i += 2
+                }
+                else -> return null
+            }
+        }
+        return null
+    }
+
     /** Keys of the settings that admin listings mask. */
     val secretKeys: Set<String> = (0 until settings.length()).map { settings.getJSONObject(it) }
         .filter { it.getString("type") == "secret" }.map { it.getString("key") }.toSet()
@@ -242,7 +295,7 @@ class PluginManifest(val json: JSONObject) {
             require(depth == 0 || (type != "secret" && !field.has("group"))) { "Invalid list setting" }
             require(type != "list" || depth < 2) { "Invalid list setting" }
             if (field.has("required")) {
-                require(depth > 0 && field.get("required") is Boolean && type in TEXT_TYPES) { "Invalid list setting" }
+                require(depth > 0 && field.get("required") is Boolean && (type in TEXT_TYPES || type == "action")) { "Invalid list setting" }
             }
             if (field.has("visibleWhen")) validateCondition(field.get("visibleWhen"), earlier)
             // The plugin lists the choices at runtime, for a setting or a list row field alike.
@@ -260,6 +313,8 @@ class PluginManifest(val json: JSONObject) {
             normalize(field, if (depth == 0) field.get("default") else defaultOf(field), enforce = false)
             // A default in a published manifest is not a secret.
             require(type != "secret" || field.get("default") == "") { "Secret settings must default to an empty string" }
+            // The user picks every action. A manifest cannot pick one in advance.
+            require(type != "action" || (if (depth == 0) field.get("default") else defaultOf(field)).let { it is JSONObject && it.length() == 0 }) { "Action settings must default to {}" }
             earlier[key] = field
         }
     }
@@ -301,7 +356,8 @@ class PluginManifest(val json: JSONObject) {
         val row = field.opt("row") ?: return
         require(row is JSONObject && row.keys().asSequence().all { it in setOf("title", "subtitle", "icon") }) { "Invalid list setting" }
         fun shown(key: Any?) = key is String && byKey[key]?.getString("type").let { it != null && it != "list" }
-        if (row.has("title")) require(shown(row.get("title"))) { "Invalid list setting" }
+        // A row's title is text. An action can name a row's second line, by what it does.
+        if (row.has("title")) require(shown(row.get("title")) && byKey[row.get("title")]?.getString("type") != "action") { "Invalid list setting" }
         if (row.has("icon")) require(byKey[row.opt("icon") as? String]?.getString("type") == "icon") { "Invalid list setting" }
         if (row.has("subtitle")) {
             val subtitle = row.get("subtitle")
@@ -313,7 +369,7 @@ class PluginManifest(val json: JSONObject) {
     private fun validateCondition(condition: Any, earlier: Map<String, JSONObject>) {
         require(condition is JSONObject) { "Invalid setting condition" }
         val target = earlier[condition.opt("key") as? String]
-        require(target != null && target.getString("type") !in setOf("list", "secret")) { "Invalid setting condition" }
+        require(target != null && target.getString("type") !in setOf("list", "secret", "action")) { "Invalid setting condition" }
         val tests = condition.keys().asSequence().filter { it != "key" }.toList()
         require(tests.size == 1 && tests[0] in setOf("equals", "notEquals", "notEmpty")) { "Invalid setting condition" }
         if (tests[0] == "notEmpty") {
@@ -354,9 +410,15 @@ class PluginManifest(val json: JSONObject) {
      */
     private fun normalize(setting: JSONObject, value: Any, enforce: Boolean): Any {
         if (setting.getString("type") != "list") {
-            validateValue(setting, value)
-            if (enforce && setting.optBoolean("required") && (value as String).isBlank()) throw IllegalArgumentException("Fill in every required field")
-            return value
+            val stored = if (value is Map<*, *>) JSONObject(value) else value
+            validateValue(setting, stored)
+            val empty = when (stored) {
+                is String -> stored.isBlank()
+                is JSONObject -> stored.length() == 0
+                else -> false
+            }
+            if (enforce && setting.optBoolean("required") && empty) throw IllegalArgumentException("Fill in every required field")
+            return stored
         }
         val rows = when (value) {
             is JSONArray -> value
@@ -399,6 +461,7 @@ class PluginManifest(val json: JSONObject) {
             "select" -> field.getJSONArray("options").getString(0)
             "color" -> "#FFFFFF"
             "list" -> JSONArray()
+            "action" -> JSONObject()
             else -> ""
         }
     }
@@ -422,6 +485,8 @@ class PluginManifest(val json: JSONObject) {
             // The path Home Assistant navigates by, the way the dashboard picker stores it.
             "dashboard" -> require(value is String && (value.isEmpty() || (value.length <= 255 && value.matches(Regex("/?[A-Za-z0-9_.~-]+(?:/[A-Za-z0-9_.~-]+)*"))))) { "Expected a dashboard path" }
             "cameraView" -> require(value is String && (value.isEmpty() || value.matches(Regex("[A-Za-z0-9_-]{1,64}")))) { "Expected a camera view ID" }
+            // What the user picked in the action chooser, the object a gesture runs, or {} for none.
+            "action" -> require(value is JSONObject && validAction(value)) { "Expected an action" }
             "boolean" -> require(value is Boolean) { "Expected a boolean setting" }
             "color" -> require(value is String && value.matches(Regex("#[a-fA-F0-9]{6}"))) { "Expected an RGB hex color" }
             "number" -> {
@@ -447,6 +512,14 @@ class PluginManifest(val json: JSONObject) {
         }
     }
 
+    private fun validAction(value: JSONObject): Boolean {
+        if (value.length() == 0) return true
+        val keys = value.keys().asSequence().toList()
+        return keys.size <= 16 && keys.all { it.matches(Regex("[a-zA-Z][a-zA-Z0-9_]{0,31}")) } &&
+            (value.opt("type") as? String)?.matches(Regex("[a-z][a-z_]{0,31}")) == true &&
+            value.toString().length <= MAX_ACTION_CHARS
+    }
+
     private data class GroupReferences(val kind: String, val used: MutableSet<String>, val pattern: String, val maximum: Int)
 
     companion object {
@@ -457,6 +530,8 @@ class PluginManifest(val json: JSONObject) {
         const val MAX_LIST_FIELDS = 16
         const val MAX_LIST_ITEMS = 32
         const val MAX_LIST_CHARS = 32 * 1024
+        /** An action holds a few IDs, or a service call with its data. */
+        const val MAX_ACTION_CHARS = 4096
         /** The types a list field can mark as required. */
         val TEXT_TYPES = setOf("string", "entity", "icon", "dashboard", "cameraView")
         /** Stands in for a saved secret, the same marker core password settings use. */

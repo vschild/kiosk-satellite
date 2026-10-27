@@ -168,7 +168,7 @@ List<OfferedWakeWord> offeredWakeWords(
   List<CustomWakeWord> custom = const [],
   String pryonLocale = '',
 }) {
-  // Amazon's engine listens only with the models the Echo Dot image has for
+  // Amazon's engine listens only with the models the Echo image has for
   // [pryonLocale] (PryonCatalog.resolveLocale).
   if (engine == WakeWordEngineType.pryon) {
     return [
@@ -232,7 +232,7 @@ const _energyWake = {'slightly': 0.12, 'moderately': 0.06, 'very': 0.025};
 const _pryonOffsets = {'slightly': 0.02, 'moderately': 0.0, 'very': -0.06};
 
 // Amazon's stop word is made for "Alexa, stop". A plain "stop" scored 0.20
-// to 0.41 on a Dot, so the Echo Dot image has the engine accept it from
+// to 0.41 on a Dot, so the Echo images have the engine accept it from
 // 0.18. "Very sensitive" also takes the near misses just under that, which
 // arrive about a second later.
 const _pryonStopOffsets = {

@@ -183,6 +183,11 @@ class RealtimeSession {
   DateTime? _awaitingSince;
   bool _endRequested = false;
 
+  /// The answer that ended the conversation is done: the conversation ends
+  /// once its voice plays out. Gemini can start another turn after the
+  /// tool's output, and that one is never played or waited for.
+  bool _goodbyeDone = false;
+
   /// Asked to end once the model has answered: an intercom call placed by
   /// voice waits for the conversation, and the closing silence would only
   /// keep it ringing later. [_answeredSinceEndAsk] is an answer finished
@@ -671,6 +676,9 @@ class RealtimeSession {
       case RealtimeReady():
         await _onReady(gen);
       case RealtimeSpeechStarted():
+        // The conversation is over once the goodbye plays: Gemini taking
+        // the room or the answer's echo for speech does not cut it.
+        if (_goodbyeDone) return;
         _userSpeaking = true;
         _touch();
         if (_clientTurns && (_playing || _responding)) {
@@ -741,6 +749,7 @@ class RealtimeSession {
       case RealtimeAudio(:final itemId, :final pcm):
         _onAudio(itemId, pcm);
       case RealtimeAnswerText(:final text, :final complete):
+        if (_goodbyeDone) return;
         if (complete) {
           onTrace?.call('answer', text: text);
           history.add(user: false, text: text);
@@ -765,12 +774,16 @@ class RealtimeSession {
         }
       case RealtimeResponseDone():
         _responding = false;
+        if (_endRequested) _goodbyeDone = true;
         if (_endAfterAnswer) _answeredSinceEndAsk = true;
         if (_staged.isNotEmpty) _release();
         _touch();
       case RealtimeEndRequested():
         onTrace?.call('the assistant ended the conversation');
         _endRequested = true;
+        // Called after its answer was done: there is nothing more to wait
+        // for.
+        if (!_responding) _goodbyeDone = true;
       case RealtimeWarning(:final message):
         onWarning?.call(message);
       case RealtimeClosed(:final error):
@@ -839,7 +852,9 @@ class RealtimeSession {
   final _cut = <String>{};
 
   void _onAudio(String itemId, Uint8List pcm) {
-    if (!_playerOpen || pcm.isEmpty || _cut.contains(itemId)) return;
+    if (!_playerOpen || pcm.isEmpty || _cut.contains(itemId) || _goodbyeDone) {
+      return;
+    }
     _awaiting = false;
     if (_view.phase != AssistPhase.speaking) {
       _show(_docked(phase: AssistPhase.speaking, reactive: true));
@@ -1009,7 +1024,7 @@ class RealtimeSession {
       unawaited(_end(gen, sound: 'done'));
       return;
     }
-    if (_endRequested && !_responding && !playing) {
+    if (_goodbyeDone && !playing) {
       unawaited(_end(gen, sound: 'done'));
       return;
     }
@@ -1171,6 +1186,7 @@ class RealtimeSession {
     _awaitingSince = null;
     _toolsRunning = 0;
     _endRequested = false;
+    _goodbyeDone = false;
     _endAfterAnswer = false;
     _answeredSinceEndAsk = false;
     _newExchange = false;

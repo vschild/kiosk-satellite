@@ -172,6 +172,8 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
         val overlays = PluginOverlays<OverlayFactory>()
         fun notifyOverlays() = emit("overlays", mapOf("id" to id, "session" to token, "overlays" to overlays.snapshot()), alive)
         val triggers = PluginTriggers(manifest::hasTrigger)
+        /** The same four per second for action settings, so two plugins that run each other's actions cannot spin. */
+        val actionBudget = PluginTriggers({ true })
         val setup = PluginSetup(manifest, File(pluginData, "$id/choices"))
         private val setupPending = AtomicBoolean(false)
         // Choice lists can be large, so each one goes to the app once per revision.
@@ -490,6 +492,27 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 check(alive.get()) { "Plugin session has ended" }
                 if (triggers.fire(id)) emit("trigger", mapOf("id" to this@Session.id, "session" to token, "trigger" to id), alive)
             }
+            override fun runAction(setting: String, callback: PluginHost.CommandCallback) {
+                check(alive.get()) { "Plugin session has ended" }
+                require(manifest.isActionPath(setting)) { "Unknown action setting" }
+                val allowed = actionBudget.fire(setting)
+                worker.execute {
+                    if (!alive.get() || sessions[id] !== this@Session) return@execute
+                    val action = manifest.action(records.getJSONObject(id).optJSONObject("config") ?: JSONObject(), setting)
+                    var refused = when {
+                        !allowed -> "Too many actions"
+                        action == null -> "No such row"
+                        action.length() == 0 -> "No action is chosen"
+                        else -> null
+                    }
+                    if (refused == null) {
+                        try { haRequest("runAction", mapOf("action" to jsonValue(action)), callback); return@execute }
+                        catch (busy: IllegalStateException) { refused = busy.message ?: "Too many actions" }
+                    }
+                    try { call { callback.onResult(false, null, refused) } }
+                    catch (failure: Throwable) { fail(id, failure); emit("changed", snapshot()) }
+                }
+            }
             override fun showWindow(title: String, message: String, buttonLabel: String) {
                 require("overlay" in manifest.capabilities) { "Plugin did not declare overlay access" }
                 require(title.length in 1..80 && message.length <= 4096 && buttonLabel.length <= 80) { "Window text is too long" }
@@ -540,15 +563,20 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
                 } }
             }
             override fun saveSettings(values: Map<String, Any>) {
-                val config = manifest.config(JSONObject(values))
+                val incoming = JSONObject(values)
+                manifest.config(incoming)
                 worker.execute { if (alive.get()) {
-                    records.getJSONObject(id).put("config", JSONObject(config)); save()
+                    val record = records.getJSONObject(id)
+                    // Action settings stay as the user saved them.
+                    val config = manifest.config(manifest.keepActions(incoming, record.optJSONObject("config") ?: JSONObject()))
+                    record.put("config", JSONObject(config)); save()
                     emit("changed", snapshot())
                 } }
             }
             override fun updateSettings(values: Map<String, Any>) {
                 check(alive.get()) { "Plugin session has ended" }
                 val partial = JSONObject(values)
+                require(partial.keys().asSequence().none { it in manifest.actionKeys }) { "Action settings are chosen by the user" }
                 // Each value is checked here, so a bad one throws in the plugin. Rules
                 // that depend on other settings wait for the merge with the saved ones.
                 manifest.checkValues(partial)
@@ -1025,7 +1053,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
             // Revoke every host before waiting for stop callbacks from individual plugins.
             sessions.forEach { (id, session) ->
                 session.alive.set(false)
-                session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
+                session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.actionBudget.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
                 emit("hideWindow", mapOf("id" to id))
             }
             for (id in sessions.keys.toList()) {
@@ -1214,7 +1242,7 @@ class PluginBridge(private val context: Context, messenger: BinaryMessenger) {
     private fun stopSession(id: String) {
         val session = sessions.remove(id) ?: return
         session.alive.set(false)
-        session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
+        session.closeShizuku(); session.closeCharts(); session.closeStatusTiles(); session.triggers.close(); session.actionBudget.close(); session.closeEntities(); session.closeScreensavers(); session.overlays.close(); session.closeSetup()
         session.subscriptions.clear()
         endCamera(session, null, "closed", notifyApp = true)
         session.scan?.let { scan ->

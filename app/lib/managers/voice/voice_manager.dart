@@ -1990,7 +1990,7 @@ class VoiceManager extends Manager {
 
   WakeWordEngineType get _engine {
     final engine = voiceEngines[_settings.get(defs.voiceWakeWordEngine)];
-    // Amazon's engine set on a device without the Echo Dot image's service,
+    // Amazon's engine set on a device without an Echo image's service,
     // such as a fleet follower: listen with the default instead of nothing.
     if (engine == null ||
         (engine == WakeWordEngineType.pryon && !PryonCatalog.available)) {

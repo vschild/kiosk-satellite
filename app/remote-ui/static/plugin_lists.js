@@ -1,14 +1,16 @@
-import { haText, pluginText, t } from './localization.js';
+import { gestureText, haText, pluginText, t } from './localization.js';
 import { cmd } from './core.js';
 import { cameraIcon } from './cameras.js';
 import { dashboardField } from './dashboard_picker.js';
+import { describeGestureAction, loadPluginActionNames, pickGestureAction } from './gestures.js';
 import { ENTITY_ICONS, cachedList, entitySpec, loadEntityList, onListLoaded, pickField, pickItem } from './entity_picker.js';
 import { choiceControl, choiceLabel, choiceSpec, watchPluginSetup } from './plugin_setup.js';
 import { hintRow, modalShell, swatch } from './widgets.js';
 
 /* Plugin list settings and the picker setting types, the device's
    plugin_list_setting.dart in the browser: the rows inline on the plugin
-   page, a modal per row, and the icon, dashboard and camera view fields. */
+   page, a modal per row, and the icon, dashboard, camera view and action
+   fields. */
 
 const SVG = 'http://www.w3.org/2000/svg';
 const CHEVRON = 'M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z';
@@ -45,6 +47,7 @@ export function fieldDefault(field) {
     case 'select': return field.options[0];
     case 'color': return '#FFFFFF';
     case 'list': return [];
+    case 'action': return {};
     default: return '';
   }
 }
@@ -75,8 +78,11 @@ function fieldMissing(field, row, fields) {
     const rows = Array.isArray(value) ? value : [];
     return rows.length < (field.minItems || 0) || rows.some((r) => !rowComplete(field.fields, r));
   }
+  if (field.type === 'action') return field.required === true && !actionChosen(value);
   return field.required === true && String(value ?? '').trim() === '';
 }
+
+const actionChosen = (value) => !!value && typeof value === 'object' && Object.keys(value).length > 0;
 
 export function rowComplete(fields, row) {
   return !fields.some((f) => fieldMissing(f, row, fields));
@@ -314,6 +320,43 @@ export function pickIcon({ title, value = '' }) {
 }
 
 // An icon at rest in the field box: the glyph and its name.
+// An action setting's control: what the chosen action does, opening the
+// Gestures action chooser, with Clear when the action is optional.
+export function actionField({ value = {}, required = false, onPick }) {
+  const wrap = el('div', 'plugin-dashboard-field');
+  const box = el('button', 'dp-field');
+  box.type = 'button';
+  let current = actionChosen(value) ? value : {};
+  const clear = iconButton(t('commonClear'), 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z');
+  const paint = () => {
+    const lead = el('span', 'dp-field-icon');
+    lead.appendChild(svgPath('M8,5.14V19.14L19,12.14L8,5.14Z', 20));
+    const text = el('span', 'dp-field-text');
+    if (actionChosen(current)) {
+      lead.classList.add('primary');
+      text.textContent = describeGestureAction(current);
+    } else {
+      text.classList.add('placeholder');
+      text.textContent = gestureText('Choose an action');
+    }
+    box.replaceChildren(lead, text, svgPath(CHEVRON, 20));
+    clear.hidden = required || !actionChosen(current);
+  };
+  box.onclick = async () => {
+    const picked = await pickGestureAction(actionChosen(current) ? current : null);
+    if (!picked) return;
+    current = picked;
+    paint();
+    onPick(picked);
+  };
+  clear.onclick = () => { current = {}; paint(); onPick({}); };
+  paint();
+  // Plugin actions show the plugin's current names once they load.
+  loadPluginActionNames().then(paint);
+  wrap.append(box, clear);
+  return { el: wrap };
+}
+
 export function iconField({ value = '', title, onPick }) {
   const box = el('button', 'dp-field');
   box.type = 'button';
@@ -365,7 +408,9 @@ function displayValue(field, value, at) {
     case 'cameraView': {
       const view = (cameraViews || []).find((v) => v.id === value);
       if (view) return view.name;
+      break;
     }
+    case 'action': return actionChosen(value) ? describeGestureAction(value) : null;
   }
   const text = String(value ?? '').trim();
   return text || null;
@@ -439,6 +484,8 @@ function listRows({ list, rows, onOpen, onReorder, plugin = null, path = list.ke
     if (entities) onListLoaded('entities', item, paint);
     // Choice labels come from the plugin, so the row redraws as they do.
     for (const field of choiceFields) onListLoaded(choiceSpec(plugin.id, `${path}.${field.key}`).key, item, paint);
+    // A plugin action shows the plugin's current names once they load.
+    if (rowFields(list).some((field) => field.type === 'action')) loadPluginActionNames().then(() => { if (item.isConnected) paint(); });
     if (iconKey || titleIsEntity) main.appendChild(icon);
     main.appendChild(info);
     const actions = el('div', 'camera-row-actions');
@@ -714,6 +761,9 @@ function fieldControl(field, values, fields, { refresh, rerender, openEntry, plu
     }
     case 'icon':
       control = iconField({ value, title: field.title, onPick: set }).el;
+      break;
+    case 'action':
+      control = actionField({ value, required: field.required === true, onPick: set }).el;
       break;
     case 'list': {
       control = el('div', 'plugin-list-box');

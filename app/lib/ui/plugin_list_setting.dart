@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 
 import '../app_container.dart';
 import '../core/command_registry.dart';
+import '../l10n/gesture_messages.dart';
 import '../l10n/messages.dart';
 import '../managers/plugins/plugin_manager.dart';
 import 'color_picker.dart';
 import 'dashboard_view_picker.dart';
 import 'entity_picker.dart';
+import 'gesture_action_picker.dart';
 import 'kit.dart';
 import 'mdi_icon.dart';
 import 'plugin_setup.dart';
@@ -55,6 +57,7 @@ Object? pluginFieldDefault(Map field) {
     'select' => (field['options'] as List).first,
     'color' => '#FFFFFF',
     'list' => <Object?>[],
+    'action' => <String, Object?>{},
     _ => '',
   };
 }
@@ -99,6 +102,9 @@ bool pluginFieldMissing(Map field, Map row, List fields) {
     final nested = field['fields'] as List;
     return rows.length < ((field['minItems'] as num?)?.toInt() ?? 0) ||
         rows.whereType<Map>().any((r) => !pluginRowComplete(nested, r));
+  }
+  if (field['type'] == 'action') {
+    return field['required'] == true && (value is! Map || value.isEmpty);
   }
   return field['required'] == true && '${value ?? ''}'.trim().isEmpty;
 }
@@ -233,8 +239,10 @@ String _addTitle(BuildContext context, Map list) =>
 
 /// One value as a row's second line shows it: a camera view by its name,
 /// a number with its unit, an entity by its name and state, a plugin
-/// choice by its label. Null when there is nothing to say.
+/// choice by its label, an action by what it does. Null when there is
+/// nothing to say.
 String? _displayValue(
+  BuildContext context,
   Map field,
   Object? value,
   PluginFieldServices services,
@@ -257,6 +265,10 @@ String? _displayValue(
       final views = services.container?.camera.config.views ?? const [];
       final view = views.where((v) => v.id == value).firstOrNull;
       if (view != null) return view.name;
+    case 'action':
+      return value is Map && value.isNotEmpty
+          ? localizedGestureAction(context, Map<String, Object?>.from(value))
+          : null;
   }
   final text = '${value ?? ''}'.trim();
   return text.isEmpty ? null : text;
@@ -266,6 +278,7 @@ String? _displayValue(
 /// say. Without one, an entity title adds its state and id, the way the
 /// At a Glance rows do.
 String? _rowSubtitle(
+  BuildContext context,
   Map list,
   Map row,
   PluginFieldServices services,
@@ -277,7 +290,7 @@ String? _rowSubtitle(
   for (final key in keys) {
     final field = _fieldOf(list, '$key');
     if (field == null || !pluginFieldVisible(field, row, fields)) continue;
-    final text = _displayValue(field, row[key], services, path);
+    final text = _displayValue(context, field, row[key], services, path);
     if (text != null) return text;
   }
   // An entity the list lacks already shows its id as the title.
@@ -356,6 +369,62 @@ Future<String?> pickPluginIcon(
     return outcome == null ? null : outcome.id ?? '';
   } finally {
     MdiIcons.release();
+  }
+}
+
+/// An action setting's control: what the chosen action does, opening the
+/// gesture action chooser, with a Clear button when the action is optional.
+/// Without a container it stays read-only.
+class PluginActionField extends StatelessWidget {
+  const PluginActionField({
+    super.key,
+    required this.container,
+    required this.title,
+    required this.value,
+    required this.onPick,
+    this.required = false,
+    this.enabled = true,
+  });
+
+  final AppContainer? container;
+  final String title;
+  final Object? value;
+  final bool required;
+  final bool enabled;
+  final ValueChanged<Map<String, Object?>> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final action = value is Map
+        ? Map<String, Object?>.from(value as Map)
+        : <String, Object?>{};
+    final container = this.container;
+    return Row(
+      children: [
+        Expanded(
+          child: ChoiceBox(
+            text: action.isEmpty
+                ? gestureText(context, 'Choose an action')
+                : localizedGestureAction(context, action),
+            onTap: container == null || !enabled
+                ? null
+                : () async {
+                    final picked = await GestureActionPicker(
+                      context,
+                      container,
+                    ).pick(action.isEmpty ? null : action);
+                    if (picked != null) onPick(picked);
+                  },
+          ),
+        ),
+        if (action.isNotEmpty && !required)
+          IconButton(
+            tooltip: l10n(context).commonClear,
+            icon: const Icon(Icons.close),
+            onPressed: enabled ? () => onPick(<String, Object?>{}) : null,
+          ),
+      ],
+    );
   }
 }
 
@@ -504,7 +573,7 @@ class PluginRows extends StatelessWidget {
 
     Widget row(int index) {
       final value = rows[index];
-      final subtitle = _rowSubtitle(list, value, services, _path);
+      final subtitle = _rowSubtitle(context, list, value, services, _path);
       return SettingsRow(
         contentPadding: contentPadding,
         enabled: enabled,
@@ -1088,6 +1157,16 @@ class _PluginRowEditorState extends State<_PluginRowEditor> {
                   onPressed: () => set(''),
                 ),
             ],
+          ),
+        );
+      case 'action':
+        return labeled(
+          PluginActionField(
+            container: services.container,
+            title: title,
+            value: value,
+            required: field['required'] == true,
+            onPick: set,
           ),
         );
       case 'icon':

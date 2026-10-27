@@ -63,6 +63,20 @@ native_thread_sample: read=120 listed=120 limit=256
     );
   });
 
+  test('a main thread watchdog restart is reported', () {
+    final wd = parseCrashJournal(
+      '=== crash at 2026-10-26 01:02:03 (app 2026.10.42, thread main) ===\n'
+      'java.lang.RuntimeException: process restarted deliberately: the '
+      'main thread watchdog found the main thread stuck in one task for 60s\n'
+      '\tat J.N.VJJJO(Native Method)\n'
+      '\tat org.chromium.components.viz.service.frame_sinks.'
+      'ExternalBeginFrameSourceAndroid.doFrame(r8-map-id:64)\n',
+    ).single;
+    expect(wd.deliberate, isTrue);
+    expect(wd.watchdog, isTrue);
+    expect(wd.reportable, isTrue);
+  });
+
   test('a crash a shell asked for is journaled but not reported', () {
     final adb = parseCrashJournal(
       '=== crash at 2026-09-12 17:58:00 (app 2026.9.44, thread main) ===\n'

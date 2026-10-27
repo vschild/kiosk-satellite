@@ -1077,7 +1077,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       initialValue: _engine,
                       isExpanded: true,
                       items: [
-                        // Amazon's engine only where the Echo Dot image's
+                        // Amazon's engine only where an Echo image's
                         // service answered (PryonCatalog hides it elsewhere).
                         for (final engine in c.settings.optionsFor(
                           defs.voiceWakeWordEngine,

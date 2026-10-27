@@ -1297,6 +1297,26 @@ class _PluginSettingsState extends State<_PluginSettings> {
             if (mounted && !_busy) _saveValue(key, path);
           },
         );
+      case 'action':
+        return SettingsRow(
+          title: Text('${raw['title']}'),
+          subtitle: raw['description'] == null
+              ? null
+              : Text('${raw['description']}'),
+          stack: true,
+          trailing: SizedBox(
+            width: tightPane(context) ? null : 300,
+            child: PluginActionField(
+              container: widget.container,
+              title: '${raw['title']}',
+              value: value,
+              enabled: !_busy,
+              onPick: (action) async {
+                if (mounted && !_busy) await _saveValue(key, action);
+              },
+            ),
+          ),
+        );
       case 'cameraView':
         return PickRow(
           title: '${raw['title']}',

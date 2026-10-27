@@ -1727,31 +1727,29 @@ void main() {
       await backend.close();
     });
 
-    test('ending the conversation answers the call and ends the turn', () {
-      fakeAsync((async) {
-        final backend = make(
-          const RealtimeConfig(provider: RealtimeProvider.gemini),
-        );
-        unawaited(backend.start(const RealtimeStart()));
-        async.flushMicrotasks();
-        socket.server({'setupComplete': <String, Object?>{}});
-        socket.server({
-          'toolCall': {
-            'functionCalls': [
-              {'id': 'e', 'name': LocalToolbox.endConversation},
-            ],
-          },
-        });
-        async.flushMicrotasks();
-        expect(events.whereType<RealtimeEndRequested>(), hasLength(1));
-        // Gemini waits for every output before it completes the turn.
-        expect(socket.sent.last.containsKey('toolResponse'), isTrue);
-        expect(events.whereType<RealtimeResponseDone>(), isEmpty);
-        async.elapse(GeminiLiveBackend.endGrace);
-        expect(events.whereType<RealtimeResponseDone>(), hasLength(1));
-        unawaited(backend.close());
-        async.flushMicrotasks();
+    test('ending the conversation answers the call', () async {
+      final backend = make(
+        const RealtimeConfig(provider: RealtimeProvider.gemini),
+      );
+      await backend.start(const RealtimeStart());
+      socket.server({'setupComplete': <String, Object?>{}});
+      socket.server({
+        'toolCall': {
+          'functionCalls': [
+            {'id': 'e', 'name': LocalToolbox.endConversation},
+          ],
+        },
       });
+      await pumpEventQueue();
+      expect(events.whereType<RealtimeEndRequested>(), hasLength(1));
+      // Gemini waits for every output before it completes the turn.
+      expect(socket.sent.last.containsKey('toolResponse'), isTrue);
+      socket.server({
+        'serverContent': {'turnComplete': true},
+      });
+      await pumpEventQueue();
+      expect(events.whereType<RealtimeResponseDone>(), hasLength(1));
+      await backend.close();
     });
 
     test('a refused key reads as Gemini words it', () async {
@@ -2577,6 +2575,29 @@ void main() {
         h.player.frames = 24000;
         time.elapse(const Duration(seconds: 1));
         expect(h.session.busy, isFalse);
+      });
+    });
+
+    test('a turn after the goodbye is neither played nor waited for', () {
+      fakeAsync((time) {
+        final h = _Harness(time);
+        h.wakeAndConnect();
+        h.answer('a1');
+        h.backend.emit(const RealtimeEndRequested());
+        h.backend.emit(const RealtimeResponseDone());
+        // Gemini goes on after the tool's output and never completes it.
+        h.answer('a2');
+        h.backend.emit(const RealtimeSpeechStarted());
+        time.elapse(const Duration(milliseconds: 300));
+        expect(h.session.busy, isTrue);
+        h.player.frames = 24000;
+        time.elapse(const Duration(seconds: 1));
+        expect(h.session.busy, isFalse);
+        expect(
+          h.player.written.fold<int>(0, (n, b) => n + b.length ~/ 2),
+          24000,
+        );
+        expect(h.player.flushes, 0);
       });
     });
 

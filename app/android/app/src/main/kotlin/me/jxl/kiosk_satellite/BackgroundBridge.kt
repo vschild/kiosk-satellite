@@ -67,6 +67,32 @@ class BackgroundBridge(
             alarm.set(AlarmManager.RTC, System.currentTimeMillis() + 800, restart)
         }
 
+        /** Arrange for a process about to be killed on purpose to come back
+         *  with the kiosk on screen (restartProcess, MainThreadWatchdog). */
+        fun prepareRelaunch(context: Context) {
+            // A restart wants the app BACK, so the self-heal throttle
+            // must not stand in its way. This matters most on the
+            // watchdog path: an Activity that attaches to an engine
+            // that settled headless (a heartbeat relaunch minutes
+            // after a crash) wedges on the splash, and only an attach
+            // during engine boot recovers - which is exactly what the
+            // crash guard's instant fresh-process relaunch provides,
+            // unless a self-heal within the last two minutes (the
+            // wedged relaunch itself) throttles it. On Android 12+
+            // the alarm below is deferred for minutes, so the guard
+            // is the relaunch that actually lands; throttled, the
+            // wedge repeats every heartbeat instead of ending here.
+            // commit(), not apply(): the caller kills the process next.
+            context.getSharedPreferences(
+                "FlutterSharedPreferences", Context.MODE_PRIVATE)
+                .edit().remove("flutter.ks.crash.last_self_heal").commit()
+            // Whichever relaunch lands first cancels this alarm
+            // (MainActivity.onCreate): on One UI it fired within
+            // five seconds, after the guard's relaunch was already
+            // up, and its clear-task launch evicted that Activity.
+            scheduleRestartAlarm(context)
+        }
+
         /** A kiosk Activity is up, so the relaunch above has nothing left
          *  to do. A no-op when none is pending. */
         fun cancelRestartAlarm(context: Context) {
@@ -332,28 +358,7 @@ class BackgroundBridge(
                         context,
                         call.argument<String>("reason") ?: "restartProcess",
                     )
-                    // A restart wants the app BACK, so the self-heal throttle
-                    // must not stand in its way. This matters most on the
-                    // watchdog path: an Activity that attaches to an engine
-                    // that settled headless (a heartbeat relaunch minutes
-                    // after a crash) wedges on the splash, and only an attach
-                    // during engine boot recovers - which is exactly what the
-                    // crash guard's instant fresh-process relaunch provides,
-                    // unless a self-heal within the last two minutes (the
-                    // wedged relaunch itself) throttles it. On Android 12+
-                    // the alarm below is deferred for minutes, so the guard
-                    // is the relaunch that actually lands; throttled, the
-                    // wedge repeats every heartbeat instead of ending here.
-                    // commit(), not apply(): the process dies on the next
-                    // line but one.
-                    context.getSharedPreferences(
-                        "FlutterSharedPreferences", Context.MODE_PRIVATE)
-                        .edit().remove("flutter.ks.crash.last_self_heal").commit()
-                    // Whichever relaunch lands first cancels this alarm
-                    // (MainActivity.onCreate): on One UI it fired within
-                    // five seconds, after the guard's relaunch was already
-                    // up, and its clear-task launch evicted that Activity.
-                    scheduleRestartAlarm(context)
+                    prepareRelaunch(context)
                     // A chosen restart, not a plugin that took the process down.
                     me.jxl.kiosk_satellite.plugins.PluginBridge.noteDeliberateExit(context)
                     result.success(true)
@@ -461,7 +466,7 @@ class BackgroundBridge(
                 "volumeClaim" -> result.success(
                     Headless.active(context) && Headless.volumeClaim,
                 )
-                "pryon" -> result.success(Headless.active(context) && Headless.pryon)
+                "pryon" -> result.success(PryonService.available)
                 "bringToFront" -> result.success(bringToFront())
                 "isBehindAnotherApp" -> result.success(!ActivityState.frontmost)
                 // "Screen on" from the admin or the screensaver: light a

@@ -260,11 +260,24 @@ Set<int> clapTargets(List<GestureMapping> mappings) => {
 bool hasFingersTrigger(List<GestureMapping> mappings) =>
     mappings.any((m) => m.triggerType == 'fingers');
 
+/// The installed plugin's name and the command's title for a plugin action,
+/// or null when the plugin or the command is gone. A plugin action saves
+/// only its IDs, since a plugin can rename itself or its commands in any
+/// update. Set by the app container.
+({String plugin, String title})? Function(String pluginId, String command)?
+pluginActionNames;
+
 /// "Open camera view Front door": the row subtitle in both UIs.
 String describeGestureAction(Map<String, Object?> action) {
   switch ('${action['type']}') {
     case 'plugin_action':
-      return '${action['pluginName'] ?? action['pluginId']}: ${action['title'] ?? action['command']}';
+      // Actions saved before the names were looked up carry their own.
+      final names = pluginActionNames?.call(
+        '${action['pluginId']}',
+        '${action['command']}',
+      );
+      return '${names?.plugin ?? action['pluginName'] ?? action['pluginId']}: '
+          '${names?.title ?? action['title'] ?? action['command']}';
     case 'navigate':
       return 'Go to ${action['path']}';
     case 'url':
