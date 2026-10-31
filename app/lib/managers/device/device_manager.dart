@@ -568,14 +568,12 @@ class DeviceManager extends Manager {
   /// kiosk at 100% counts), and the status lies on some kernels — a LineageOS
   /// Fire 7 reports charging forever (issue #205). The status is only the
   /// fallback for hosts without the channel.
-  Future<bool> _chargingNow([BatteryState? state]) async {
+  Future<bool> _chargingNow() async {
     final plugged = await DeviceDetails.plugged();
     if (plugged != null) return plugged;
-    final s = state ?? await _battery.batteryState;
+    final s = await _battery.batteryState;
     return s == BatteryState.charging || s == BatteryState.connectedNotCharging;
   }
-
-  StreamSubscription<BatteryState>? _powerSub;
 
   /// The last value the push path saw, so only genuine flips become events.
   bool? _chargingSeen;
@@ -586,20 +584,12 @@ class DeviceManager extends Manager {
   /// #205 showed lying. Without this the Charging entity trailed the cable
   /// by up to a minute, the entity poll interval.
   void _watchPower() {
-    try {
-      _powerSub = _battery.onBatteryStateChanged.listen(
-        (state) async {
-          final charging = await _chargingNow(state);
-          if (charging == _chargingSeen) return;
-          _chargingSeen = charging;
-          bus.publish(PowerChanged(charging: charging));
-        },
-        onError: (Object e) {
-          // Hosts without the battery event channel (tests, desktop): the
-          // minute poll still covers charging.
-        },
-      );
-    } catch (_) {}
+    DeviceDetails.listenPower(() async {
+      final charging = await _chargingNow();
+      if (charging == _chargingSeen) return;
+      _chargingSeen = charging;
+      bus.publish(PowerChanged(charging: charging));
+    });
   }
 
   /// Logged once per run: which source the network uptime came from.
@@ -851,7 +841,7 @@ class DeviceManager extends Manager {
   @override
   Future<void> dispose() async {
     _historyTimer?.cancel();
-    await _powerSub?.cancel();
+    DeviceDetails.listenPower(null);
     await _lightSub?.cancel();
     _lightMethods.setMethodCallHandler(null);
     await _volumeSub?.cancel();

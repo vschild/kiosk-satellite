@@ -413,6 +413,33 @@ class EspEntitySurface {
       'mdi:phone-in-talk-outline',
       defs.intercomVolume,
     ),
+    // The fine-tune sliders next to the sensitivity select (issue #1224):
+    // an automation can lower them while the TV plays and raise them back
+    // after. Both belong to the device, so each kiosk has its own.
+    'vs_wake_word_fine_tune': (
+      name: 'VS Wake word fine-tune',
+      icon: 'mdi:tune-vertical',
+      def: defs.voiceWakeWordFineTune,
+      fraction: false,
+      min: -10,
+      max: 10,
+      step: 1,
+      unit: '',
+      deviceClass: null,
+      mode: 2,
+    ),
+    'vs_stop_word_fine_tune': (
+      name: 'VS Stop word fine-tune',
+      icon: 'mdi:tune-vertical',
+      def: defs.voiceStopWordFineTune,
+      fraction: false,
+      min: -10,
+      max: 10,
+      step: 1,
+      unit: '',
+      deviceClass: null,
+      mode: 2,
+    ),
     'vs_answer_linger': (
       name: 'VS Answer linger',
       icon: 'mdi:timer-outline',

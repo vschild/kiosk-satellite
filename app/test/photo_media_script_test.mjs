@@ -136,3 +136,43 @@ test('resizing a shared panel reevaluates Smart filling', () => {
   assert.equal(stage.classList.contains('cover'), false);
   assert.ok(stage.querySelector('.backdrop'));
 });
+
+test('an Immich album resolves photos that report can_play false', async () => {
+  const c = vm.createContext({});
+  const start = source.indexOf('const isImage =');
+  vm.runInContext(source.slice(start, source.indexOf('function shuffle(')), c);
+  const album = 'media-source://immich/account|albums|album';
+  const photo = (n) => ({
+    media_content_id: album + '|asset' + n + '|IMG_' + n + '.jpg|image/jpeg',
+    media_class: 'image', media_content_type: 'image/jpeg', can_play: false, can_expand: false,
+  });
+  const hass = { send: async () => ({ children: [photo(1), photo(2), {
+    media_content_id: album + '|asset3|clip.mp4|video/mp4',
+    media_class: 'video', media_content_type: 'video/mp4', can_play: true, can_expand: false,
+  }, {
+    media_content_id: 'media-source://immich/account|albums|other',
+    media_class: 'directory', media_content_type: 'image', can_play: false, can_expand: true,
+  }] }) };
+  const playlist = await c.resolvePlaylist(hass, album, false);
+  assert.deepEqual([...playlist], [photo(1).media_content_id, photo(2).media_content_id, album + '|asset3|clip.mp4|video/mp4']);
+});
+
+test('a single pick plays without browsing', async () => {
+  const sent = [];
+  const c = vm.createContext({
+    CFG: { haUrl: 'http://ha', haToken: 't', mediaId: 'media-source://immich/a|albums|b|c|IMG_1.jpg|image/jpeg', mediaIsFolder: false },
+    window: {}, msg() {}, log() {},
+    // HA's Immich source answers a photo's id with its whole album.
+    Hass: class { connect() {} send(m) { sent.push(m); return Promise.resolve({ children: [
+      { media_content_id: 'one', media_class: 'image', can_play: false, can_expand: false },
+      { media_content_id: 'two', media_class: 'image', can_play: false, can_expand: false },
+    ] }); } },
+  });
+  vm.runInContext(source.slice(source.indexOf('async function resolvePlaylist'), source.indexOf('/* ── Playback loop')), c);
+  vm.runInContext(source.slice(source.indexOf('async function runMedia'), source.indexOf('function runWebsite')), c);
+  let played;
+  c.playItem = (hass, id, playlist) => { played = [...playlist]; };
+  await c.runMedia();
+  assert.deepEqual(played, [c.CFG.mediaId]);
+  assert.equal(sent.some((m) => m.type === 'media_source/browse_media'), false);
+});

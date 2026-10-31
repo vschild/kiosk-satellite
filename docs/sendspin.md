@@ -74,7 +74,7 @@ The Sendspin protocol transmits audio data along with basic track name, artist, 
 | Auth token | empty | A long-lived access token generated in Music Assistant under **Settings > Users**. Read-only permissions suffice for lyrics, while menu shortcuts browse using the privileges of the token owner. |
 | Validate connection | button | Authenticates against the server API to verify credentials and port settings. |
 | Show TV and line-in | off | The floating player and Now Playing while a followed Music Assistant player, such as a Sonos soundbar or a WiiM streamer, plays its TV (HDMI ARC or optical), line-in or phono input, named as such with stop and volume. Off, the room reads as idle while one plays, so a soundbar under a television leaves the screensaver in place. Music Assistant's own streams to the same speaker always show. |
-| Show in the kiosk menu | on | Toggles the Music Assistant web shortcut in the kiosk drawer menu. |
+| Show in the kiosk menu | on | Opens [Device > User Interface > Drawer menu items](drawer-menu.md), where the Music Assistant entry is turned on or off. |
 | Open directly to Now Playing | off | Opens Music Assistant's full-screen player from the drawer shortcut or the Open Music Assistant gesture. |
 | Close after inactivity | 0s | Inactivity timer (in seconds) before the opened Music Assistant web overlay automatically closes and returns to the dashboard. Setting this to `0s` keeps the view open until closed manually. |
 | Hide the close button | off | Removes the floating close button from the Music Assistant web overlay, avoiding visual overlap with the page's native controls. The physical back button and inactivity timer still close the view. |
@@ -97,7 +97,7 @@ Configures direct integration with local Sonos hardware.
 | Player size | Compact | **Compact** provides a display-only card; **Large** adds touch-friendly previous, play/pause, and next transport controls. |
 | Hide the paused player after | 3 min | Timeout duration before a paused card and Now Playing view automatically hide from the screen. |
 | Keep playing when dismissed | off | When disabled, swiping the floating card away stops audio playback. When enabled, swiping hides the card while audio continues playing in the background. |
-| Show in the kiosk menu | off | Adds a toggle entry to the kiosk menu to manually show or hide the floating card. The menu entry remains hidden if nothing is playing or queued. |
+| Show in the kiosk menu | off | Opens [Device > User Interface > Drawer menu items](drawer-menu.md), where the Floating Player entry shows or hides the floating card. The entry stays hidden if nothing is playing or queued. |
 
 ### Now Playing
 
@@ -111,10 +111,11 @@ Configures direct integration with local Sonos hardware.
 | Layout mode | Vertical | Vertical stacks artwork, track details and controls. Horizontal splits standalone Now Playing into equal artwork and controls halves. Album art only fills the screen with artwork and shows track details and controls for a few seconds after a tap. Ignored while shown alongside a screensaver. |
 | Show media controls | on | Displays transport buttons and a progress bar over the background artwork. When enabled, a top-right close button appears and paused tracks remain on screen until the paused timeout expires. |
 | Double tap to dismiss | off | Allows a double tap anywhere on the standalone Now Playing view to dismiss it, removing the close button. Taps on controls or queue rows do not trigger dismissal. Ignored while shown alongside a screensaver. |
+| Always show close button | off | Keeps the close button while **Double tap to dismiss** is on, for anyone who does not know the gesture. |
 | Dismiss "Now Playing" on motion | off | When disabled, motion events will not dismiss the standalone music display. Ignored while Now Playing is shown alongside a screensaver. Shared layouts follow the screensaver's detection settings. |
 | After dismissing | Default | The dashboard view to show after Now Playing is dismissed. **Default** follows **Return to home dashboard view**. **Last view** goes back to the view the kiosk showed when the screensaver started. **Chosen view** opens the view picked in **Dashboard view**. |
 | Dashboard view | none | Shown with **Chosen view**. The view to open after Now Playing is dismissed, picked from your Home Assistant dashboards. |
-| Show in the kiosk menu | off | Adds a menu shortcut to open the full screen view directly. Remains hidden if no media is playing or queued. |
+| Show in the kiosk menu | off | Opens [Device > User Interface > Drawer menu items](drawer-menu.md), where the Now Playing entry opens the full screen view. It stays hidden if no media is playing or queued. |
 | Show album art in the queue | on | A cover on every row of the queue panel, the server's or the speaker's own thumbnail, fetched as the rows come into view. Off, the rows tighten back up. |
 | Show speaker selection pill | on | Floats in the top left corner without reserving space. Appears for 5 seconds after a touch or navigation key press, then fades out. Names the player and opens the speaker group menu. Off, the view shows neither. |
 | Filter the speaker selection pill | all speakers | Shown with the pill on and a source that has a group menu. Pick the speakers the menu offers to join the group. Speakers already in the group always show so they can be taken out. Leave it empty to offer every speaker. See [Speaker groups](#speaker-groups). |
@@ -206,7 +207,7 @@ When a server address is configured, a **Music Assistant** entry appears in the 
 
 The web interface automatically pre-selects the active player assigned in app settings.
 
-Enable **Open directly to Now Playing** under **Media Player > Music Assistant** to open Music Assistant's full-screen player immediately. The **Open Music Assistant** gesture uses the same preference and works even with **Show in the kiosk menu** turned off. When no player is assigned, Music Assistant uses its last selected player.
+Enable **Open directly to Now Playing** under **Media Player > Music Assistant** to open Music Assistant's full-screen player immediately. The **Open Music Assistant** gesture uses the same preference and works even with Music Assistant unchecked in [Drawer menu items](drawer-menu.md). When no player is assigned, Music Assistant uses its last selected player.
 
 * **Close after inactivity**: Automatically closes the web overlay after a set period of touch inactivity, returning the display to the dashboard. Scrolling and tapping reset the timer.
 * **Hide the close button**: Removes the overlay's top-right close button to prevent visual interference with Music Assistant's native interface elements.
@@ -222,7 +223,7 @@ The Large card format adds touch-friendly previous, play/pause, and next control
 
 Card behavior:
 * **Paused State**: Remains on screen with a play button until the configured pause timeout expires.
-* **Dismissal**: On the standalone Now Playing view with media controls enabled, tap the close button or enable **Double tap to dismiss** and double tap the background. The physical back button also dismisses the view. When shown alongside a screensaver, tap the screensaver panel instead.
+* **Dismissal**: On the standalone Now Playing view with media controls enabled, tap the close button or enable **Double tap to dismiss** and double tap the background. Turn on **Always show close button** to offer both. The physical back button also dismisses the view. When shown alongside a screensaver, tap the screensaver panel instead.
 * **Voice Interactions**: The card hides automatically during active voice interactions and reappears when the interaction ends.
 * **Track Transitions**: Retains the previous track artwork briefly during stream buffering to eliminate visual flickering.
 
@@ -314,6 +315,7 @@ The Sendspin client implementation is adapted from [SendspinDroid](https://githu
 * **Audio is out of sync with other speakers**: Allow a few seconds after connection for the Kalman filter to converge. Static speaker delays can be adjusted using the **Audio sync offset** setting in app settings or Music Assistant.
 * **Audio dropouts on Wi-Fi**: Switch the **Preferred audio codec** to Opus to reduce network bandwidth consumption.
 * **Sonos speakers not discovered**: Automatic discovery uses local network multicast. If speakers reside on a separate VLAN, add them manually by IP address using **Add by address**.
+* **Album art on a kiosk without internet access**: For a radio stream or a streaming service, Music Assistant often names a cover by its address on the service's own servers, which a kiosk on an isolated VLAN cannot reach. Music Assistant also sends each cover as an image over the Sendspin connection, sized to the kiosk's screen, and Now Playing shows that image. The cover's address is only loaded for a track the server sends no image for.
 * **Local Media Session shows nothing**: Grant **Notification access** under **Required system permissions** on the Media Player page. On Android 13 and newer a sideloaded app first needs **Allow restricted settings** from its App info menu. Devices without the Notification access screen (Android TV, some Fire OS and LineageOS builds) can grant it over adb: `adb shell cmd notification allow_listener me.jxl.kiosk_satellite/.MediaSessionListener`. The app must publish a media session, which most players do once they start playing.
 * **The device does not appear in the AirPlay menu**: The iPhone and the kiosk must be on the same network, or on networks joined by an mDNS reflector. Check the app logs for `AirPlay receiver on port`. Some Wi-Fi networks block multicast between clients. The receiver answers queries directly to the asking device to get around that, but a network that drops all multicast hides it.
 * **AirPlay plays but the buttons are missing**: The sender's remote control was not found on the network. Pause and skip from the sender instead.

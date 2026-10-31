@@ -142,6 +142,7 @@ class DeviceDetails(
     private val channel = MethodChannel(messenger, "kiosk_satellite/device_details")
     private val cpuWorker = MethodWorker("ks-cpu")
     private val linkWorker = MethodWorker("ks-link")
+    private val bluetoothWorker = MethodWorker("ks-bluetooth")
 
     /**
      * When the current default network came up, on the elapsedRealtime clock,
@@ -189,6 +190,23 @@ class DeviceDetails(
         }
     }
 
+    /**
+     * Every battery broadcast, passed to Dart as a cue to read [plugged]
+     * again. The intent is never opened here: a Lenovo TB311XU sends one
+     * whose extras throw when read (a duplicate key in the bundle), and
+     * battery_plus's receiver, which read them, crashed the process on every
+     * battery change. A throw from [plugged] only fails that method call.
+     */
+    private val powerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                channel.invokeMethod("powerChanged", null)
+            } catch (e: Exception) {
+                // The engine is gone; nothing to tell.
+            }
+        }
+    }
+
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             currentNetwork = network
@@ -224,14 +242,23 @@ class DeviceDetails(
         } catch (e: Exception) {
             // No Bluetooth on this build: the poll still answers.
         }
+        try {
+            // A protected system broadcast: no export flag needed.
+            context.registerReceiver(powerReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        } catch (e: Exception) {
+            // The minute poll still covers charging.
+        }
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "read" -> result.success(read())
                 "uptime" -> result.success(uptime())
                 "plugged" -> result.success(plugged())
                 "battery" -> result.success(battery())
-                // The Bluetooth links this device holds (issue #281).
-                "bluetooth" -> result.success(bluetooth())
+                // The Bluetooth links this device holds (issue #281). Binder
+                // calls into the Bluetooth stack, so off the main thread: a
+                // GATT service that never answered held it until the main
+                // thread watchdog restarted the process.
+                "bluetooth" -> bluetoothWorker.read(result) { bluetooth() }
                 // The SSAID: stable per device + app signing key, surviving
                 // reinstalls (a factory reset changes it). The seed for the
                 // licensing Device ID — a value that has to outlive app data.
@@ -286,9 +313,15 @@ class DeviceDetails(
     fun dispose() {
         cpuWorker.shutdown()
         linkWorker.shutdown()
+        bluetoothWorker.shutdown()
         channel.setMethodCallHandler(null)
         try {
             context.unregisterReceiver(aclReceiver)
+        } catch (e: Exception) {
+            // Never registered; nothing to undo.
+        }
+        try {
+            context.unregisterReceiver(powerReceiver)
         } catch (e: Exception) {
             // Never registered; nothing to undo.
         }

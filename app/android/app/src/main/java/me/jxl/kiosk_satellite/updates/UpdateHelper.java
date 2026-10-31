@@ -75,7 +75,15 @@ public final class UpdateHelper {
             return;
         }
         if (!"serve".equals(args[0])) throw new IllegalArgumentException("Unknown operation");
-        new UpdateHelper(uid, token).serve();
+        try {
+            new UpdateHelper(uid, token).serve();
+        } catch (Exception e) {
+            // app_process sends an uncaught exception only to logcat. Print it
+            // to stderr, which the start script writes to the helper's log.
+            System.err.println("Update helper stopped (port " + HelperProtocol.port(uid) + "): " + e);
+            Log.e(TAG, "stopped", e);
+            System.exit(1);
+        }
         System.exit(0);
     }
 

@@ -145,6 +145,10 @@ class AlarmManager extends Manager {
   /// The full screen alarm list is up.
   final visible = ValueNotifier<bool>(false);
 
+  /// The alarm the list should open on, set just before [visible] by
+  /// openAlarms with `alarm: next`. The alarm screen takes it and clears it.
+  final focus = ValueNotifier<String?>(null);
+
   /// The alarms, sorted by time of day, decoded fresh on every change.
   final alarms = ValueNotifier<List<Alarm>>(const []);
 
@@ -260,6 +264,7 @@ class AlarmManager extends Manager {
       await sub.cancel();
     }
     visible.dispose();
+    focus.dispose();
     alarms.dispose();
     status.dispose();
   }
@@ -1309,11 +1314,20 @@ class AlarmManager extends Manager {
       ..register(
         Command(
           name: 'openAlarms',
-          description: 'Open the full screen alarm list on the kiosk.',
-          handler: (_) async {
+          description:
+              'Open the full screen alarm list on the kiosk. With alarm '
+              'next it opens the alarm that rings next, snoozes included, '
+              'or the list when none is set.',
+          params: const {'alarm': 'next, to open the next alarm (optional)'},
+          handler: (p) async {
+            final alarm = p['alarm'];
+            if (alarm != null && alarm != 'next') {
+              return const CommandResult.fail('alarm must be next');
+            }
             await commands.execute('screenOn', const {});
             await commands.execute('bringToFront', const {});
             await commands.execute('stopScreensaver', const {});
+            if (alarm == 'next') focus.value = _s.next?.id;
             visible.value = true;
             return const CommandResult.ok();
           },

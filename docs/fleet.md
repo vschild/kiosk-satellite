@@ -50,6 +50,7 @@ A profile consists of:
 | Immich API key | On | Kiosk keeps its own. | Token syncs across fleet. |
 | OpenAI API key | Off | Kiosk keeps its own. | Key syncs across fleet, and each follower validates it on its own. |
 | xAI API key | Off | Kiosk keeps its own. | Key syncs across fleet, and each follower validates it on its own. |
+| Gemini API key | Off | Kiosk keeps its own. | Key syncs across fleet, and each follower validates it on its own. |
 | MCP server token | Off | Kiosk keeps its own. | Token syncs across fleet. |
 | Plugin secrets | Off | Kiosk keeps its own secret plugin settings. | Secret plugin settings sync with their plugins. |
 | Include the dashboard | Off | Kiosk keeps its local start page and dashboard. | Start page and dashboard sync. |
@@ -147,6 +148,7 @@ Certain settings remain unique to each kiosk regardless of the profile configura
 | Diagnostics | `wake_word.diagnostics` |
 | Wake word arbitration offset | `voice.wake_arbitration_offset_db` |
 | Wake word fine-tune | `voice.wake_word_fine_tune` |
+| Stop word fine-tune | `voice.stop_word_fine_tune` |
 | Realtime talk over sensitivity | `voice.realtime_talk_over_sensitivity` |
 | Wake words this kiosk listens for | `voice.wake_words`, `voice.pending_selects` |
 | Local state | `voice.runtime`, `voice.timer_position`, `voice.dock_position`, `voice.realtime_openai_validated`, `voice.realtime_xai_validated`, `voice.realtime_gemini_validated`, `screensaver.saved_brightness`, `screensaver.immich_validated`, `sendspin.player_active`, `sendspin.player_pos`, `sendspin.sonos_hosts` |
@@ -157,7 +159,7 @@ Gestures assigned to plugin actions also stay local, even when the profile inclu
 
 The Voice Satellite selects Home Assistant keeps for each kiosk travel with the Voice Satellite category: Assistant 1 and 2, Wake word 1 and 2 and Finished speaking detection. A follower sets its own selects in Home Assistant to the leader's picks, so Home Assistant configures it the same way it would for a pick made by hand. A follower keeps its own pick when Home Assistant does not offer the leader's, for example a model the follower lacks. The `voice.wake_words` setting in the table above is the kiosk's copy of what Home Assistant set, so it never travels on its own.
 
-The Alarms category carries the alarm defaults (Show in the kiosk menu, the volume, the tone, snooze, Silence after and sunrise lengths). The [alarms](alarms.md) themselves, and a ring or snooze in progress, stay on each kiosk.
+The Alarms category carries the alarm defaults (the volume, the tone, snooze, Silence after and sunrise lengths). The [alarms](alarms.md) themselves, and a ring or snooze in progress, stay on each kiosk.
 
 The Calendar category carries the [calendars](calendar.md) with their names, colors and people, and the Display and Kiosk settings. The calendars hidden with their chips stay on each kiosk.
 

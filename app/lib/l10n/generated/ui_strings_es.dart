@@ -940,6 +940,13 @@ class UiStringsEs extends UiStrings {
   String get drawerThemeAndroid => 'Seguir Android';
 
   @override
+  String get drawerItemsSearch => 'Buscar elementos del menú';
+
+  @override
+  String get drawerItemsSettingsKept =>
+      'Siempre visible mientras la administración remota está desactivada.';
+
+  @override
   String drawerVersion(String version) {
     return 'Versión $version';
   }
@@ -2004,6 +2011,12 @@ class UiStringsEs extends UiStrings {
   String get gestureVoiceMute => 'Silenciar o reactivar Voice Satellite';
 
   @override
+  String get gestureOpenAlarmList => 'Abrir la lista de alarmas';
+
+  @override
+  String get gestureOpenNextAlarm => 'Abrir la próxima alarma';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '$count toques en la esquina $corner';
   }
@@ -2999,6 +3012,13 @@ class UiStringsEs extends UiStrings {
       'Tamaño de los mosaicos de la biblioteca. Compacta muestra más por fila.';
 
   @override
+  String get settingLibrarySourcePickerTitle => 'Mostrar selector de fuente';
+
+  @override
+  String get settingLibrarySourcePickerDescription =>
+      'Muestra el selector de fuente en la biblioteca. Desactívalo para que la biblioteca se quede en la fuente elegida arriba.';
+
+  @override
   String get libraryDensityComfortable => 'Amplia';
 
   @override
@@ -3178,10 +3198,6 @@ class UiStringsEs extends UiStrings {
   String libraryGroupName(String speaker, String count) {
     return '$speaker + $count';
   }
-
-  @override
-  String get settingLibraryMenuDescription =>
-      'Añade la opción Biblioteca musical al menú del kiosko.';
 
   @override
   String get settingKioskAllowMusicLibraryDescription =>
@@ -4798,13 +4814,6 @@ class UiStringsEs extends UiStrings {
       'Una alarma que suena se muestra en este protector de pantalla, con su estilo, en lugar de en su propia pantalla.';
 
   @override
-  String get settingAlarmsMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingAlarmsMenuDescription =>
-      'Añade la opción Alarmas al menú del kiosko.';
-
-  @override
   String get settingAlarmsVolumeTitle => 'Volumen de alarma';
 
   @override
@@ -4986,13 +4995,6 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingCalendarWeatherEntityDescription =>
       'Añade la previsión a cada día.';
-
-  @override
-  String get settingCalendarMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingCalendarMenuDescription =>
-      'Añade la opción Calendario al menú del kiosko.';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => 'Cerrar si está inactivo';
@@ -7506,6 +7508,16 @@ class UiStringsEs extends UiStrings {
   String get deviceToastPlugins => 'Acciones de plugins';
 
   @override
+  String get settingUiDrawerItemsTitle => 'Elementos del menú lateral';
+
+  @override
+  String get settingUiDrawerItemsDescription =>
+      'Elige qué elementos muestra el menú lateral y en qué orden.';
+
+  @override
+  String get settingShowInKioskMenuTitle => 'Mostrar en el menú del kiosko';
+
+  @override
   String get settingDlnaEnabledTitle => 'Activar receptor DLNA';
 
   @override
@@ -8246,13 +8258,6 @@ class UiStringsEs extends UiStrings {
       'Desactiva el modo de pausa al cumplirse el tiempo indicado. Con 0, continúa hasta desactivarlo manualmente.';
 
   @override
-  String get settingHaHoldMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingHaHoldMenuDescription =>
-      'Añade una opción al menú para activar y desactivar el modo de pausa.';
-
-  @override
   String get haHoldHint =>
       'Mantiene la vista actual, finalización automática y opción de menú';
 
@@ -8612,13 +8617,6 @@ class UiStringsEs extends UiStrings {
       'Oculta la barra lateral de navegación mientras está activo el modo kiosko de HA.';
 
   @override
-  String get settingHaKioskMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingHaKioskMenuDescription =>
-      'Añade una opción al menú del kiosko para activar y desactivar el modo kiosko de HA.';
-
-  @override
   String get settingHaDashboardCarouselTitle =>
       'Activar el carrusel del panel de control';
 
@@ -8812,13 +8810,6 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingIntercomKeyPlaceholder =>
       'Se crea al activar el intercomunicador';
-
-  @override
-  String get settingIntercomMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingIntercomMenuDescription =>
-      'Añade la opción Intercomunicador al menú del kiosko.';
 
   @override
   String get intercomNeedsAdmin =>
@@ -9446,13 +9437,6 @@ class UiStringsEs extends UiStrings {
       'Desactiva las interacciones con la pantalla hasta que se desactive desde Home Assistant o con el gesto de salida.';
 
   @override
-  String get settingLockdownMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingLockdownMenuDescription =>
-      'Añade una opción de modo de bloqueo al menú del kiosko para bloquear la pantalla. Usa el gesto de salida, la administración remota o Home Assistant para desbloquearla.';
-
-  @override
   String get settingLockdownBlackoutTitle => 'Pantalla en negro';
 
   @override
@@ -9582,14 +9566,6 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingSendspinDismissKeepsPlayingDescription =>
       'Deslizar el reproductor flotante fuera de la pantalla lo oculta sin detener la música.';
-
-  @override
-  String get settingSendspinPlayerShortcutTitle =>
-      'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingSendspinPlayerShortcutDescription =>
-      'Añade una entrada al menú del kiosko para mostrar u ocultar el reproductor flotante. ADVERTENCIA: No aparece si no hay nada en reproducción ni una cola para este reproductor.';
 
   @override
   String get mediaFloatingPage => 'Reproductor flotante';
@@ -9734,13 +9710,6 @@ class UiStringsEs extends UiStrings {
       'Un token de larga duración de Music Assistant, en Settings y luego Users. El acceso de lectura es suficiente para las letras. El acceso directo del menú del kiosko abre la interfaz web con el usuario al que pertenece el token.';
 
   @override
-  String get settingSendspinMaShortcutTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingSendspinMaShortcutDescription =>
-      'Añade una entrada de Music Assistant al menú del kiosko para abrir la interfaz web del servidor sobre el panel de control. Requiere la dirección del servidor indicada arriba.';
-
-  @override
   String get settingSendspinMaOpenFullscreenTitle =>
       'Abrir directamente Reproduciendo Ahora';
 
@@ -9866,6 +9835,14 @@ class UiStringsEs extends UiStrings {
       'Tocar dos veces cualquier parte de Reproduciendo Ahora cierra la vista. No se muestra el botón de cierre. No se aplica cuando Reproduciendo Ahora se muestra junto al protector de pantalla.';
 
   @override
+  String get settingSendspinFullscreenCloseButtonTitle =>
+      'Mostrar siempre el botón de cierre';
+
+  @override
+  String get settingSendspinFullscreenCloseButtonDescription =>
+      'Muestra el botón de cierre aunque Tocar dos veces para cerrar esté activado.';
+
+  @override
   String get settingSendspinFullscreenOnPlayTitle =>
       'Abrir Reproduciendo Ahora al empezar la música';
 
@@ -9901,14 +9878,6 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingSendspinFullscreenReturnViewDescription =>
       'La vista que se muestra al cerrar Reproduciendo Ahora.';
-
-  @override
-  String get settingSendspinFullscreenShortcutTitle =>
-      'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingSendspinFullscreenShortcutDescription =>
-      'Añade una entrada al menú del kiosko para mostrar Reproduciendo Ahora. ADVERTENCIA: No aparece si no hay nada en reproducción ni una cola para este reproductor.';
 
   @override
   String get settingSendspinSpeakerPillTitle => 'Mostrar selector de altavoces';
@@ -11642,13 +11611,6 @@ class UiStringsEs extends UiStrings {
       'Mueve ligeramente la imagen cada minuto para proteger las pantallas OLED. No se aplica al protector de pantalla Negro, cuyos píxeles ya están apagados.';
 
   @override
-  String get settingScreensaverMenuTitle => 'Mostrar en el menú del kiosko';
-
-  @override
-  String get settingScreensaverMenuDescription =>
-      'Añade la opción Iniciar protector de pantalla al menú del kiosko.';
-
-  @override
   String get settingScreensaverFollowAnimationScaleTitle =>
       'Seguir los ajustes de animación de Android';
 
@@ -11851,6 +11813,30 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingScreensaverDashboardDoubleTapDescription =>
       'Un solo toque permite interactuar con el panel de control en lugar de cerrar el protector de pantalla.';
+
+  @override
+  String get settingScreensaverDashboardKioskTitle =>
+      'Anular el modo kiosko de HA';
+
+  @override
+  String get settingScreensaverDashboardKioskDescription =>
+      'Elige qué oculta el protector de pantalla, aparte del modo kiosko de HA.';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderTitle =>
+      'Ocultar la cabecera';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderDescription =>
+      'Oculta la barra de herramientas del panel de control y las pestañas de las vistas en el protector de pantalla.';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarTitle =>
+      'Ocultar la barra lateral';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarDescription =>
+      'Oculta la barra lateral de navegación en el protector de pantalla.';
 
   @override
   String get screensaverDashboardSection =>
@@ -15087,6 +15073,14 @@ class UiStringsEs extends UiStrings {
   @override
   String get settingVoiceStopWordDescription =>
       'Di «stop» para cortar una respuesta, una alerta de temporizador o un anuncio.';
+
+  @override
+  String get settingVoiceStopWordFineTuneTitle =>
+      'Ajuste fino de la sensibilidad de la palabra de parada';
+
+  @override
+  String get settingVoiceStopWordFineTuneDescription =>
+      'Ajusta la sensibilidad de la palabra de parada en pasos más pequeños. Súbelo si a menudo tienes que repetir «stop» y bájalo si las respuestas se detienen por error.';
 
   @override
   String get settingVoiceWakeArbitrationTitle =>

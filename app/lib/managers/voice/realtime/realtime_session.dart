@@ -388,7 +388,11 @@ class RealtimeSession {
     }
     final playing = _playing;
     final level = meanAbs(pcm);
-    if (playing) _echo.add(level);
+    if (playing) {
+      _echo.add(level);
+      _underVoice.add(level);
+      if (_underVoice.length > _recentChunks) _underVoice.removeAt(0);
+    }
     // The bar follows the voice playing, else the microphone.
     if (!playing) _micLevel(_levels.mic(pcm));
     final echo = playing || _inEchoTail;
@@ -485,6 +489,17 @@ class RealtimeSession {
   /// second, and never longer than this: after it, the user can interrupt.
   static const echoSettle = Duration(seconds: 4);
 
+  /// The canceller's linear filter learns the echo path from nothing on
+  /// the first answer after the app starts, and on a Galaxy Tab S8 that
+  /// takes 5 to 6 s, with the answer coming back at a few hundred in the
+  /// meantime: not the user, but loud enough for the provider to take it
+  /// for one once the microphone opens. So past [echoSettle] the settling
+  /// goes on while what comes back still reads as echo, under what counts
+  /// as the user, and never longer than this. The user still gets
+  /// through: a voice at the kiosk reads over the barge-in level and ends
+  /// the settling at once.
+  static const echoSettleMost = Duration(seconds: 8);
+
   /// Quiet chunks under a speaking voice that show the echo is out.
   static const settledAfter = 6;
 
@@ -500,8 +515,15 @@ class RealtimeSession {
   /// Playback this loud (of full scale) is the voice speaking.
   static const voiced = 0.02;
 
-  /// A chunk this quiet, or near the room's own level, holds no echo.
+  /// A chunk this quiet, or near the room's own level, or well under what
+  /// counts as the user ([_bargeInThreshold] over [quietUnderBargeIn]),
+  /// holds no echo worth waiting for. The room's level is only measured
+  /// while nothing plays, so a conversation started over music has none,
+  /// and over ducked music the canceller leaves a residual that sits
+  /// around this level: on a Galaxy Tab S8 a median of 100 and a p90 of
+  /// 270, which kept an answer "settling" for 10 s against the bare 150.
   static const quietLevel = 150;
+  static const quietUnderBargeIn = 4;
 
   bool _settled = false;
   int _quietVoiced = 0;
@@ -631,7 +653,22 @@ class RealtimeSession {
 
   bool get _settling {
     final from = _answerFrom;
-    return from != null && !_settled && _now().difference(from) < echoSettle;
+    if (from == null || _settled) return false;
+    final age = _now().difference(from);
+    if (age < echoSettle) return true;
+    return age < echoSettleMost && _echoLike;
+  }
+
+  /// The microphone's last chunks under the answer, as heard.
+  final _underVoice = <int>[];
+
+  /// Whether what comes back under the answer is still the answer: its
+  /// typical chunk sits under what counts as the user. A user talking over
+  /// it reads over that line, and nothing heard yet counts as echo.
+  bool get _echoLike {
+    if (_underVoice.isEmpty) return true;
+    final sorted = List.of(_underVoice)..sort();
+    return sorted[sorted.length ~/ 2] < _bargeInThreshold;
   }
 
   /// How loud the voice was at its loudest over the last [echoReach].
@@ -650,7 +687,10 @@ class RealtimeSession {
   /// and ends the settling once there are enough in a row.
   void _watchSettling(int level) {
     if (_settled || _playingRaw < voiced) return;
-    final quiet = level <= math.max(quietLevel, _room.level * 3);
+    final quiet = level <= math.max(
+      math.max(quietLevel, _room.level * 3),
+      _bargeInThreshold ~/ quietUnderBargeIn,
+    );
     _quietVoiced = quiet ? _quietVoiced + 1 : 0;
     final from = _answerFrom;
     if (_quietVoiced >= settledAfter &&
@@ -899,6 +939,7 @@ class RealtimeSession {
       _answerFrom = _now();
       _settled = false;
       _quietVoiced = 0;
+      _underVoice.clear();
     }
     _addLevels(pcm);
     player.write(pcm);

@@ -318,6 +318,9 @@ async function playCameraMjpeg(hass, entity) {
 const cameraOf = (id) => (id || '').match(/^media-source:\/\/camera\/(camera\.[a-z0-9_]+)/i)?.[1] || null;
 const isImage = (m, u) => /^image\//.test(m || '') || /\.(jpe?g|png|gif|webp|bmp|avif|svg)$/i.test(u || '');
 const isVideo = (m, u) => /^video\//.test(m || '') || /\.(mp4|webm|ogg|mov)$/i.test(u || '');
+// A leaf the slideshow can show. HA's Immich source marks every photo
+// can_play false, so a leaf in the image class counts as well.
+const isShowable = (c) => !c.can_expand && (c.can_play || c.media_class === 'image' || isImage(c.media_content_type));
 
 async function resolvePlaylist(hass, mediaId, recursive) {
   const MAX = 12000, MAX_FOLDERS = 200, MAX_DEPTH = 5;
@@ -332,7 +335,7 @@ async function resolvePlaylist(hass, mediaId, recursive) {
   while (folders.length && items.length < MAX && folderCount < MAX_FOLDERS) {
     const [n, depth] = folders.shift();
     for (const c of (n.children || [])) {
-      if (c.can_play && !c.can_expand) items.push(c.media_content_id);
+      if (isShowable(c)) items.push(c.media_content_id);
       else if (c.can_expand && recursive && depth < MAX_DEPTH) {
         try {
           const sub = await hass.send({ type: 'media_source/browse_media', media_content_id: c.media_content_id });
@@ -485,7 +488,11 @@ async function runMedia() {
   try { await hass.connect(); } catch (e) { log('media: connect failed: ' + e); msg('Could not connect to Home Assistant: ' + e); return; }
   log('media: connected');
 
-  let playlist = await resolvePlaylist(hass, CFG.mediaId, !!CFG.mediaRecursive);
+  // A single pick is never browsed: HA's Immich source answers a photo's id
+  // with its whole album, which would turn one photo into a slideshow.
+  let playlist = CFG.mediaIsFolder
+    ? await resolvePlaylist(hass, CFG.mediaId, !!CFG.mediaRecursive)
+    : [CFG.mediaId];
   log('media: playlist has ' + playlist.length + ' item(s); first=' + playlist[0]);
   if (CFG.mediaShuffle) playlist = shuffle(playlist);
   if (!playlist.length) { msg('Nothing to show.'); return; }

@@ -10,6 +10,7 @@ import '../browser/dashboard_state.dart';
 import '../home_assistant/plugin_entities.dart';
 import '../home_assistant/plugin_ha_socket.dart';
 import '../intercom/intercom_sensors.dart';
+import '../kiosk/kiosk_link.dart';
 import '../sendspin/plugin_ma_socket.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
@@ -145,6 +146,9 @@ class PluginHostApi {
     'showMusicAssistant',
     'openCalendar',
     'hideCalendar',
+    'openAlarms',
+    'hideAlarms',
+    'openKioskLink',
     'loadUrl',
     'loadDashboard',
     'loadStartUrl',
@@ -276,6 +280,14 @@ class PluginHostApi {
                 (date is String &&
                     RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(date) &&
                     DateTime.tryParse(date) != null));
+      case 'openAlarms':
+        return keys({'alarm'}) && (params.isEmpty || params['alarm'] == 'next');
+      case 'openKioskLink':
+        // Any ks:// link a dashboard can use (issue #1213). The command
+        // refuses the few a plugin may not run.
+        return keys({'url'}) &&
+            text('url') &&
+            kioskLinkAction(params['url'] as String) != null;
       case 'loadDashboard':
         return keys({'dashboard'}) && path('dashboard');
       case 'setScreensaverMode':
@@ -655,6 +667,7 @@ class PluginHostApi {
               'getIntercomState' => 'intercomSensors',
               'getSendspinPlayer' => 'sendspinPlayer',
               'launchApp' => 'pluginLaunchApp',
+              'openKioskLink' => 'pluginOpenKioskLink',
               _ => name,
             },
             name == 'screenOff'

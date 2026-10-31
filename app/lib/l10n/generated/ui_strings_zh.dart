@@ -915,6 +915,12 @@ class UiStringsZh extends UiStrings {
   String get drawerThemeAndroid => '跟随系统';
 
   @override
+  String get drawerItemsSearch => '搜索菜单项';
+
+  @override
+  String get drawerItemsSettingsKept => '远程管理关闭时始终显示。';
+
+  @override
   String drawerVersion(String version) {
     return '版本 $version';
   }
@@ -1932,6 +1938,12 @@ class UiStringsZh extends UiStrings {
   String get gestureVoiceMute => '将 Voice Satellite 静音或取消静音';
 
   @override
+  String get gestureOpenAlarmList => '打开闹钟列表';
+
+  @override
+  String get gestureOpenNextAlarm => '打开下一个闹钟';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '点击$corner角 $count 次';
   }
@@ -2902,6 +2914,13 @@ class UiStringsZh extends UiStrings {
   String get settingLibraryGridDensityDescription => '音乐库中卡片的大小。紧凑可在每行显示更多。';
 
   @override
+  String get settingLibrarySourcePickerTitle => '显示来源选择';
+
+  @override
+  String get settingLibrarySourcePickerDescription =>
+      '在音乐库中显示来源选择器。关闭后，音乐库将保持在上方设置的来源。';
+
+  @override
   String get libraryDensityComfortable => '宽松';
 
   @override
@@ -3079,9 +3098,6 @@ class UiStringsZh extends UiStrings {
   String libraryGroupName(String speaker, String count) {
     return '$speaker + $count';
   }
-
-  @override
-  String get settingLibraryMenuDescription => '在 Kiosk 菜单中添加“音乐库”入口。';
 
   @override
   String get settingKioskAllowMusicLibraryDescription => '浏览音乐并在扬声器上播放。';
@@ -4580,12 +4596,6 @@ class UiStringsZh extends UiStrings {
       '闹钟响铃时，直接按当前屏保的样式显示闹钟，不再单独打开闹钟界面。';
 
   @override
-  String get settingAlarmsMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingAlarmsMenuDescription => '在 Kiosk 菜单中添加“闹钟”入口。';
-
-  @override
   String get settingAlarmsVolumeTitle => '闹钟音量';
 
   @override
@@ -4749,12 +4759,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
-
-  @override
-  String get settingCalendarMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingCalendarMenuDescription => '在 Kiosk 菜单中添加“日历”入口。';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
@@ -7077,6 +7081,15 @@ class UiStringsZh extends UiStrings {
   String get deviceToastPlugins => '插件操作';
 
   @override
+  String get settingUiDrawerItemsTitle => '抽屉菜单项';
+
+  @override
+  String get settingUiDrawerItemsDescription => '选择抽屉菜单显示的项目及其顺序。';
+
+  @override
+  String get settingShowInKioskMenuTitle => '在 Kiosk 菜单中显示';
+
+  @override
   String get settingDlnaEnabledTitle => '启用 DLNA 渲染器';
 
   @override
@@ -7763,12 +7776,6 @@ class UiStringsZh extends UiStrings {
       '达到设定时间后自动关闭页面保持模式。设为 0 则保持至手动关闭。';
 
   @override
-  String get settingHaHoldMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingHaHoldMenuDescription => '添加用于开启和关闭页面保持模式的菜单项。';
-
-  @override
   String get haHoldHint => '保持当前页面、自动解除及菜单入口';
 
   @override
@@ -8096,13 +8103,6 @@ class UiStringsZh extends UiStrings {
   String get settingHaKioskHideSidebarDescription => 'HA Kiosk 模式开启时隐藏导航侧边栏。';
 
   @override
-  String get settingHaKioskMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingHaKioskMenuDescription =>
-      '在 Kiosk 菜单中添加可开启和关闭 HA Kiosk 模式的入口。';
-
-  @override
   String get settingHaDashboardCarouselTitle => '启用仪表盘滑动切换';
 
   @override
@@ -8279,12 +8279,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingIntercomKeyPlaceholder => '启用对讲时生成';
-
-  @override
-  String get settingIntercomMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingIntercomMenuDescription => '在 Kiosk 菜单中添加“对讲”入口。';
 
   @override
   String get intercomNeedsAdmin => '对讲需要远程管理功能';
@@ -8853,13 +8847,6 @@ class UiStringsZh extends UiStrings {
       '禁用屏幕交互，直到通过 Home Assistant 或退出手势关闭。';
 
   @override
-  String get settingLockdownMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingLockdownMenuDescription =>
-      '在 Kiosk 菜单中添加锁定屏幕的“锁定模式”入口。使用退出手势、远程管理或 Home Assistant 解锁。';
-
-  @override
   String get settingLockdownBlackoutTitle => '黑屏';
 
   @override
@@ -8979,13 +8966,6 @@ class UiStringsZh extends UiStrings {
   @override
   String get settingSendspinDismissKeepsPlayingDescription =>
       '快速滑动移走悬浮播放器时，只隐藏窗口，音乐继续播放。';
-
-  @override
-  String get settingSendspinPlayerShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinPlayerShortcutDescription =>
-      '在 Kiosk 菜单中添加显示或隐藏悬浮播放器的入口。注意：此播放器没有正在播放的内容或播放队列时，不会显示。';
 
   @override
   String get mediaFloatingPage => '悬浮播放器';
@@ -9122,13 +9102,6 @@ class UiStringsZh extends UiStrings {
       '从 Music Assistant（设置 > 用户）获取的长期令牌。歌词仅需读取权限；Kiosk 菜单快捷入口会以此令牌所属用户打开网页界面。';
 
   @override
-  String get settingSendspinMaShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinMaShortcutDescription =>
-      '在 Kiosk 菜单中添加 Music Assistant 入口，在仪表盘上方打开服务器网页界面。需要填写上方服务器地址。';
-
-  @override
   String get settingSendspinMaOpenFullscreenTitle => '直接打开“正在播放”';
 
   @override
@@ -9246,6 +9219,13 @@ class UiStringsZh extends UiStrings {
       '双击“正在播放”页面的任意位置即可关闭页面，不显示关闭按钮。“正在播放”与屏保同时显示时，此设置不生效。';
 
   @override
+  String get settingSendspinFullscreenCloseButtonTitle => '始终显示关闭按钮';
+
+  @override
+  String get settingSendspinFullscreenCloseButtonDescription =>
+      '开启“双击关闭”时仍显示关闭按钮。';
+
+  @override
   String get settingSendspinFullscreenOnPlayTitle => '音乐开始播放时打开“正在播放”';
 
   @override
@@ -9278,13 +9258,6 @@ class UiStringsZh extends UiStrings {
   @override
   String get settingSendspinFullscreenReturnViewDescription =>
       '关闭“正在播放”后显示的页面。';
-
-  @override
-  String get settingSendspinFullscreenShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinFullscreenShortcutDescription =>
-      '在 Kiosk 菜单中添加显示“正在播放”页面的入口。注意：此播放器没有正在播放的内容或播放队列时，不会显示。';
 
   @override
   String get settingSendspinSpeakerPillTitle => '显示扬声器选择按钮';
@@ -10887,12 +10860,6 @@ class UiStringsZh extends UiStrings {
       '每分钟轻微移动画面，保护 OLED 屏幕。不适用于黑屏屏保，其像素已关闭。';
 
   @override
-  String get settingScreensaverMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingScreensaverMenuDescription => '在 Kiosk 菜单中添加“启动屏保”入口。';
-
-  @override
   String get settingScreensaverFollowAnimationScaleTitle => '跟随 Android 动画设置';
 
   @override
@@ -11081,6 +11048,27 @@ class UiStringsZh extends UiStrings {
   @override
   String get settingScreensaverDashboardDoubleTapDescription =>
       '单击与仪表盘交互，而非关闭屏保。';
+
+  @override
+  String get settingScreensaverDashboardKioskTitle => '覆盖 HA Kiosk 模式';
+
+  @override
+  String get settingScreensaverDashboardKioskDescription =>
+      '单独选择屏保隐藏的内容，不受 HA Kiosk 模式影响。';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderTitle => '隐藏顶栏';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderDescription =>
+      '在屏保上隐藏仪表盘工具栏和页面标签。';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarTitle => '隐藏侧边栏';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarDescription =>
+      '在屏保上隐藏导航侧边栏。';
 
   @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
@@ -14016,6 +14004,13 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingVoiceStopWordDescription => '说出“stop”可打断回复、计时器提醒或播报。';
+
+  @override
+  String get settingVoiceStopWordFineTuneTitle => '停止词灵敏度微调';
+
+  @override
+  String get settingVoiceStopWordFineTuneDescription =>
+      '以更小的幅度调整停止词灵敏度。如果经常需要重复“stop”，请调高；如果回复经常被误打断，请调低。';
 
   @override
   String get settingVoiceWakeArbitrationTitle => '启用唤醒词仲裁';
@@ -15796,6 +15791,12 @@ class UiStringsZhCn extends UiStringsZh {
   String get drawerThemeAndroid => '跟随系统';
 
   @override
+  String get drawerItemsSearch => '搜索菜单项';
+
+  @override
+  String get drawerItemsSettingsKept => '远程管理关闭时始终显示。';
+
+  @override
   String drawerVersion(String version) {
     return '版本 $version';
   }
@@ -16813,6 +16814,12 @@ class UiStringsZhCn extends UiStringsZh {
   String get gestureVoiceMute => '将 Voice Satellite 静音或取消静音';
 
   @override
+  String get gestureOpenAlarmList => '打开闹钟列表';
+
+  @override
+  String get gestureOpenNextAlarm => '打开下一个闹钟';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '点击$corner角 $count 次';
   }
@@ -17783,6 +17790,13 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingLibraryGridDensityDescription => '音乐库中卡片的大小。紧凑可在每行显示更多。';
 
   @override
+  String get settingLibrarySourcePickerTitle => '显示来源选择';
+
+  @override
+  String get settingLibrarySourcePickerDescription =>
+      '在音乐库中显示来源选择器。关闭后，音乐库将保持在上方设置的来源。';
+
+  @override
   String get libraryDensityComfortable => '宽松';
 
   @override
@@ -17960,9 +17974,6 @@ class UiStringsZhCn extends UiStringsZh {
   String libraryGroupName(String speaker, String count) {
     return '$speaker + $count';
   }
-
-  @override
-  String get settingLibraryMenuDescription => '在 Kiosk 菜单中添加“音乐库”入口。';
 
   @override
   String get settingKioskAllowMusicLibraryDescription => '浏览音乐并在扬声器上播放。';
@@ -19461,12 +19472,6 @@ class UiStringsZhCn extends UiStringsZh {
       '闹钟响铃时，直接按当前屏保的样式显示闹钟，不再单独打开闹钟界面。';
 
   @override
-  String get settingAlarmsMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingAlarmsMenuDescription => '在 Kiosk 菜单中添加“闹钟”入口。';
-
-  @override
   String get settingAlarmsVolumeTitle => '闹钟音量';
 
   @override
@@ -19630,12 +19635,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
-
-  @override
-  String get settingCalendarMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingCalendarMenuDescription => '在 Kiosk 菜单中添加“日历”入口。';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
@@ -21958,6 +21957,15 @@ class UiStringsZhCn extends UiStringsZh {
   String get deviceToastPlugins => '插件操作';
 
   @override
+  String get settingUiDrawerItemsTitle => '抽屉菜单项';
+
+  @override
+  String get settingUiDrawerItemsDescription => '选择抽屉菜单显示的项目及其顺序。';
+
+  @override
+  String get settingShowInKioskMenuTitle => '在 Kiosk 菜单中显示';
+
+  @override
   String get settingDlnaEnabledTitle => '启用 DLNA 渲染器';
 
   @override
@@ -22644,12 +22652,6 @@ class UiStringsZhCn extends UiStringsZh {
       '达到设定时间后自动关闭页面保持模式。设为 0 则保持至手动关闭。';
 
   @override
-  String get settingHaHoldMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingHaHoldMenuDescription => '添加用于开启和关闭页面保持模式的菜单项。';
-
-  @override
   String get haHoldHint => '保持当前页面、自动解除及菜单入口';
 
   @override
@@ -22977,13 +22979,6 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingHaKioskHideSidebarDescription => 'HA Kiosk 模式开启时隐藏导航侧边栏。';
 
   @override
-  String get settingHaKioskMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingHaKioskMenuDescription =>
-      '在 Kiosk 菜单中添加可开启和关闭 HA Kiosk 模式的入口。';
-
-  @override
   String get settingHaDashboardCarouselTitle => '启用仪表盘滑动切换';
 
   @override
@@ -23160,12 +23155,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingIntercomKeyPlaceholder => '启用对讲时生成';
-
-  @override
-  String get settingIntercomMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingIntercomMenuDescription => '在 Kiosk 菜单中添加“对讲”入口。';
 
   @override
   String get intercomNeedsAdmin => '对讲需要远程管理功能';
@@ -23734,13 +23723,6 @@ class UiStringsZhCn extends UiStringsZh {
       '禁用屏幕交互，直到通过 Home Assistant 或退出手势关闭。';
 
   @override
-  String get settingLockdownMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingLockdownMenuDescription =>
-      '在 Kiosk 菜单中添加锁定屏幕的“锁定模式”入口。使用退出手势、远程管理或 Home Assistant 解锁。';
-
-  @override
   String get settingLockdownBlackoutTitle => '黑屏';
 
   @override
@@ -23860,13 +23842,6 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get settingSendspinDismissKeepsPlayingDescription =>
       '快速滑动移走悬浮播放器时，只隐藏窗口，音乐继续播放。';
-
-  @override
-  String get settingSendspinPlayerShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinPlayerShortcutDescription =>
-      '在 Kiosk 菜单中添加显示或隐藏悬浮播放器的入口。注意：此播放器没有正在播放的内容或播放队列时，不会显示。';
 
   @override
   String get mediaFloatingPage => '悬浮播放器';
@@ -24003,13 +23978,6 @@ class UiStringsZhCn extends UiStringsZh {
       '从 Music Assistant（设置 > 用户）获取的长期令牌。歌词仅需读取权限；Kiosk 菜单快捷入口会以此令牌所属用户打开网页界面。';
 
   @override
-  String get settingSendspinMaShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinMaShortcutDescription =>
-      '在 Kiosk 菜单中添加 Music Assistant 入口，在仪表盘上方打开服务器网页界面。需要填写上方服务器地址。';
-
-  @override
   String get settingSendspinMaOpenFullscreenTitle => '直接打开“正在播放”';
 
   @override
@@ -24127,6 +24095,13 @@ class UiStringsZhCn extends UiStringsZh {
       '双击“正在播放”页面的任意位置即可关闭页面，不显示关闭按钮。“正在播放”与屏保同时显示时，此设置不生效。';
 
   @override
+  String get settingSendspinFullscreenCloseButtonTitle => '始终显示关闭按钮';
+
+  @override
+  String get settingSendspinFullscreenCloseButtonDescription =>
+      '开启“双击关闭”时仍显示关闭按钮。';
+
+  @override
   String get settingSendspinFullscreenOnPlayTitle => '音乐开始播放时打开“正在播放”';
 
   @override
@@ -24159,13 +24134,6 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get settingSendspinFullscreenReturnViewDescription =>
       '关闭“正在播放”后显示的页面。';
-
-  @override
-  String get settingSendspinFullscreenShortcutTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingSendspinFullscreenShortcutDescription =>
-      '在 Kiosk 菜单中添加显示“正在播放”页面的入口。注意：此播放器没有正在播放的内容或播放队列时，不会显示。';
 
   @override
   String get settingSendspinSpeakerPillTitle => '显示扬声器选择按钮';
@@ -25768,12 +25736,6 @@ class UiStringsZhCn extends UiStringsZh {
       '每分钟轻微移动画面，保护 OLED 屏幕。不适用于黑屏屏保，其像素已关闭。';
 
   @override
-  String get settingScreensaverMenuTitle => '在 Kiosk 菜单中显示';
-
-  @override
-  String get settingScreensaverMenuDescription => '在 Kiosk 菜单中添加“启动屏保”入口。';
-
-  @override
   String get settingScreensaverFollowAnimationScaleTitle => '跟随 Android 动画设置';
 
   @override
@@ -25962,6 +25924,27 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get settingScreensaverDashboardDoubleTapDescription =>
       '单击与仪表盘交互，而非关闭屏保。';
+
+  @override
+  String get settingScreensaverDashboardKioskTitle => '覆盖 HA Kiosk 模式';
+
+  @override
+  String get settingScreensaverDashboardKioskDescription =>
+      '单独选择屏保隐藏的内容，不受 HA Kiosk 模式影响。';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderTitle => '隐藏顶栏';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderDescription =>
+      '在屏保上隐藏仪表盘工具栏和页面标签。';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarTitle => '隐藏侧边栏';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarDescription =>
+      '在屏保上隐藏导航侧边栏。';
 
   @override
   String get screensaverDashboardSection => 'Home Assistant 仪表盘屏保';
@@ -28897,6 +28880,13 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingVoiceStopWordDescription => '说出“stop”可打断回复、计时器提醒或播报。';
+
+  @override
+  String get settingVoiceStopWordFineTuneTitle => '停止词灵敏度微调';
+
+  @override
+  String get settingVoiceStopWordFineTuneDescription =>
+      '以更小的幅度调整停止词灵敏度。如果经常需要重复“stop”，请调高；如果回复经常被误打断，请调低。';
 
   @override
   String get settingVoiceWakeArbitrationTitle => '启用唤醒词仲裁';

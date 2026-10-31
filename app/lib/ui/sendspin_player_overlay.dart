@@ -191,7 +191,8 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
           e.key == defs.sendspinFullscreenTextScale.key ||
           e.key == defs.sendspinFullscreenButtonScale.key ||
           e.key == defs.sendspinFullscreenLayout.key ||
-          e.key == defs.sendspinFullscreenDoubleTap.key) {
+          e.key == defs.sendspinFullscreenDoubleTap.key ||
+          e.key == defs.sendspinFullscreenCloseButton.key) {
         _onLayoutChanged();
       }
     });
@@ -275,11 +276,15 @@ class _SendspinFullscreenViewState extends State<SendspinFullscreenView> {
         baseControlsScale *
         c.settings.get(defs.sendspinFullscreenButtonScale).toDouble() /
         100;
-    // Double tap to dismiss (issue #409) replaces the close button: the
-    // manager runs the tap chain on touches off the controls.
+    // Double tap to dismiss (issue #409) replaces the close button unless
+    // it is kept on (issue #1203): the manager runs the tap chain on
+    // touches off the controls.
     final doubleTap =
         controls && c.settings.get(defs.sendspinFullscreenDoubleTap);
-    final showClose = controls && !doubleTap && !widget.alongsideScreensaver;
+    final showClose =
+        controls &&
+        (!doubleTap || c.settings.get(defs.sendspinFullscreenCloseButton)) &&
+        !widget.alongsideScreensaver;
     final showPlayerChip =
         c.settings.get(defs.sendspinSpeakerPill) &&
         c.sendspin.playerChipName.isNotEmpty;
@@ -3009,15 +3014,9 @@ class _NowPlayingControlsState extends State<_NowPlayingControls> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('', style: timeStyle),
-                Text(
-                  level == null ? '' : '${level.round()}%',
-                  style: timeStyle,
-                ),
-              ],
+            _barTimes(
+              right: level == null ? null : '${level.round()}%',
+              style: timeStyle,
             ),
           ],
           Offstage(
@@ -3304,27 +3303,35 @@ class _NowPlayingProgressState extends State<_NowPlayingProgress> {
               ),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(_clock(shown.round()), style: timeStyle),
-                ),
-              ),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(_clock(duration), style: timeStyle),
-                ),
-              ),
-            ],
+          _barTimes(
+            left: _clock(shown.round()),
+            right: _clock(duration),
+            style: timeStyle,
           ),
         ],
       ),
     );
   }
+}
+
+/// The line under a now-playing bar: the seek bar's times, or the volume
+/// slider's level at the right. Shared so the two blocks are the same
+/// height and the bar does not move when one replaces the other (issue
+/// #1212). The line always holds text: an empty one rounds its height
+/// differently from one with glyphs, a pixel off at some font sizes.
+Widget _barTimes({String? left, String? right, required TextStyle style}) {
+  Widget time(String text) => Flexible(
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(text, style: style),
+    ),
+  );
+  return Row(
+    mainAxisAlignment: left == null
+        ? MainAxisAlignment.end
+        : MainAxisAlignment.spaceBetween,
+    children: [if (left != null) time(left), time(right ?? ' ')],
+  );
 }
 
 /// Drop shadows for the track details and controls the album art only

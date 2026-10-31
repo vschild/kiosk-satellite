@@ -221,8 +221,7 @@ class FleetDiscovery(
     private val announcer = object : Runnable {
         override fun run() {
             if (!running) return
-            joinGroups()
-            sendAnnouncement(RECORD_TTL, HOST_TTL)
+            refreshOffMain()
             if (expire()) publish()
             handler.postDelayed(this, ANNOUNCE_INTERVAL_MS)
         }
@@ -294,7 +293,7 @@ class FleetDiscovery(
                 }
                 socket = s
                 listening = canListen
-                joinGroups()
+                io.execute { if (running && generation == run) joinGroups() }
                 if (canListen && !receiver.execute { receiveLoop(s, run) }) {
                     Log.w(TAG, "mDNS receive worker unavailable")
                     stop()
@@ -344,9 +343,23 @@ class FleetDiscovery(
     /** Re-announce and ask again, e.g. after a network change. */
     fun nudge() {
         if (!running) return
-        joinGroups()
-        sendAnnouncement(RECORD_TTL, HOST_TTL)
+        refreshOffMain()
         if (fleet) sendQuery()
+    }
+
+    /**
+     * Joins any new interface and announces, on the send worker. Both walk
+     * the interface list, a netlink dump that held the main thread for a
+     * minute on one tablet until the main thread watchdog restarted the
+     * process, and this runs every 30 s.
+     */
+    private fun refreshOffMain() {
+        val run = generation
+        io.execute {
+            if (!running || generation != run) return@execute
+            joinGroups()
+            sendAnnouncement(RECORD_TTL, HOST_TTL)
+        }
     }
 
     /**

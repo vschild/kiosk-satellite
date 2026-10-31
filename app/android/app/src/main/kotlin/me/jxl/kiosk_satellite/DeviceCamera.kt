@@ -194,10 +194,10 @@ class DeviceCamera(
             // entities on some boots and not others. A camera Camera2
             // lists but CameraX cannot open reports that plainly when it
             // is used.
-            "hasCamera" -> result.success(cameraFacings(context).isNotEmpty())
+            "hasCamera" -> CameraEnumeration.facings(context) { result.success(it.isNotEmpty()) }
             // The lens facings that exist, for pickers that should not
             // offer a camera the device does not have.
-            "facings" -> result.success(cameraFacings(context))
+            "facings" -> CameraEnumeration.facings(context) { result.success(it) }
             "streamResolutions" -> try {
                 result.success(cameraStreamResolutions(context, call.argument<String>("camera") ?: "front"))
             } catch (e: Exception) {
@@ -290,12 +290,21 @@ class DeviceCamera(
         // No camera hardware: answer plainly without waking CameraX, whose
         // presence tracking would retry the missing camera service forever
         // (see the hasCamera comment, issue #193).
-        if (cameraFacings(context).isEmpty()) {
-            done(null, NO_CAMERA_MESSAGE)
-            return
+        CameraEnumeration.facings(context) { facings ->
+            if (completed) return@facings
+            if (facings.isEmpty()) done(null, NO_CAMERA_MESSAGE)
+            else snapshotIdle(facing, target, diagnosticId, done) { cleanup = it }
         }
+    }
 
-        // Idle: open, take one frame, release.
+    /** Idle: open, take one frame, release. */
+    private fun snapshotIdle(
+        facing: CameraSelector,
+        target: Size,
+        diagnosticId: String,
+        done: (ByteArray?, String?) -> Unit,
+        parkCleanup: (() -> Unit) -> Unit,
+    ) {
         val future = ProcessCameraProvider.getInstance(context)
         future.addListener({
             val provider = try {
@@ -324,7 +333,7 @@ class DeviceCamera(
             // done() destroys the owner and releases its use cases. Calling
             // provider.unbind afterward scans CameraX 1.5's stale owner keys
             // and logs an invalid-camera warning for each one.
-            cleanup = { owner.destroy() }
+            parkCleanup { owner.destroy() }
             try {
                 provider.bindToLifecycle(owner, selector, capture)
                 owner.resume()
@@ -423,6 +432,59 @@ internal fun cameraFacings(context: Context): List<String> = try {
 } catch (e: Exception) {
     Log.w("DeviceCamera", "camera enumeration failed: $e")
     emptyList()
+}
+
+/** [cameraFacings] for main thread callers. The list is a binder call into
+ *  the camera service, and a camera service that never answers (seen on a
+ *  Fire tablet running Android 9) held the main thread until the main thread
+ *  watchdog restarted the process, every two minutes. Here the call runs on
+ *  its own thread and the answer comes back on the main thread. A list that
+ *  takes longer than [TIMEOUT_MS] answers as no camera. Callers that arrive
+ *  while a list is in progress wait for that one, so a stuck camera service
+ *  holds one thread, not one per call. */
+internal object CameraEnumeration {
+    private const val TIMEOUT_MS = 10_000L
+
+    private val main = Handler(Looper.getMainLooper())
+    private val worker = java.util.concurrent.Executors.newSingleThreadExecutor {
+        Thread(it, "ks-camera-list").apply { isDaemon = true }
+    }
+
+    // Main thread only.
+    private val waiting = mutableListOf<(List<String>) -> Unit>()
+    private var listing = false
+
+    /** Main thread only. [answer] runs once, on the main thread. */
+    fun facings(context: Context, answer: (List<String>) -> Unit) {
+        var answered = false
+        lateinit var timeout: Runnable
+        val once = { facings: List<String> ->
+            if (!answered) {
+                answered = true
+                main.removeCallbacks(timeout)
+                answer(facings)
+            }
+        }
+        timeout = Runnable {
+            Log.w("DeviceCamera", "camera enumeration did not answer in ${TIMEOUT_MS / 1000}s")
+            waiting.remove(once)
+            once(emptyList())
+        }
+        main.postDelayed(timeout, TIMEOUT_MS)
+        waiting.add(once)
+        if (listing) return
+        listing = true
+        val app = context.applicationContext
+        worker.execute {
+            val facings = cameraFacings(app)
+            main.post {
+                listing = false
+                val callers = waiting.toList()
+                waiting.clear()
+                callers.forEach { it(facings) }
+            }
+        }
+    }
 }
 
 /** Every camera Camera2 lists, one clause each, with the facts CameraX's

@@ -2,7 +2,7 @@
 
 The Music Library browses music on the kiosk and plays it on a speaker. It lists music from Music Assistant, from a Home Assistant speaker's media or from a Sonos household, and it plays on the player the [Now Playing](sendspin.md#full-screen-now-playing) view follows. Pick a speaker in the library and Now Playing, the floating player and every play from the library move to it.
 
-Open it from **Music Library** in the kiosk menu or from the library button next to the close button on the Now Playing view. Both show once a source is set up. A dashboard button can open it with `ks://music-library` (see [Dashboard Links](dashboard-links.md)), a gesture with the **Open Music Library** action (see [Gestures](gestures.md)) and Home Assistant with the ESPHome **Show Music Library** button (see [ESPHome](esphome.md)). Turn either off under **Settings > Media Player > Music Library**, and allow the library in a locked kiosk under **Kiosk Mode > Allowed Actions**.
+Open it from **Music Library** in the kiosk menu or from the library button next to the close button on the Now Playing view. Both show once a source is set up. A dashboard button can open it with `ks://music-library` (see [Dashboard Links](dashboard-links.md)), a gesture with the **Open Music Library** action (see [Gestures](gestures.md)) and Home Assistant with the ESPHome **Show Music Library** button (see [ESPHome](esphome.md)). Take the menu entry out under [Device > User Interface > Drawer menu items](drawer-menu.md), turn the Now Playing button off under **Settings > Media Player > Music Library** and allow the library in a locked kiosk under **Kiosk Mode > Allowed Actions**.
 
 ## Sources
 
@@ -121,9 +121,9 @@ Under **Settings > Media Player > Music Library**:
 | Setting | What it does |
 | --- | --- |
 | Source | The source the library opens on. **Automatic** starts with the source of the speaker Now Playing follows, else the first one set up. Picking a source in the library changes it too. |
-| Show in the kiosk menu | Adds the Music Library entry to the kiosk menu. On by default. |
 | Show on Now Playing | Adds the library button next to the close button on the Now Playing view. On by default. |
 | Close when idle | Returns to the dashboard after no touch for this long. Two minutes by default. The screensaver waits while the library is open. |
+| Show in the kiosk menu | Opens [Device > User Interface > Drawer menu items](drawer-menu.md), where the Music Library entry is turned on or off. On by default. |
 
 The **User Interface** group below them sets how the library looks:
 
@@ -132,5 +132,6 @@ The **User Interface** group below them sets how the library looks:
 | Text scale | The size of the text in the library, from 50% to 200%. Rows get taller with it, and the menus grow with it but keep their normal size below 100%. The title at the top, the navigation, the pickers and the player bar's track and times grow at a slower rate and keep their normal size below 100%. 100% by default. |
 | Square artwork | Shows artists in square tiles, like albums and playlists, instead of circles. Off by default. |
 | Grid density | The size of the tiles in the library's grids and rows. **Comfortable** makes them larger and **Compact** fits more in a row. **Standard** by default. |
+| Show source selection | Shows the source picker in the library. Turn it off to keep the library on the **Source** set above, so nobody at the kiosk can switch it. The source can still be changed in Settings and in the remote admin. On by default. |
 
 The **Voice Control** group opens the guide to [playing music by voice](#playing-music-by-voice).

@@ -469,6 +469,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// nothing (a notification, a schedule tick) does not navigate again.
   String? _dashboardShown;
 
+  /// Whether the Home Assistant Dashboard mode has the page on screen, for
+  /// the kiosk screen to swap in the mode's own header and sidebar choice
+  /// (issue #1183). Cleared once the dismissal has moved the page back.
+  final ValueNotifier<bool> dashboardShowing = ValueNotifier(false);
+
   bool get isActive => _active;
 
   /// Whether the Sendspin now-playing display is active (a track loaded),
@@ -2494,6 +2499,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     // anything decides what covers it: under the Now Playing takeover the
     // view waits behind the player, and the dismissal undoes the move
     // either way.
+    dashboardShowing.value = _active && mode == 'dashboard';
     final dashboardView = _settings.get(defs.screensaverDashboardView);
     if (mode == 'dashboard' && dashboardView != _dashboardShown) {
       _dashboardShown = dashboardView;
@@ -2663,6 +2669,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     // this return.
     _dashboardShown = null;
     await commands.execute('leaveScreensaver', {'nowPlaying': nowPlaying});
+    dashboardShowing.value = false;
     _setView(null);
     await commands.execute('screenOn', const {});
     // Release the hold; the keep-awake setting (if any) still applies.
@@ -2762,6 +2769,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     _screenOffTimer?.cancel();
     _nightTimer?.cancel();
     activeView.dispose();
+    dashboardShowing.dispose();
     scheduleNowPlaying.dispose();
     modeOverride.dispose();
   }

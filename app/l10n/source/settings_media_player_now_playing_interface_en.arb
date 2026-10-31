@@ -169,6 +169,32 @@
       ]
     }
   },
+  "settingSendspinFullscreenCloseButtonTitle": "Always show close button",
+  "@settingSendspinFullscreenCloseButtonTitle": {
+    "context": "Settings > Media Player > Now Playing > User Interface",
+    "description": "Setting label: keep the X button that closes Now Playing even when Double tap to dismiss is on.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Now Playing > User Interface"
+      ],
+      "remoteAdmin": [
+        "Media Player > Now Playing > User Interface"
+      ]
+    }
+  },
+  "settingSendspinFullscreenCloseButtonDescription": "Show the close button while Double tap to dismiss is on.",
+  "@settingSendspinFullscreenCloseButtonDescription": {
+    "context": "Settings > Media Player > Now Playing > User Interface",
+    "description": "Help below this setting. 'Double tap to dismiss' is the name of the setting just above it.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Now Playing > User Interface"
+      ],
+      "remoteAdmin": [
+        "Media Player > Now Playing > User Interface"
+      ]
+    }
+  },
   "settingSendspinFullscreenOnPlayTitle": "Launch Now Playing when music starts playing",
   "@settingSendspinFullscreenOnPlayTitle": {
     "context": "Settings > Media Player > Now Playing > User Interface",
@@ -288,32 +314,6 @@
   },
   "settingSendspinFullscreenReturnViewDescription": "The view to show after Now Playing is dismissed.",
   "@settingSendspinFullscreenReturnViewDescription": {
-    "context": "Settings > Media Player > Now Playing > User Interface",
-    "description": "Help below this setting.",
-    "x-locations": {
-      "device": [
-        "Settings > Media Player > Now Playing > User Interface"
-      ],
-      "remoteAdmin": [
-        "Media Player > Now Playing > User Interface"
-      ]
-    }
-  },
-  "settingSendspinFullscreenShortcutTitle": "Show in the kiosk menu",
-  "@settingSendspinFullscreenShortcutTitle": {
-    "context": "Settings > Media Player > Now Playing > User Interface",
-    "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Media Player > Now Playing > User Interface"
-      ],
-      "remoteAdmin": [
-        "Media Player > Now Playing > User Interface"
-      ]
-    }
-  },
-  "settingSendspinFullscreenShortcutDescription": "Add an entry in the kiosk menu that shows the Now Playing view. WARNING: If nothing is playing or there is no queue for this player, it won't show up.",
-  "@settingSendspinFullscreenShortcutDescription": {
     "context": "Settings > Media Player > Now Playing > User Interface",
     "description": "Help below this setting.",
     "x-locations": {

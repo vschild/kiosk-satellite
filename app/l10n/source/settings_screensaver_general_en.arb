@@ -104,32 +104,6 @@
       ]
     }
   },
-  "settingScreensaverMenuTitle": "Show in the kiosk menu",
-  "@settingScreensaverMenuTitle": {
-    "context": "Settings:Screensaver",
-    "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver"
-      ],
-      "remoteAdmin": [
-        "Screensaver"
-      ]
-    }
-  },
-  "settingScreensaverMenuDescription": "Add a Start Screensaver entry to the kiosk menu.",
-  "@settingScreensaverMenuDescription": {
-    "context": "Settings:Screensaver",
-    "description": "Help below the setting.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver"
-      ],
-      "remoteAdmin": [
-        "Screensaver"
-      ]
-    }
-  },
   "settingScreensaverFollowAnimationScaleTitle": "Follow Android animation settings",
   "@settingScreensaverFollowAnimationScaleTitle": {
     "context": "Settings:Screensaver",
@@ -860,6 +834,84 @@
   },
   "settingScreensaverDashboardDoubleTapDescription": "Single taps interact with the dashboard instead of dismissing.",
   "@settingScreensaverDashboardDoubleTapDescription": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardKioskTitle": "HA kiosk mode override",
+  "@settingScreensaverDashboardKioskTitle": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardKioskDescription": "Choose what the screensaver hides, separate from HA kiosk mode.",
+  "@settingScreensaverDashboardKioskDescription": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardHideHeaderTitle": "Hide the header",
+  "@settingScreensaverDashboardHideHeaderTitle": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardHideHeaderDescription": "Hide the dashboard toolbar and view tabs on the screensaver.",
+  "@settingScreensaverDashboardHideHeaderDescription": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardHideSidebarTitle": "Hide the sidebar",
+  "@settingScreensaverDashboardHideSidebarTitle": {
+    "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Dashboard screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Dashboard screensaver"
+      ]
+    }
+  },
+  "settingScreensaverDashboardHideSidebarDescription": "Hide the navigation sidebar on the screensaver.",
+  "@settingScreensaverDashboardHideSidebarDescription": {
     "context": "Settings:Screensaver:Home Assistant Dashboard screensaver",
     "description": "Help below the setting.",
     "x-locations": {

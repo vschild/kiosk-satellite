@@ -39,6 +39,10 @@
     "title": "settingUiToastsHiddenTitle",
     "description": "settingUiToastsHiddenDescription"
   },
+  "ui.drawer_items": {
+    "title": "settingUiDrawerItemsTitle",
+    "description": "settingUiDrawerItemsDescription"
+  },
   "device.hostname": {
     "title": "settingDeviceHostnameTitle",
     "description": "settingDeviceHostnameDescription"
@@ -120,8 +124,8 @@
     "description": "settingHaKioskHideSidebarDescription"
   },
   "ha.kiosk_menu": {
-    "title": "settingHaKioskMenuTitle",
-    "description": "settingHaKioskMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "ha.dashboard_carousel": {
     "title": "settingHaDashboardCarouselTitle",
@@ -208,8 +212,8 @@
     "description": "settingHaHoldReleaseMinutesDescription"
   },
   "ha.hold_menu": {
-    "title": "settingHaHoldMenuTitle",
-    "description": "settingHaHoldMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "browser.cutout_mode": {
     "title": "settingBrowserCutoutModeTitle",
@@ -322,6 +326,18 @@
   "screensaver.dashboard_double_tap": {
     "title": "settingScreensaverDashboardDoubleTapTitle",
     "description": "settingScreensaverDashboardDoubleTapDescription"
+  },
+  "screensaver.dashboard_kiosk": {
+    "title": "settingScreensaverDashboardKioskTitle",
+    "description": "settingScreensaverDashboardKioskDescription"
+  },
+  "screensaver.dashboard_hide_header": {
+    "title": "settingScreensaverDashboardHideHeaderTitle",
+    "description": "settingScreensaverDashboardHideHeaderDescription"
+  },
+  "screensaver.dashboard_hide_sidebar": {
+    "title": "settingScreensaverDashboardHideSidebarTitle",
+    "description": "settingScreensaverDashboardHideSidebarDescription"
   },
   "screensaver.calendar_view": {
     "title": "settingScreensaverCalendarViewTitle",
@@ -460,8 +476,8 @@
     "description": "settingScreensaverPixelShiftDescription"
   },
   "screensaver.menu": {
-    "title": "settingScreensaverMenuTitle",
-    "description": "settingScreensaverMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "screensaver.follow_animation_scale": {
     "title": "settingScreensaverFollowAnimationScaleTitle",
@@ -1100,8 +1116,8 @@
     "description": "settingSendspinSonosInputsDescription"
   },
   "sendspin.ma_shortcut": {
-    "title": "settingSendspinMaShortcutTitle",
-    "description": "settingSendspinMaShortcutDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "sendspin.ma_open_fullscreen": {
     "title": "settingSendspinMaOpenFullscreenTitle",
@@ -1144,8 +1160,8 @@
     "description": "settingSendspinDismissKeepsPlayingDescription"
   },
   "sendspin.player_shortcut": {
-    "title": "settingSendspinPlayerShortcutTitle",
-    "description": "settingSendspinPlayerShortcutDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "sendspin.fullscreen": {
     "title": "settingSendspinFullscreenTitle",
@@ -1191,6 +1207,10 @@
     "title": "settingSendspinFullscreenDoubleTapTitle",
     "description": "settingSendspinFullscreenDoubleTapDescription"
   },
+  "sendspin.fullscreen_close_button": {
+    "title": "settingSendspinFullscreenCloseButtonTitle",
+    "description": "settingSendspinFullscreenCloseButtonDescription"
+  },
   "sendspin.fullscreen_on_play": {
     "title": "settingSendspinFullscreenOnPlayTitle",
     "description": "settingSendspinFullscreenOnPlayDescription"
@@ -1200,8 +1220,8 @@
     "description": "settingSendspinFullscreenMotionDescription"
   },
   "sendspin.fullscreen_shortcut": {
-    "title": "settingSendspinFullscreenShortcutTitle",
-    "description": "settingSendspinFullscreenShortcutDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "sendspin.speaker_pill": {
     "title": "settingSendspinSpeakerPillTitle",
@@ -1256,8 +1276,8 @@
     "description": "settingIntercomKeyDescription"
   },
   "intercom.menu": {
-    "title": "settingIntercomMenuTitle",
-    "description": "settingIntercomMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "intercom.answer_mode": {
     "title": "settingIntercomAnswerModeTitle",
@@ -1415,6 +1435,10 @@
     "title": "settingLauncherAutoReturnHoldTitle",
     "description": "settingLauncherAutoReturnHoldDescription"
   },
+  "launcher.menu": {
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
+  },
   "gestures.clap_strictness": {
     "title": "settingClapStrictnessTitle",
     "description": "settingClapDetectionDescription"
@@ -1432,8 +1456,8 @@
     "description": "settingLockdownEnabledDescription"
   },
   "lockdown.menu": {
-    "title": "settingLockdownMenuTitle",
-    "description": "settingLockdownMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "lockdown.blackout": {
     "title": "settingLockdownBlackoutTitle",
@@ -1823,6 +1847,10 @@
     "title": "settingVoiceStopWordTitle",
     "description": "settingVoiceStopWordDescription"
   },
+  "voice.stop_word_fine_tune": {
+    "title": "settingVoiceStopWordFineTuneTitle",
+    "description": "settingVoiceStopWordFineTuneDescription"
+  },
   "voice.wake_arbitration": {
     "title": "settingVoiceWakeArbitrationTitle",
     "description": "settingVoiceWakeArbitrationDescription"
@@ -1976,8 +2004,8 @@
     "description": "settingAlarmsTtsVoiceDescription"
   },
   "alarms.menu": {
-    "title": "settingAlarmsMenuTitle",
-    "description": "settingAlarmsMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "voice.realtime_instructions": {
     "title": "settingVoiceRealtimeInstructionsTitle",
@@ -2340,8 +2368,8 @@
     "description": "settingCalendarWeatherEntityDescription"
   },
   "calendar.menu": {
-    "title": "settingCalendarMenuTitle",
-    "description": "settingCalendarMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "calendar.idle_close_minutes": {
     "title": "settingCalendarIdleCloseMinutesTitle",
@@ -2468,8 +2496,8 @@
     "description": "settingVoiceAmazonLocaleDescription"
   },
   "library.menu": {
-    "title": "settingCalendarMenuTitle",
-    "description": "settingLibraryMenuDescription"
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription"
   },
   "library.idle_close_minutes": {
     "title": "settingCalendarIdleCloseMinutesTitle",
@@ -2494,6 +2522,10 @@
   "library.grid_density": {
     "title": "settingLibraryGridDensityTitle",
     "description": "settingLibraryGridDensityDescription"
+  },
+  "library.source_picker": {
+    "title": "settingLibrarySourcePickerTitle",
+    "description": "settingLibrarySourcePickerDescription"
   },
   "library.text_scale": {
     "title": "settingSendspinFullscreenTextScaleTitle",

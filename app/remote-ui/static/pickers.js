@@ -120,7 +120,10 @@ export function openMediaBrowser() {
         r.style.cursor = 'pointer';
         r.addEventListener('click', () => {
           if (c.can_expand) open(c.media_content_id, c.title, true);
-          else if (c.can_play) close({ id: c.media_content_id, isFolder: false });
+          // HA's Immich source marks every photo can_play false, so a photo
+          // is a pick as well.
+          else if (c.can_play || c.media_class === 'image' || /^image\//.test(c.media_content_type || ''))
+            close({ id: c.media_content_id, isFolder: false });
         });
         list.appendChild(r);
       }

@@ -36,6 +36,8 @@ const _actionGroups = <(String, List<(String, String, IconData)>)>[
       ),
       ('alarm_stop', 'Stop the alarm', Icons.alarm_off_outlined),
       ('alarm_snooze', 'Snooze the alarm', Icons.snooze_outlined),
+      ('alarms', 'Open the alarm list', Icons.alarm_outlined),
+      ('alarm_next', 'Open the next alarm', Icons.alarm_on_outlined),
       ('calendar', 'Open the calendar', Icons.calendar_month_outlined),
       ('voice_wake', 'Start a voice command', Icons.mic_none_outlined),
       ('voice_stop', 'Stop the voice assistant', Icons.stop_circle_outlined),
@@ -165,6 +167,8 @@ class GestureActionPicker {
       'intercom_decline' ||
       'alarm_stop' ||
       'alarm_snooze' ||
+      'alarms' ||
+      'alarm_next' ||
       'calendar' ||
       'music_library' ||
       'voice_wake' ||
