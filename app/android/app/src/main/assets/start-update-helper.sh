@@ -36,4 +36,5 @@ while [ "$ks_helper_attempt" -lt 5 ]; do
     ks_helper_attempt=$((ks_helper_attempt + 1))
 done
 echo "Could not start the update helper. See $ks_helper_log on the device."
+cat "$ks_helper_log" 2>/dev/null
 exit 1

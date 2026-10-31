@@ -129,9 +129,14 @@ void main() {
         'loadDashboard': {'dashboard': 'lovelace'},
         'haNavigate': {'path': 'lovelace/home'},
         'launchApp': {'package': 'com.example.music'},
+        'openKioskLink': {'url': 'ks://alarms'},
+        'openAlarms': {'alarm': 'next'},
       };
-      String target(String name) =>
-          name == 'launchApp' ? 'pluginLaunchApp' : name;
+      String target(String name) => switch (name) {
+        'launchApp' => 'pluginLaunchApp',
+        'openKioskLink' => 'pluginOpenKioskLink',
+        _ => name,
+      };
       for (final name in PluginHostApi.controlNames) {
         register(target(name), (p) async {
           expect(
@@ -220,6 +225,20 @@ void main() {
           {'package': 'music'},
           {'package': 'com.example/.Main'},
           {'package': 'com.example', 'activity': 'Main'},
+        ],
+        'openAlarms': [
+          {'alarm': 'first'},
+          {'alarm': true},
+          {'alarm': 'next', 'view': 'list'},
+        ],
+        'openKioskLink': [
+          {},
+          {'url': ''},
+          {'url': 'ks://nothing'},
+          {'url': 'ks://alarms?x=1'},
+          {'url': 'https://example.com'},
+          {'url': 'app://com.example.music'},
+          {'url': 'ks://alarms', 'extra': true},
         ],
         'showLinkPage': [
           {'url': 'javascript:alert(1)'},

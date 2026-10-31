@@ -1001,10 +1001,19 @@ class CameraMotion(
         // No camera hardware: say so without waking CameraX, whose presence
         // tracking would retry the missing camera service every second
         // forever (see DeviceCamera's hasCamera comment, issue #193).
-        if (cameraFacings(context).isEmpty()) {
-            sink.error("camera", NO_CAMERA_MESSAGE, null)
-            return
+        CameraEnumeration.facings(context) { facings ->
+            if (session != mySession) return@facings
+            if (facings.isEmpty()) sink.error("camera", NO_CAMERA_MESSAGE, null)
+            else bindProvider(facing, sink, mySession, diagnosticId)
         }
+    }
+
+    private fun bindProvider(
+        facing: CameraSelector,
+        sink: EventChannel.EventSink,
+        mySession: Int,
+        diagnosticId: String,
+    ) {
         val future = ProcessCameraProvider.getInstance(context)
         // Both the timeout and the listener run on the main thread, so the
         // flag needs no synchronization; it keeps a provider that resolves
@@ -1120,6 +1129,8 @@ class CameraMotion(
                             val displays = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
                             var finished = false
                             var prepared: CameraRtspEncoder? = null
+                            var preparing = false
+                            var latestTransform: RtspVideoTransform? = null
                             val listener = object : DisplayManager.DisplayListener {
                                 override fun onDisplayAdded(id: Int) {}
                                 override fun onDisplayRemoved(id: Int) {}
@@ -1154,6 +1165,9 @@ class CameraMotion(
                                     existing.updateTransform(transform)
                                     return@setTransformationInfoListener
                                 }
+                                latestTransform = transform
+                                if (preparing) return@setTransformationInfoListener
+                                preparing = true
                                 val encoder = CameraRtspEncoder(fps, bitrate,
                                     { units -> if (session == mySession) server.config(units) },
                                     { units, time -> if (session == mySession) {
@@ -1166,25 +1180,47 @@ class CameraMotion(
                                     dateTimeBackground = rtspConfig["dateTimeBackground"] == true) { message ->
                                     mainHandler.post { if (session == mySession) server.fail(message) }
                                 }
-                                try {
-                                    val surface = encoder.surface(request.resolution, transform)
-                                    prepared = encoder
-                                    rtspEncoder = encoder
-                                    if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = encoder::snapshot
-                                    request.provideSurface(surface, executor) {
-                                        finishRequest()
-                                        if (rtspEncoder === encoder) {
-                                            rtspEncoder = null
-                                            if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = null
-                                        }
-                                        kotlin.concurrent.thread(name = "camera-rtsp-release") { encoder.close() }
+                                // Creating the codec is a binder call into the
+                                // media codec service, which held the main
+                                // thread for a minute on a Lenovo TB328FU until
+                                // the main thread watchdog restarted the
+                                // process. The bridge runs its own GL thread,
+                                // so the whole setup can happen here.
+                                kotlin.concurrent.thread(name = "camera-rtsp-setup") {
+                                    val made = try {
+                                        Result.success(encoder.surface(request.resolution, transform))
+                                    } catch (e: Exception) {
+                                        Result.failure(e)
                                     }
-                                } catch (e: Exception) {
-                                    request.willNotProvideSurface()
-                                    finishRequest()
-                                    CameraDiagnostics.record(diagnosticId, "video surface failure",
-                                        "requested=${width}x$height, actual=${request.resolution}", true, e)
-                                    server.fail(e.message ?: "H.264 video encoding unavailable.")
+                                    executor.execute {
+                                        preparing = false
+                                        val surface = made.getOrElse { e ->
+                                            request.willNotProvideSurface()
+                                            if (!finished) finishRequest()
+                                            CameraDiagnostics.record(diagnosticId, "video surface failure",
+                                                "requested=${width}x$height, actual=${request.resolution}", true, e)
+                                            if (session == mySession) server.fail(e.message ?: "H.264 video encoding unavailable.")
+                                            return@execute
+                                        }
+                                        if (finished || session != mySession) {
+                                            request.willNotProvideSurface()
+                                            if (!finished) finishRequest()
+                                            kotlin.concurrent.thread(name = "camera-rtsp-release") { encoder.close() }
+                                            return@execute
+                                        }
+                                        prepared = encoder
+                                        rtspEncoder = encoder
+                                        if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = encoder::snapshot
+                                        latestTransform?.takeIf { it != transform }?.let(encoder::updateTransform)
+                                        request.provideSurface(surface, executor) {
+                                            finishRequest()
+                                            if (rtspEncoder === encoder) {
+                                                rtspEncoder = null
+                                                if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = null
+                                            }
+                                            kotlin.concurrent.thread(name = "camera-rtsp-release") { encoder.close() }
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -177,7 +177,12 @@ class _MediaPickerDialogState extends State<_MediaPickerDialog> {
     final title = child['title'] as String? ?? '?';
     final id = child['media_content_id'] as String?;
     final expand = child['can_expand'] == true;
-    final play = child['can_play'] == true;
+    // HA's Immich source marks every photo can_play false, so a photo is a
+    // pick as well.
+    final play =
+        child['can_play'] == true ||
+        child['media_class'] == 'image' ||
+        '${child['media_content_type']}'.startsWith('image/');
     return ListTile(
       dense: true,
       leading: Icon(

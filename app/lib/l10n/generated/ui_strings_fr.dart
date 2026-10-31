@@ -940,6 +940,13 @@ class UiStringsFr extends UiStrings {
   String get drawerThemeAndroid => 'Suivre Android';
 
   @override
+  String get drawerItemsSearch => 'Rechercher des éléments du menu';
+
+  @override
+  String get drawerItemsSettingsKept =>
+      'Toujours affiché tant que l\'administration à distance est désactivée.';
+
+  @override
   String drawerVersion(String version) {
     return 'Version $version';
   }
@@ -2002,6 +2009,12 @@ class UiStringsFr extends UiStrings {
   String get gestureVoiceMute => 'Couper ou rétablir le son de Voice Satellite';
 
   @override
+  String get gestureOpenAlarmList => 'Ouvrir la liste des alarmes';
+
+  @override
+  String get gestureOpenNextAlarm => 'Ouvrir la prochaine alarme';
+
+  @override
   String gestureDescribeCornerTaps(String count, String corner) {
     return '$count appuis dans le coin $corner';
   }
@@ -2998,6 +3011,14 @@ class UiStringsFr extends UiStrings {
       'Taille des vignettes de la bibliothèque. Compacte en affiche plus par ligne.';
 
   @override
+  String get settingLibrarySourcePickerTitle =>
+      'Afficher le choix de la source';
+
+  @override
+  String get settingLibrarySourcePickerDescription =>
+      'Affiche le choix de la source dans la bibliothèque. Désactivez-le pour garder la bibliothèque sur la source choisie plus haut.';
+
+  @override
   String get libraryDensityComfortable => 'Confortable';
 
   @override
@@ -3178,10 +3199,6 @@ class UiStringsFr extends UiStrings {
   String libraryGroupName(String speaker, String count) {
     return '$speaker + $count';
   }
-
-  @override
-  String get settingLibraryMenuDescription =>
-      'Ajoute une entrée Bibliothèque musicale au menu du kiosque.';
 
   @override
   String get settingKioskAllowMusicLibraryDescription =>
@@ -4795,13 +4812,6 @@ class UiStringsFr extends UiStrings {
       'Une alarme qui sonne s\'affiche sur cet économiseur d\'écran, dans son style, au lieu de son propre écran.';
 
   @override
-  String get settingAlarmsMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingAlarmsMenuDescription =>
-      'Ajoute une entrée Alarmes au menu du kiosque.';
-
-  @override
   String get settingAlarmsVolumeTitle => 'Volume des alarmes';
 
   @override
@@ -4985,13 +4995,6 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingCalendarWeatherEntityDescription =>
       'Ajoute la prévision à chaque jour.';
-
-  @override
-  String get settingCalendarMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingCalendarMenuDescription =>
-      'Ajoute une entrée Calendrier au menu du kiosque.';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle =>
@@ -7500,6 +7503,16 @@ class UiStringsFr extends UiStrings {
   String get deviceToastPlugins => 'Actions des plugins';
 
   @override
+  String get settingUiDrawerItemsTitle => 'Éléments du menu latéral';
+
+  @override
+  String get settingUiDrawerItemsDescription =>
+      'Choisissez les éléments affichés dans le menu latéral et leur ordre.';
+
+  @override
+  String get settingShowInKioskMenuTitle => 'Afficher dans le menu du kiosque';
+
+  @override
   String get settingDlnaEnabledTitle => 'Activer le récepteur DLNA';
 
   @override
@@ -8237,13 +8250,6 @@ class UiStringsFr extends UiStrings {
       'Désactive automatiquement le mode maintien après la durée définie. Réglez sur 0 pour maintenir jusqu\'à une désactivation manuelle.';
 
   @override
-  String get settingHaHoldMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingHaHoldMenuDescription =>
-      'Ajoute une entrée de menu pour activer et désactiver le mode maintien.';
-
-  @override
   String get haHoldHint =>
       'Épingler la vue actuelle, fin automatique, entrée de menu';
 
@@ -8600,13 +8606,6 @@ class UiStringsFr extends UiStrings {
       'Masquer la barre de navigation latérale tant que le mode kiosque HA est activé.';
 
   @override
-  String get settingHaKioskMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingHaKioskMenuDescription =>
-      'Ajouter une entrée Mode kiosque HA au menu du kiosque pour l\'activer et le désactiver.';
-
-  @override
   String get settingHaDashboardCarouselTitle =>
       'Activer le carrousel de tableau de bord';
 
@@ -8800,13 +8799,6 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingIntercomKeyPlaceholder =>
       'Créée lors de l\'activation de l\'interphone';
-
-  @override
-  String get settingIntercomMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingIntercomMenuDescription =>
-      'Ajoute une entrée Interphone au menu du kiosque.';
 
   @override
   String get intercomNeedsAdmin =>
@@ -9440,13 +9432,6 @@ class UiStringsFr extends UiStrings {
       'Désactive les interactions à l\'écran jusqu\'à ce que le mode soit désactivé depuis Home Assistant ou via le geste de sortie.';
 
   @override
-  String get settingLockdownMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingLockdownMenuDescription =>
-      'Ajoute une entrée Mode verrouillage au menu du kiosque qui verrouille l\'écran. Utilisez le geste de sortie, l\'administration à distance ou Home Assistant pour le déverrouiller.';
-
-  @override
   String get settingLockdownBlackoutTitle => 'Écran noir';
 
   @override
@@ -9579,14 +9564,6 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingSendspinDismissKeepsPlayingDescription =>
       'Écarter le lecteur flottant d\'un geste le masque sans arrêter la musique.';
-
-  @override
-  String get settingSendspinPlayerShortcutTitle =>
-      'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingSendspinPlayerShortcutDescription =>
-      'Ajoute une entrée dans le menu du kiosque qui affiche ou masque le lecteur flottant. ATTENTION : si rien n\'est en cours de lecture ou qu\'il n\'y a pas de file d\'attente pour ce lecteur, elle n\'apparaîtra pas.';
 
   @override
   String get mediaFloatingPage => 'Lecteur flottant';
@@ -9730,14 +9707,6 @@ class UiStringsFr extends UiStrings {
       'Un jeton de longue durée provenant de Music Assistant (Paramètres, puis Utilisateurs). Un accès en lecture suffit pour les paroles ; le raccourci du menu du kiosque ouvre l\'interface web avec l\'identité du titulaire du jeton.';
 
   @override
-  String get settingSendspinMaShortcutTitle =>
-      'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingSendspinMaShortcutDescription =>
-      'Ajoute une entrée Music Assistant au menu du kiosque, ouvrant l\'interface web du serveur par-dessus le tableau de bord. Nécessite l\'adresse du serveur ci-dessus.';
-
-  @override
   String get settingSendspinMaOpenFullscreenTitle =>
       'Ouvrir directement sur Lecture en cours';
 
@@ -9861,6 +9830,14 @@ class UiStringsFr extends UiStrings {
       'Un double appui n\'importe où sur la vue Lecture en cours la ferme. Le bouton de fermeture ne sera pas affiché. Ignoré tant que Lecture en cours est affichée aux côtés d\'un économiseur d\'écran.';
 
   @override
+  String get settingSendspinFullscreenCloseButtonTitle =>
+      'Toujours afficher le bouton de fermeture';
+
+  @override
+  String get settingSendspinFullscreenCloseButtonDescription =>
+      'Affiche le bouton de fermeture même quand Double appui pour fermer est activé.';
+
+  @override
   String get settingSendspinFullscreenOnPlayTitle =>
       'Lancer Lecture en cours quand la musique démarre';
 
@@ -9896,14 +9873,6 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingSendspinFullscreenReturnViewDescription =>
       'La vue affichée après la fermeture de Lecture en cours.';
-
-  @override
-  String get settingSendspinFullscreenShortcutTitle =>
-      'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingSendspinFullscreenShortcutDescription =>
-      'Ajoute une entrée dans le menu du kiosque qui affiche la vue Lecture en cours. ATTENTION : si rien n\'est en cours de lecture ou qu\'il n\'y a pas de file d\'attente pour ce lecteur, elle n\'apparaîtra pas.';
 
   @override
   String get settingSendspinSpeakerPillTitle =>
@@ -11641,13 +11610,6 @@ class UiStringsFr extends UiStrings {
       'Déplace légèrement l\'image chaque minute pour protéger les écrans OLED. Sans effet pour l\'économiseur d\'écran noir, dont les pixels sont déjà éteints.';
 
   @override
-  String get settingScreensaverMenuTitle => 'Afficher dans le menu du kiosque';
-
-  @override
-  String get settingScreensaverMenuDescription =>
-      'Ajoute une entrée Démarrer l\'économiseur d\'écran au menu du kiosque.';
-
-  @override
   String get settingScreensaverFollowAnimationScaleTitle =>
       'Suivre les paramètres d\'animation d\'Android';
 
@@ -11849,6 +11811,29 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingScreensaverDashboardDoubleTapDescription =>
       'Les appuis simples interagissent avec le tableau de bord au lieu de fermer l\'économiseur d\'écran.';
+
+  @override
+  String get settingScreensaverDashboardKioskTitle =>
+      'Remplacer le mode kiosque HA';
+
+  @override
+  String get settingScreensaverDashboardKioskDescription =>
+      'Choisissez ce que l\'économiseur d\'écran masque, indépendamment du mode kiosque HA.';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderTitle => 'Masquer l\'en-tête';
+
+  @override
+  String get settingScreensaverDashboardHideHeaderDescription =>
+      'Masquer la barre d\'outils du tableau de bord et les onglets de vue sur l\'économiseur d\'écran.';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarTitle =>
+      'Masquer la barre latérale';
+
+  @override
+  String get settingScreensaverDashboardHideSidebarDescription =>
+      'Masquer la barre de navigation latérale sur l\'économiseur d\'écran.';
 
   @override
   String get screensaverDashboardSection =>
@@ -15081,6 +15066,14 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingVoiceStopWordDescription =>
       'Dites « stop » pour interrompre une réponse, une alerte de minuteur ou une annonce.';
+
+  @override
+  String get settingVoiceStopWordFineTuneTitle =>
+      'Réglage fin de la sensibilité du mot d\'arrêt';
+
+  @override
+  String get settingVoiceStopWordFineTuneDescription =>
+      'Ajuste la sensibilité du mot d\'arrêt par petits pas. Augmentez-la si vous devez souvent répéter « stop », baissez-la si les réponses s\'arrêtent par erreur.';
 
   @override
   String get settingVoiceWakeArbitrationTitle =>

@@ -2,7 +2,7 @@
 
 Kiosk Satellite has alarms of its own. They live on the kiosk and ring without Home Assistant, a network or the dashboard. You get a list with a switch per alarm, a scroll wheel to pick the time, one page for the details and a full screen with Snooze and Stop when an alarm rings.
 
-Open the list from **Alarms** in the kiosk menu, from **Manage alarms** under **Settings, Alarms**, from the **Next alarm** screensaver widget, from the **Alarms** page of the remote admin or from a dashboard button pointed at `ks://alarms` (see [Dashboard Links](dashboard-links.md)).
+Open the list from **Alarms** in the kiosk menu, from **Manage alarms** under **Settings, Alarms**, from the **Next alarm** screensaver widget, from the **Alarms** page of the remote admin or from a dashboard button pointed at `ks://alarms` (see [Dashboard Links](dashboard-links.md)). Point it at `ks://alarms/next` to open the alarm that rings next instead. The **Open the alarm list** and **Open the next alarm** [gesture actions](gestures.md) do the same.
 
 ## Setting an alarm
 
@@ -56,7 +56,7 @@ Home Assistant makes the speech with the **Text to speech engine**, **Language**
 
 | Setting | What it does |
 | --- | --- |
-| Show in the kiosk menu | Adds the Alarms entry to the kiosk menu. On by default. |
+| Show in the kiosk menu | Opens [Device > User Interface > Drawer menu items](drawer-menu.md), where the Alarms entry is turned on or off. On by default. |
 | Manage alarms | Opens the alarm list. Shows when the next alarm rings. |
 | Alarm volume | How loud alarms ring. It sets the Android alarm volume while an alarm rings and puts it back after, apart from the media and assistant volumes. |
 | Ease in the volume | The default for new alarms and alarms that never chose: start quiet and grow to the alarm volume. Off by default. |
@@ -74,7 +74,7 @@ Home Assistant makes the speech with the **Text to speech engine**, **Language**
 
 The screensaver waits while the alarm list is open, so it never cuts off an alarm being set.
 
-[Fleet Management](fleet.md) syncs these defaults, Show in the kiosk menu included, under its Alarms category. The alarms themselves stay on each kiosk.
+[Fleet Management](fleet.md) syncs these defaults under its Alarms category. The drawer menu entries travel with the Device category. The alarms themselves stay on each kiosk.
 
 ## Next alarm widget
 

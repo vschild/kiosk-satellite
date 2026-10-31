@@ -197,6 +197,7 @@ void main() {
           defs.sendspinFullscreenControls,
           defs.sendspinFullscreenLayout,
           defs.sendspinFullscreenDoubleTap,
+          defs.sendspinFullscreenCloseButton,
           defs.sendspinFullscreenMotion,
           defs.sendspinFullscreenReturn,
           defs.sendspinFullscreenReturnView,
@@ -255,6 +256,11 @@ void main() {
       expect(
         defs.sendspinFullscreenDoubleTap.dependsOn,
         'sendspin.fullscreen_controls',
+      );
+      expect(defs.sendspinFullscreenCloseButton.defaultValue, isFalse);
+      expect(
+        defs.sendspinFullscreenCloseButton.dependsOn,
+        'sendspin.fullscreen_double_tap',
       );
       // The view's own buttons flip lyrics and the queue and the choice
       // sticks: neither draws a settings row any more.
@@ -695,7 +701,8 @@ void main() {
           'title': 'Song',
           'artworkUrl': 'https://ma.local/a',
         });
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        // A server that sends no cover frames: the URL after one wait.
+        await Future<void>.delayed(const Duration(milliseconds: 2100));
         expect(pushes(), hasLength(1));
         final args = pushes().single.arguments as Map;
         expect(args['url'], 'https://ma.local/a');
@@ -719,6 +726,139 @@ void main() {
         expect((pushes().last.arguments as Map)['url'], 'https://ma.local/b');
       },
     );
+
+    test('the server\'s cover frame comes before the URL', () async {
+      await build(
+        extra: {
+          'ks.sendspin.player': '',
+          'ks.sendspin.player_source': '',
+          'ks.sendspin.enabled': true,
+        },
+      );
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final native = <MethodCall>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        native.add(call);
+        if (call.method == 'artworkFrame') {
+          final seq = (call.arguments as Map)['seq'] as int;
+          return Uint8List.fromList([seq, seq]);
+        }
+        return true;
+      });
+      final asked = <String>[];
+      sendspin.artworkFetcher = (url) async {
+        if (url.startsWith(SendspinManager.artworkFrameScheme)) {
+          return sendspin.fetchArtwork(url);
+        }
+        asked.add(url);
+        return Uint8List.fromList([7]);
+      };
+      const codec = StandardMethodCodec();
+      Future<void> fromNative(String method, Map<String, Object?> args) =>
+          messenger.handlePlatformMessage(
+            channel.name,
+            codec.encodeMethodCall(MethodCall(method, args)),
+            (_) {},
+          );
+      Iterable<MethodCall> pulls() =>
+          native.where((c) => c.method == 'artworkFrame');
+      String? shown() => sendspin.nowPlaying.value?['artworkUrl'] as String?;
+      Matcher frame(int seq) =>
+          matches(RegExp('^sendspin-artwork:[0-9a-z]+-$seq\$'));
+      await fromNative('playingChanged', {'playing': true});
+      // Music Assistant sends the frame just before the track.
+      await fromNative('artworkChanged', {'seq': 1});
+      await fromNative('metadataChanged', {
+        'title': 'A',
+        'artworkUrl': 'https://cdn/a.jpg',
+      });
+      expect(shown(), frame(1));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(pulls(), hasLength(1));
+      final push = native.lastWhere((c) => c.method == 'setArtwork');
+      expect((push.arguments as Map)['url'], 'https://cdn/a.jpg');
+      expect((push.arguments as Map)['bytes'], [1, 1]);
+      // The engine re-sends the whole track with each update.
+      await fromNative('metadataChanged', {
+        'title': 'A',
+        'artworkUrl': 'https://cdn/a.jpg',
+      });
+      expect(shown(), frame(1));
+      // The next track's frame waits for its metadata.
+      await fromNative('artworkChanged', {'seq': 2});
+      expect(shown(), frame(1));
+      await fromNative('metadataChanged', {
+        'title': 'B',
+        'artworkUrl': 'https://cdn/b.jpg',
+      });
+      expect(shown(), frame(2));
+      // A progress update can bring the URL first: the cover before stays
+      // until the frame lands.
+      await fromNative('metadataChanged', {
+        'title': 'C',
+        'artworkUrl': 'https://cdn/c.jpg',
+      });
+      expect(shown(), frame(2));
+      await fromNative('artworkChanged', {'seq': 3});
+      expect(shown(), frame(3));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(asked, isEmpty);
+      // No frame at all: the URL after a short wait.
+      await fromNative('metadataChanged', {
+        'title': 'D',
+        'artworkUrl': 'https://cdn/d.jpg',
+      });
+      expect(shown(), frame(3));
+      await Future<void>.delayed(const Duration(milliseconds: 2100));
+      expect(shown(), 'https://cdn/d.jpg');
+      expect(asked, ['https://cdn/d.jpg']);
+      // A frame after the URL loaded leaves it be.
+      await fromNative('artworkChanged', {'seq': 4});
+      expect(shown(), 'https://cdn/d.jpg');
+      expect(pulls(), hasLength(3));
+    });
+
+    test('a server that sends no frames gets the URL after one wait', () async {
+      await build(
+        extra: {
+          'ks.sendspin.player': '',
+          'ks.sendspin.player_source': '',
+          'ks.sendspin.enabled': true,
+        },
+      );
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final native = <MethodCall>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        native.add(call);
+        return true;
+      });
+      sendspin.artworkFetcher = (url) async => Uint8List.fromList([1]);
+      const codec = StandardMethodCodec();
+      Future<void> fromNative(String method, Map<String, Object?> args) =>
+          messenger.handlePlatformMessage(
+            channel.name,
+            codec.encodeMethodCall(MethodCall(method, args)),
+            (_) {},
+          );
+      await fromNative('playingChanged', {'playing': true});
+      // The first track waits for a frame that never comes.
+      await fromNative('metadataChanged', {
+        'title': 'A',
+        'artworkUrl': 'https://ma.local/a',
+      });
+      expect(sendspin.nowPlaying.value?['artworkUrl'], isNull);
+      await Future<void>.delayed(const Duration(milliseconds: 2100));
+      expect(sendspin.nowPlaying.value?['artworkUrl'], 'https://ma.local/a');
+      // After that the server's URLs load at once.
+      await fromNative('metadataChanged', {
+        'title': 'B',
+        'artworkUrl': 'https://ma.local/b',
+      });
+      expect(sendspin.nowPlaying.value?['artworkUrl'], 'https://ma.local/b');
+      expect(native.where((c) => c.method == 'artworkFrame'), isEmpty);
+    });
 
     test('a track with no album or cover clears the one before\'s', () async {
       await build(
@@ -747,6 +887,8 @@ void main() {
         'album': 'Cigarettes After Sex',
         'artworkUrl': 'https://ma.local/a',
       });
+      // A server that sends no cover frames: the URL after one wait.
+      await Future<void>.delayed(const Duration(milliseconds: 2100));
       expect(sendspin.nowPlaying.value?['artworkUrl'], 'https://ma.local/a');
       // A local file from Home Assistant's media: tags, no album or cover.
       await fromNative('metadataChanged', {
@@ -862,175 +1004,172 @@ void main() {
       expect(native.where((c) => c.method == 'rebasePosition'), hasLength(1));
     });
 
-    test(
-      'the local controls follow what the playing source can do',
-      () async {
-        // Music Assistant advertises every command to a Sendspin
-        // controller, a source with no controls (its AirPlay Receiver)
-        // included. The watcher says what the source can do.
-        await build(
-          extra: {
-            'ks.sendspin.player': '',
-            'ks.sendspin.player_source': '',
-            'ks.sendspin.enabled': true,
-            'ks.sendspin.client_id': 'abc123',
-          },
-        );
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        final messenger =
-            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-        final native = <MethodCall>[];
-        messenger.setMockMethodCallHandler(channel, (call) async {
-          native.add(call);
-          return call.method == 'getStatus' ? null : true;
-        });
-        const codec = StandardMethodCodec();
-        Future<void> fromNative(String method, Map<String, Object?> args) =>
-            messenger.handlePlatformMessage(
-              channel.name,
-              codec.encodeMethodCall(MethodCall(method, args)),
-              (_) {},
-            );
-        const all = [
+    test('the local controls follow what the playing source can do', () async {
+      // Music Assistant advertises every command to a Sendspin
+      // controller, a source with no controls (its AirPlay Receiver)
+      // included. The watcher says what the source can do.
+      await build(
+        extra: {
+          'ks.sendspin.player': '',
+          'ks.sendspin.player_source': '',
+          'ks.sendspin.enabled': true,
+          'ks.sendspin.client_id': 'abc123',
+        },
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final native = <MethodCall>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        native.add(call);
+        return call.method == 'getStatus' ? null : true;
+      });
+      const codec = StandardMethodCodec();
+      Future<void> fromNative(String method, Map<String, Object?> args) =>
+          messenger.handlePlatformMessage(
+            channel.name,
+            codec.encodeMethodCall(MethodCall(method, args)),
+            (_) {},
+          );
+      const all = [
+        'play',
+        'pause',
+        'stop',
+        'next',
+        'previous',
+        'volume',
+        'mute',
+        'repeat_off',
+        'repeat_one',
+        'repeat_all',
+        'shuffle',
+        'unshuffle',
+        'switch',
+        'seek',
+        'seek_relative',
+      ];
+      await fromNative('controllerChanged', {
+        'supportedCommands': all,
+        'shuffle': false,
+        'repeat': 'off',
+      });
+      await fromNative('metadataChanged', {'title': 'Song'});
+      await fromNative('playingChanged', {'playing': true});
+      List<Object?> shown() =>
+          sendspin.nowPlaying.value!['supportedCommands'] as List<Object?>;
+      Future<List<Object?>> status() async {
+        final res = await commands.execute('sendspinStatus', const {});
+        return (res.data as Map)['supportedCommands'] as List<Object?>;
+      }
+
+      List<Object?>? lastWithheld() {
+        final calls = native.where((c) => c.method == 'withholdCommands');
+        return calls.isEmpty
+            ? null
+            : (calls.last.arguments as Map)['commands'] as List<Object?>;
+      }
+
+      // A Music Assistant queue: everything stays.
+      fake!.onSnapshot({
+        'title': 'Song',
+        'playing': true,
+        'supportedCommands': MaRemotePlayer.commands,
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(shown(), all);
+      expect(await status(), all);
+      expect(lastWithheld(), isNull);
+
+      // A source with no controls: stop and volume, and the rest the
+      // controller has that are not transport.
+      fake!.queue = false;
+      fake!.onSnapshot({
+        'title': 'Song',
+        'playing': true,
+        'supportedCommands': ['stop', 'volume'],
+      });
+      await Future<void>.delayed(Duration.zero);
+      const bare = ['stop', 'volume', 'mute', 'switch'];
+      expect(shown(), bare);
+      expect(await status(), bare);
+      expect(
+        lastWithheld(),
+        unorderedEquals([
           'play',
           'pause',
-          'stop',
           'next',
           'previous',
-          'volume',
-          'mute',
+          'seek',
+          'seek_relative',
           'repeat_off',
           'repeat_one',
           'repeat_all',
           'shuffle',
           'unshuffle',
-          'switch',
-          'seek',
-          'seek_relative',
-        ];
-        await fromNative('controllerChanged', {
-          'supportedCommands': all,
-          'shuffle': false,
-          'repeat': 'off',
-        });
-        await fromNative('metadataChanged', {'title': 'Song'});
-        await fromNative('playingChanged', {'playing': true});
-        List<Object?> shown() =>
-            sendspin.nowPlaying.value!['supportedCommands'] as List<Object?>;
-        Future<List<Object?>> status() async {
-          final res = await commands.execute('sendspinStatus', const {});
-          return (res.data as Map)['supportedCommands'] as List<Object?>;
-        }
+        ]),
+      );
+      // The engine's next word on the controller keeps the cut.
+      await fromNative('controllerChanged', {
+        'supportedCommands': all,
+        'shuffle': false,
+        'repeat': 'off',
+      });
+      expect(shown(), bare);
 
-        List<Object?>? lastWithheld() {
-          final calls = native.where((c) => c.method == 'withholdCommands');
-          return calls.isEmpty
-              ? null
-              : (calls.last.arguments as Map)['commands'] as List<Object?>;
-        }
-
-        // A Music Assistant queue: everything stays.
-        fake!.onSnapshot({
-          'title': 'Song',
-          'playing': true,
-          'supportedCommands': MaRemotePlayer.commands,
-        });
-        await Future<void>.delayed(Duration.zero);
-        expect(shown(), all);
-        expect(await status(), all);
-        expect(lastWithheld(), isNull);
-
-        // A source with no controls: stop and volume, and the rest the
-        // controller has that are not transport.
-        fake!.queue = false;
-        fake!.onSnapshot({
-          'title': 'Song',
-          'playing': true,
-          'supportedCommands': ['stop', 'volume'],
-        });
-        await Future<void>.delayed(Duration.zero);
-        const bare = ['stop', 'volume', 'mute', 'switch'];
-        expect(shown(), bare);
-        expect(await status(), bare);
-        expect(
-          lastWithheld(),
-          unorderedEquals([
-            'play',
-            'pause',
-            'next',
-            'previous',
-            'seek',
-            'seek_relative',
-            'repeat_off',
-            'repeat_one',
-            'repeat_all',
-            'shuffle',
-            'unshuffle',
-          ]),
-        );
-        // The engine's next word on the controller keeps the cut.
-        await fromNative('controllerChanged', {
-          'supportedCommands': all,
-          'shuffle': false,
-          'repeat': 'off',
-        });
-        expect(shown(), bare);
-
-        // A source with transport of its own and a seek bar: Music
-        // Assistant's controller seeks, repeats and shuffles a queue only.
-        fake!.onSnapshot({
-          'title': 'Song',
-          'playing': true,
-          'supportedCommands': [
-            'stop',
-            'play',
-            'pause',
-            'next',
-            'previous',
-            'seek',
-            'volume',
-          ],
-        });
-        await Future<void>.delayed(Duration.zero);
-        const transport = [
+      // A source with transport of its own and a seek bar: Music
+      // Assistant's controller seeks, repeats and shuffles a queue only.
+      fake!.onSnapshot({
+        'title': 'Song',
+        'playing': true,
+        'supportedCommands': [
+          'stop',
           'play',
           'pause',
-          'stop',
           'next',
           'previous',
+          'seek',
           'volume',
-          'mute',
-          'switch',
-        ];
-        expect(shown(), transport);
-        expect(await status(), transport);
+        ],
+      });
+      await Future<void>.delayed(Duration.zero);
+      const transport = [
+        'play',
+        'pause',
+        'stop',
+        'next',
+        'previous',
+        'volume',
+        'mute',
+        'switch',
+      ];
+      expect(shown(), transport);
+      expect(await status(), transport);
 
-        // Back on the queue, everything comes back.
-        fake!.queue = true;
-        fake!.onSnapshot({
-          'title': 'Song',
-          'playing': true,
-          'supportedCommands': MaRemotePlayer.commands,
-        });
-        await Future<void>.delayed(Duration.zero);
-        expect(shown(), all);
-        expect(await status(), all);
-        expect(lastWithheld(), isEmpty);
+      // Back on the queue, everything comes back.
+      fake!.queue = true;
+      fake!.onSnapshot({
+        'title': 'Song',
+        'playing': true,
+        'supportedCommands': MaRemotePlayer.commands,
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(shown(), all);
+      expect(await status(), all);
+      expect(lastWithheld(), isEmpty);
 
-        // No word from the watcher leaves the server's list alone.
-        fake!.queue = false;
-        fake!.onSnapshot({
-          'title': 'Song',
-          'playing': true,
-          'supportedCommands': ['stop'],
-        });
-        await Future<void>.delayed(Duration.zero);
-        fake!.onSnapshot(null);
-        await Future<void>.delayed(Duration.zero);
-        expect(shown(), all);
-        expect(lastWithheld(), isEmpty);
-      },
-    );
+      // No word from the watcher leaves the server's list alone.
+      fake!.queue = false;
+      fake!.onSnapshot({
+        'title': 'Song',
+        'playing': true,
+        'supportedCommands': ['stop'],
+      });
+      await Future<void>.delayed(Duration.zero);
+      fake!.onSnapshot(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(shown(), all);
+      expect(lastWithheld(), isEmpty);
+    });
 
     test(
       'a previous lets the engine restart the bar after a re-base',
@@ -2593,11 +2732,57 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
     });
 
+    // The volume slider takes the seek bar's place without moving it
+    // (issue #1212): its level line once kept an empty placeholder, which
+    // rounds a pixel apart from the times at some sizes.
+    for (final layout in ['vertical', 'horizontal']) {
+      testWidgets('the volume slider lands on the seek bar layout=$layout', (
+        tester,
+      ) async {
+        for (final (text, buttons) in [(100, 100), (125, 150), (115, 50)]) {
+          await pump(
+            tester,
+            size: const Size(1024, 600),
+            settings: {
+              'ks.audio.media_volume': 40,
+              'ks.sendspin.fullscreen_layout': layout,
+              'ks.sendspin.fullscreen_text_scale': text,
+              'ks.sendspin.fullscreen_button_scale': buttons,
+            },
+          );
+          final seek = tester.getRect(find.byType(Slider));
+          await tester.tap(find.byIcon(Icons.volume_up_outlined));
+          await tester.pump();
+          expect(
+            tester.getRect(find.byType(Slider).first).center.dy,
+            seek.center.dy,
+            reason: 'text=$text buttons=$buttons',
+          );
+          await tester.pumpWidget(const SizedBox());
+          await tester.pump(const Duration(seconds: 5));
+        }
+      });
+    }
+
     testWidgets('double tap to dismiss takes the close button away', (
       tester,
     ) async {
       await pump(tester, settings: {'ks.sendspin.fullscreen_double_tap': true});
       expect(find.byIcon(Icons.close), findsNothing);
+      expect(find.byIcon(Icons.skip_next_rounded), findsOneWidget);
+    });
+
+    testWidgets('always show close button keeps it beside the double tap', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        settings: {
+          'ks.sendspin.fullscreen_double_tap': true,
+          'ks.sendspin.fullscreen_close_button': true,
+        },
+      );
+      expect(find.byIcon(Icons.close), findsOneWidget);
       expect(find.byIcon(Icons.skip_next_rounded), findsOneWidget);
     });
 

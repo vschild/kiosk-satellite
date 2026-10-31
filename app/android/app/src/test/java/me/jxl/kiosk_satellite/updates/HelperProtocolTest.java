@@ -32,12 +32,21 @@ public class HelperProtocolTest {
         HelperProtocol.validateCandidate(HelperProtocol.PACKAGE, 201, 200);
     }
 
+    @Test public void portStaysBelowTheEphemeralRangeForEveryUser() {
+        for (int user : new int[] {0, 10, 11, 150}) {
+            for (int appId = 10000; appId < 20000; appId++) {
+                int port = HelperProtocol.port(user * 100000 + appId);
+                assertTrue(port >= 1024 && port < 32768);
+            }
+        }
+        assertNotEquals(HelperProtocol.port(10066), HelperProtocol.port(1010066));
+    }
+
     @Test public void clientRejectsAnImpersonatingServerBeforeSendingAnOperation() throws Exception {
         // An app that occupies the helper's port cannot learn the secret or
         // receive an install request by merely repeating the protocol magic.
         try (ServerSocket server = helperPort()) {
-            int uid = server.getLocalPort() - 32000;
-            if (uid < 0) uid += 30000;
+            int uid = server.getLocalPort() - 22000;
             var executor = Executors.newSingleThreadExecutor();
             try {
                 var peer = executor.submit(() -> {
@@ -64,7 +73,7 @@ public class HelperProtocolTest {
     }
 
     private static ServerSocket helperPort() throws IOException {
-        for (int port = 52000; port < 52100; port++) {
+        for (int port = 30000; port < 30100; port++) {
             try { return new ServerSocket(port); }
             catch (java.net.BindException ignored) { }
         }

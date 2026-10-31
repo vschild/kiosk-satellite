@@ -98,6 +98,33 @@ void main() {
   Iterable<String> named(String name) =>
       calls.where((c) => c.$1 == name).map((c) => jsonEncode(c.$2));
 
+  test('openAlarms with alarm next asks the list for the next alarm', () async {
+    now = DateTime(2026, 10, 2, 6, 0);
+    await build([daily('09:00', id: 'late'), daily('07:00', id: 'early')]);
+    expect((await registry.execute('openAlarms', const {})).ok, isTrue);
+    expect(alarms.focus.value, isNull);
+    expect(alarms.visible.value, isTrue);
+    alarms.visible.value = false;
+    expect(
+      (await registry.execute('openAlarms', {'alarm': 'next'})).ok,
+      isTrue,
+    );
+    expect(alarms.focus.value, 'early');
+    expect(alarms.visible.value, isTrue);
+    expect(
+      (await registry.execute('openAlarms', {'alarm': 'late'})).ok,
+      isFalse,
+    );
+  });
+
+  test('openAlarms with alarm next and none set opens the list', () async {
+    now = DateTime(2026, 10, 2, 6, 0);
+    await build([]);
+    await registry.execute('openAlarms', {'alarm': 'next'});
+    expect(alarms.focus.value, isNull);
+    expect(alarms.visible.value, isTrue);
+  });
+
   test('a due alarm rings, comes forward and arms the stop word', () async {
     now = DateTime(2026, 10, 2, 7, 0, 5);
     await build([daily('07:00', label: 'Wake up')]);

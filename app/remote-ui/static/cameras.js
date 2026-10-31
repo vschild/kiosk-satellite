@@ -126,6 +126,7 @@ export const CAMERA_ICONS = {
     + '<path d="M3 3l18 18"/>',
   // The alarm clock struck through, and with a Z: the alarm actions.
   alarmOff: '<circle cx="12" cy="13" r="8"/><path d="M5 3 2 6M19 3l3 3M4 5l16 16"/>',
+  alarmOn: '<circle cx="12" cy="13" r="8"/><path d="M5 3 2 6M19 3l3 3M8.5 13l2.5 2.5 4.5-4.5"/>',
   snooze: '<circle cx="12" cy="13" r="8"/><path d="M5 3 2 6M19 3l3 3M9.5 10h5l-5 6h5"/>',
   // A page of a calendar: Open the calendar.
   calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/>',

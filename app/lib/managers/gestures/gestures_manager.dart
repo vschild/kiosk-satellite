@@ -8,6 +8,7 @@ import '../../core/events.dart';
 import '../../core/manager.dart';
 import '../../core/permissions.dart';
 import '../audio/mic_hub.dart';
+import '../kiosk/kiosk_link.dart';
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
 import 'clap_detector.dart';
@@ -119,6 +120,18 @@ class GesturesManager extends Manager {
     _sub = bus.on<GestureDetected>().listen(_onGesture);
     _palmSub = bus.on<PalmDetected>().listen(_onPalms);
     _pluginSub = bus.on<PluginTriggerFired>().listen(_onPluginTrigger);
+
+    commands.register(
+      Command(
+        name: 'pluginOpenKioskLink',
+        description:
+            'Run a ks:// link for a plugin, as a dashboard would (issue '
+            '#1213). Fails in Lockdown Mode and for the links that open '
+            'Android Settings or call a kiosk.',
+        params: const {'url': 'ks:// link, e.g. ks://alarms'},
+        handler: (p) async => runPluginKioskLink('${p['url'] ?? ''}'),
+      ),
+    );
 
     _settingsSub = bus.on<SettingChanged>().listen((e) {
       if (e.key == defs.gestureMappings.key ||
@@ -352,6 +365,26 @@ class GesturesManager extends Manager {
     return runGestureAction(action);
   }
 
+  /// Run a ks:// link a plugin names (issue #1213), so a plugin reaches
+  /// every screen a dashboard link does without a control of its own for
+  /// each. Lockdown Mode refuses it, as it does a plugin's action setting.
+  /// Android Settings is left out because it is a way out of the kiosk, and
+  /// launchApp holds plugins to the App Launcher's apps for the same
+  /// reason. Calling a kiosk is left out because a kiosk can answer on its
+  /// own, which opens its microphone.
+  Future<CommandResult> runPluginKioskLink(String url) async {
+    final action = kioskLinkAction(url);
+    if (action == null) return const CommandResult.fail('unknown kiosk link');
+    if (const {'android_settings', 'intercom_call'}.contains(action['type'])) {
+      return const CommandResult.fail('plugins cannot open this link');
+    }
+    if (_settings.get(defs.lockdownEnabled)) {
+      return const CommandResult.fail('Lockdown Mode is on');
+    }
+    log.info(name, 'plugin link: $url');
+    return runGestureAction(action);
+  }
+
   /// Run one action object. Public so the editors' "Try it" affordances
   /// (device and remote) can exercise an action without a gesture.
   Future<CommandResult> runGestureAction(Map<String, Object?> action) async {
@@ -482,6 +515,10 @@ class GesturesManager extends Manager {
         // kiosk menu's Show in the kiosk menu or Allowed Action switches,
         // the same as the other links.
         return _run('openAlarms', const {});
+      case 'alarm_next':
+        // The alarm that rings next on its details page, or the list when
+        // none is set.
+        return _run('openAlarms', const {'alarm': 'next'});
       case 'calendar':
         // Opened by a ks://calendar link, on its view when the link names
         // one. Like the alarm list, not behind the kiosk menu's switches.

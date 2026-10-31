@@ -3268,6 +3268,7 @@ class _ScreensaverWebViewState extends State<ScreensaverWebView> {
       'haToken': s.get(defs.haToken),
       'websiteUrl': s.get(defs.screensaverWebsiteUrl),
       'mediaId': s.get(defs.screensaverMediaId),
+      'mediaIsFolder': s.get(defs.screensaverMediaIsFolder),
       'photoActive': _photoScreenOn,
       'mediaIntervalSeconds': s.get(defs.screensaverMediaInterval),
       'mediaShuffle': s.get(defs.screensaverMediaShuffle),

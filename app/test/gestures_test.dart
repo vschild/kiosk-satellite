@@ -275,6 +275,9 @@ void main() {
         'sendspinControl',
         'alarmStop',
         'alarmSnooze',
+        'openAlarms',
+        'intercomCall',
+        'intercomOpen',
         'intercomAnswer',
         'intercomDecline',
         'launchApp',
@@ -952,6 +955,53 @@ void main() {
           expect(executed.map((e) => e.$1), ['showAppLauncher']);
         },
       );
+    });
+
+    group('plugin kiosk links (issue #1213)', () {
+      test('run what a dashboard link runs', () async {
+        await build('[]');
+        final result = await commands.execute('pluginOpenKioskLink', {
+          'url': 'ks://alarms',
+        });
+        expect(result.ok, isTrue);
+        await commands.execute('pluginOpenKioskLink', {
+          'url': 'ks://alarms/next',
+        });
+        expect(executed.map((e) => '${e.$1} ${e.$2}'), [
+          'openAlarms {}',
+          'openAlarms {alarm: next}',
+        ]);
+      });
+
+      test('refuse Android Settings, calling a kiosk, unknown links and '
+          'Lockdown Mode', () async {
+        await build('[]');
+        for (final url in [
+          'ks://android-settings',
+          'ks://intercom/kitchen',
+          'ks://nothing',
+          'https://example.com',
+        ]) {
+          final result = await commands.execute('pluginOpenKioskLink', {
+            'url': url,
+          });
+          expect(result.ok, isFalse, reason: url);
+        }
+        expect(
+          (await commands.execute('pluginOpenKioskLink', {
+            'url': 'ks://intercom',
+          })).ok,
+          isTrue,
+        );
+        expect(executed.map((e) => e.$1), ['intercomOpen']);
+        executed.clear();
+        await settings.set(defs.lockdownEnabled, true);
+        final refused = await commands.execute('pluginOpenKioskLink', {
+          'url': 'ks://alarms',
+        });
+        expect(refused.error, 'Lockdown Mode is on');
+        expect(executed, isEmpty);
+      });
     });
 
     test('hold_mode toggles the setting each time (issue #266)', () async {

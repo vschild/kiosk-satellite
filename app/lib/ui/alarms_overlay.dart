@@ -153,11 +153,50 @@ class _AlarmsScreenState extends State<_AlarmsScreen> {
   @override
   void initState() {
     super.initState();
+    final alarm = _focused();
+    if (alarm != null) {
+      _draft = alarm;
+      _step = _Step.details;
+    }
     alarms.visible.addListener(_closeDialogs);
+    alarms.focus.addListener(_takeFocus);
+  }
+
+  /// The alarm openAlarms asked for, taken off the request.
+  Alarm? _focused() {
+    final id = alarms.focus.value;
+    if (id == null) return null;
+    alarms.focus.value = null;
+    return alarms.alarms.value.where((a) => a.id == id).firstOrNull;
+  }
+
+  /// openAlarms asked for an alarm while the screen was up: open it from
+  /// the list or over another alarm's details. A change to that other alarm
+  /// is kept, as closing the screen over it would keep it, and a dialog
+  /// open over it goes.
+  void _takeFocus() {
+    final alarm = _focused();
+    if (alarm == null || !mounted) return;
+    final draft = _draft;
+    _popDialogs();
+    if (draft != null && draft.id == alarm.id) {
+      // Already on it, perhaps on its time wheel: back to its details with
+      // the change in progress.
+      setState(() => _step = _Step.details);
+      return;
+    }
+    if (draft != null && _dirty) {
+      unawaited(alarms.save(draft).then((_) {}, onError: (_) {}));
+    }
+    _open(alarm);
   }
 
   void _closeDialogs() {
     if (alarms.visible.value || !mounted) return;
+    _popDialogs();
+  }
+
+  void _popDialogs() {
     final nav = Navigator.of(context, rootNavigator: true);
     for (var i = _openDialogs; i > 0; i--) {
       nav.pop();
@@ -167,6 +206,7 @@ class _AlarmsScreenState extends State<_AlarmsScreen> {
   @override
   void dispose() {
     alarms.visible.removeListener(_closeDialogs);
+    alarms.focus.removeListener(_takeFocus);
     // Back, Home or the screensaver closed the overlay over an edit: keep
     // it, the way leaving the Nest Hub's page keeps it.
     final draft = _draft;

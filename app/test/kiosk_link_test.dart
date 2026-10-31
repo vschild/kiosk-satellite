@@ -22,6 +22,7 @@ void main() {
         'type': 'android_settings',
       });
       expect(kioskLinkAction('ks://alarms'), {'type': 'alarms'});
+      expect(kioskLinkAction('ks://alarms/next'), {'type': 'alarm_next'});
       expect(kioskLinkAction('ks://calendar'), {'type': 'calendar'});
       expect(kioskLinkAction('ks://calendar/month'), {
         'type': 'calendar',

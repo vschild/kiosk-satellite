@@ -3,6 +3,7 @@ package me.jxl.kiosk_satellite.updates;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -20,12 +21,26 @@ public final class HelperProtocol {
 
     private HelperProtocol() {}
 
-    public static int port(int uid) { return 32000 + uid % 30000; }
+    /**
+     * Stays below Linux's ephemeral range (32768 to 60999), where any outgoing
+     * connection on the device can hold the port and make the helper's bind
+     * fail. The prime keeps the port different for each Android user.
+     */
+    public static int port(int uid) { return 22000 + uid % 9973; }
+
+    /** A helper started by an older build listens here until the next reboot. */
+    static int legacyPort(int uid) { return 32000 + uid % 30000; }
 
     public static Socket connect(int uid, String token, String operation) throws IOException {
         Socket socket = new Socket();
         try {
-            socket.connect(new InetSocketAddress("127.0.0.1", port(uid)), PROBE_TIMEOUT_MS);
+            try {
+                socket.connect(new InetSocketAddress("127.0.0.1", port(uid)), PROBE_TIMEOUT_MS);
+            } catch (ConnectException e) {
+                socket.close();
+                socket = new Socket();
+                socket.connect(new InetSocketAddress("127.0.0.1", legacyPort(uid)), PROBE_TIMEOUT_MS);
+            }
             socket.setSoTimeout(PROBE_TIMEOUT_MS);
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             DataInputStream in = new DataInputStream(socket.getInputStream());

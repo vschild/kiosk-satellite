@@ -150,15 +150,35 @@ class DeviceDetails {
   /// straight through.
   static void listenBluetooth(void Function() onChanged) {
     _onBluetoothChanged = onChanged;
-    if (_bluetoothHandlerInstalled) return;
-    _bluetoothHandlerInstalled = true;
+    _installCues();
+  }
+
+  /// Called on every battery broadcast (level, plugged and status alike),
+  /// only as a cue to read [plugged] again. The platform side never opens
+  /// the broadcast itself: a Lenovo TB311XU sends one whose extras cannot
+  /// be read, and battery_plus's receiver read them and took the process
+  /// down with every battery change.
+  static void listenPower(void Function()? onChanged) {
+    _onPowerChanged = onChanged;
+    _installCues();
+  }
+
+  static void _installCues() {
+    if (_cuesInstalled) return;
+    _cuesInstalled = true;
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'bluetoothChanged') _onBluetoothChanged?.call();
+      switch (call.method) {
+        case 'bluetoothChanged':
+          _onBluetoothChanged?.call();
+        case 'powerChanged':
+          _onPowerChanged?.call();
+      }
     });
   }
 
   static void Function()? _onBluetoothChanged;
-  static bool _bluetoothHandlerInstalled = false;
+  static void Function()? _onPowerChanged;
+  static bool _cuesInstalled = false;
 
   /// The Bluetooth devices this kiosk holds a link to right now:
   /// `connected` (the count), `devices` (their names) and `enabled` (the

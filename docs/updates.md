@@ -168,7 +168,7 @@ Open **Settings > Device > Optional update helper** on the device or **Device > 
 
 Detection uses the device's current installation permissions and installer tracking rather than its model. On Android 12 and newer, the group can disappear after the first confirmed in-app update makes Kiosk Satellite its own installer.
 
-**The helper stops after every reboot.** Enable ADB again if the device requires it and rerun the command. It continues running across Kiosk Satellite restarts and self-updates. No root access, device ownership or accessibility permission is needed.
+**The helper stops after every reboot.** Turning off ADB or wireless debugging stops it too. Enable ADB again if the device requires it and rerun the command. It continues running across Kiosk Satellite restarts and self-updates. No root access, device ownership or accessibility permission is needed.
 
 Kiosk Satellite checks Android's native silent installation path first. If that path is available, it uses Android directly even when the helper is running. Otherwise it checks the helper through an authenticated connection on the device. An unavailable helper falls back to the normal confirmation screen after releasing kiosk protections. A connection lost after an installation has been committed reports an uncertain result instead of automatically starting a second installation.
 

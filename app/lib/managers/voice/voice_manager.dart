@@ -90,6 +90,17 @@ class VoiceManager extends Manager {
   /// What the assist overlay draws.
   final view = ValueNotifier<AssistView>(AssistView.hidden);
 
+  /// Whether the overlay hides everything under it: a full screen turn
+  /// with an opaque backdrop, or a see-through one once its blurred
+  /// capture of the screen is in place. The kiosk screen then takes the
+  /// dashboard's platform view out of the frame. With it in, Flutter
+  /// draws every frame through an image reader and wraps it in a bitmap
+  /// on the Java side, whose native allocations trigger a garbage
+  /// collection every few frames and block the main thread while one
+  /// runs: on an Echo Show 8 the overlay's animations stalled for 100 to
+  /// 800 ms at a time with the collector on 60 percent of a core.
+  final covers = ValueNotifier<bool>(false);
+
   /// The turn in Home Assistant's assist_satellite states, as the Voice
   /// Satellite sensor reports it. Home Assistant's own satellite entity
   /// stays idle through a realtime conversation, which runs no pipeline.
@@ -454,7 +465,8 @@ class VoiceManager extends Manager {
               e.key == defs.voiceWakeWordSensitivity.key ||
               e.key == defs.voiceWakeWordFineTune.key ||
               e.key == defs.voiceNoiseGate.key ||
-              e.key == defs.voiceStopWord.key) {
+              e.key == defs.voiceStopWord.key ||
+              e.key == defs.voiceStopWordFineTune.key) {
             unawaited(_sync());
           }
           // Another engine offers other wake words, and Amazon's engine
@@ -2692,6 +2704,7 @@ class VoiceManager extends Manager {
       activeIds: _activeIds(),
       sensitivity: _settings.get(defs.voiceWakeWordSensitivity),
       fineTune: _settings.get(defs.voiceWakeWordFineTune),
+      stopFineTune: _settings.get(defs.voiceStopWordFineTune),
       noiseGate: _settings.get(defs.voiceNoiseGate),
       stopWord: _settings.get(defs.voiceStopWord),
       external: _external,

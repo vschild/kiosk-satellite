@@ -36,6 +36,8 @@ setting('screensaver.media_id','',subpage='Home Assistant Media screensaver')
 setting('screensaver.media_is_folder',False,'boolean',hidden=True)
 setting('screensaver.camera_views','["v2"]',subpage='Camera Streams screensaver')
 requests=[];fail_browse=False;fail_people=False
+# HA's Immich source marks every photo can_play false.
+photo={'title':'IMG_1.jpg','media_content_id':'media-source://immich/a|albums|b|c|IMG_1.jpg|image/jpeg','media_class':'image','media_content_type':'image/jpeg','can_play':False,'can_expand':False}
 views=[{'id':'v1','name':'Media','cameraIds':['c1']},{'id':'v2','name':'Connected','cameraIds':['c1','c2']}]
 def api(route):
  path=route.request.url.split('/api/',1)[1]
@@ -52,7 +54,7 @@ def api(route):
  if name=='haBrowseMedia':
   if fail_browse:return route.fulfill(json={'ok':False,'error':'<img src=x onerror=window.injected=true>'})
   folder=args.get('mediaContentId')
-  return route.fulfill(json={'ok':True,'data':{'media_content_id':folder,'can_expand':True,'children':[] if folder else [{'title':'Media','media_content_id':'media-source://library/original','can_expand':True}]}})
+  return route.fulfill(json={'ok':True,'data':{'media_content_id':folder,'can_expand':True,'children':[photo] if folder else [{'title':'Media','media_content_id':'media-source://library/original','can_expand':True}]}})
  data={'immichAlbums':[{'id':'album-raw','name':'Connected','count':12}],
  'immichPeople':[{'id':'person-raw','name':'Hidden','hidden':True}],
  'immichCacheStats':{'items':3,'bytes':2048},'cameraGetConfig':{'views':views},
@@ -106,6 +108,10 @@ try:
   page.locator('.modal-back .row').filter(has_text='Media').click()
   with page.expect_response('**/api/settings'):page.get_by_role('button',name='TEST use folder',exact=True).click()
   assert requests[-1]=={'screensaver.media_id':'media-source://library/original','screensaver.media_is_folder':True}
+  root.get_by_role('button',name='TEST browse',exact=True).click()
+  page.locator('.modal-back .row').filter(has_text='Media').click()
+  with page.expect_response('**/api/settings'):page.locator('.modal-back .row').filter(has_text='IMG_1.jpg').click()
+  assert requests[-1]=={'screensaver.media_id':photo['media_content_id'],'screensaver.media_is_folder':False}
   fail_browse=True
   root.get_by_role('button',name='TEST browse',exact=True).click()
   expect(page.get_by_text('TEST browse error Error: <img src=x onerror=window.injected=true>',exact=True)).to_be_visible()

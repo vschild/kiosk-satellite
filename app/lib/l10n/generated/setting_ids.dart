@@ -40,6 +40,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingUiToastsHiddenTitle",
     "description": "settingUiToastsHiddenDescription",
   },
+  "ui.drawer_items": {
+    "title": "settingUiDrawerItemsTitle",
+    "description": "settingUiDrawerItemsDescription",
+  },
   "device.hostname": {
     "title": "settingDeviceHostnameTitle",
     "description": "settingDeviceHostnameDescription",
@@ -121,8 +125,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingHaKioskHideSidebarDescription",
   },
   "ha.kiosk_menu": {
-    "title": "settingHaKioskMenuTitle",
-    "description": "settingHaKioskMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "ha.dashboard_carousel": {
     "title": "settingHaDashboardCarouselTitle",
@@ -209,8 +213,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingHaHoldReleaseMinutesDescription",
   },
   "ha.hold_menu": {
-    "title": "settingHaHoldMenuTitle",
-    "description": "settingHaHoldMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "browser.cutout_mode": {
     "title": "settingBrowserCutoutModeTitle",
@@ -323,6 +327,18 @@ const settingMessageIds = <String, Map<String, String>>{
   "screensaver.dashboard_double_tap": {
     "title": "settingScreensaverDashboardDoubleTapTitle",
     "description": "settingScreensaverDashboardDoubleTapDescription",
+  },
+  "screensaver.dashboard_kiosk": {
+    "title": "settingScreensaverDashboardKioskTitle",
+    "description": "settingScreensaverDashboardKioskDescription",
+  },
+  "screensaver.dashboard_hide_header": {
+    "title": "settingScreensaverDashboardHideHeaderTitle",
+    "description": "settingScreensaverDashboardHideHeaderDescription",
+  },
+  "screensaver.dashboard_hide_sidebar": {
+    "title": "settingScreensaverDashboardHideSidebarTitle",
+    "description": "settingScreensaverDashboardHideSidebarDescription",
   },
   "screensaver.calendar_view": {
     "title": "settingScreensaverCalendarViewTitle",
@@ -461,8 +477,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingScreensaverPixelShiftDescription",
   },
   "screensaver.menu": {
-    "title": "settingScreensaverMenuTitle",
-    "description": "settingScreensaverMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "screensaver.follow_animation_scale": {
     "title": "settingScreensaverFollowAnimationScaleTitle",
@@ -1101,8 +1117,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingSendspinSonosInputsDescription",
   },
   "sendspin.ma_shortcut": {
-    "title": "settingSendspinMaShortcutTitle",
-    "description": "settingSendspinMaShortcutDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "sendspin.ma_open_fullscreen": {
     "title": "settingSendspinMaOpenFullscreenTitle",
@@ -1145,8 +1161,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingSendspinDismissKeepsPlayingDescription",
   },
   "sendspin.player_shortcut": {
-    "title": "settingSendspinPlayerShortcutTitle",
-    "description": "settingSendspinPlayerShortcutDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "sendspin.fullscreen": {
     "title": "settingSendspinFullscreenTitle",
@@ -1192,6 +1208,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingSendspinFullscreenDoubleTapTitle",
     "description": "settingSendspinFullscreenDoubleTapDescription",
   },
+  "sendspin.fullscreen_close_button": {
+    "title": "settingSendspinFullscreenCloseButtonTitle",
+    "description": "settingSendspinFullscreenCloseButtonDescription",
+  },
   "sendspin.fullscreen_on_play": {
     "title": "settingSendspinFullscreenOnPlayTitle",
     "description": "settingSendspinFullscreenOnPlayDescription",
@@ -1201,8 +1221,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingSendspinFullscreenMotionDescription",
   },
   "sendspin.fullscreen_shortcut": {
-    "title": "settingSendspinFullscreenShortcutTitle",
-    "description": "settingSendspinFullscreenShortcutDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "sendspin.speaker_pill": {
     "title": "settingSendspinSpeakerPillTitle",
@@ -1257,8 +1277,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingIntercomKeyDescription",
   },
   "intercom.menu": {
-    "title": "settingIntercomMenuTitle",
-    "description": "settingIntercomMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "intercom.answer_mode": {
     "title": "settingIntercomAnswerModeTitle",
@@ -1416,6 +1436,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingLauncherAutoReturnHoldTitle",
     "description": "settingLauncherAutoReturnHoldDescription",
   },
+  "launcher.menu": {
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
+  },
   "gestures.clap_strictness": {
     "title": "settingClapStrictnessTitle",
     "description": "settingClapDetectionDescription",
@@ -1433,8 +1457,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingLockdownEnabledDescription",
   },
   "lockdown.menu": {
-    "title": "settingLockdownMenuTitle",
-    "description": "settingLockdownMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "lockdown.blackout": {
     "title": "settingLockdownBlackoutTitle",
@@ -1824,6 +1848,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingVoiceStopWordTitle",
     "description": "settingVoiceStopWordDescription",
   },
+  "voice.stop_word_fine_tune": {
+    "title": "settingVoiceStopWordFineTuneTitle",
+    "description": "settingVoiceStopWordFineTuneDescription",
+  },
   "voice.wake_arbitration": {
     "title": "settingVoiceWakeArbitrationTitle",
     "description": "settingVoiceWakeArbitrationDescription",
@@ -1977,8 +2005,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingAlarmsTtsVoiceDescription",
   },
   "alarms.menu": {
-    "title": "settingAlarmsMenuTitle",
-    "description": "settingAlarmsMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "voice.realtime_instructions": {
     "title": "settingVoiceRealtimeInstructionsTitle",
@@ -2341,8 +2369,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingCalendarWeatherEntityDescription",
   },
   "calendar.menu": {
-    "title": "settingCalendarMenuTitle",
-    "description": "settingCalendarMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "calendar.idle_close_minutes": {
     "title": "settingCalendarIdleCloseMinutesTitle",
@@ -2469,8 +2497,8 @@ const settingMessageIds = <String, Map<String, String>>{
     "description": "settingVoiceAmazonLocaleDescription",
   },
   "library.menu": {
-    "title": "settingCalendarMenuTitle",
-    "description": "settingLibraryMenuDescription",
+    "title": "settingShowInKioskMenuTitle",
+    "description": "settingUiDrawerItemsDescription",
   },
   "library.idle_close_minutes": {
     "title": "settingCalendarIdleCloseMinutesTitle",
@@ -2495,6 +2523,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "library.grid_density": {
     "title": "settingLibraryGridDensityTitle",
     "description": "settingLibraryGridDensityDescription",
+  },
+  "library.source_picker": {
+    "title": "settingLibrarySourcePickerTitle",
+    "description": "settingLibrarySourcePickerDescription",
   },
   "library.text_scale": {
     "title": "settingSendspinFullscreenTextScaleTitle",
