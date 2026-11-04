@@ -35,17 +35,23 @@ The kiosk also falls back on its own: when every format on the picked mode reads
 
 ## Echo Cancellation
 
-On by default. It removes the kiosk's own sounds from the microphone so the wake word hears you over music and a realtime assistant does not hear its own answers and interrupt itself. The canceller is the kiosk's own. A linear filter takes out the part of the echo it can predict from what the kiosk plays, and a small neural network trained on recordings of tablets, Echo and Portal devices playing through their own speakers removes the rest while keeping your voice. A tablet's speaker sits in the same case as its microphone, so most of what comes back is distortion a plain filter cannot predict, which is why the generic cancellers video calling apps use fall short on them.
+On by default. It removes the kiosk's own sounds from the microphone with GTCRN, a small echo cancelling neural network from [LocalVQE](https://github.com/localai-org/LocalVQE), so the wake word hears you over music and a realtime assistant does not hear its own answers and interrupt itself. On older 32-bit devices whose processor cannot run it, WebRTC's echo canceller takes its place. The app log shows which one runs each time the microphone opens.
 
-It covers everything the kiosk plays itself: chimes, timers, text to speech, the realtime assistant's voice, intercom calls, alarms, the Sendspin player and audio sent over DLNA. Every feature that listens gets the cleaned microphone, so the wake word, Assist, realtime conversations, the intercom and the RTSP stream all benefit. Sound from web pages and the sound of DLNA videos are not covered. The canceller only runs while something plays and for a moment after, so an idle microphone passes through untouched.
+It covers everything the kiosk plays itself: chimes, timers, text to speech, the realtime assistant's voice, intercom calls, alarms, the Sendspin player and audio sent over DLNA. Every feature that listens gets the cleaned microphone, so the wake word, Assist, realtime conversations, the intercom and the RTSP stream all benefit. Sound from web pages and the sound of DLNA videos are not covered. The canceller only runs while something plays and for a moment after, so an idle microphone passes through untouched. With GTCRN on, every feature that listens gets the microphone 30 ms later, whether or not something plays.
 
-The kiosk does not use Android's own echo canceller, noise suppressor or gain control. Android's canceller only worked on the phone call capture path, which some custom ROMs deliver 20 dB quieter than the microphone source, and on most devices it let the assistant hear itself anyway. Devices that process the microphone in their own firmware, such as the Echo Show and the Meta Portal, keep doing so. When the kiosk finds nothing left to remove on such a device, its canceller steps aside and passes the microphone through, so a second canceller never costs you speech.
+The kiosk does not use Android's own echo canceller, noise suppressor or gain control. Android's canceller only worked on the phone call capture path, which some custom ROMs deliver 20 dB quieter than the microphone source, and on most devices it let the assistant hear itself anyway. Devices that process the microphone in their own firmware, such as the Meta Portal, keep doing so, and the kiosk's canceller takes care of what their hardware canceller leaves.
 
 Turn it off only if a microphone with its own canceller sounds worse with a second one over it. The wake word then hears the kiosk's own sounds.
 
+### Echo Cancellation Method
+
+Picks the canceller: **Automatic (default)**, **GTCRN** or **AEC3**, WebRTC's echo canceller. Automatic runs GTCRN and measures how much of the kiosk's own sound it leaves while the kiosk plays. GTCRN cannot follow an echo that a device's own adaptive canceller has already processed, so if too much is left, the kiosk switches to AEC3 between two sounds. Once the test settles, the setting shows the result as **GTCRN (detected)** or **AEC3 (detected)** and keeps it. The test takes about 30 seconds of sound the kiosk plays, over one or more answers, chimes or songs. Talking over an answer does not count against GTCRN.
+
+Pick **Automatic** to run the test again. A system update runs it again on its own, since it can change how the device delivers the microphone. Pick **GTCRN** or **AEC3** to skip the test.
+
 ## Noise Suppression
 
-Off by default. It runs a noise suppressor over the microphone, on any capture source, and takes out the steady hiss of a cheap microphone or a high gain setting. Turn it on when the other kiosk hears hiss from this one on intercom calls, or when the wake word tester shows a level that never rests. It changes what the wake word hears, so test the wake word after turning it on.
+Off by default. It runs WebRTC's noise suppressor over the microphone, on any capture source, and takes out the steady hiss of a cheap microphone or a high gain setting. Turn it on when the other kiosk hears hiss from this one on intercom calls, or when the wake word tester shows a level that never rests. It changes what the wake word hears, so test the wake word after turning it on.
 
 ## Microphone Gain
 

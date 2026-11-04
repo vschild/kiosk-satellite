@@ -28106,5 +28106,707 @@
     "translation": "da5df5f0b731d16e538f532f3f0a2adf72a9b4098c918cfc43e4877dc31e7ae2",
     "author": "Xavier Larrea",
     "ownerAuthored": true
+  },
+  "calendarWidgetDays": {
+    "source": "b6d587632fba0be525c75b0363fdea4d65d24fcdd782dea102cd292e252e8c48",
+    "translation": "4e2b8d6c8b01dc5281b4939aa56388feff0fe4402a7b3443756932b344491fca",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarWidgetTomorrow": {
+    "source": "0a3c590aa76aab47b6e0cc842c5fd389b6bfcec3a2397cbed66b1e9cddd6c823",
+    "translation": "0fc7a163c687507e5e3fa377404ecc57f16b623d086444f2972bdb34423f4418",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarWidgetWeek": {
+    "source": "d57149f25596e9338acba4575692fd91b8a4b70b35b28bb7b8ee436ebf6c7772",
+    "translation": "86b2c3618d8e48919535b70327045669006b4377d21e9c56309d2f5e8efd6902",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingLibrarySpeakerPillDescription": {
+    "source": "015d400f858aa40f72dd7987b769ee77f50d87d7f4783ce1ca6246da93594712",
+    "translation": "3212151e7509e4bfc03200ab48e2c254d315a8a040507f17299260ce88d18658",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayHighLow": {
+    "source": "3c660b50e0496edf71b55006aaba57e9cf5ad80f9f1966f1365bd3efea3fa31f",
+    "translation": "322e7c6ff11aa34c0ed6f2326b18e842f2fa676bb250fa614cf3716f7b9cdc8e",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayHighLowHelp": {
+    "source": "96b20d8830b855554724a191795cb12cc88f817d9c2080c4d23d02c380a8680c",
+    "translation": "9fe1e248a2ed8b28124be33cffab75e353d850cd6628d475024e2c2e409eabb0",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingSendspinMasterVolumeDescription": {
+    "source": "353bbf5d4ada00a02d18086614e7c2e241467e47bd05b5207d0feafd64cf66e7",
+    "translation": "dafb6568fa28b52ac1111cfe08759ec56ceffb3d95134814b06b7503fbb1a20f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingSendspinMasterVolumeTitle": {
+    "source": "e88541f4db6dcd19954bc53c143bbd3f44832361a1542504114ac92737d92899",
+    "translation": "d1bc0b12ff6db1e2daa3e7ccb1389251f449b8cfa9e0f188eb3db1754f758543",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastTodayHelp": {
+    "source": "f8e872aff06f3ed5881fbcccdd904a7c5d5ee8c3fa634f972271f893d3303909",
+    "translation": "a53a7d7ec90ad0159e4aa7f7878904ce9affef5a1240b4629ca4428d7ac6a85c",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "searchWeatherForecast": {
+    "source": "6eefcb677ede43bb1e5257d562f12b9f2cf08602c7ab35564d7fb112a87ad141",
+    "translation": "f669ac37ee55446eec60a9d133905d36d35f0df43e14b67dd1a1fa06b37005ed",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastDays": {
+    "source": "395cfeb913a5ce70958c77e7dbbee3e76252b370db20903b1364b8d8f2573332",
+    "translation": "4e2b8d6c8b01dc5281b4939aa56388feff0fe4402a7b3443756932b344491fca",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastToday": {
+    "source": "2f43c2f527b88e63c3a002d89e78f250f60acfd2435d1cd583f48d504e2a8b9b",
+    "translation": "0746907456ad8e0ccb304344dd59fcafc015f0e784f2a6e5c834cffca19720e7",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastWidget": {
+    "source": "96836218e05f6b452fafa5662417aaaa797a40ae80fb9ff0cd91ed32b714fa76",
+    "translation": "8d40c6665e76565b1fd4d3cf7f0b8f6e3d261deb7e0911b6c2f42a41e0678a7d",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastColored": {
+    "source": "90c608f1d428e52f29d8589db40462f1af69537151731f029d2a5556d3793903",
+    "translation": "2f217b6b971a2519c210602b68ee4e3bc69ee4f071ecb1bea5e465f57e27b968",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverOverlayForecastColoredHelp": {
+    "source": "96d4ec4e8eeef14efbc849aa1c1800e03eeb8ce9b5698532dd3febb0de338d84",
+    "translation": "5fe751a30982b3262a408528b40a76e977b30eeee9f5d5fd7169d6b02b5b9328",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingMicEchoCancellationMethodTitle": {
+    "source": "55b3be2817ec6a7729b28ec9fcf7693ae82f6132cf29bbbc40a5002d2d83dd90",
+    "translation": "064cc002f1dcb26db1ba6ff5f6b1747b120406808f2721a0d77c59eb73d451d0",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingMicEchoCancellationMethodDescription": {
+    "source": "b71bc17a4d31022edcc4b112df93700fba06f5904c041e44cdae1a6c530c6528",
+    "translation": "6b419676b878a20910ddb2269c9343edb25ff0172099e5fb2eb3eb8da210e068",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screenAudioEchoMethodGtcrnDetected": {
+    "source": "3df089835481a83dd4a54b4c750cccb36e9d33bfa5f8e1e722f940aab7718c05",
+    "translation": "004bf9f2248b340808c670e5c27540b5b18914aa549ba8fc7ffdd5fbe242f31b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screenAudioEchoMethodAec3Detected": {
+    "source": "b9f2978d1ab5f8bac19daa3131236e30bc11c1c4da8b145a1ce138bcda660afb",
+    "translation": "326971a6899b241e9f083f7c1586f03379cded91c19c7ce1ec86b2e9bfffe027",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldStarts": {
+    "source": "2e4f476236d4769d510e4890193b36fad4213dd8760dd2cfe32c709e0671546f",
+    "translation": "b7450342939d163e13187bf969802fc044b53505405145aa3e644723cd32e922",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEditReadOnly": {
+    "source": "65f3893556f55b219181b4b061b640431cd79e74a85110b619884586f5595f14",
+    "translation": "08c2f91e422f0c8074816d53519d0f03b316cd2a131eb86fbcc456097ec86509",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingCalendarAllowEditDescription": {
+    "source": "223d6cd5562ceafb05e9aa545db1f7b58d37588b5e55b520746f11076cf62090",
+    "translation": "afcca3f78c0d954871e53a207a3cfef8d0da0ce26705ee10eb83a0f4acc7a748",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEventDeleted": {
+    "source": "6f67e2cf7cc262d3d23864fa50fd21c07cd3e02d8fda4229155df07d58b228f0",
+    "translation": "103cf3bd2b9249af888ec3269cb73841f31eaf5d1d6c8715c15a99cc3abf62b4",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarRepeatYearlyOn": {
+    "source": "cc9d243634e4375faa547743a40c9c2646a297abd16da306ad21a62891493c31",
+    "translation": "2ec0174339fae4fbe2c4f56d19e758810441cadbaab0b84a746f1685831d0077",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEditNotAllowed": {
+    "source": "e7f1850a0962db3899ac92fcf751fce2a920e8271a231317d46312860b47891e",
+    "translation": "4aca3ae749dbb15aa378af9821aea3ba65179fcf1e3523e69fce7542811e83d2",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarRepeatMonthlyOn": {
+    "source": "6c4bada0d4a51107545192e70f0513b08f5fe66fa54f0820082d0a23eb4f87d3",
+    "translation": "7efa76859a498f4bde2972f69d6bec17c9f8796dd17aada9101b0e93468ce566",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldNotesHint": {
+    "source": "c2f63da920e752b7ad8156ff8249c4e46faa4eb246cec34f0bfacf8dca2f02cf",
+    "translation": "fc399f26fdd3cd7871f7680e5dddda00b0f9fbce221bed381c62541d33147b1f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldTitleHint": {
+    "source": "eb14c28fb4c7a9eb7b8c0d26a087e6eb420d6b5dfa4b42f59595aaaff22ddf37",
+    "translation": "095c953edf1c4275b5e2f74fbe1aa45291e4fd3a83f87afcb81b2f7bc5120508",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEventSaved": {
+    "source": "ce6dfb3acb01757ee21ed470329b30d3eb3e50abf26b3819f529b7a8891ade93",
+    "translation": "5bdf66e46f010e940842daa9aca1d950233d4d32c0e3c0bccffab3bb14d09e5a",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingCalendarAllowDeleteTitle": {
+    "source": "bd34b816ddc83fde32c4c95ff2dc8aeccc23f33bede1bb55c9d460d07e7a2957",
+    "translation": "3392b0962b177645e5986fb75b51b3f6d8daf0db3a7d285637a0941ed1c41e52",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarDeleteShared": {
+    "source": "8fac5d1488fe1affbf6b8b302e9b80be63608df90a91a56b565f5aed14893a27",
+    "translation": "be685513a6cc523526862524af655978fff16c3492ccb6383104923a25104594",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarDeleteTitle": {
+    "source": "441ddb1b0e26f01321a9cf9411de8d5347edb42c15e28068d4570ef0e885883b",
+    "translation": "afee52c6955f5f67aa500690f88e75c0bf84d1a673e723ff45d0579815fa6eec",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldRepeat": {
+    "source": "00f1bd66f69e5599b490aca138ea6d288369e4f12d42b6659d05d34c4c09a3af",
+    "translation": "5af461d4f18053eb21ce65d5531d8468778bba868c84bed556311e81f7fcee49",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldCalendars": {
+    "source": "17274e9e9655fc87ab04a7ba5b5e4710530b8d7c200c2af681d572ab0da279ba",
+    "translation": "31bea9aa7e706b971b9e421ba8e819cf419b0ca2a681b10f1e4393e0865fc3ba",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEventAdded": {
+    "source": "ff6f506db95bca375168eb9e74ed4ef6415ee3755d75d9c7eb162a19f830a1bc",
+    "translation": "cffeec6141a296c0334f377d9d0af8fa39c438fb1542dd5bffde97e6ddc7ca5f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarSaveRepeatFollowing": {
+    "source": "b286d53e7c9487635fc578f898045b0e90718fe3812d3d6698d359da40361146",
+    "translation": "1885d312cad3c7b7b2072272a6947e29cc3f1c6d08842f06be7c70580dd5c1e0",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarSaveFailed": {
+    "source": "cccdb961442c469877ebf9e6b1115325c3bb2469ebd024fd2abf2a9629eab1c5",
+    "translation": "ec13ef00e635bfb1c8f1f1fae6a2721a9b086b44c266c888f8020a7fc9a15625",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarNewEvent": {
+    "source": "ede8eb178f7fcc680f18935bbca0d7f22d914ad4a06621f5dfbc1d2d15762f4f",
+    "translation": "e1edd15c3beebf28f2ae6496b0009c0c3aed0996e527942735c5f88159da2444",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarRepeatWeekdays": {
+    "source": "ade27f99717653e4c2204fe2934855ef280568b5802ab4f7dba1d0fc3c9930db",
+    "translation": "ad42a415ba8a8448fdb63f7cc183671e3b222fc02084d123425b2c334a145f5a",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldTitle": {
+    "source": "84fb4a18b0fb9c7d561b9707349c009f7117a615882161b1c7f76129cc686287",
+    "translation": "abcafc82daaf011f015f2052b8c779f87a1ab4164e9bf17d67149b4f746fc0a3",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEditingSection": {
+    "source": "22e9af07b596885a04e238cfa2a526b3cdaac0caccb587042a29c43595586309",
+    "translation": "ea89b5636546c3cca8c0ea4162166660eed41b66a5eb572469cdc464089cecac",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldEnds": {
+    "source": "0d7048e429b05ac7b34703161608dd8146f4e9216816b71a7be7eefc93c617d1",
+    "translation": "e32aba64a9080b2c2c7473a6b1caa7b1fa330ab1c09c51daf80d25589c348576",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldStartTime": {
+    "source": "8f8cc13ae27e772505beba67500bd01b7410360b74dc82079a0328b142cb2062",
+    "translation": "41f262908466b03a7e6f3a4fc9e07ace3652b58af5212f32539f6b6ed9575049",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarScopeAll": {
+    "source": "c28e3d6294ce53baff2c3338e43a611449dce9aa6de163e01f662a8c0c30788f",
+    "translation": "b70df4bcd6fd5c7dc3cc257bc6290b9bb1cb1a82db4815eea93be50246448f16",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarScopeThis": {
+    "source": "175102b72fdfdf8f47ba84cf67aca4920ed84fca148bf2ee68b708f18c4076b1",
+    "translation": "af501967746b5304621dbe15d5928308403a0bdab7c5e8276a6cbaae50c529fd",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldNotes": {
+    "source": "b82a9b5749db2bc252ca45da3f560cdd92dd7521b3c55bccba4f6455d1c41dd3",
+    "translation": "12321a95f734f7e53d1365a34944e01930f8f58b4f143d335286dca5b394f0eb",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarScopeFollowing": {
+    "source": "7a0689d77d4fa44b8d2e75bebeff6277177d810cce4ce593eb6d5660f6fa36b7",
+    "translation": "23bf86ed691920bcb6ec71e2b9fbb2f698abb4e347d38b76fc7535eaf4816fcb",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldSharedHint": {
+    "source": "224e56d821c8baf37903d78073cf073475161b0cda6c5fb379afb647f11a974b",
+    "translation": "1024c0dcd2426b0823b8f6679880ef3f5e2bebfabcadef253e46a0224f6526cd",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarRepeatWeeklyOn": {
+    "source": "9055d86189af7041b4226fd8a95eea0c9b36f16b86bc900d76bdd03e56114072",
+    "translation": "260faf953bec5565a9f152dc155a0883e544cc1f63ad54b8bfbccc9d5343ebbc",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarSaveRepeatTitle": {
+    "source": "cc715a8ca08a10ac6c3a305b2a163453825cca1a8c5a0d2ded11e44784c13ff4",
+    "translation": "2c9091e698a8dd1765a612e95f8fa4374ba66915223c918b978daa9f10d8cf4b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEditEvent": {
+    "source": "b493fbedb16970ef02ba656de9968511557b4b2cbdf972e0f4010fbb1eae1493",
+    "translation": "eba886a5d1db7278691a571edd6dab27bd4570efe01c89933affe37d56026329",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarEditGone": {
+    "source": "84f22267aad12677700ac58018bc9a4d7b38bc41d76e1ca130fd1f4c9306cc3e",
+    "translation": "1b41cf517db6e2bd8821ece905a4457eb525bff27ff869fab88e737949f75f4c",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarRepeatNever": {
+    "source": "9f454eea463c680bbbb79ec60a932c67ca22be67690a2e47d12e668d6358468c",
+    "translation": "99bc1b5de300b323c6732b4feb78391069d14135f12a65ed1427e8578dfdfa5e",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingCalendarAllowDeleteDescription": {
+    "source": "13ad57e4c14f4cc7f249029e5cf207474f41d7b2dd2a606c6b9d12160d47ddd8",
+    "translation": "362c7718617127adf0466097bc49f4c663f0a31a4135d9c896319ab5a23b201c",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldLocation": {
+    "source": "3174ff86b44c44a90d02508241bf27bc1c1ca6d190a6e29967fe3b21b6c98759",
+    "translation": "fff7c7fc13217ebdff71f158227f324429e35fd0d2f2b27d86d387522cd8c797",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldLocationHint": {
+    "source": "2720968bb9d4f093b0f1401e18dfe89c6d006a5cb4c98d2bd2344ea100326fad",
+    "translation": "6f830fe20285d23334ca33f86cd3298d4a11ca68caef74778358368fc4f5445f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldEndsBeforeStart": {
+    "source": "69ad21ee941916e7aa48478aec3a21f18170ff6281da93129eb3cfcf0a447c44",
+    "translation": "4051bac9b028ef71d8bbd9e755f3aafc152a22fcf1e7e370b671951597672339",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingCalendarAllowEditTitle": {
+    "source": "f0ca5f15d3dd9475bbe8215dc8e80f82e7c633fb4ae80f7e788d9b19555972b1",
+    "translation": "a1f8220a9a9c97b12f2fda5496787c5d395bf309278bd691baed8dac012f33be",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarFieldEndTime": {
+    "source": "025c5c66300ae3496d3786f4de87bcdd1386ea94876be2cce2c824bcf515d6e2",
+    "translation": "68c526683f65902ae64d859c45411490af1b221cbc6ba7e396f0aa94945b1f23",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarDeleteFailed": {
+    "source": "ba2a3e514c44d5f85f1238c293953395cfb0fb05bb6c58e670e96aa7e412902a",
+    "translation": "67aecca241d5039f9a546648e96297dbfa9951fd5e938658b66d1a12be21473f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarWidgetDots": {
+    "source": "b82eb9a8e2173ea57d7eccf41ad6e975133260f94e960789daded060fc627236",
+    "translation": "b62ae1def9ceccaa4e98d32625628c3e8fee6deb0d007c60434283d015937e2d",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "calendarWidgetDotsHint": {
+    "source": "ef7668fef97da21bb4b7df88a03f83d06368f856ad56a411ffdf423d65730bb1",
+    "translation": "4b5a19037203cbc91bd20a032fff335df3db46797f2727721de23d4ffff6300f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverImmichMetadataDescriptionTitle": {
+    "source": "0d21ea48b3c3fe1a74bda04642907537582b4939b48c9249b97ec8664e35ece3",
+    "translation": "1d6e3b45e9b1ebcb9e67bc4f664897785a4567bbd521bc8eba15f03154b213c6",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverImmichMetadataDescriptionDescription": {
+    "source": "6852fd7dccb27e5e0e1c3e3baeda616f4a5063d5f666afa601754f7bb4424674",
+    "translation": "b5992bd8a9695cec040a6bb402a71c3512f285a2e3e07e2f0927571aceb9b318",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdatePolicyTitle": {
+    "source": "603a96ee466bc99df1af7ea5a447562a3bcf0bb5809557935daf06bba4ca0b88",
+    "translation": "0f7ab3c45a7291227d9b45aa4053331c6795c874d6db706d492626b16da3f9b8",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdateWindowStartTitle": {
+    "source": "70c894e04a0b20a81b251b60b921f3a67509b70ce682566ccd34e746840ef33a",
+    "translation": "c63c0dd1beb295d49a08db8b4767555b67a34f23499f59578524384e475fb35c",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdatePolicyDescription": {
+    "source": "9d1c8aeadc388ab2f80324d67e407edd2220907d93275c5275a28a0f58dd04f9",
+    "translation": "822c7584beea66d3df222f2a79cab5febced156c1a77c3fb5d86ee6ee3f5468f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "deviceAndroidSystemUpdates": {
+    "source": "100a1ce828e9ca6729b3889f784c964e9e023b6ede8e4d4bc7240391163fbd7d",
+    "translation": "43c400b47ee287810889739a4891ce3ccc5e7529456e83a79ff25e82918b7a01",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "deviceAndroidUpdateAutomatic": {
+    "source": "f4b2c8c967ec6fde9f01a9d0d40e1bcd6b43d9fbfa917cbf26c34bf858129b50",
+    "translation": "ba13ecf007590819102aa1f0e7609234f3516e9c09e425d39ede7ed83e94b4fa",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdateWindowStartDescription": {
+    "source": "56c7c218d3606991f1aa241c94383215ab10f0080bf83cbab26b75fcece802fe",
+    "translation": "0ce8dc510a38c106b8ef00a2676d21e51f583ebd0d2dd824d6860ca1fefa1f6d",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdateWindowEndDescription": {
+    "source": "21edcd2c985dce3fdc1715239214fd9028e31cff9d0426ed35488725e6309da7",
+    "translation": "c9a570863d051b49ef50750fa96790ea6b349aca5c962ea4d776eaa2db92589f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "deviceAndroidUpdateAsk": {
+    "source": "ff5c57f2f7957e61c8ebc36cd0a63532343557e949fcbe36dfa5738119cd1478",
+    "translation": "2ffe925f8b4ee7320979fc006bbfcd46ec6c3461451f926fee8729c5d36f21ec",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "deviceKioskSatelliteUpdates": {
+    "source": "a8bce7f78d167a7ba7667ccea7d5186d31e551004ee4ce998b6ca710bdb2dc83",
+    "translation": "8c832ad9cee3cec89726200dc0e6af3cb1651a72650920ae715b89375584f640",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAndroidUpdateWindowEndTitle": {
+    "source": "a309c471fcac8188062ad6d256eb0b0ae48895686f061045992ef0003948b539",
+    "translation": "f34d5c67d6eece39f03ed4c05ee6e92f968dc98ac4fdff41e2cf10907b0c45cb",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "deviceAndroidUpdateWindowed": {
+    "source": "5df33ef4310a4dcbc7432a5bb125d26fcb29fb84666984066443c18c26f400fa",
+    "translation": "443739016a8754bd9fa9b798defcaff3f799c05603b757a73a81dc47a3f26afb",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerWholeFolder": {
+    "source": "7cf326d4b445ad83493bb420cc5531c0beb6a6ba0348fcd36c724b6fc751167f",
+    "translation": "03c7906738090d7d0f1797c9f3f44cc54a43a4bda61830269001ade423576833",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerSonosNote": {
+    "source": "08525d674fddd595611f767c4f47d5aaa5bbde02c901aea5550c0e710004491b",
+    "translation": "e10f5d5fcd606f5f16544819932cffa17b43d0645082ef5b5f0b8da98bb69158",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerPlaysOn": {
+    "source": "edf98a23287384f9ba0e9faa38693ca46aad60dd628e9110da72644cf84c3786",
+    "translation": "2c1c9c47137ba24517a8e6c606bf496c35d15d44781e370f95f15f83b1bcd472",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerPreview": {
+    "source": "0695c96638ec4617fe79f33ddbf485b6e0cf6a73eaaa02b5888aaaa287d83526",
+    "translation": "00f3707e90a458eb5ea64c4813bfa85c5fe1855e93e27336b1a64cdbf4d6093b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAnyTrack": {
+    "source": "9e5cac17b782def2eed4d3ef05c0c6bb9b73f41f3f6b111f72f0cb42037b04fa",
+    "translation": "9a03ccf0f2ca1436447e3825baf3e925fa9f881db8b55edee64b7a1f1e1f99de",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerWholeArtist": {
+    "source": "2ab209e6b01b960836ec6e03466583a7e42f2c09ab1a156378aad13b1c849781",
+    "translation": "bce3e32cd9430fd28fed7b80a306f460756ca7b4e45448899ad68b94213b033f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAnyPlaylist": {
+    "source": "95b0383fa3abc2afcd09958c1f71f6eb7a318256deef5a03b67eba3d722299f2",
+    "translation": "a1fb3defe6115f00ef9117d8a6248ee67f8310924113c2218e64d7bdf73d79dc",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerFollowsNote": {
+    "source": "2ac872390a27cea1fcf157573aa4a25fa36994f95cf379c49f72302080503cd3",
+    "translation": "55b86a138824fcb41c3ce63b86030453789cef6a262dd0d0ae851ac657b66b79",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAnyStation": {
+    "source": "53dbbe6a75f7d3149aae6e5b57ae7422f07a127bedf9d68fafca3e1c0f585a02",
+    "translation": "688dd94f7526b2ad12ef9186fa6f384a5fb946a29fd10ca7e652b34690b24af7",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAnyAlbum": {
+    "source": "8b9e915b38c35ebb42e72afbdb8db3dbc203a178e0d7b02a8ca62ac4552704e2",
+    "translation": "a32d620560dc4805164fcdaf78da1b70846777480ba663b3f7962ca438a7168d",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerSourceLabel": {
+    "source": "4f722bd33fe3c755d01101ae971454b33e3dbafdc42821f0167eaf34e9ed89c6",
+    "translation": "0e88a3333208cd159be2c6ef1384fbfea4e06b7fa2b12a8888bf4481724e2408",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerSpeakerLabel": {
+    "source": "cc277d6d9b045794cba21e73d9edba88c658aba689d19db7db5d9fff12b3a82c",
+    "translation": "502fb950a4ee8115ea4e4f3ca8a11439e7a55a91969e2eebe5c1ee58cb4f16f8",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "alarmsMusicHint": {
+    "source": "17b40a78de1b13befe2ebb5cda3acec6b37ff574518770a01886d1330ce1b06e",
+    "translation": "ea4e23bc27e8e62321d27b3160936bbed0f1a834833730d46c86d5c28b6b1ec5",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "alarmsMusicRemove": {
+    "source": "aaea20a103a377db67904d308c12cb92246712839dc5c3e6b52b9f9ea906d65a",
+    "translation": "15e66ee8fa0edf0b4561b3b30f8ca11e5458d0e6b3f70d59736eff9adecf8c66",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerOpen": {
+    "source": "5381d92978d078ab4dadb50dcae0a52b20a0a894672bdf157065be22bacfa2d8",
+    "translation": "2830715544b8d39f918d417a3adfbac8cdfb30e2914f9029e7dc958fcd191b4b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAnyFavorite": {
+    "source": "0687426f07146f4896bacc454cc0da2395e46eaab73fc218d7f9b8618c3fc9ce",
+    "translation": "ec3fed959a7d83ca9729e31e529b7f3dd650cacb256b55484aafa0477272d24d",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerRandomHint": {
+    "source": "1a7e0136c95d2329644f5287860f2427870fcbc74babe8f3372f371ddbe3d504",
+    "translation": "9f4266b538fb42ff74d60298d9c9f7851d244297c91b1d1c05e628f1a4c1d65b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerStopPreview": {
+    "source": "b7d86be1c10dfb8d54f2f6b95f91049d5c9e7db91a4efd0048f6b8a7a78b1dc0",
+    "translation": "2ec241a6fbda1cc7933118d3c5fb6962ef28a34e560fef8030e9ac26b60862ab",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerNothing": {
+    "source": "122349dd20063ee2865cd2676be88a6135f13b95c2a03f8dbec4c782785a4fc6",
+    "translation": "1271e1a64645967b5e8578d7a8b599a2d9c52dcc000a246e3a60beaf3da76450",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerAllTracks": {
+    "source": "bb37345d7eb34f25bc5dd71c26aad173b0a7a3c66cafc9fb68a555b707933bbc",
+    "translation": "781a75cb265912ba01af64818f1d93014358c73d71b013b3e2770a17768586b4",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerNothingHint": {
+    "source": "ac15cc56ed646e1bc064341816b3f79bfa998c3df8bf20e72cbee5b222a1aec0",
+    "translation": "04abc7a61c6881f6daaee415e759522ee2ccdd6c78180e6a6f935e3cd733e512",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerRandomEach": {
+    "source": "bb063f9e23d13dddff91e0990c51759a054067e39f8aa88600ba315557af9559",
+    "translation": "dbe4448a6eda1a3d5c8c4149901688ae260507cc051d70508228375db029aba2",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerNoSpeakers": {
+    "source": "d2a8d21c28eb247c2d31df0d5ce36b0a1ad07b944cb53ceadb204a85ef9c488c",
+    "translation": "91a41aa721a126c7e9b1124706bcb60dbba63d3c7eeefccd1f4796e42622c9ca",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerMusicFrom": {
+    "source": "6566d099150dd645e75b201245e88c20afc32f6c5f3e695e4db4ea5a55038dc1",
+    "translation": "4ed6102a561a1e3702bd900886109b2dc88ed1ba7337a27633d35f4d33450607",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerKindFolder": {
+    "source": "60ebb5bdd674b641c2ee40c5aace9a7f56917a2ac2d2cc1c227331d86fdfd17f",
+    "translation": "be176b0015c424b78e9f343f8bc3014a7a701cc2eb9000b6acbc04d67dbecb8f",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerPreviewFailed": {
+    "source": "ce94c032eafc5875cb37888f3eb04fddc857cb331e99987e28858995d172e4fb",
+    "translation": "e41ef049142136749f94748cef1a2e6882e537a3231deedce8fadcc54e9e7c43",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerRandom": {
+    "source": "393280e944314e8b118406f14905c67734fb058b0dbaa0f6683d80a3809853f2",
+    "translation": "cb3ed6d75e9d3b8f462abc2941f5abfc9453ca0782df5cdd113881e60ac6edb0",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerTitle": {
+    "source": "40ea031e88de6248ca5c0e539c039ed547831459d18d1cdb5ca571d9aaa4974c",
+    "translation": "cd80f681ce1d27768667a7f54e6a12afba9cf0696e52fc3ce9319215fbaf8c17",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "alarmsMusic": {
+    "source": "f38ee307bbaa09ce60d4c71746e694751913b4921580b1e8f5eff9bd5c202557",
+    "translation": "19198073fad1a0c2b473e01c9ff5b4b21447ea962c2bc521300b561421b31f7a",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerWholePlaylist": {
+    "source": "580b600de45299691141e3906a28f953a372cf4e9ff1c3f763ef9eec2be1bf50",
+    "translation": "f4448660ff96ef4b80a176eed456997837f1a509d1b89adaa5c32c8de0470723",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerWholeAlbum": {
+    "source": "ec12f225e8b8114b07867fc134c57cb4a179795758feea7cedd3e3759dc24ba7",
+    "translation": "e3fa4f43febd409d3892ac5b43c354998b9c6008a2131d88a70bfd2ffa5eb8b8",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerShuffle": {
+    "source": "f70005a46af893e5dde9cf6ef7ad54231a46698b1dece26616d04f84e8dfee81",
+    "translation": "ca8c5c728773dd48f738a19b889de02f0e1e8ea8bf1cd65a3306f400ea74c3dc",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "alarmsMusicNone": {
+    "source": "6c3090b889908fd249422637e5c5243fa4400236e5aec78085ac56288bbd2d1d",
+    "translation": "ed0a2968058c5ac4addf7c389d84623c8649e9407a7a79b9a183711fe061f997",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "musicPickerSearchHint": {
+    "source": "1ee2993f0ef8bb9e8bc0b4b4d01b1aad22474a95bf3e66bd32f059ffb3ca08bf",
+    "translation": "8741090800a34e41803fba807111172363cada4fb2365ede4c7163f845054ce9",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAlarmsMusicDescription": {
+    "source": "47dfd1ad52dc84a516da70f86b616af56dc5de8dbff285ef491a3bad152c7328",
+    "translation": "ea4e23bc27e8e62321d27b3160936bbed0f1a834833730d46c86d5c28b6b1ec5",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingAlarmsMusicTitle": {
+    "source": "450ab0ad47c83f66084583344a88b6f59e44599421f27b43f2561345eb67ee9f",
+    "translation": "33167724c35ef6e780a1551cf4cb54b200f98c991938c8d1fab55559bf81d820",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverMediaVideoLengthInterval": {
+    "source": "2f495b59654d892e462c8c653ec12fcb4ba56fbf81ee0b19bf7b8d8802185670",
+    "translation": "b32df0ec5aaeaf047f632b46f2722b805523b6db91f4362e10cdc57a2b15338b",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverPhotoIntervalDescription": {
+    "source": "1954cc8a2cac23bc448419577821099e8ce9982af8b57bc871f103eced0fd3db",
+    "translation": "72ab6c29a7f5c3c8fea50e18150830055691ee7db4c779092ca81269517e95bd",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverImageIntervalDescription": {
+    "source": "e777c2f37ad713b5c0278e2c3eff1514db9c6f92a6bf989b875ff77696a868a5",
+    "translation": "25d073440fba55878c16d806b8a0b304aab0c15f4378b88e54f993fb485bfc34",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "screensaverMediaVideoLengthFull": {
+    "source": "7805ba3b904d969844154b266c617b37c26386c4c9bdcad7c4d7e3df0342a311",
+    "translation": "942b968ebc26fd245d4a9ac49019db2250e8b659e5200ea17c0327db09851c36",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverVideoLengthDescription": {
+    "source": "c75e154d44500b66f81f70ffced5d5ec3b022017260919c0e6af000d002a1f3d",
+    "translation": "3b53184200313ddffea5a514aade3b7e4b73f615d2a279dab0957c2741a7b84a",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
+  },
+  "settingScreensaverVideoLengthTitle": {
+    "source": "2bdf4b59eb9a024d1d398a4ee5fa30e09387725937e77f234722d5cf9e1cc6d5",
+    "translation": "247fda0908722d8198adb0ea8fa5c7897c4231cf7e298f19b762bb5b46c27158",
+    "author": "Xavier Larrea",
+    "ownerAuthored": true
   }
 }

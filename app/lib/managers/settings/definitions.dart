@@ -12,6 +12,7 @@ import '../../l10n/generated/setting_ids.dart';
 import '../../l10n/generated/setting_option_ids.dart';
 
 import '../btproxy/node_name.dart';
+import '../music_library/music_pick.dart';
 
 enum SettingType { string, boolean, number, select, password }
 
@@ -3855,11 +3856,24 @@ const screensaverMediaInterval = SettingDef<num>(
   type: SettingType.number,
   defaultValue: 10,
   title: 'Seconds per image',
-  description:
-      'How long each image shows before the next. Videos play in full.',
+  description: 'How long each image shows before the next.',
   category: 'Screensaver',
   section: 'Home Assistant Media screensaver',
   subpage: 'Home Assistant Media screensaver',
+  dependsOn: 'screensaver.media_is_folder',
+);
+
+const screensaverMediaVideoLength = SettingDef<String>(
+  key: 'screensaver.media_video_length',
+  type: SettingType.select,
+  defaultValue: 'full',
+  title: 'Video length',
+  description: _videoLengthDescription,
+  category: 'Screensaver',
+  section: 'Home Assistant Media screensaver',
+  subpage: 'Home Assistant Media screensaver',
+  options: _videoLengthOptions,
+  optionLabels: _videoLengthLabels,
   dependsOn: 'screensaver.media_is_folder',
 );
 
@@ -3886,6 +3900,17 @@ const screensaverMediaRecursive = SettingDef<bool>(
   subpage: 'Home Assistant Media screensaver',
   dependsOn: 'screensaver.media_is_folder',
 );
+
+// How long a video slide plays (issue #1298). Videos play to their end by
+// default, as they always have. 'interval' cuts one off once the slideshow's
+// seconds per photo run out, so a long clip does not hold the screen for
+// minutes. Each slideshow mode has its own row, like its interval.
+const _videoLengthOptions = ['full', 'interval'];
+const _videoLengthLabels = {
+  'full': 'Whole video',
+  'interval': 'Same as photos',
+};
+const _videoLengthDescription = 'How long each video plays before the next.';
 
 // One set of transitions shared by every slideshow mode — a person who
 // switches modes should not have to relearn the vocabulary. 'Ken Burns'
@@ -4156,11 +4181,25 @@ const screensaverGalleryInterval = SettingDef<num>(
   type: SettingType.number,
   defaultValue: 10,
   title: 'Seconds per photo',
-  description:
-      'How long each photo shows before the next. Videos play in full.',
+  description: 'How long each photo shows before the next.',
   category: 'Screensaver',
   section: 'Photo Gallery screensaver',
   subpage: 'Photo Gallery screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'gallery',
+);
+
+const screensaverGalleryVideoLength = SettingDef<String>(
+  key: 'screensaver.gallery_video_length',
+  type: SettingType.select,
+  defaultValue: 'full',
+  title: 'Video length',
+  description: _videoLengthDescription,
+  category: 'Screensaver',
+  section: 'Photo Gallery screensaver',
+  subpage: 'Photo Gallery screensaver',
+  options: _videoLengthOptions,
+  optionLabels: _videoLengthLabels,
   dependsOn: 'screensaver.mode',
   dependsOnValue: 'gallery',
 );
@@ -4244,11 +4283,25 @@ const screensaverLocalInterval = SettingDef<num>(
   type: SettingType.number,
   defaultValue: 10,
   title: 'Seconds per photo',
-  description:
-      'How long each photo shows before the next. Videos play in full.',
+  description: 'How long each photo shows before the next.',
   category: 'Screensaver',
   section: 'Local Media screensaver',
   subpage: 'Local Media screensaver',
+  dependsOn: 'screensaver.mode',
+  dependsOnValue: 'local',
+);
+
+const screensaverLocalVideoLength = SettingDef<String>(
+  key: 'screensaver.local_video_length',
+  type: SettingType.select,
+  defaultValue: 'full',
+  title: 'Video length',
+  description: _videoLengthDescription,
+  category: 'Screensaver',
+  section: 'Local Media screensaver',
+  subpage: 'Local Media screensaver',
+  options: _videoLengthOptions,
+  optionLabels: _videoLengthLabels,
   dependsOn: 'screensaver.mode',
   dependsOnValue: 'local',
 );
@@ -4709,11 +4762,24 @@ const screensaverImmichInterval = SettingDef<num>(
   type: SettingType.number,
   defaultValue: 10,
   title: 'Seconds per image',
-  description:
-      'How long each image shows before the next. Videos play in full.',
+  description: 'How long each image shows before the next.',
   category: 'Screensaver',
   section: 'Slideshow',
   subpage: 'Immich Media screensaver',
+  dependsOn: 'screensaver.immich_validated',
+);
+
+const screensaverImmichVideoLength = SettingDef<String>(
+  key: 'screensaver.immich_video_length',
+  type: SettingType.select,
+  defaultValue: 'full',
+  title: 'Video length',
+  description: _videoLengthDescription,
+  category: 'Screensaver',
+  section: 'Slideshow',
+  subpage: 'Immich Media screensaver',
+  options: _videoLengthOptions,
+  optionLabels: _videoLengthLabels,
   dependsOn: 'screensaver.immich_validated',
 );
 
@@ -4884,6 +4950,22 @@ const screensaverImmichMetadataLocation = SettingDef<bool>(
   defaultValue: true,
   title: 'Location',
   description: 'Show the place the photo was taken.',
+  category: 'Screensaver',
+  section: 'Metadata',
+  subpage: 'Immich Media screensaver',
+  dependsOn: 'screensaver.immich_metadata',
+);
+
+// The description written for the photo in Immich (issue #1290). It reads
+// as a caption, a sentence or two the corner panel has no width for, so it
+// sits centered at the bottom of the screen and the At a Glance row rises
+// above it. Off by default, so nothing moves until someone asks for it.
+const screensaverImmichMetadataDescription = SettingDef<bool>(
+  key: 'screensaver.immich_metadata_description',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Description',
+  description: "Show the photo's description at the bottom of the screen.",
   category: 'Screensaver',
   section: 'Metadata',
   subpage: 'Immich Media screensaver',
@@ -6564,13 +6646,14 @@ const micCaptureMode = SettingDef<String>(
   perDevice: true,
 );
 
-/// The kiosk's own echo canceller over the microphone, fed everything the
-/// kiosk plays itself (SoftwareEcho.kt, EchoReference.kt, the native
-/// echo_canceller.cpp). The platform's own canceller is gone: it needed
-/// the call capture path, which came in 20 dB quieter on some ROMs, and on
-/// most devices it let the assistant hear itself anyway. Off is the escape
-/// hatch for a microphone that does its own cancellation and sounds worse
-/// with a second one over it.
+/// The kiosk's echo canceller over the microphone, fed everything the
+/// kiosk plays itself (SoftwareEcho.kt, EchoReference.kt), with the one it
+/// runs picked by [micEchoCancellationMethod]. The platform's
+/// own canceller is gone: it needed the call capture path, which came in
+/// 20 dB quieter on some ROMs, and on most devices it let the assistant
+/// hear itself anyway. Off is the escape hatch for a microphone that does
+/// its own cancellation and sounds worse with a second one over it. The
+/// Echo images hide it and keep it on (echo_image_settings.dart).
 const micSoftwareEchoCancellation = SettingDef<bool>(
   key: 'audio.software_echo_cancellation',
   type: SettingType.boolean,
@@ -6586,11 +6669,48 @@ const micSoftwareEchoCancellation = SettingDef<bool>(
   perDevice: true,
 );
 
-/// Speex's noise suppressor over the capture (SoftwareEcho.kt), on any
+/// Which echo canceller runs (SoftwareEcho.kt): LocalVQE's GTCRN or
+/// WebRTC's AEC3. Automatic runs GTCRN and judges it while the kiosk plays:
+/// a microphone that comes through a vendor's own adaptive canceller
+/// leaves an echo GTCRN cannot follow. Its verdict is stored as
+/// `auto:gtcrn` or `auto:aec3` and shown as "(detected)"
+/// (SettingsManager.optionsFor), and picking Automatic again starts the
+/// test over. A system update starts it over too, since it can change the
+/// microphone path (AudioRoutingManager).
+const micEchoCancellationMethod = SettingDef<String>(
+  key: 'audio.echo_cancellation_method',
+  type: SettingType.select,
+  defaultValue: 'auto',
+  options: ['auto', 'gtcrn', 'aec3'],
+  optionLabels: {
+    'auto': 'Automatic (default)',
+    'gtcrn': 'GTCRN',
+    'aec3': 'AEC3',
+    'auto:gtcrn': 'GTCRN (detected)',
+    'auto:aec3': 'AEC3 (detected)',
+  },
+  title: 'Echo cancellation method',
+  description:
+      'Automatic tests GTCRN while the kiosk plays sounds and switches to '
+      'AEC3 if it leaves too much echo. Pick Automatic to test again.',
+  category: 'Screen & Audio',
+  section: 'Microphone settings',
+  subpage: 'Microphone settings',
+  dependsOn: 'audio.software_echo_cancellation',
+  perDevice: true,
+);
+
+/// Automatic's verdict landing in [micEchoCancellationMethod]: the
+/// canceller already runs it, so the capture does not reopen for it.
+bool isEchoMethodVerdict(Object? previous, Object? value) =>
+    previous == 'auto' && value is String && value.startsWith('auto:');
+
+/// WebRTC's noise suppressor over the capture (SoftwareEcho.kt), on any
 /// source: the raw microphone's hiss carried straight into intercom calls
 /// on an Echo Show 8. Off by default, since it changes what the wake word
 /// hears. The key is the old platform suppressor's, so a kiosk that had it
-/// on keeps it on.
+/// on keeps it on. The Echo images hide it and keep it off
+/// (echo_image_settings.dart).
 const micNoiseSuppression = SettingDef<bool>(
   key: 'audio.mic_noise_suppression',
   type: SettingType.boolean,
@@ -6629,6 +6749,8 @@ const micChannel = SettingDef<num>(
   perDevice: true,
 );
 
+/// A fixed gain after the echo canceller (MicRecorder.kt). On the Echo
+/// images it moves from each device's base gain (echo_image_settings.dart).
 const micGainDb = SettingDef<num>(
   key: 'audio.mic_gain_db',
   type: SettingType.number,
@@ -9173,6 +9295,20 @@ const sendspinPlayerName = SettingDef<String>(
   perDevice: true,
 );
 
+/// The followed player lent to a feature: who has it, the player to give
+/// back and the one lent, so a restart in the middle can put the kiosk
+/// back on its own player.
+const sendspinHandoff = SettingDef<String>(
+  key: 'sendspin.handoff',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Lent player',
+  description: 'Internal: the followed player lent to an alarm.',
+  category: 'Sendspin',
+  hidden: true,
+  perDevice: true,
+);
+
 /// Whether the Now Playing volume slider sets the whole group's volume
 /// while the followed Sonos room plays in one, the way the Sonos app's
 /// group slider does or only the room's own.
@@ -9412,6 +9548,25 @@ const sendspinGroupVolume = SettingDef<bool>(
       'While this device plays in a group, the volume slider sets the '
       "whole group's volume. Off, only this device's. Needs the Music "
       'Assistant connection.',
+  category: 'Sendspin',
+  subpage: 'Sendspin Player',
+  section: 'Sendspin Player',
+  dependsOn: 'sendspin.enabled',
+);
+
+/// Whether the Sendspin server's volume is this device's master volume
+/// rather than the media fader under it (issue #1267). The hardware
+/// buttons move the master, so with this on they and Music Assistant
+/// share one level instead of drifting apart. Off by default because the
+/// master also scales assistant sounds, alarms and the intercom.
+const sendspinMasterVolume = SettingDef<bool>(
+  key: 'sendspin.master_volume',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Control the device volume',
+  description:
+      'Music Assistant sets the volume the volume buttons change, instead '
+      'of the media volume. Assistant sounds follow it too.',
   category: 'Sendspin',
   subpage: 'Sendspin Player',
   section: 'Sendspin Player',
@@ -9697,7 +9852,7 @@ const sendspinFullscreen = SettingDef<bool>(
 const sendspinFullscreenSplit = SettingDef<bool>(
   key: 'sendspin.fullscreen_split',
   type: SettingType.boolean,
-  defaultValue: true,
+  defaultValue: false,
   title: 'Show alongside screensaver',
   description:
       'Keep the screensaver visible beside Now Playing. Portrait screens '
@@ -10290,6 +10445,21 @@ const librarySourcePicker = SettingDef<bool>(
   description:
       'Show the source picker in the library. Turn off to keep the library '
       'on the source set above.',
+  category: 'Sendspin',
+  subpage: 'Music Library',
+  section: 'User Interface',
+);
+
+/// The speaker pill at the top of the library, the way into the Speakers
+/// sheet. Off, the library names no speaker there. A play with no
+/// speaker picked and the player bar's volume button on a narrow screen
+/// still open the sheet.
+const librarySpeakerPill = SettingDef<bool>(
+  key: 'library.speaker_pill',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Show speaker selection pill',
+  description: 'Show the speaker picker at the top of the library.',
   category: 'Sendspin',
   subpage: 'Music Library',
   section: 'User Interface',
@@ -11169,7 +11339,7 @@ const updateSource = SettingDef<String>(
   title: 'Update source',
   description: 'Where the app looks for new releases.',
   category: 'Device',
-  section: 'Updates',
+  section: 'Kiosk Satellite Updates',
   subpage: 'Updates',
 );
 
@@ -11183,12 +11353,70 @@ const updateSourceUrl = SettingDef<String>(
       'and the release APKs.',
   placeholder: 'http://nas.local/kiosk-satellite',
   category: 'Device',
-  section: 'Updates',
+  section: 'Kiosk Satellite Updates',
   subpage: 'Updates',
   dependsOn: 'update.source',
   dependsOnValue: 'custom',
   validator: validateUpdateSourceUrl,
   normalizer: normalizeUpdateSourceUrlSetting,
+);
+
+// ── Android System Updates (issue #1292) ───────────────────────────────
+// Android's own updates, the ones the device maker ships, not Kiosk
+// Satellite's or the Echo image's. Android asks to restart for them in the
+// notification shade. The lock task kiosk mode starts as device owner
+// (KioskLock.setPinned, LOCK_TASK_FEATURE_NONE) hides the shade, so a
+// downloaded update could wait forever. The policy hands the restart back
+// to Android: DevicePolicyManager.setSystemUpdatePolicy, which only the
+// device owner may call. AndroidUpdatePolicyManager applies it and hides
+// these rows anywhere else, the Echo images included. Not perDevice: a
+// fleet installs in one window.
+
+const androidUpdatePolicy = SettingDef<String>(
+  key: 'android_update.policy',
+  type: SettingType.select,
+  defaultValue: 'ask',
+  options: ['ask', 'automatic', 'windowed'],
+  optionLabels: {
+    'ask': 'Ask on the device',
+    'automatic': 'Right away',
+    'windowed': 'In a time window',
+  },
+  title: 'Install Android updates',
+  description:
+      'Updates to Android itself from the device maker, such as Google or '
+      'Samsung. Kiosk mode hides the prompt to restart and install them.',
+  category: 'Device',
+  section: 'Android System Updates',
+  subpage: 'Updates',
+);
+
+const androidUpdateWindowStart = SettingDef<String>(
+  key: 'android_update.window_start',
+  type: SettingType.string,
+  defaultValue: '03:00',
+  title: 'Install from',
+  description:
+      'Local time the daily window for installing and restarting opens.',
+  category: 'Device',
+  section: 'Android System Updates',
+  subpage: 'Updates',
+  dependsOn: 'android_update.policy',
+  dependsOnValue: 'windowed',
+);
+
+const androidUpdateWindowEnd = SettingDef<String>(
+  key: 'android_update.window_end',
+  type: SettingType.string,
+  defaultValue: '05:00',
+  title: 'Install until',
+  description:
+      'Local time the window closes. A window past midnight ends the next day.',
+  category: 'Device',
+  section: 'Android System Updates',
+  subpage: 'Updates',
+  dependsOn: 'android_update.policy',
+  dependsOnValue: 'windowed',
 );
 
 const shizukuInstallUpdates = SettingDef<bool>(
@@ -11581,6 +11809,32 @@ const alarmsTone = SettingDef<String>(
   validator: validateNotificationSound,
 );
 
+/// The music an alarm rings with unless it has its own or None: a music
+/// picker pick as JSON, empty for none.
+const alarmsMusic = SettingDef<String>(
+  key: 'alarms.music',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Alarm music',
+  description:
+      'Rings instead of the tone. The tone rings if the music cannot play.',
+  category: 'Alarms',
+  section: 'Defaults',
+  validator: _validateMusicPick,
+);
+
+String? _validateMusicPick(Object? value) {
+  final raw = '${value ?? ''}'.trim();
+  if (raw.isEmpty) return null;
+  try {
+    return MusicPick.fromJson(jsonDecode(raw)) == null
+        ? 'not a music pick'
+        : null;
+  } on FormatException {
+    return 'not a music pick';
+  }
+}
+
 const alarmsSnoozeMinutes = SettingDef<String>(
   key: 'alarms.snooze_minutes',
   type: SettingType.select,
@@ -11791,6 +12045,30 @@ const calendarWeatherEntity = SettingDef<String>(
   description: 'Adds the forecast to each day.',
   category: 'Calendar',
   section: 'Display',
+);
+
+/// New event, the empty-hour slot in Day and Edit on an event. Off keeps
+/// the calendar read only on the touch screen.
+const calendarAllowEdit = SettingDef<bool>(
+  key: 'calendar.allow_edit',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Allow adding and editing events',
+  description: 'Adds New event and Edit to the calendar.',
+  category: 'Calendar',
+  section: 'Editing',
+);
+
+/// Delete on an event, apart from [calendarAllowEdit] so a shared kiosk
+/// can take new events without losing any.
+const calendarAllowDelete = SettingDef<bool>(
+  key: 'calendar.allow_delete',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Allow deleting events',
+  description: 'Adds Delete to each event.',
+  category: 'Calendar',
+  section: 'Editing',
 );
 
 /// Where the kiosk menu's Calendar row had its own switch. A link to
@@ -12339,6 +12617,22 @@ const fleetDefaultCategories = {
 // its own screen. Everything under `fleet.` describes this device's place
 // in a fleet and never travels itself.
 
+/// The id the other kiosks know this one by: in its announcement, on the
+/// tokens its followers minted and on the leader a follower trusts.
+/// Written once from the Android ID, which a factory reset or a new ROM
+/// changes, so a backup restored with Replace brings the old id back and
+/// the followers keep trusting the restored leader.
+const fleetId = SettingDef<String>(
+  key: 'fleet.id',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Fleet id',
+  description: 'Internal: the id the other kiosks know this one by.',
+  category: 'Fleet',
+  hidden: true,
+  perDevice: true,
+);
+
 const fleetLeader = SettingDef<bool>(
   key: 'fleet.leader',
   type: SettingType.boolean,
@@ -12630,6 +12924,31 @@ const legacyWebView = SettingDef<bool>(
       'the next app start.',
   category: 'Device',
   perDevice: true,
+);
+
+// Issue #1294. A native plugin overlay is normally drawn into a texture,
+// and on Android 10 and up Flutter fills that texture from an ImageReader
+// it drains on the main thread. The main thread is also the one that draws
+// the plugin's view, so on a slow GPU (the PowerVR GE8300 in the Lenovo
+// Smart Clock 2) an animation can queue frames faster than they drain. The
+// view then waits for a free buffer that only the waiting thread can free,
+// and the app freezes into an ANR. On means overlays are placed in the
+// Android view tree with hybrid composition instead, the way the dashboard
+// already is, so no ImageReader stands between the plugin and the screen.
+// Off everywhere by default and hidden while it is being tried on the
+// affected devices.
+const hybridPluginOverlays = SettingDef<bool>(
+  key: 'render.hybrid_plugin_overlays',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Draw plugin overlays natively',
+  description:
+      'Places native plugin overlays in the Android view tree instead of '
+      'drawing them into a texture, for GPUs that freeze while an overlay '
+      'animates.',
+  category: 'Device',
+  perDevice: true,
+  hidden: true,
 );
 
 // Applied by UiScaler above the Navigator, so every route and overlay
@@ -13239,6 +13558,7 @@ const List<SettingDef<Object>> allSettings = [
   audioSpeakerDevice,
   micCaptureMode,
   micSoftwareEchoCancellation,
+  micEchoCancellationMethod,
   micNoiseSuppression,
   micGainDb,
   micCaptureFormat,
@@ -13366,6 +13686,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverMediaId,
   screensaverMediaIsFolder,
   screensaverMediaInterval,
+  screensaverMediaVideoLength,
   screensaverMediaShuffle,
   screensaverMediaRecursive,
   screensaverMediaTransition,
@@ -13380,6 +13701,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverMediaVignetteStrength,
   screensaverLocalFolder,
   screensaverLocalInterval,
+  screensaverLocalVideoLength,
   screensaverLocalShuffle,
   screensaverLocalRecursive,
   screensaverLocalTransition,
@@ -13394,6 +13716,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverLocalVignetteStrength,
   screensaverGalleryItems,
   screensaverGalleryInterval,
+  screensaverGalleryVideoLength,
   screensaverGalleryShuffle,
   screensaverGalleryTransition,
   screensaverGalleryFill,
@@ -13419,6 +13742,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverImmichCache,
   screensaverImmichCacheMax,
   screensaverImmichInterval,
+  screensaverImmichVideoLength,
   screensaverImmichShuffle,
   screensaverImmichTransition,
   screensaverImmichFill,
@@ -13430,6 +13754,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverImmichMetadataDate,
   screensaverImmichMetadataCamera,
   screensaverImmichMetadataLocation,
+  screensaverImmichMetadataDescription,
   screensaverImmichMetadataPosition,
   screensaverImmichMetadataTextShadow,
   screensaverImmichMetadataScale,
@@ -13673,11 +13998,13 @@ const List<SettingDef<Object>> allSettings = [
   sendspinVolumeKeys,
   sendspinVolumeKeyStep,
   sendspinPlayerName,
+  sendspinHandoff,
   sendspinEnabled,
   sendspinServer,
   sendspinCodec,
   sendspinSyncOffset,
   sendspinGroupVolume,
+  sendspinMasterVolume,
   // The AirPlay page takes the Sendspin Player page's place when picked.
   airplayEnabled,
   airplayName,
@@ -13702,6 +14029,7 @@ const List<SettingDef<Object>> allSettings = [
   librarySquareArtwork,
   libraryGridDensity,
   librarySourcePicker,
+  librarySpeakerPill,
   librarySort,
   libraryAlbumArtists,
   sendspinSonosHosts,
@@ -13788,6 +14116,7 @@ const List<SettingDef<Object>> allSettings = [
   deviceHostname,
   disableImpeller,
   legacyWebView,
+  hybridPluginOverlays,
   // The User Interface group: consecutive, or the heading would repeat.
   uiLanguage,
   uiTheme,
@@ -13804,12 +14133,16 @@ const List<SettingDef<Object>> allSettings = [
   remoteAdminUrl,
   updateSource,
   updateSourceUrl,
+  androidUpdatePolicy,
+  androidUpdateWindowStart,
+  androidUpdateWindowEnd,
   shizukuInstallUpdates,
   // The Kiosk Satellite Analytics page is the last group on the Device
   // page, after Permissions Manager (settings_screen places its entry).
   analyticsBasic,
   analyticsUsage,
   analyticsDiagnostics,
+  fleetId,
   fleetLeader,
   fleetAutoUpdate,
   fleetProfiles,
@@ -13841,6 +14174,7 @@ const List<SettingDef<Object>> allSettings = [
   alarmsEaseIn,
   alarmsEaseInSeconds,
   alarmsTone,
+  alarmsMusic,
   alarmsSnoozeMinutes,
   alarmsSilenceAfterMinutes,
   alarmsSunriseMinutes,
@@ -13853,6 +14187,8 @@ const List<SettingDef<Object>> allSettings = [
   calendarDefaultView,
   calendarWeekStart,
   calendarWeatherEntity,
+  calendarAllowEdit,
+  calendarAllowDelete,
   calendarIdleCloseMinutes,
   calendarMenu,
 ];

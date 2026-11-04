@@ -721,6 +721,24 @@ void main() {
     expect(genreIcon('Unknown'), Icons.music_note_rounded);
   });
 
+  test('a translated genre gets its icon from the English sort name', () {
+    LibraryItem genre(String title, [Object? raw]) => LibraryItem(
+      id: 'library://genre/1',
+      kind: LibraryKind.genre,
+      title: title,
+      raw: raw,
+    );
+    expect(
+      genreIconFor(genre('Elektronisch', const {'sort_name': 'electronic'})),
+      Icons.graphic_eq_rounded,
+    );
+    expect(genreIconFor(genre('Electronic')), Icons.graphic_eq_rounded);
+    expect(
+      genreIconFor(genre('Hip-Hop', const {'sort_name': ''})),
+      Icons.mic_rounded,
+    );
+  });
+
   group('the overlay', () {
     final album = LibraryItem(
       id: 'library://album/1',
@@ -797,6 +815,10 @@ void main() {
         // Below the fold on a short screen, so not built there.
         if (size.height >= 600) {
           expect(find.text('Browse by genre'), findsOneWidget);
+          // A long word shrinks to fit its tile instead of breaking.
+          double fontSize(String text) =>
+              tester.widget<Text>(find.text(text).first).style!.fontSize!;
+          expect(fontSize('Elektronisch'), lessThan(fontSize('Folk')));
         }
         await tester.tap(find.text('Glass Harbor').first);
         await tester.pump(const Duration(milliseconds: 100));
@@ -1050,6 +1072,44 @@ void main() {
         expect(find.text('Source'), findsNothing);
         expect(find.byTooltip('Source'), findsNothing);
         expect(find.text('Home Assistant'), findsNothing);
+        c.musicLibrary.visible.value = false;
+        await tester.pump();
+      });
+    }
+
+    // The speaker pill sits in the header on a tablet and an Echo Show 5
+    // and in the row under it on a phone.
+    for (final (name, size) in [
+      ('a tablet', const Size(1280, 800)),
+      ('an Echo Show 5', const Size(960, 480)),
+      ('a phone', const Size(390, 844)),
+    ]) {
+      testWidgets('Show speaker selection pill hides the pill on $name', (
+        tester,
+      ) async {
+        final c = await container(ha: true);
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        c.musicLibrary.visible.value = true;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Stack(children: [MusicLibraryOverlay(container: c)]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byIcon(Icons.speaker_outlined), findsOneWidget);
+        // Turned off while the library is open, as from the remote admin.
+        await c.settings.set(defs.librarySpeakerPill, false);
+        await tester.pumpAndSettle();
+        expect(find.byIcon(Icons.speaker_outlined), findsNothing);
+        // With the source picker off too the phone drops the empty row.
+        await c.settings.set(defs.librarySourcePicker, false);
+        await tester.pumpAndSettle();
+        expect(find.byIcon(Icons.speaker_outlined), findsNothing);
+        expect(tester.takeException(), isNull);
         c.musicLibrary.visible.value = false;
         await tester.pump();
       });
@@ -1333,6 +1393,15 @@ class _FakeSource extends LibrarySource {
             title: name,
             expandable: true,
           ),
+
+        // A translated name with one long word.
+        const LibraryItem(
+          id: 'library://genre/electronic_de',
+          kind: LibraryKind.genre,
+          title: 'Elektronisch',
+          expandable: true,
+          raw: {'sort_name': 'electronic'},
+        ),
       ],
     ),
   ];

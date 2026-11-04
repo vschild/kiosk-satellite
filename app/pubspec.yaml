@@ -2,7 +2,7 @@ name: kiosk_satellite
 description: "Modern kiosk browser for Home Assistant — companion app for Voice Satellite."
 publish_to: 'none'
 
-version: 2026.10.45+343
+version: 2026.11.5+348
 
 environment:
   sdk: ^3.12.2
@@ -135,6 +135,9 @@ flutter:
     - assets/branding/icon.png
     - assets/branding/mark.png
     - assets/svg/
+    # Colored weather condition icons, the set Voice Satellite LLM Tools
+    # serves for its weather results (MIT, same author).
+    - assets/weather_icons/
     - assets/voice_skins/
     - assets/branding/mark_light.png
     - assets/branding/hacs.svg

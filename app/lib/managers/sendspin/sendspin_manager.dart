@@ -25,6 +25,7 @@ import 'lrclib.dart';
 import 'lyrics.dart';
 import 'ma_remote_player.dart';
 import 'music_assistant_api.dart';
+import 'player_handoff.dart';
 import 'remote_player.dart';
 import 'session_player.dart';
 import 'sonos_client.dart';
@@ -776,9 +777,17 @@ class SendspinManager extends Manager {
       _volumeTarget ??
       (groupVolumeActive
           ? (nowPlaying.value!['groupVolume'] as num).toInt()
+          : _localMaster
+          ? (_status['volume'] as num?)?.toInt()
           : _deviceVolume
           ? _settings.get(defs.mediaVolume).toInt()
           : (nowPlaying.value?['volume'] as num?)?.toInt());
+
+  /// Whether the local player's volume is this device's master volume
+  /// rather than the media fader (issue #1267). The native side then
+  /// reports the master in its volume events.
+  bool get _localMaster =>
+      _remote == null && _running && _settings.get(defs.sendspinMasterVolume);
 
   /// Whether the volume keys can steer something other than the device's
   /// own volume: a followed player that takes a volume (issue #544) or
@@ -1124,6 +1133,9 @@ class SendspinManager extends Manager {
 
   @override
   Future<void> init() async {
+    // A restart in the middle of a lend: the feature holding the player
+    // starts over, so the kiosk goes back to its own player first.
+    await handoff.recover();
     nowPlaying.addListener(_remoteMediaChanged);
     nowPlaying.addListener(_onTrackChanged);
     nowPlaying.addListener(_publishMediaSummary);
@@ -1197,13 +1209,17 @@ class SendspinManager extends Manager {
         case 'artworkChanged':
           _onArtworkChanged((map['seq'] as num?)?.toInt() ?? 0);
         case 'volumeChanged':
-          _status = {..._status, ...map};
+          _status = {..._status, ...map}..remove('master');
           // A server-commanded media volume applied natively; persist it
           // into the media fader setting so the slider, the ESPHome entity
           // and the next app start all agree. Equality-guarded: the echo
           // of our own setting push must not ping-pong.
+          // A master level (issue #1267) is the device's, not the media
+          // fader's, and stays out of the setting.
           final vol = (map['volume'] as num?)?.toInt();
-          if (vol != null && vol != _settings.get(defs.mediaVolume).toInt()) {
+          if (vol != null &&
+              map['master'] != true &&
+              vol != _settings.get(defs.mediaVolume).toInt()) {
             unawaited(_settings.set(defs.mediaVolume, vol));
           }
         case 'controllerChanged':
@@ -1295,10 +1311,7 @@ class SendspinManager extends Manager {
       } else {
         _voiceReasons.remove(e.reason);
       }
-      final active = _voiceReasons.isNotEmpty;
-      if (active == voiceActive.value) return;
-      voiceActive.value = active;
-      _syncDucking();
+      _syncVoiceActive();
     });
 
     // The AirPlay receiver's sessions, for its follower while it is the
@@ -1402,6 +1415,19 @@ class SendspinManager extends Manager {
         );
         return;
       }
+      // Which fader the server's volume moves applies live as well, so
+      // flipping it never interrupts the music.
+      if (e.key == defs.sendspinMasterVolume.key) {
+        _localMuteLevel = null;
+        unawaited(
+          _channel
+              .invokeMethod('setMasterVolume', {
+                'enabled': _settings.get(defs.sendspinMasterVolume),
+              })
+              .catchError((_) {}),
+        );
+        return;
+      }
       const uiOnly = [
         'sendspin.show_player',
         'sendspin.player_size',
@@ -1479,6 +1505,56 @@ class SendspinManager extends Manager {
       });
     });
 
+    commands.register(
+      Command(
+        name: 'mediaBorrow',
+        description:
+            'Lend the followed player to a feature: Now Playing follows '
+            'the player given until mediaReturn with the same owner puts '
+            'the one before back.',
+        params: const {
+          'owner': 'who borrows it, alarm for one',
+          'player':
+              "the player pick: '' for this device, else ma:, ha: or "
+              'sonos: and its id',
+          'name': 'the player name',
+        },
+        handler: (p) async {
+          final owner = '${p['owner'] ?? ''}'.trim();
+          if (owner.isEmpty) return const CommandResult.fail('no owner');
+          final player = '${p['player'] ?? ''}'.trim();
+          if (player.isEmpty && !_settings.get(defs.sendspinEnabled)) {
+            return const CommandResult.fail(
+              'this device has no Sendspin player',
+            );
+          }
+          await handoff.borrow(owner, player, '${p['name'] ?? ''}');
+          _syncVoiceActive();
+          log.info(
+            name,
+            'player lent to $owner: ${player.isEmpty ? 'this device' : player}',
+          );
+          return const CommandResult.ok();
+        },
+      ),
+    );
+    commands.register(
+      Command(
+        name: 'mediaReturn',
+        description:
+            'Give back a player lent by mediaBorrow: the last owner out '
+            'puts the player followed before back.',
+        params: const {'owner': 'who borrowed it'},
+        handler: (p) async {
+          final owner = '${p['owner'] ?? ''}'.trim();
+          if (!handoff.owners.contains(owner)) return const CommandResult.ok();
+          await handoff.giveBack(owner);
+          _syncVoiceActive();
+          log.info(name, 'player given back by $owner');
+          return const CommandResult.ok();
+        },
+      ),
+    );
     commands.register(
       Command(
         name: 'albumArtCacheStats',
@@ -2003,6 +2079,43 @@ class SendspinManager extends Manager {
       _transition = _transition.then((_) => _start());
     }
     _syncRemote();
+  }
+
+  /// Whether anything that ducks the music is going on: a voice turn,
+  /// an announcement, an alarm ringing its tone. A ringing alarm whose
+  /// music this is does not duck it: the player is lent to the alarm
+  /// then, and the music is what rings.
+  void _syncVoiceActive() {
+    final alarmMusic = handoff.owners.contains('alarm');
+    final active = _voiceReasons.any((r) => !(alarmMusic && r == 'alarm'));
+    if (active == voiceActive.value) return;
+    voiceActive.value = active;
+    _syncDucking();
+  }
+
+  /// Lends the followed player to an alarm and takes it back.
+  late final handoff = PlayerHandoff(
+    read: () => (
+      source: _settings.get(defs.sendspinPlayerSource),
+      player: _settings.get(defs.sendspinPlayer),
+      name: _settings.get(defs.sendspinPlayerName),
+    ),
+    follow: _follow,
+    load: () => _settings.get(defs.sendspinHandoff),
+    save: (json) => _settings.set(defs.sendspinHandoff, json),
+  );
+
+  /// Follow [p] the way the Media Player page picks one: the source first,
+  /// so the pick that follows is one of its own and the reconcile that
+  /// trails a source change has nothing to clear.
+  Future<void> _follow(FollowedPlayer p) async {
+    await _settings.set(defs.sendspinPlayerSource, p.source);
+    await Future<void>.delayed(Duration.zero);
+    await _settings.set(defs.sendspinPlayer, p.player);
+    await _settings.set(defs.sendspinPlayerName, p.name);
+    if (p.source.isNotEmpty) {
+      await _settings.set(defs.sendspinPlayerActive, true);
+    }
   }
 
   /// The player the surfaces are set to follow.
@@ -3235,7 +3348,17 @@ class SendspinManager extends Manager {
           remote.setVolume(percent);
     }
     _localMuteLevel = null;
-    await _settings.set(defs.mediaVolume, percent.clamp(0, 100));
+    return _setLocalVolume(percent.clamp(0, 100));
+  }
+
+  /// The local player's level: the master volume with
+  /// [defs.sendspinMasterVolume] on, the media fader otherwise.
+  Future<bool> _setLocalVolume(int percent) async {
+    if (_localMaster) {
+      final r = await commands.execute('setVolume', {'percent': percent});
+      return r.ok;
+    }
+    await _settings.set(defs.mediaVolume, percent);
     return true;
   }
 
@@ -3264,12 +3387,14 @@ class SendspinManager extends Manager {
     final level = _localMuteLevel;
     if (level != null) {
       _localMuteLevel = null;
-      await _settings.set(defs.mediaVolume, level);
-    } else {
-      _localMuteLevel = _settings.get(defs.mediaVolume).toInt();
-      await _settings.set(defs.mediaVolume, 0);
+      return _setLocalVolume(level);
     }
-    return true;
+    final current = _localMaster
+        ? volumeLevel
+        : _settings.get(defs.mediaVolume).toInt();
+    if (current == null) return false;
+    _localMuteLevel = current;
+    return _setLocalVolume(0);
   }
 
   /// Where a seek to [positionMs] lands. Music Assistant seeks its queue
@@ -3331,6 +3456,7 @@ class SendspinManager extends Manager {
         'clientId': clientId,
         'preferredCodec': _settings.get(defs.sendspinCodec),
         'syncOffsetMs': _settings.get(defs.sendspinSyncOffset).toInt(),
+        'masterVolume': _settings.get(defs.sendspinMasterVolume),
       });
       _running = true;
       log.info(name, 'player started as "$playerName"');

@@ -212,7 +212,7 @@ void main() {
         defs.sendspinFullscreenPhotoFill,
         defs.sendspinFullscreenOverrideBrightness,
       ]);
-      expect(defs.sendspinFullscreenSplit.defaultValue, isTrue);
+      expect(defs.sendspinFullscreenSplit.defaultValue, isFalse);
       expect(defs.sendspinFullscreenLayout.defaultValue, 'vertical');
       expect(
         defs.sendspinFullscreenSplit.dependsOn,
@@ -411,6 +411,19 @@ void main() {
       await pumpEventQueue();
       expect(saver.isActive, isTrue);
       expect(saver.activeView.value, 'clock');
+    });
+
+    test('music an alarm plays never launches Now Playing', () async {
+      // The followed player is lent to the alarm: the music is the
+      // alarm's, and the alarm stays on screen.
+      await build({
+        'ks.sendspin.handoff':
+            '{"owners":["alarm"],"original":{"source":"","player":"",'
+            '"name":""},"player":"ma:kitchen"}',
+      });
+      bus.publish(const SendspinNowPlayingChanged(active: true, playing: true));
+      await pumpEventQueue();
+      expect(saver.isActive, isFalse);
     });
 
     test('switched off, playback waits for the idle timeout', () async {
@@ -2830,6 +2843,19 @@ void main() {
       await pump(tester, size: const Size(480, 960));
       expect(find.byType(Slider), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a portrait screen with no panel gives the cover the width', (
+      tester,
+    ) async {
+      for (final size in const [Size(480, 960), Size(800, 1280)]) {
+        await pump(tester, size: size);
+        final cover = tester.getSize(find.byIcon(Icons.music_note));
+        // Wider than the 52% of the short side a landscape screen gets.
+        expect(cover.width, greaterThan(size.width * 0.52 * 0.45));
+        expect(find.byType(Slider), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
     });
   });
 }

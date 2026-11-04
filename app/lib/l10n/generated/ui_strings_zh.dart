@@ -273,6 +273,18 @@ class UiStringsZh extends UiStrings {
       '需要在 Home Assistant 中配置 Kiosk Satellite 闹钟蓝图（脚本模板）和大语言模型（LLM）对话代理。';
 
   @override
+  String get alarmsMusic => '音乐';
+
+  @override
+  String get alarmsMusicNone => '无';
+
+  @override
+  String get alarmsMusicRemove => '移除音乐';
+
+  @override
+  String get alarmsMusicHint => '代替铃声播放。音乐无法播放时，会响起铃声。';
+
+  @override
   String get androidAccessibilityHelp =>
       'Kiosk 模式或锁定模式保护屏幕期间，打开的通知栏和最近任务界面会自动关闭。Kiosk Satellite 不会读取任何屏幕内容。';
 
@@ -510,6 +522,21 @@ class UiStringsZh extends UiStrings {
   String get calendarWidgetEvents => '显示的日程数';
 
   @override
+  String get calendarWidgetDays => '显示的天数';
+
+  @override
+  String get calendarWidgetTomorrow => '今天和明天';
+
+  @override
+  String get calendarWidgetWeek => '未来 7 天';
+
+  @override
+  String get calendarWidgetDots => '彩色圆点';
+
+  @override
+  String get calendarWidgetDotsHint => '用日历的颜色标记日程，而不是显示人物照片。';
+
+  @override
   String get calendarVoiceSection => '语音日历';
 
   @override
@@ -518,6 +545,135 @@ class UiStringsZh extends UiStrings {
   @override
   String get calendarVoiceHint =>
       '需要在 Home Assistant 中配置 Kiosk Satellite 日历蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
+  String get calendarNewEvent => '新建日程';
+
+  @override
+  String get calendarEditEvent => '编辑日程';
+
+  @override
+  String get calendarFieldTitle => '标题';
+
+  @override
+  String get calendarFieldTitleHint => '添加标题';
+
+  @override
+  String get calendarFieldCalendars => '日历';
+
+  @override
+  String get calendarFieldSharedHint => '只显示一次，按各日历的颜色分割。';
+
+  @override
+  String get calendarFieldStarts => '开始';
+
+  @override
+  String get calendarFieldEnds => '结束';
+
+  @override
+  String get calendarFieldStartTime => '开始时间';
+
+  @override
+  String get calendarFieldEndTime => '结束时间';
+
+  @override
+  String get calendarFieldEndsBeforeStart => '结束时间早于开始时间。';
+
+  @override
+  String get calendarFieldRepeat => '重复';
+
+  @override
+  String get calendarRepeatNever => '不重复';
+
+  @override
+  String get calendarRepeatWeekdays => '每个工作日';
+
+  @override
+  String calendarRepeatWeeklyOn(String weekday) {
+    return '每周的$weekday';
+  }
+
+  @override
+  String calendarRepeatMonthlyOn(String day) {
+    return '每月 $day 日';
+  }
+
+  @override
+  String calendarRepeatYearlyOn(String date) {
+    return '每年 $date';
+  }
+
+  @override
+  String get calendarFieldLocation => '地点';
+
+  @override
+  String get calendarFieldLocationHint => '添加地点';
+
+  @override
+  String get calendarFieldNotes => '备注';
+
+  @override
+  String get calendarFieldNotesHint => '添加备注';
+
+  @override
+  String get calendarEventAdded => '已添加日程';
+
+  @override
+  String get calendarEventSaved => '已保存更改';
+
+  @override
+  String get calendarEventDeleted => '已删除日程';
+
+  @override
+  String get calendarSaveFailed => '无法保存日程';
+
+  @override
+  String get calendarDeleteFailed => '无法删除日程';
+
+  @override
+  String calendarEditReadOnly(String calendar) {
+    return '$calendar 是只读的。';
+  }
+
+  @override
+  String calendarEditGone(String calendar) {
+    return '$calendar 中已没有这个日程。';
+  }
+
+  @override
+  String calendarEditNotAllowed(String calendar) {
+    return '此 Kiosk 的 Home Assistant 用户无权更改 $calendar。';
+  }
+
+  @override
+  String calendarDeleteTitle(String title) {
+    return '删除$title？';
+  }
+
+  @override
+  String calendarDeleteShared(String names) {
+    return '将从它所在的所有日历中删除：$names。';
+  }
+
+  @override
+  String calendarSaveRepeatTitle(String title) {
+    return '保存对$title的更改？';
+  }
+
+  @override
+  String get calendarSaveRepeatFollowing => '新的重复从这一天开始。';
+
+  @override
+  String get calendarScopeThis => '此日程';
+
+  @override
+  String get calendarScopeFollowing => '此日程及之后的日程';
+
+  @override
+  String get calendarScopeAll => '所有日程';
+
+  @override
+  String get calendarEditingSection => '编辑';
 
   @override
   String get cameraViewerTitle => '摄像头画面';
@@ -2921,6 +3077,9 @@ class UiStringsZh extends UiStrings {
       '在音乐库中显示来源选择器。关闭后，音乐库将保持在上方设置的来源。';
 
   @override
+  String get settingLibrarySpeakerPillDescription => '在音乐库顶部显示扬声器选择器。';
+
+  @override
   String get libraryDensityComfortable => '宽松';
 
   @override
@@ -3148,6 +3307,104 @@ class UiStringsZh extends UiStrings {
   @override
   String get libraryVoiceHint =>
       '需要在 Home Assistant 中配置 Kiosk Satellite 音乐蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
+  String get musicPickerTitle => '选择音乐';
+
+  @override
+  String get musicPickerSearchHint => '搜索音乐';
+
+  @override
+  String get musicPickerMusicFrom => '音乐来源';
+
+  @override
+  String get musicPickerPlaysOn => '播放设备';
+
+  @override
+  String musicPickerSourceLabel(String name) {
+    return '来源：$name';
+  }
+
+  @override
+  String musicPickerSpeakerLabel(String name) {
+    return '播放设备：$name';
+  }
+
+  @override
+  String get musicPickerRandom => '随机';
+
+  @override
+  String get musicPickerRandomHint => '每次播放都会重新挑选';
+
+  @override
+  String get musicPickerAnyTrack => '任意曲目';
+
+  @override
+  String get musicPickerAnyFavorite => '任意收藏';
+
+  @override
+  String get musicPickerAnyPlaylist => '任意播放列表';
+
+  @override
+  String get musicPickerAnyAlbum => '任意专辑';
+
+  @override
+  String get musicPickerAnyStation => '任意电台';
+
+  @override
+  String get musicPickerRandomEach => '每次都不同';
+
+  @override
+  String get musicPickerWholeAlbum => '整张专辑';
+
+  @override
+  String get musicPickerWholePlaylist => '整个播放列表';
+
+  @override
+  String musicPickerWholeArtist(String name) {
+    return '$name 的全部作品';
+  }
+
+  @override
+  String get musicPickerWholeFolder => '整个文件夹';
+
+  @override
+  String get musicPickerAllTracks => '全部曲目';
+
+  @override
+  String get musicPickerShuffle => '随机播放';
+
+  @override
+  String get musicPickerPreview => '试听';
+
+  @override
+  String get musicPickerStopPreview => '停止试听';
+
+  @override
+  String get musicPickerPreviewFailed => '无法播放该音乐';
+
+  @override
+  String get musicPickerNothing => '未选择';
+
+  @override
+  String get musicPickerNothingHint => '选择一首曲目、专辑、播放列表、艺人或电台';
+
+  @override
+  String get musicPickerFollowsNote => '播放音乐时，“正在播放”会切换到此扬声器。';
+
+  @override
+  String get musicPickerSonosNote => 'Sonos 音乐只能在 Sonos 扬声器上播放。';
+
+  @override
+  String get musicPickerNoSpeakers => '没有可用的扬声器';
+
+  @override
+  String musicPickerOpen(String title) {
+    return '打开 $title';
+  }
+
+  @override
+  String get musicPickerKindFolder => '文件夹';
 
   @override
   String get offlineDashboard => '仪表盘不可用';
@@ -4608,6 +4865,12 @@ class UiStringsZh extends UiStrings {
   String get settingAlarmsToneDescription => '以闹钟音量播放。';
 
   @override
+  String get settingAlarmsMusicTitle => '闹钟音乐';
+
+  @override
+  String get settingAlarmsMusicDescription => '代替铃声播放。音乐无法播放时，会响起铃声。';
+
+  @override
   String get settingAlarmsSnoozeMinutesTitle => '稍后提醒间隔';
 
   @override
@@ -4759,6 +5022,18 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
+
+  @override
+  String get settingCalendarAllowEditTitle => '允许添加和编辑日程';
+
+  @override
+  String get settingCalendarAllowEditDescription => '在日历中添加“新建日程”和“编辑”按钮。';
+
+  @override
+  String get settingCalendarAllowDeleteTitle => '允许删除日程';
+
+  @override
+  String get settingCalendarAllowDeleteDescription => '在每个日程中添加“删除”按钮。';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
@@ -6992,6 +7267,42 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get updateAnotherPackage => '其他应用包';
+
+  @override
+  String get deviceKioskSatelliteUpdates => 'Kiosk Satellite 更新';
+
+  @override
+  String get deviceAndroidSystemUpdates => 'Android 系统更新';
+
+  @override
+  String get settingAndroidUpdatePolicyTitle => '安装 Android 更新';
+
+  @override
+  String get settingAndroidUpdatePolicyDescription =>
+      '来自设备制造商（如 Google 或 Samsung）的 Android 系统本身的更新。Kiosk 模式会隐藏重启并安装更新的提示。';
+
+  @override
+  String get deviceAndroidUpdateAsk => '在设备上询问';
+
+  @override
+  String get deviceAndroidUpdateAutomatic => '立即';
+
+  @override
+  String get deviceAndroidUpdateWindowed => '在时间段内';
+
+  @override
+  String get settingAndroidUpdateWindowStartTitle => '安装开始时间';
+
+  @override
+  String get settingAndroidUpdateWindowStartDescription =>
+      '每天允许安装并重启的时间段开始的本地时间。';
+
+  @override
+  String get settingAndroidUpdateWindowEndTitle => '安装结束时间';
+
+  @override
+  String get settingAndroidUpdateWindowEndDescription =>
+      '时间段结束的本地时间。跨过午夜的时间段在次日结束。';
 
   @override
   String get settingUiLanguageTitle => '语言';
@@ -9421,6 +9732,13 @@ class UiStringsZh extends UiStrings {
       '此设备加入播放组时，音量控制会调整整个组的音量。关闭此项后，只调整此设备的音量。需要连接 Music Assistant。';
 
   @override
+  String get settingSendspinMasterVolumeTitle => '控制设备音量';
+
+  @override
+  String get settingSendspinMasterVolumeDescription =>
+      'Music Assistant 调整音量键所控制的音量，而不是媒体音量。助手的声音也会随之变化。';
+
+  @override
   String get mediaSendspinPage => 'Sendspin 播放器';
 
   @override
@@ -9876,6 +10194,13 @@ class UiStringsZh extends UiStrings {
       '从麦克风中消除 Kiosk 自身的声音，避免唤醒词引擎和助手听到这些声音。除非麦克风自带回声消除且开启此项后效果变差，否则请保持开启。';
 
   @override
+  String get settingMicEchoCancellationMethodTitle => '回声消除方式';
+
+  @override
+  String get settingMicEchoCancellationMethodDescription =>
+      '“自动”会在 Kiosk 播放声音时测试 GTCRN，如果残留回声过多则切换到 AEC3。选择“自动”可重新测试。';
+
+  @override
   String get settingMicNoiseSuppressionTitle => '降噪';
 
   @override
@@ -9922,6 +10247,12 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get screenAudioCaptureVoiceCommunication => '语音通信';
+
+  @override
+  String get screenAudioEchoMethodGtcrnDetected => 'GTCRN（已检测）';
+
+  @override
+  String get screenAudioEchoMethodAec3Detected => 'AEC3（已检测）';
 
   @override
   String get screenAudioDownmix => '混合声道（默认）';
@@ -11396,6 +11727,13 @@ class UiStringsZh extends UiStrings {
       '显示照片的拍摄地点。';
 
   @override
+  String get settingScreensaverImmichMetadataDescriptionTitle => '描述';
+
+  @override
+  String get settingScreensaverImmichMetadataDescriptionDescription =>
+      '在屏幕底部显示照片的描述。';
+
+  @override
   String get settingScreensaverImmichMetadataPositionTitle => '元数据位置';
 
   @override
@@ -11440,10 +11778,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingScreensaverImmichIntervalTitle => '每张图片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverImmichIntervalDescription =>
-      '每张图片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverImmichShuffleTitle => '随机播放';
@@ -11628,6 +11962,24 @@ class UiStringsZh extends UiStrings {
   String get screensaverMediaFillAlways => '始终';
 
   @override
+  String get settingScreensaverVideoLengthTitle => '视频时长';
+
+  @override
+  String get settingScreensaverVideoLengthDescription => '每个视频切换前播放的时长。';
+
+  @override
+  String get screensaverMediaVideoLengthFull => '完整视频';
+
+  @override
+  String get screensaverMediaVideoLengthInterval => '与照片相同';
+
+  @override
+  String get settingScreensaverImageIntervalDescription => '每张图片切换前显示的时长。';
+
+  @override
+  String get settingScreensaverPhotoIntervalDescription => '每张照片切换前显示的时长。';
+
+  @override
   String get settingScreensaverGalleryItemsTitle => '照片';
 
   @override
@@ -11636,10 +11988,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingScreensaverGalleryIntervalTitle => '每张照片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverGalleryIntervalDescription =>
-      '每张照片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverGalleryShuffleTitle => '随机播放';
@@ -11707,10 +12055,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingScreensaverMediaIntervalTitle => '每张图片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverMediaIntervalDescription =>
-      '每张图片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverMediaShuffleTitle => '随机播放';
@@ -11843,10 +12187,6 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get settingScreensaverLocalIntervalTitle => '每张照片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverLocalIntervalDescription =>
-      '每张照片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverLocalShuffleTitle => '随机播放';
@@ -12610,6 +12950,30 @@ class UiStringsZh extends UiStrings {
   String get screensaverOverlayForecastHelp => '天气状况及对应图标。';
 
   @override
+  String get screensaverOverlayHighLow => '最高和最低气温';
+
+  @override
+  String get screensaverOverlayHighLowHelp => '今天的最高和最低气温。';
+
+  @override
+  String get screensaverOverlayForecastWidget => '天气预报';
+
+  @override
+  String get screensaverOverlayForecastDays => '显示的天数';
+
+  @override
+  String get screensaverOverlayForecastToday => '包含今天';
+
+  @override
+  String get screensaverOverlayForecastTodayHelp => '列表从今天的预报开始。';
+
+  @override
+  String get screensaverOverlayForecastColored => '彩色图标';
+
+  @override
+  String get screensaverOverlayForecastColoredHelp => '以天气图标本身的颜色显示。';
+
+  @override
   String get screensaverOverlayHumidity => '湿度';
 
   @override
@@ -12737,6 +13101,9 @@ class UiStringsZh extends UiStrings {
 
   @override
   String get searchBattery => '屏保角落中的电池小组件，显示此设备自身电量。';
+
+  @override
+  String get searchWeatherForecast => '屏保角落中的天气预报小组件，显示未来几天的最高和最低气温。';
 
   @override
   String get searchPersonPermission => '设备人体传感器所需的日志访问权限。';
@@ -15149,6 +15516,18 @@ class UiStringsZhCn extends UiStringsZh {
       '需要在 Home Assistant 中配置 Kiosk Satellite 闹钟蓝图（脚本模板）和大语言模型（LLM）对话代理。';
 
   @override
+  String get alarmsMusic => '音乐';
+
+  @override
+  String get alarmsMusicNone => '无';
+
+  @override
+  String get alarmsMusicRemove => '移除音乐';
+
+  @override
+  String get alarmsMusicHint => '代替铃声播放。音乐无法播放时，会响起铃声。';
+
+  @override
   String get androidAccessibilityHelp =>
       'Kiosk 模式或锁定模式保护屏幕期间，打开的通知栏和最近任务界面会自动关闭。Kiosk Satellite 不会读取任何屏幕内容。';
 
@@ -15386,6 +15765,21 @@ class UiStringsZhCn extends UiStringsZh {
   String get calendarWidgetEvents => '显示的日程数';
 
   @override
+  String get calendarWidgetDays => '显示的天数';
+
+  @override
+  String get calendarWidgetTomorrow => '今天和明天';
+
+  @override
+  String get calendarWidgetWeek => '未来 7 天';
+
+  @override
+  String get calendarWidgetDots => '彩色圆点';
+
+  @override
+  String get calendarWidgetDotsHint => '用日历的颜色标记日程，而不是显示人物照片。';
+
+  @override
   String get calendarVoiceSection => '语音日历';
 
   @override
@@ -15394,6 +15788,135 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get calendarVoiceHint =>
       '需要在 Home Assistant 中配置 Kiosk Satellite 日历蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
+  String get calendarNewEvent => '新建日程';
+
+  @override
+  String get calendarEditEvent => '编辑日程';
+
+  @override
+  String get calendarFieldTitle => '标题';
+
+  @override
+  String get calendarFieldTitleHint => '添加标题';
+
+  @override
+  String get calendarFieldCalendars => '日历';
+
+  @override
+  String get calendarFieldSharedHint => '只显示一次，按各日历的颜色分割。';
+
+  @override
+  String get calendarFieldStarts => '开始';
+
+  @override
+  String get calendarFieldEnds => '结束';
+
+  @override
+  String get calendarFieldStartTime => '开始时间';
+
+  @override
+  String get calendarFieldEndTime => '结束时间';
+
+  @override
+  String get calendarFieldEndsBeforeStart => '结束时间早于开始时间。';
+
+  @override
+  String get calendarFieldRepeat => '重复';
+
+  @override
+  String get calendarRepeatNever => '不重复';
+
+  @override
+  String get calendarRepeatWeekdays => '每个工作日';
+
+  @override
+  String calendarRepeatWeeklyOn(String weekday) {
+    return '每周的$weekday';
+  }
+
+  @override
+  String calendarRepeatMonthlyOn(String day) {
+    return '每月 $day 日';
+  }
+
+  @override
+  String calendarRepeatYearlyOn(String date) {
+    return '每年 $date';
+  }
+
+  @override
+  String get calendarFieldLocation => '地点';
+
+  @override
+  String get calendarFieldLocationHint => '添加地点';
+
+  @override
+  String get calendarFieldNotes => '备注';
+
+  @override
+  String get calendarFieldNotesHint => '添加备注';
+
+  @override
+  String get calendarEventAdded => '已添加日程';
+
+  @override
+  String get calendarEventSaved => '已保存更改';
+
+  @override
+  String get calendarEventDeleted => '已删除日程';
+
+  @override
+  String get calendarSaveFailed => '无法保存日程';
+
+  @override
+  String get calendarDeleteFailed => '无法删除日程';
+
+  @override
+  String calendarEditReadOnly(String calendar) {
+    return '$calendar 是只读的。';
+  }
+
+  @override
+  String calendarEditGone(String calendar) {
+    return '$calendar 中已没有这个日程。';
+  }
+
+  @override
+  String calendarEditNotAllowed(String calendar) {
+    return '此 Kiosk 的 Home Assistant 用户无权更改 $calendar。';
+  }
+
+  @override
+  String calendarDeleteTitle(String title) {
+    return '删除$title？';
+  }
+
+  @override
+  String calendarDeleteShared(String names) {
+    return '将从它所在的所有日历中删除：$names。';
+  }
+
+  @override
+  String calendarSaveRepeatTitle(String title) {
+    return '保存对$title的更改？';
+  }
+
+  @override
+  String get calendarSaveRepeatFollowing => '新的重复从这一天开始。';
+
+  @override
+  String get calendarScopeThis => '此日程';
+
+  @override
+  String get calendarScopeFollowing => '此日程及之后的日程';
+
+  @override
+  String get calendarScopeAll => '所有日程';
+
+  @override
+  String get calendarEditingSection => '编辑';
 
   @override
   String get cameraViewerTitle => '摄像头画面';
@@ -17797,6 +18320,9 @@ class UiStringsZhCn extends UiStringsZh {
       '在音乐库中显示来源选择器。关闭后，音乐库将保持在上方设置的来源。';
 
   @override
+  String get settingLibrarySpeakerPillDescription => '在音乐库顶部显示扬声器选择器。';
+
+  @override
   String get libraryDensityComfortable => '宽松';
 
   @override
@@ -18024,6 +18550,104 @@ class UiStringsZhCn extends UiStringsZh {
   @override
   String get libraryVoiceHint =>
       '需要在 Home Assistant 中配置 Kiosk Satellite 音乐蓝图（脚本模板）和大语言模型（LLM）对话代理。';
+
+  @override
+  String get musicPickerTitle => '选择音乐';
+
+  @override
+  String get musicPickerSearchHint => '搜索音乐';
+
+  @override
+  String get musicPickerMusicFrom => '音乐来源';
+
+  @override
+  String get musicPickerPlaysOn => '播放设备';
+
+  @override
+  String musicPickerSourceLabel(String name) {
+    return '来源：$name';
+  }
+
+  @override
+  String musicPickerSpeakerLabel(String name) {
+    return '播放设备：$name';
+  }
+
+  @override
+  String get musicPickerRandom => '随机';
+
+  @override
+  String get musicPickerRandomHint => '每次播放都会重新挑选';
+
+  @override
+  String get musicPickerAnyTrack => '任意曲目';
+
+  @override
+  String get musicPickerAnyFavorite => '任意收藏';
+
+  @override
+  String get musicPickerAnyPlaylist => '任意播放列表';
+
+  @override
+  String get musicPickerAnyAlbum => '任意专辑';
+
+  @override
+  String get musicPickerAnyStation => '任意电台';
+
+  @override
+  String get musicPickerRandomEach => '每次都不同';
+
+  @override
+  String get musicPickerWholeAlbum => '整张专辑';
+
+  @override
+  String get musicPickerWholePlaylist => '整个播放列表';
+
+  @override
+  String musicPickerWholeArtist(String name) {
+    return '$name 的全部作品';
+  }
+
+  @override
+  String get musicPickerWholeFolder => '整个文件夹';
+
+  @override
+  String get musicPickerAllTracks => '全部曲目';
+
+  @override
+  String get musicPickerShuffle => '随机播放';
+
+  @override
+  String get musicPickerPreview => '试听';
+
+  @override
+  String get musicPickerStopPreview => '停止试听';
+
+  @override
+  String get musicPickerPreviewFailed => '无法播放该音乐';
+
+  @override
+  String get musicPickerNothing => '未选择';
+
+  @override
+  String get musicPickerNothingHint => '选择一首曲目、专辑、播放列表、艺人或电台';
+
+  @override
+  String get musicPickerFollowsNote => '播放音乐时，“正在播放”会切换到此扬声器。';
+
+  @override
+  String get musicPickerSonosNote => 'Sonos 音乐只能在 Sonos 扬声器上播放。';
+
+  @override
+  String get musicPickerNoSpeakers => '没有可用的扬声器';
+
+  @override
+  String musicPickerOpen(String title) {
+    return '打开 $title';
+  }
+
+  @override
+  String get musicPickerKindFolder => '文件夹';
 
   @override
   String get offlineDashboard => '仪表盘不可用';
@@ -19484,6 +20108,12 @@ class UiStringsZhCn extends UiStringsZh {
   String get settingAlarmsToneDescription => '以闹钟音量播放。';
 
   @override
+  String get settingAlarmsMusicTitle => '闹钟音乐';
+
+  @override
+  String get settingAlarmsMusicDescription => '代替铃声播放。音乐无法播放时，会响起铃声。';
+
+  @override
   String get settingAlarmsSnoozeMinutesTitle => '稍后提醒间隔';
 
   @override
@@ -19635,6 +20265,18 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingCalendarWeatherEntityDescription => '为每天添加天气预报。';
+
+  @override
+  String get settingCalendarAllowEditTitle => '允许添加和编辑日程';
+
+  @override
+  String get settingCalendarAllowEditDescription => '在日历中添加“新建日程”和“编辑”按钮。';
+
+  @override
+  String get settingCalendarAllowDeleteTitle => '允许删除日程';
+
+  @override
+  String get settingCalendarAllowDeleteDescription => '在每个日程中添加“删除”按钮。';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => '闲置时关闭';
@@ -21868,6 +22510,42 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get updateAnotherPackage => '其他应用包';
+
+  @override
+  String get deviceKioskSatelliteUpdates => 'Kiosk Satellite 更新';
+
+  @override
+  String get deviceAndroidSystemUpdates => 'Android 系统更新';
+
+  @override
+  String get settingAndroidUpdatePolicyTitle => '安装 Android 更新';
+
+  @override
+  String get settingAndroidUpdatePolicyDescription =>
+      '来自设备制造商（如 Google 或 Samsung）的 Android 系统本身的更新。Kiosk 模式会隐藏重启并安装更新的提示。';
+
+  @override
+  String get deviceAndroidUpdateAsk => '在设备上询问';
+
+  @override
+  String get deviceAndroidUpdateAutomatic => '立即';
+
+  @override
+  String get deviceAndroidUpdateWindowed => '在时间段内';
+
+  @override
+  String get settingAndroidUpdateWindowStartTitle => '安装开始时间';
+
+  @override
+  String get settingAndroidUpdateWindowStartDescription =>
+      '每天允许安装并重启的时间段开始的本地时间。';
+
+  @override
+  String get settingAndroidUpdateWindowEndTitle => '安装结束时间';
+
+  @override
+  String get settingAndroidUpdateWindowEndDescription =>
+      '时间段结束的本地时间。跨过午夜的时间段在次日结束。';
 
   @override
   String get settingUiLanguageTitle => '语言';
@@ -24297,6 +24975,13 @@ class UiStringsZhCn extends UiStringsZh {
       '此设备加入播放组时，音量控制会调整整个组的音量。关闭此项后，只调整此设备的音量。需要连接 Music Assistant。';
 
   @override
+  String get settingSendspinMasterVolumeTitle => '控制设备音量';
+
+  @override
+  String get settingSendspinMasterVolumeDescription =>
+      'Music Assistant 调整音量键所控制的音量，而不是媒体音量。助手的声音也会随之变化。';
+
+  @override
   String get mediaSendspinPage => 'Sendspin 播放器';
 
   @override
@@ -24752,6 +25437,13 @@ class UiStringsZhCn extends UiStringsZh {
       '从麦克风中消除 Kiosk 自身的声音，避免唤醒词引擎和助手听到这些声音。除非麦克风自带回声消除且开启此项后效果变差，否则请保持开启。';
 
   @override
+  String get settingMicEchoCancellationMethodTitle => '回声消除方式';
+
+  @override
+  String get settingMicEchoCancellationMethodDescription =>
+      '“自动”会在 Kiosk 播放声音时测试 GTCRN，如果残留回声过多则切换到 AEC3。选择“自动”可重新测试。';
+
+  @override
   String get settingMicNoiseSuppressionTitle => '降噪';
 
   @override
@@ -24798,6 +25490,12 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get screenAudioCaptureVoiceCommunication => '语音通信';
+
+  @override
+  String get screenAudioEchoMethodGtcrnDetected => 'GTCRN（已检测）';
+
+  @override
+  String get screenAudioEchoMethodAec3Detected => 'AEC3（已检测）';
 
   @override
   String get screenAudioDownmix => '混合声道（默认）';
@@ -26272,6 +26970,13 @@ class UiStringsZhCn extends UiStringsZh {
       '显示照片的拍摄地点。';
 
   @override
+  String get settingScreensaverImmichMetadataDescriptionTitle => '描述';
+
+  @override
+  String get settingScreensaverImmichMetadataDescriptionDescription =>
+      '在屏幕底部显示照片的描述。';
+
+  @override
   String get settingScreensaverImmichMetadataPositionTitle => '元数据位置';
 
   @override
@@ -26316,10 +27021,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingScreensaverImmichIntervalTitle => '每张图片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverImmichIntervalDescription =>
-      '每张图片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverImmichShuffleTitle => '随机播放';
@@ -26504,6 +27205,24 @@ class UiStringsZhCn extends UiStringsZh {
   String get screensaverMediaFillAlways => '始终';
 
   @override
+  String get settingScreensaverVideoLengthTitle => '视频时长';
+
+  @override
+  String get settingScreensaverVideoLengthDescription => '每个视频切换前播放的时长。';
+
+  @override
+  String get screensaverMediaVideoLengthFull => '完整视频';
+
+  @override
+  String get screensaverMediaVideoLengthInterval => '与照片相同';
+
+  @override
+  String get settingScreensaverImageIntervalDescription => '每张图片切换前显示的时长。';
+
+  @override
+  String get settingScreensaverPhotoIntervalDescription => '每张照片切换前显示的时长。';
+
+  @override
   String get settingScreensaverGalleryItemsTitle => '照片';
 
   @override
@@ -26512,10 +27231,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingScreensaverGalleryIntervalTitle => '每张照片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverGalleryIntervalDescription =>
-      '每张照片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverGalleryShuffleTitle => '随机播放';
@@ -26583,10 +27298,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingScreensaverMediaIntervalTitle => '每张图片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverMediaIntervalDescription =>
-      '每张图片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverMediaShuffleTitle => '随机播放';
@@ -26719,10 +27430,6 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get settingScreensaverLocalIntervalTitle => '每张照片的显示时长（秒）';
-
-  @override
-  String get settingScreensaverLocalIntervalDescription =>
-      '每张照片切换前显示的时长。视频完整播放。';
 
   @override
   String get settingScreensaverLocalShuffleTitle => '随机播放';
@@ -27486,6 +28193,30 @@ class UiStringsZhCn extends UiStringsZh {
   String get screensaverOverlayForecastHelp => '天气状况及对应图标。';
 
   @override
+  String get screensaverOverlayHighLow => '最高和最低气温';
+
+  @override
+  String get screensaverOverlayHighLowHelp => '今天的最高和最低气温。';
+
+  @override
+  String get screensaverOverlayForecastWidget => '天气预报';
+
+  @override
+  String get screensaverOverlayForecastDays => '显示的天数';
+
+  @override
+  String get screensaverOverlayForecastToday => '包含今天';
+
+  @override
+  String get screensaverOverlayForecastTodayHelp => '列表从今天的预报开始。';
+
+  @override
+  String get screensaverOverlayForecastColored => '彩色图标';
+
+  @override
+  String get screensaverOverlayForecastColoredHelp => '以天气图标本身的颜色显示。';
+
+  @override
   String get screensaverOverlayHumidity => '湿度';
 
   @override
@@ -27613,6 +28344,9 @@ class UiStringsZhCn extends UiStringsZh {
 
   @override
   String get searchBattery => '屏保角落中的电池小组件，显示此设备自身电量。';
+
+  @override
+  String get searchWeatherForecast => '屏保角落中的天气预报小组件，显示未来几天的最高和最低气温。';
 
   @override
   String get searchPersonPermission => '设备人体传感器所需的日志访问权限。';

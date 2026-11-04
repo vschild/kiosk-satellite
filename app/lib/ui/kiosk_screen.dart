@@ -122,6 +122,54 @@ class _KioskScreenState extends State<KioskScreen>
   @override
   void didPopNext() => _syncNavCapture();
 
+  /// Now Playing has the whole screen. Its view goes the moment the music
+  /// stops, so the manager's report holds only while it shows.
+  bool get _nowPlayingCovers =>
+      c.screensaver.nowPlayingCovers.value && c.sendspin.fullscreenActive.value;
+
+  /// What [_planeHidden] reads.
+  late final Listenable _planeCover = Listenable.merge([
+    c.screensaver.activeView,
+    c.browser.renderingFrozenState,
+    c.voice.covers,
+    c.musicLibrary.visible,
+    c.calendar.visible,
+    c.screensaver.nowPlayingCovers,
+    c.sendspin.fullscreenActive,
+  ]);
+
+  /// The kiosk plane leaves the frame under something that hides the whole
+  /// screen, once the browser has frozen the page: the screensavers that
+  /// draw every frame and the Calendar one, a voice turn whose backdrop
+  /// hides the screen, the music library, the calendar and Now Playing on
+  /// its own. A platform view anywhere in the frame keeps Flutter drawing
+  /// through an image view, which on an Echo Show costs a bitmap and a
+  /// garbage collection every few frames.
+  bool get _planeHidden {
+    if (!c.browser.renderingFrozenState.value) return false;
+    final view = c.screensaver.activeView.value;
+    return view == 'weather_mood' ||
+        view == 'celestial' ||
+        view == 'calendar' ||
+        c.voice.covers.value ||
+        c.musicLibrary.visible.value ||
+        c.calendar.visible.value ||
+        _nowPlayingCovers;
+  }
+
+  /// What [_pagesHidden] reads.
+  late final Listenable _pagesCover = Listenable.merge([
+    c.voice.covers,
+    c.screensaver.nowPlayingCovers,
+    c.sendspin.fullscreenActive,
+  ]);
+
+  /// The calendar and the music library are drawn under a voice turn whose
+  /// backdrop hides the screen, and the library under Now Playing, which
+  /// it stays open beneath. Impeller keeps no raster cache, so each frame
+  /// would draw them again for nothing.
+  bool _pagesHidden() => c.voice.covers.value || _nowPlayingCovers;
+
   bool _consoleOpen = false;
   StreamSubscription<SettingChanged>? _settingsSub;
   StreamSubscription<KioskExitGesture>? _gestureSub;
@@ -467,6 +515,11 @@ class _KioskScreenState extends State<KioskScreen>
     // Lockdown flipping is the one key-capture state with no listener of
     // its own here; the sync is diffed, so the rest cost nothing.
     _syncNavCapture();
+    // Open plugin overlays move to the other composition at once.
+    if (e.key == defs.hybridPluginOverlays.key) {
+      if (mounted) setState(() {});
+      return;
+    }
     // The theme script names the servers of the custom pages elsewhere.
     if (e.key == defs.haCustomPages.key) {
       _pageDarkChanged();
@@ -967,25 +1020,55 @@ class _KioskScreenState extends State<KioskScreen>
   /// The scroll lock, as page CSS rather than the plugin's native
   /// disable-scroll flags: those swallow every touch-move at the view layer,
   /// which also starves the pull-to-refresh probe and any in-page drag (an
-  /// HA slider). `touch-action` only withdraws the browser's own panning —
+  /// HA slider). `touch-action` only withdraws the browser's own panning,
   /// touch events still dispatch to the page and the native gesture
-  /// detectors, so pulls, taps and drags keep working. The wildcard matters:
-  /// HA scrolls inner shadow-root containers, and a rule on `html` alone
-  /// would not reach them. `pinch-zoom` (not `none`) so the pinch setting
-  /// still composes.
+  /// detectors, so pulls, taps and drags keep working. `pinch-zoom` (not
+  /// `none`) so the pinch setting still composes.
+  ///
+  /// A document rule does not reach into shadow roots, and a scroller turns
+  /// panning back on for everything inside it, so a card, pop-up or dialog
+  /// that scrolls in its own shadow root kept scrolling (#32 on the Echo
+  /// image repo). One constructed sheet is adopted by the document and by
+  /// every shadow root: the ones already there through a walk, later ones
+  /// through an `attachShadow` wrapper. Turning the lock off empties the
+  /// sheet, so no root has to be remembered. Iframes are not covered.
   String get _scrollLockJs {
     final on = c.settings.get(defs.disableScrolling);
     return '''
       (function () {
-        var st = document.getElementById('__ksScrollLock');
-        if ($on && !st) {
-          st = document.createElement('style');
-          st.id = '__ksScrollLock';
-          st.textContent = '* { touch-action: pinch-zoom !important; }';
-          (document.head || document.documentElement).appendChild(st);
-        } else if (!$on && st) {
-          st.remove();
+        var L = window.__ksScrollLockState;
+        if (!L) {
+          var sheet;
+          try { sheet = new CSSStyleSheet(); } catch (e) { return; }
+          L = window.__ksScrollLockState = { on: false, sheet: sheet };
+          L.adopt = function (root) {
+            try {
+              var sheets = root.adoptedStyleSheets;
+              if (sheets.indexOf(sheet) < 0) {
+                root.adoptedStyleSheets = sheets.concat([sheet]);
+              }
+            } catch (e) {}
+          };
+          L.sweep = function (root) {
+            L.adopt(root);
+            var nodes = root.querySelectorAll('*');
+            for (var i = 0; i < nodes.length; i++) {
+              if (nodes[i].shadowRoot) L.sweep(nodes[i].shadowRoot);
+            }
+          };
+          // Lit sets a new root's adoptedStyleSheets right after attaching
+          // it, which would drop ours, so join on the next microtask.
+          var attach = Element.prototype.attachShadow;
+          Element.prototype.attachShadow = function (init) {
+            var root = attach.call(this, init);
+            if (L.on) Promise.resolve().then(function () { L.adopt(root); });
+            return root;
+          };
         }
+        L.on = $on;
+        L.sheet.replaceSync(
+          L.on ? '* { touch-action: pinch-zoom !important; }' : '');
+        if (L.on) L.sweep(document);
       })();
     ''';
   }
@@ -1616,8 +1699,18 @@ class _KioskScreenState extends State<KioskScreen>
         // exactly what the splash was showing); see _waitForActivityAttach.
         // Exempt from the Scale UI factor: the dashboard has its own zoom
         // setting, and scaling the platform view would reflow and blur it.
+        // Beside a shared Now Playing panel the Home Assistant Dashboard
+        // and Dim screensavers keep the page showing, so it gives up the
+        // panel's side: the dashboard lays itself out in the room left
+        // instead of under the panel. The plane's overdraw keeps its new
+        // edge a pixel under the panel.
         if (_activityAttached && !c.browser.webViewMissing)
-          UiScaleExempt(child: _webView()),
+          ValueListenableBuilder<EdgeInsets>(
+            valueListenable: c.screensaver.pageReserve,
+            child: UiScaleExempt(child: _webView()),
+            builder: (context, reserve, child) =>
+                Padding(padding: reserve, child: child),
+          ),
         // Directly over the dashboard: it hides Chromium's error page, and
         // everything below in this list (an overlay page, the player) is
         // content that belongs on top of the dashboard, error or not.
@@ -1638,7 +1731,10 @@ class _KioskScreenState extends State<KioskScreen>
         // unloads. A wake detection hides this instantly, revealing the
         // live dashboard underneath (see initState).
         _OverlayHost(container: c),
-        PluginOverlay(plugins: c.plugins),
+        PluginOverlay(
+          plugins: c.plugins,
+          hybrid: c.settings.get(defs.hybridPluginOverlays),
+        ),
         SendspinPlayerOverlay(container: c),
         if (_consoleOpen)
           WebConsolePanel(
@@ -1713,32 +1809,19 @@ class _KioskScreenState extends State<KioskScreen>
                     top: 0,
                     width: size.width + overdraw,
                     height: size.height + overdraw,
-                    child: ValueListenableBuilder<String?>(
-                      valueListenable: c.screensaver.activeView,
+                    child: ListenableBuilder(
+                      listenable: _planeCover,
                       child: kioskPlane,
-                      builder: (context, view, child) =>
-                          ValueListenableBuilder<bool>(
-                            valueListenable: c.browser.renderingFrozenState,
-                            child: child,
-                            builder: (context, frozen, child) =>
-                                ValueListenableBuilder<bool>(
-                                  valueListenable: c.voice.covers,
-                                  child: child,
-                                  // Skip platform view compositing only after
-                                  // the browser confirms it is safe to hide
-                                  // the dashboard: under the two screensavers
-                                  // that draw every frame, and under a voice
-                                  // turn whose backdrop hides the screen.
-                                  builder: (context, covers, child) => Offstage(
-                                    offstage:
-                                        (view == 'weather_mood' ||
-                                            view == 'celestial' ||
-                                            covers) &&
-                                        frozen,
-                                    child: child,
-                                  ),
-                                ),
-                          ),
+                      // Its tickers stop with it: the floating player's
+                      // marquee asked for every frame under the page that
+                      // hid it.
+                      builder: (context, child) {
+                        final hidden = _planeHidden;
+                        return Offstage(
+                          offstage: hidden,
+                          child: TickerMode(enabled: !hidden, child: child!),
+                        );
+                      },
                     ),
                   ),
                   // The drawer plane, sliding in from the same seam. While
@@ -1817,11 +1900,19 @@ class _KioskScreenState extends State<KioskScreen>
                   AlarmsOverlay(container: c),
                   // The family calendar, the launcher's twin as well:
                   // full screen, below the screensaver.
-                  CalendarOverlay(container: c),
+                  _HiddenUnder(
+                    listenable: _pagesCover,
+                    hidden: _pagesHidden,
+                    child: CalendarOverlay(container: c),
+                  ),
                   // The music library, the same kind of page: full
                   // screen, below the screensaver, so Now Playing opened
                   // from its player bar comes up over it.
-                  MusicLibraryOverlay(container: c),
+                  _HiddenUnder(
+                    listenable: _pagesCover,
+                    hidden: _pagesHidden,
+                    child: MusicLibraryOverlay(container: c),
+                  ),
                   // The screensaver covers both planes — it owns the whole
                   // display, drawer open or not.
                   // Paused under the native voice overlay, which
@@ -1848,7 +1939,11 @@ class _KioskScreenState extends State<KioskScreen>
                   // turn they are over the black cover too, so a plugin
                   // skin draws the turn there. The rest live in the kiosk
                   // plane.
-                  PluginNativeOverlays(plugins: c.plugins, onTop: true),
+                  PluginNativeOverlays(
+                    plugins: c.plugins,
+                    onTop: true,
+                    hybrid: c.settings.get(defs.hybridPluginOverlays),
+                  ),
                   // Above every overlay a notification could arrive
                   // behind (the screensaver, a camera wall, a plugin drawn
                   // on top) because a message from the house is worth
@@ -3062,6 +3157,38 @@ class _WebViewMissingNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A full screen page of the kiosk Stack, left out of the frame and its
+/// tickers stopped while [hidden] says something hides it. It keeps its
+/// state, so it shows again as it was.
+class _HiddenUnder extends StatelessWidget {
+  const _HiddenUnder({
+    required this.listenable,
+    required this.hidden,
+    required this.child,
+  });
+
+  final Listenable listenable;
+  final bool Function() hidden;
+
+  /// The page, whose root is Positioned: it gets a Stack of its own.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: listenable,
+    child: Stack(fit: StackFit.expand, children: [child]),
+    builder: (context, page) {
+      final off = hidden();
+      return Positioned.fill(
+        child: Offstage(
+          offstage: off,
+          child: TickerMode(enabled: !off, child: page!),
+        ),
+      );
+    },
+  );
 }
 
 /// Shows [child] live, or while [paused] as a still picture of its last

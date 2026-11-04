@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart' as flutter_test;
 import 'package:kiosk_satellite/app_container.dart';
 import 'package:kiosk_satellite/core/events.dart';
 import 'package:kiosk_satellite/managers/glance/glance_manager.dart';
@@ -25,6 +26,19 @@ void main() {
   const noSensor = 'No ambient light sensor on this device.';
   const nightRed = Color(0xFF822222);
 
+  // Started screensaver managers, stopped before each test ends: their
+  // schedule timer would outlive the test.
+  final started = <AppContainer>[];
+  void testWidgets(String description, WidgetTesterCallback body) =>
+      flutter_test.testWidgets(description, (tester) async {
+        await body(tester);
+        await tester.pumpWidget(const SizedBox());
+        for (final container in started) {
+          await container.screensaver.dispose();
+        }
+        started.clear();
+      });
+
   Future<AppContainer> makeContainer(
     Map<String, Object> prefs, {
     bool sensor = true,
@@ -40,6 +54,9 @@ void main() {
     await container.settings.init();
     container.device.hasLightSensor = sensor;
     container.device.lightLux = lux;
+    // The manager makes the Night mode decision the face follows.
+    await container.screensaver.init();
+    started.add(container);
     return container;
   }
 
@@ -711,6 +728,77 @@ void main() {
         'stays', (tester) async {
       await pumpWithBattery(tester, lux: 2, view: 'black', hide: true);
       expect(find.byType(BatteryWidgetOverlay), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // Issue #1299: a plugin screensaver tints the widgets over itself, the
+    // way Night mode does over the clock, and over nothing else.
+    const plugin = 'plugin:night_light:light';
+    const amber = Color(0xFFB36B00);
+
+    testWidgets('a plugin tint colors the widget over its screensaver', (
+      tester,
+    ) async {
+      final container = await pumpWithBattery(tester, lux: 200, view: plugin);
+      expect(batteryColor(tester), const Color(0xFFFAFAFA));
+      container.screensaver.pluginTint.value = (
+        mode: plugin,
+        color: amber.toARGB32(),
+      );
+      await tester.pump();
+      expect(batteryColor(tester), amber);
+      container.screensaver.pluginTint.value = null;
+      await tester.pump();
+      expect(batteryColor(tester), const Color(0xFFFAFAFA));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a plugin tint never reaches another screensaver', (
+      tester,
+    ) async {
+      for (final view in ['plugin:night_light:other', 'black']) {
+        final container = await pumpWithBattery(tester, lux: 200, view: view);
+        container.screensaver.pluginTint.value = (
+          mode: plugin,
+          color: amber.toARGB32(),
+        );
+        await tester.pump();
+        expect(batteryColor(tester), const Color(0xFFFAFAFA), reason: view);
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
+    testWidgets('a plugin tint draws the At a Glance chips in it', (
+      tester,
+    ) async {
+      final container = await makeContainer({
+        'ks.screensaver.glance_enabled': true,
+      }, lux: 200);
+      container.glance.entities.value = const [
+        GlanceEntity(entityId: 'light.desk', name: 'Desk', state: 'on'),
+      ];
+      container.screensaver.activeView.value = plugin;
+      container.screensaver.pluginTint.value = (
+        mode: plugin,
+        color: amber.toARGB32(),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(children: [ScreensaverOverlay(container: container)]),
+        ),
+      );
+      final deco = tester
+          .widgetList<Container>(
+            find.descendant(
+              of: find.byType(GlanceRow),
+              matching: find.byType(Container),
+            ),
+          )
+          .map((c) => c.decoration)
+          .whereType<ShapeDecoration>()
+          .single;
+      expect(deco.color, amber.withValues(alpha: 0.16));
+      expect(tester.widget<Text>(find.text('On')).style?.color, amber);
       await tester.pumpWidget(const SizedBox());
     });
   });
