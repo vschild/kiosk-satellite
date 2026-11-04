@@ -623,6 +623,75 @@ void main() {
           expect(calls, hasLength(1));
         },
       );
+
+      test('with the kiosk name next to the device', () async {
+        final mcp = McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceId: () async => 'dev1',
+          deviceName: () => ' Kitchen ',
+        );
+        await mcp.listTools();
+        await mcp.callTool('script__probe', {
+          'room': 'Kitchen',
+          McpClient.scriptNameArgument: 'made_up',
+        });
+        await mcp.callTool('HassTurnOn', {'name': 'Kitchen'});
+        expect(calls[0]['arguments'], {
+          'room': 'Kitchen',
+          McpClient.scriptNameArgument: 'Kitchen',
+          McpClient.scriptDeviceArgument: 'dev1',
+        });
+        expect(calls[1]['arguments'], {'name': 'Kitchen'});
+
+        // The name goes without a device, and an empty one stays out.
+        calls.clear();
+        await McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceName: () => 'Kitchen',
+        ).callTool('script__probe', {'room': 'Hall'});
+        await McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceId: () async => 'dev1',
+          deviceName: () => '',
+        ).callTool('script__probe', {'room': 'Hall'});
+        expect(calls[0]['arguments'], {
+          'room': 'Hall',
+          McpClient.scriptNameArgument: 'Kitchen',
+        });
+        expect(calls[1]['arguments'], {
+          'room': 'Hall',
+          McpClient.scriptDeviceArgument: 'dev1',
+        });
+      });
+
+      test('a refused name keeps the declared device', () async {
+        // The script declares ks_device_id only, so a strict Home
+        // Assistant refuses the name.
+        answer = (args) => args.containsKey(McpClient.scriptNameArgument)
+            ? text(
+                'Error calling tool: extra keys not allowed @ '
+                "data['${McpClient.scriptNameArgument}']. Got "
+                '${jsonEncode(args)}',
+                error: true,
+              )
+            : text('done');
+        final mcp = McpClient(
+          url: Uri.parse('http://ha/api/mcp'),
+          client: server(),
+          deviceId: () async => 'dev1',
+          deviceName: () => 'Kitchen',
+        );
+        final result = await mcp.callTool('script__probe', {'room': 'Hall'});
+        expect(result.error, isFalse);
+        expect(calls, hasLength(2));
+        expect(calls.last['arguments'], {
+          'room': 'Hall',
+          McpClient.scriptDeviceArgument: 'dev1',
+        });
+      });
     });
 
     test('an HTTP error says so', () async {
@@ -1232,13 +1301,72 @@ void main() {
       backend.interrupted('a1', 800);
       expect(socket.types, contains('response.cancel'));
       backend.userTurn(keep: true);
-      // Any answer still open on the server goes first.
-      expect(socket.types.skip(socket.types.length - 2), [
-        'response.cancel',
-        'response.create',
-      ]);
+      // OpenAI refuses a reply while the cancelled answer is still open.
+      expect(socket.types.where((t) => t == 'response.cancel'), hasLength(1));
+      expect(socket.types, isNot(contains('response.create')));
+      socket.server({
+        'type': 'response.done',
+        'response': {'status': 'cancelled'},
+      });
+      await pumpEventQueue();
+      expect(socket.sent.last, {
+        'type': 'response.create',
+        'event_id': 'turn_1',
+      });
       await backend.close();
     });
+
+    test('OpenAI: a turn with no answer open gets its reply at once', () async {
+      final backend = make(
+        const RealtimeConfig(provider: RealtimeProvider.openai),
+      );
+      await backend.start(const RealtimeStart());
+      socket.server({'type': 'session.updated'});
+      await pumpEventQueue();
+      backend.userTurn(keep: true);
+      expect(socket.types, isNot(contains('response.cancel')));
+      expect(socket.types.last, 'response.create');
+      await backend.close();
+    });
+
+    test(
+      'OpenAI: a refused reply is asked again once the answer is done',
+      () async {
+        final backend = make(
+          const RealtimeConfig(provider: RealtimeProvider.openai),
+        );
+        await backend.start(const RealtimeStart());
+        socket.server({'type': 'session.updated'});
+        await pumpEventQueue();
+        // An answer the kiosk has not heard of yet is open on the server.
+        backend.userTurn(keep: true);
+        socket.server({
+          'type': 'error',
+          'error': {
+            'code': 'conversation_already_has_active_response',
+            'message':
+                'Conversation already has an active response in progress',
+            'event_id': 'turn_1',
+          },
+        });
+        await pumpEventQueue();
+        expect(events.whereType<RealtimeWarning>(), isEmpty);
+        final asked = socket.types.where((t) => t == 'response.create').length;
+        socket
+          ..server({'type': 'response.created'})
+          ..server({
+            'type': 'response.done',
+            'response': {'status': 'completed'},
+          });
+        await pumpEventQueue();
+        expect(
+          socket.types.where((t) => t == 'response.create'),
+          hasLength(asked + 1),
+        );
+        expect(socket.sent.last['event_id'], 'turn_2');
+        await backend.close();
+      },
+    );
 
     test('an error before the session is up closes it', () async {
       final backend = make(
@@ -1806,6 +1934,18 @@ void main() {
         'y',
       ]);
     });
+
+    test('a conversation\'s last words nothing answered are dropped', () {
+      final history = RealtimeHistory()
+        ..add(user: true, text: 'What time is it?')
+        ..add(user: false, text: 'It is 11:28.')
+        ..add(user: true, text: 'Okay, bye.')
+        ..dropUnanswered();
+      expect(history.recent(const Duration(hours: 1)).map((t) => t.text), [
+        'What time is it?',
+        'It is 11:28.',
+      ]);
+    });
   });
 
   test('the location line names the device, not the assistant', () {
@@ -2122,60 +2262,6 @@ void main() {
       });
     });
 
-    test('the settling stretches while the answer still comes back', () {
-      fakeAsync((time) {
-        // A cold canceller on the first answer after the app starts: the
-        // answer comes back at a few hundred for 5 to 6 s, over the quiet
-        // line and under what counts as the user. The microphone stays as the room past the
-        // usual window, and goes live by the longest one.
-        final h = _Harness(time);
-        h.backend.clientTurns = true;
-        h.wakeAndConnect();
-        h.answer('a1', seconds: 10);
-        for (var i = 0; i < 40; i++) {
-          time.elapse(const Duration(milliseconds: 100));
-          h.mic.speak(value: 400);
-        }
-        time.elapse(const Duration(milliseconds: 200));
-        h.backend.audio.clear();
-        h.mic.speak(value: 400);
-        expect(h.backend.audio.single.every((b) => b == 0), isTrue);
-        time.elapse(
-          RealtimeSession.echoSettleMost - RealtimeSession.echoSettle,
-        );
-        h.backend.audio.clear();
-        h.mic.speak(value: 400);
-        expect(h.backend.audio.single.any((b) => b != 0), isTrue);
-        h.session.cancel();
-        time.flushMicrotasks();
-      });
-    });
-
-    test('a user over a still settling answer gets through after the usual '
-        'window', () {
-      fakeAsync((time) {
-        final h = _Harness(time);
-        h.backend.clientTurns = true;
-        h.wakeAndConnect();
-        h.answer('a1', seconds: 10);
-        for (var i = 0; i < 40; i++) {
-          time.elapse(const Duration(milliseconds: 100));
-          h.mic.speak(value: 400);
-        }
-        // The user starts talking: over the barge-in level for most of the
-        // last second, and the settling no longer holds the microphone.
-        for (var i = 0; i < 7; i++) {
-          time.elapse(const Duration(milliseconds: 100));
-          h.mic.speak(value: 2500);
-        }
-        h.backend.audio.clear();
-        h.mic.speak(value: 2500);
-        expect(h.backend.audio.single.any((b) => b != 0), isTrue);
-        h.session.cancel();
-        time.flushMicrotasks();
-      });
-    });
-
     test('the room\'s noise stands in while the canceller mutes it', () {
       fakeAsync((time) {
         // A noise floor (an air conditioner) that comes back all at once
@@ -2202,6 +2288,41 @@ void main() {
         time.flushMicrotasks();
       });
     });
+
+    test(
+      'the room stands in while the microphone stays muted after an answer',
+      () {
+        fakeAsync((time) {
+          // A Meta Portal Go lets its room back up to a second after the voice
+          // stops, past the echo tail.
+          final h = _Harness(time);
+          h.backend.clientTurns = true;
+          h.wakeAndConnect();
+          for (var i = 0; i < 20; i++) {
+            h.mic.speak(value: 140);
+          }
+          int level(Uint8List pcm) => RealtimeSession.meanAbs(pcm);
+          h.answer('a1', seconds: 1);
+          h.player.frames = 24000;
+          time.elapse(const Duration(milliseconds: 100));
+          time.elapse(
+            RealtimeSession.echoTail + const Duration(milliseconds: 300),
+          );
+          h.backend.audio.clear();
+          h.mic.speak(value: 5);
+          expect(level(h.backend.audio.single), closeTo(140, 3));
+          h.backend.audio.clear();
+          h.mic.speak(value: 3000);
+          expect(level(h.backend.audio.single), closeTo(3000, 2));
+          time.elapse(RealtimeSession.mutedTail);
+          h.backend.audio.clear();
+          h.mic.speak(value: 5);
+          expect(level(h.backend.audio.single), closeTo(5, 2));
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      },
+    );
 
     test('a quiet room goes as it is', () {
       fakeAsync((time) {
@@ -2426,6 +2547,59 @@ void main() {
         });
       });
 
+      /// Measured on an Echo Show 8 with no hardware canceller: the echo
+      /// left under the voice sits around 650 to 980 and bursts to 1600.
+      _Harness loudEchoUnderAnswer(FakeAsync time) {
+        final h = _Harness(time);
+        h.backend.clientTurns = true;
+        h.wakeAndConnect();
+        h.answer('a1', seconds: 10);
+        time.elapse(RealtimeSession.echoSettle);
+        underVoice(time, h, [
+          for (var i = 0; i < 6; i++) ...[700, 820, 980, 650, 900, 760],
+        ]);
+        return h;
+      }
+
+      test('a loud leftover echo raises the bar for talking over it', () {
+        fakeAsync((time) {
+          final h = loudEchoUnderAnswer(time);
+          underVoice(time, h, [1500, 1650, 1400]);
+          h.backend.emit(const RealtimeSpeechStarted());
+          time.flushMicrotasks();
+          underVoice(time, h, [1550, 1300]);
+          h.backend.emit(const RealtimeSpeechStopped());
+          time.flushMicrotasks();
+          expect(h.player.flushes, 0);
+          expect(h.backend.interruptions, isEmpty);
+          expect(h.backend.turns, [false]);
+          expect(
+            h.traces,
+            contains(
+              allOf(
+                startsWith('ignored speech too quiet to be the user: '),
+                contains('peak 1650, 0 of 3 chunks at 2'),
+              ),
+            ),
+          );
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      });
+
+      test('the user still talks over a loud leftover echo', () {
+        fakeAsync((time) {
+          final h = loudEchoUnderAnswer(time);
+          underVoice(time, h, [7000, 7600, 8100]);
+          h.backend.emit(const RealtimeSpeechStarted());
+          time.flushMicrotasks();
+          expect(h.player.flushes, 1);
+          expect(h.backend.interruptions.single.$1, 'a1');
+          h.session.cancel();
+          time.flushMicrotasks();
+        });
+      });
+
       test('speech with nothing playing gets a reply', () {
         fakeAsync((time) {
           final h = _Harness(time);
@@ -2629,6 +2803,24 @@ void main() {
         h.player.frames = 24000;
         time.elapse(const Duration(seconds: 1));
         expect(h.session.busy, isFalse);
+      });
+    });
+
+    test('a goodbye ended on without a word is not replayed', () {
+      fakeAsync((time) {
+        final h = _Harness(time);
+        h.wakeAndConnect();
+        h.backend
+          ..emit(const RealtimeUserText('What time is it?'))
+          ..emit(const RealtimeAnswerText('It is 11:28.', complete: true))
+          ..emit(const RealtimeUserText('Okay, bye.'))
+          ..emit(const RealtimeEndRequested());
+        time.elapse(const Duration(seconds: 1));
+        expect(h.session.busy, isFalse);
+        expect(
+          h.session.history.recent(const Duration(hours: 1)).map((t) => t.text),
+          ['What time is it?', 'It is 11:28.'],
+        );
       });
     });
 

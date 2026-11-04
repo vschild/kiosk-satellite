@@ -1,6 +1,6 @@
 # Kiosk Satellite Immich Screensaver
 
-Kiosk Satellite can turn your device into a smart digital photo frame using an [Immich](https://immich.app/) server. Point it at your library or specific albums to enjoy full screen slideshows, customizable transition effects, an optional metadata overlay, and local image caching for instant loading. It even plays videos from your selection in full with audio muted.
+Kiosk Satellite can turn your device into a smart digital photo frame using an [Immich](https://immich.app/) server. Point it at your library or specific albums to enjoy full screen slideshows, customizable transition effects, an optional metadata overlay, and local image caching for instant loading. It even plays videos from your selection with audio muted.
 
 ## Setup
 
@@ -18,15 +18,17 @@ The settings page is organized into five main sections: Server Connection, Media
 | Media | Photos only | off | Skips video assets during the slideshow. With videos on, a video whose buffering would not fit the device's memory is skipped on its own (the log says which), so a long phone video cannot crash a small kiosk. |
 | Media | Cache media locally | on | Stores previews on the device for faster loading. |
 | Media | Cache size (items) | 500 | Automatically purges the oldest cached files when full. Current usage displays beneath this field. |
-| Slideshow | Seconds per image | 10 | Sets photo display duration. Videos ignore this setting and play through to completion. |
+| Slideshow | Seconds per image | 10 | Sets photo display duration. |
+| Slideshow | Video length | Whole video | Whole video plays each video to its end. Same as photos stops a video once Seconds per image runs out, or at its end if it is shorter. |
 | Slideshow | Shuffle | off | Displays media in random order instead of the server default (newest first). Each session picks up where the last one stopped, so every item shows once before any repeats. |
 | Slideshow | Transition | Crossfade | Options include none, crossfade, slide, zoom, Ken Burns, or random. |
-| Slideshow | Fill the screen | Smart | Controls how aggressively photos are cropped to fit the screen. |
+| Slideshow | Fill the screen | Smart | Controls how aggressively photos and videos are cropped to fit the screen. |
 | Slideshow | Pair portrait photos | on | Displays two portrait photos side by side in landscape mode. |
 | Slideshow | Pair landscape photos | on | Displays two landscape photos one above the other in portrait mode. |
 | Slideshow | Tap edges to change slides | on | A tap on the left or right fifth of the screen shows the previous or next photo instead of dismissing the screensaver. |
 | Metadata | Show metadata | off | Displays photo details in a designated corner of the screen. |
 | Metadata | Album name, Date taken, Camera details, Location | on | Toggles individual metadata lines. |
+| Metadata | Description | off | Shows the description written for the photo in Immich at the bottom of the screen. |
 | Metadata | Metadata position | Bottom left | Specifies which corner holds the photo details. |
 | Metadata | Text scaling | 100% | Scales the details text, icons and spacing from 50% to 200% for the screen. |
 | Filters | People | Anyone | Filter by specific recognized individuals. |
@@ -65,6 +67,8 @@ Most users prefer photos to fill the entire display. The **Fill the screen** set
 | Smart (default) | Enlarges photos to fill the display if the aspect ratio is close to the screen's dimensions (allowing up to roughly a 25 percent crop on one axis). This accommodates standard 4:3 and 16:9 camera shots on landscape displays. For portrait or square photos where cropping would ruin the composition, the photo remains uncropped in the center while an enlarged, blurred, and dimmed version of the image serves as the background instead of black bars. |
 | Always | Forces every photo to fill the panel regardless of aspect ratio. Nothing is ever letterboxed, but cropping can be severe. A 4:3 image on a 2:1 screen loses about a third of its height, and a portrait photo on a landscape screen is cropped down to a narrow horizontal strip. |
 
+Videos follow the same rule. A video that is not enlarged keeps black bars instead of the blurred background, since blurring every frame would cost too much on a kiosk.
+
 The **Always** mode has no awareness of a photo's subject, so anything outside the crop area is lost. If a photo features an off center subject like a person or a pet, this setting may crop them out.
 
 For portrait photos on landscape screens, the **Pair portrait photos** setting provides a much better solution without severe cropping, and **Pair landscape photos** does the same for landscape photos on portrait screens.
@@ -99,6 +103,10 @@ Enabling **Show metadata** places photo details in a designated corner of the sc
 Each metadata line has its own toggle switch. If you point your screensaver at a single album, you may want to turn off the album line so it doesn't repeat on every photo. Turning off a specific toggle also prevents the app from querying that data. If you turn off all metadata lines, the overlay and its background vignette turn off completely, behaving just as if **Show metadata** were disabled.
 
 When placed in a right hand corner, text and icons align to the right, mirroring the layout of right aligned widgets.
+
+### Description
+
+Turn on **Description** to show the description you wrote for the photo in Immich as a caption. A caption is too long for the corner, so it sits centered at the bottom of the screen and runs up to two lines. Anything longer ends with an ellipsis. It wraps in the space between the metadata corner and the opposite side when two lines fit there. On a narrower screen it moves above the corner details. The [At a Glance](screensavers.md#at-a-glance) row sits above the caption. Photos without a description show no caption. The caption follows **Text drop shadow**, **Text scaling** and **Vignette strength**. It works without any other metadata line, and the corner then stays free for widgets. It needs no extra request to Immich. In a portrait pair each photo's caption sits under that photo. In a stacked pair the top photo's caption sits halfway down the screen.
 
 The **Text scaling** slider (50% to 200%) sizes the details text, icons and spacing for the screen and previews live while the screensaver is running. It stays out of [fleet](fleet.md) sync by default like the other scale settings, since it corrects for one panel. **Text drop shadow** is enabled by default and adds a defined shadow beneath metadata text. It is independent of the widget text shadow toggle and updates live. The overlay rests on a subtle dark vignette to keep text readable against bright photos. You can adjust the **Vignette strength** slider from 0 to 100 percent (40 percent by default). Setting it to 0 removes the vignette entirely, leaving clean text over the photo.
 

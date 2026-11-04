@@ -278,6 +278,19 @@ class UiStringsEn extends UiStrings {
       'Needs the Kiosk Satellite alarms blueprint and an LLM conversation agent in Home Assistant.';
 
   @override
+  String get alarmsMusic => 'Music';
+
+  @override
+  String get alarmsMusicNone => 'None';
+
+  @override
+  String get alarmsMusicRemove => 'Remove music';
+
+  @override
+  String get alarmsMusicHint =>
+      'Rings instead of the tone. The tone rings if the music cannot play.';
+
+  @override
   String get androidAccessibilityHelp =>
       'Closes the notification shade and the recents screen whenever they open while Kiosk Mode or Lockdown Mode is protecting the screen. Kiosk Satellite does not read any screen content.';
 
@@ -517,6 +530,22 @@ class UiStringsEn extends UiStrings {
   String get calendarWidgetEvents => 'Events shown';
 
   @override
+  String get calendarWidgetDays => 'Days shown';
+
+  @override
+  String get calendarWidgetTomorrow => 'Today and tomorrow';
+
+  @override
+  String get calendarWidgetWeek => 'Next 7 days';
+
+  @override
+  String get calendarWidgetDots => 'Colored dots';
+
+  @override
+  String get calendarWidgetDotsHint =>
+      'Mark events with their calendar\'s color instead of the person\'s picture.';
+
+  @override
   String get calendarVoiceSection => 'Voice Calendar';
 
   @override
@@ -525,6 +554,137 @@ class UiStringsEn extends UiStrings {
   @override
   String get calendarVoiceHint =>
       'Needs the Kiosk Satellite calendar blueprint and an LLM conversation agent in Home Assistant.';
+
+  @override
+  String get calendarNewEvent => 'New event';
+
+  @override
+  String get calendarEditEvent => 'Edit event';
+
+  @override
+  String get calendarFieldTitle => 'Title';
+
+  @override
+  String get calendarFieldTitleHint => 'Add a title';
+
+  @override
+  String get calendarFieldCalendars => 'Calendars';
+
+  @override
+  String get calendarFieldSharedHint =>
+      'Shows once, split between their colors.';
+
+  @override
+  String get calendarFieldStarts => 'Starts';
+
+  @override
+  String get calendarFieldEnds => 'Ends';
+
+  @override
+  String get calendarFieldStartTime => 'Start time';
+
+  @override
+  String get calendarFieldEndTime => 'End time';
+
+  @override
+  String get calendarFieldEndsBeforeStart => 'Ends before it starts.';
+
+  @override
+  String get calendarFieldRepeat => 'Repeat';
+
+  @override
+  String get calendarRepeatNever => 'Does not repeat';
+
+  @override
+  String get calendarRepeatWeekdays => 'Every weekday';
+
+  @override
+  String calendarRepeatWeeklyOn(String weekday) {
+    return 'Every week on $weekday';
+  }
+
+  @override
+  String calendarRepeatMonthlyOn(String day) {
+    return 'Every month on day $day';
+  }
+
+  @override
+  String calendarRepeatYearlyOn(String date) {
+    return 'Every year on $date';
+  }
+
+  @override
+  String get calendarFieldLocation => 'Location';
+
+  @override
+  String get calendarFieldLocationHint => 'Add a place';
+
+  @override
+  String get calendarFieldNotes => 'Notes';
+
+  @override
+  String get calendarFieldNotesHint => 'Add notes';
+
+  @override
+  String get calendarEventAdded => 'Event added';
+
+  @override
+  String get calendarEventSaved => 'Changes saved';
+
+  @override
+  String get calendarEventDeleted => 'Event deleted';
+
+  @override
+  String get calendarSaveFailed => 'Could not save the event';
+
+  @override
+  String get calendarDeleteFailed => 'Could not delete the event';
+
+  @override
+  String calendarEditReadOnly(String calendar) {
+    return '$calendar is read only.';
+  }
+
+  @override
+  String calendarEditGone(String calendar) {
+    return 'The event is no longer on $calendar.';
+  }
+
+  @override
+  String calendarEditNotAllowed(String calendar) {
+    return 'The kiosk\'s Home Assistant user may not change $calendar.';
+  }
+
+  @override
+  String calendarDeleteTitle(String title) {
+    return 'Delete $title?';
+  }
+
+  @override
+  String calendarDeleteShared(String names) {
+    return 'It comes off every calendar it is on: $names.';
+  }
+
+  @override
+  String calendarSaveRepeatTitle(String title) {
+    return 'Save changes to $title?';
+  }
+
+  @override
+  String get calendarSaveRepeatFollowing =>
+      'The new repeat starts on this day.';
+
+  @override
+  String get calendarScopeThis => 'This event';
+
+  @override
+  String get calendarScopeFollowing => 'This and following events';
+
+  @override
+  String get calendarScopeAll => 'All events';
+
+  @override
+  String get calendarEditingSection => 'Editing';
 
   @override
   String get cameraViewerTitle => 'Camera view';
@@ -2990,6 +3150,10 @@ class UiStringsEn extends UiStrings {
       'Show the source picker in the library. Turn off to keep the library on the source set above.';
 
   @override
+  String get settingLibrarySpeakerPillDescription =>
+      'Show the speaker picker at the top of the library.';
+
+  @override
   String get libraryDensityComfortable => 'Comfortable';
 
   @override
@@ -3223,6 +3387,107 @@ class UiStringsEn extends UiStrings {
   @override
   String get libraryVoiceHint =>
       'Needs the Kiosk Satellite music blueprint and an LLM conversation agent in Home Assistant.';
+
+  @override
+  String get musicPickerTitle => 'Choose music';
+
+  @override
+  String get musicPickerSearchHint => 'Search music';
+
+  @override
+  String get musicPickerMusicFrom => 'Music from';
+
+  @override
+  String get musicPickerPlaysOn => 'Plays on';
+
+  @override
+  String musicPickerSourceLabel(String name) {
+    return 'Source: $name';
+  }
+
+  @override
+  String musicPickerSpeakerLabel(String name) {
+    return 'Plays on: $name';
+  }
+
+  @override
+  String get musicPickerRandom => 'Random';
+
+  @override
+  String get musicPickerRandomHint => 'A new pick every time it plays';
+
+  @override
+  String get musicPickerAnyTrack => 'Any track';
+
+  @override
+  String get musicPickerAnyFavorite => 'Any favorite';
+
+  @override
+  String get musicPickerAnyPlaylist => 'Any playlist';
+
+  @override
+  String get musicPickerAnyAlbum => 'Any album';
+
+  @override
+  String get musicPickerAnyStation => 'Any radio station';
+
+  @override
+  String get musicPickerRandomEach => 'A different one each time';
+
+  @override
+  String get musicPickerWholeAlbum => 'Whole album';
+
+  @override
+  String get musicPickerWholePlaylist => 'Whole playlist';
+
+  @override
+  String musicPickerWholeArtist(String name) {
+    return 'Everything by $name';
+  }
+
+  @override
+  String get musicPickerWholeFolder => 'Whole folder';
+
+  @override
+  String get musicPickerAllTracks => 'All tracks';
+
+  @override
+  String get musicPickerShuffle => 'Shuffle';
+
+  @override
+  String get musicPickerPreview => 'Preview';
+
+  @override
+  String get musicPickerStopPreview => 'Stop preview';
+
+  @override
+  String get musicPickerPreviewFailed => 'The music could not play';
+
+  @override
+  String get musicPickerNothing => 'Nothing picked';
+
+  @override
+  String get musicPickerNothingHint =>
+      'Pick a track, album, playlist, artist or station';
+
+  @override
+  String get musicPickerFollowsNote =>
+      'Now Playing switches to this speaker while the music plays.';
+
+  @override
+  String get musicPickerSonosNote =>
+      'Sonos music plays on Sonos speakers only.';
+
+  @override
+  String get musicPickerNoSpeakers => 'No speakers to play on';
+
+  @override
+  String musicPickerOpen(String title) {
+    return 'Open $title';
+  }
+
+  @override
+  String get musicPickerKindFolder => 'Folder';
 
   @override
   String get offlineDashboard => 'Dashboard unavailable';
@@ -4761,6 +5026,13 @@ class UiStringsEn extends UiStrings {
   String get settingAlarmsToneDescription => 'Plays at the alarm volume.';
 
   @override
+  String get settingAlarmsMusicTitle => 'Alarm music';
+
+  @override
+  String get settingAlarmsMusicDescription =>
+      'Rings instead of the tone. The tone rings if the music cannot play.';
+
+  @override
   String get settingAlarmsSnoozeMinutesTitle => 'Snooze length';
 
   @override
@@ -4928,6 +5200,20 @@ class UiStringsEn extends UiStrings {
   @override
   String get settingCalendarWeatherEntityDescription =>
       'Adds the forecast to each day.';
+
+  @override
+  String get settingCalendarAllowEditTitle => 'Allow adding and editing events';
+
+  @override
+  String get settingCalendarAllowEditDescription =>
+      'Adds New event and Edit to the calendar.';
+
+  @override
+  String get settingCalendarAllowDeleteTitle => 'Allow deleting events';
+
+  @override
+  String get settingCalendarAllowDeleteDescription =>
+      'Adds Delete to each event.';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle => 'Close when idle';
@@ -7294,6 +7580,42 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get updateAnotherPackage => 'another package';
+
+  @override
+  String get deviceKioskSatelliteUpdates => 'Kiosk Satellite Updates';
+
+  @override
+  String get deviceAndroidSystemUpdates => 'Android System Updates';
+
+  @override
+  String get settingAndroidUpdatePolicyTitle => 'Install Android updates';
+
+  @override
+  String get settingAndroidUpdatePolicyDescription =>
+      'Updates to Android itself from the device maker, such as Google or Samsung. Kiosk mode hides the prompt to restart and install them.';
+
+  @override
+  String get deviceAndroidUpdateAsk => 'Ask on the device';
+
+  @override
+  String get deviceAndroidUpdateAutomatic => 'Right away';
+
+  @override
+  String get deviceAndroidUpdateWindowed => 'In a time window';
+
+  @override
+  String get settingAndroidUpdateWindowStartTitle => 'Install from';
+
+  @override
+  String get settingAndroidUpdateWindowStartDescription =>
+      'Local time the daily window for installing and restarting opens.';
+
+  @override
+  String get settingAndroidUpdateWindowEndTitle => 'Install until';
+
+  @override
+  String get settingAndroidUpdateWindowEndDescription =>
+      'Local time the window closes. A window past midnight ends the next day.';
 
   @override
   String get settingUiLanguageTitle => 'Language';
@@ -9872,6 +10194,13 @@ class UiStringsEn extends UiStrings {
       'While this device plays in a group, the volume slider sets the whole group\'s volume. Off, only this device\'s. Needs the Music Assistant connection.';
 
   @override
+  String get settingSendspinMasterVolumeTitle => 'Control the device volume';
+
+  @override
+  String get settingSendspinMasterVolumeDescription =>
+      'Music Assistant sets the volume the volume buttons change, instead of the media volume. Assistant sounds follow it too.';
+
+  @override
   String get mediaSendspinPage => 'Sendspin Player';
 
   @override
@@ -10348,6 +10677,14 @@ class UiStringsEn extends UiStrings {
       'Removes the kiosk\'s own sounds from the microphone so the wake word and the assistant do not hear them. Leave it on unless a microphone that cancels its own echo sounds worse with it.';
 
   @override
+  String get settingMicEchoCancellationMethodTitle =>
+      'Echo cancellation method';
+
+  @override
+  String get settingMicEchoCancellationMethodDescription =>
+      'Automatic tests GTCRN while the kiosk plays sounds and switches to AEC3 if it leaves too much echo. Pick Automatic to test again.';
+
+  @override
   String get settingMicNoiseSuppressionTitle => 'Noise suppression';
 
   @override
@@ -10397,6 +10734,12 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get screenAudioCaptureVoiceCommunication => 'Voice communication';
+
+  @override
+  String get screenAudioEchoMethodGtcrnDetected => 'GTCRN (detected)';
+
+  @override
+  String get screenAudioEchoMethodAec3Detected => 'AEC3 (detected)';
 
   @override
   String get screenAudioDownmix => 'Downmix (default)';
@@ -11965,6 +12308,13 @@ class UiStringsEn extends UiStrings {
       'Show the place the photo was taken.';
 
   @override
+  String get settingScreensaverImmichMetadataDescriptionTitle => 'Description';
+
+  @override
+  String get settingScreensaverImmichMetadataDescriptionDescription =>
+      'Show the photo\'s description at the bottom of the screen.';
+
+  @override
   String get settingScreensaverImmichMetadataPositionTitle =>
       'Metadata position';
 
@@ -12012,10 +12362,6 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get settingScreensaverImmichIntervalTitle => 'Seconds per image';
-
-  @override
-  String get settingScreensaverImmichIntervalDescription =>
-      'How long each image shows before the next. Videos play in full.';
 
   @override
   String get settingScreensaverImmichShuffleTitle => 'Shuffle';
@@ -12217,6 +12563,27 @@ class UiStringsEn extends UiStrings {
   String get screensaverMediaFillAlways => 'Always';
 
   @override
+  String get settingScreensaverVideoLengthTitle => 'Video length';
+
+  @override
+  String get settingScreensaverVideoLengthDescription =>
+      'How long each video plays before the next.';
+
+  @override
+  String get screensaverMediaVideoLengthFull => 'Whole video';
+
+  @override
+  String get screensaverMediaVideoLengthInterval => 'Same as photos';
+
+  @override
+  String get settingScreensaverImageIntervalDescription =>
+      'How long each image shows before the next.';
+
+  @override
+  String get settingScreensaverPhotoIntervalDescription =>
+      'How long each photo shows before the next.';
+
+  @override
   String get settingScreensaverGalleryItemsTitle => 'Photos';
 
   @override
@@ -12225,10 +12592,6 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get settingScreensaverGalleryIntervalTitle => 'Seconds per photo';
-
-  @override
-  String get settingScreensaverGalleryIntervalDescription =>
-      'How long each photo shows before the next. Videos play in full.';
 
   @override
   String get settingScreensaverGalleryShuffleTitle => 'Shuffle';
@@ -12301,10 +12664,6 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get settingScreensaverMediaIntervalTitle => 'Seconds per image';
-
-  @override
-  String get settingScreensaverMediaIntervalDescription =>
-      'How long each image shows before the next. Videos play in full.';
 
   @override
   String get settingScreensaverMediaShuffleTitle => 'Shuffle';
@@ -12449,10 +12808,6 @@ class UiStringsEn extends UiStrings {
 
   @override
   String get settingScreensaverLocalIntervalTitle => 'Seconds per photo';
-
-  @override
-  String get settingScreensaverLocalIntervalDescription =>
-      'How long each photo shows before the next. Videos play in full.';
 
   @override
   String get settingScreensaverLocalShuffleTitle => 'Shuffle';
@@ -13276,6 +13631,33 @@ class UiStringsEn extends UiStrings {
       'The conditions, with a matching icon.';
 
   @override
+  String get screensaverOverlayHighLow => 'High and low';
+
+  @override
+  String get screensaverOverlayHighLowHelp =>
+      'Today\'s high and low temperatures.';
+
+  @override
+  String get screensaverOverlayForecastWidget => 'Weather forecast';
+
+  @override
+  String get screensaverOverlayForecastDays => 'Days shown';
+
+  @override
+  String get screensaverOverlayForecastToday => 'Include today';
+
+  @override
+  String get screensaverOverlayForecastTodayHelp =>
+      'Start the list with today\'s forecast.';
+
+  @override
+  String get screensaverOverlayForecastColored => 'Colored icons';
+
+  @override
+  String get screensaverOverlayForecastColoredHelp =>
+      'Show the weather icons in their own colors.';
+
+  @override
   String get screensaverOverlayHumidity => 'Humidity';
 
   @override
@@ -13418,6 +13800,10 @@ class UiStringsEn extends UiStrings {
   @override
   String get searchBattery =>
       'A battery widget in a corner of the screensaver: this device\'s own charge.';
+
+  @override
+  String get searchWeatherForecast =>
+      'A forecast widget in a corner of the screensaver: the coming days, with their highs and lows.';
 
   @override
   String get searchPersonPermission =>

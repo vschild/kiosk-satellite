@@ -107,6 +107,39 @@ void main() {
     );
   });
 
+  test('the wake words take half a preset less while the kiosk plays', () {
+    WakeWordConfig config(WakeWordEngineType engine, {num fineTune = 0}) =>
+        buildWakeConfig(
+          engine: engine,
+          activeIds: const [],
+          sensitivity: 'moderately',
+          fineTune: fineTune,
+          noiseGate: false,
+          stopWord: true,
+        );
+    final vsww = config(WakeWordEngineType.vsWakeWord);
+    expect(vsww.models.single.playbackConfidenceScale, closeTo(0.95, 1e-9));
+    expect(vsww.models.single.playbackCutoff, isNull);
+    final mww = config(WakeWordEngineType.microWakeWord);
+    expect(mww.models.single.playbackConfidenceScale, closeTo(0.95, 1e-9));
+    final oww = config(WakeWordEngineType.openWakeWord);
+    expect(oww.models.single.playbackCutoff, closeTo(0.45, 1e-9));
+    expect(oww.models.single.playbackConfidenceScale, isNull);
+    // On top of the fine-tune, not instead of it.
+    expect(
+      config(
+        WakeWordEngineType.vsWakeWord,
+        fineTune: 5,
+      ).models.single.playbackConfidenceScale,
+      closeTo(0.85, 1e-9),
+    );
+    // The stop word keeps its thresholds.
+    for (final c in [vsww, mww, oww]) {
+      expect(c.stopModel?.playbackConfidenceScale, isNull);
+      expect(c.stopModel?.playbackCutoff, isNull);
+    }
+  });
+
   test('the config keeps two known wake words, slot 1 first', () {
     final config = buildWakeConfig(
       engine: WakeWordEngineType.openWakeWord,
@@ -204,6 +237,40 @@ void main() {
     expect(digest.results.single.kind, 'weather');
     expect(digest.answer, 'Sunny.');
     expect(stripSentimentTags('[happy] Sure thing!'), 'Sure thing!');
+  });
+
+  test('sentiment tags in angle brackets go, other text stays', () {
+    expect(
+      stripSentimentTags("Morning! <chuckle> You're up early."),
+      "Morning! You're up early.",
+    );
+    expect(
+      stripSentimentTags('Hmm <short pause> okay <sigh> fine.'),
+      'Hmm okay fine.',
+    );
+    expect(
+      stripSentimentTags('Yes, 3 < 5 and 7 > 2.'),
+      'Yes, 3 < 5 and 7 > 2.',
+    );
+    expect(stripSentimentTags('Use <Enter> to go.'), 'Use <Enter> to go.');
+    // A tag cut off mid stream goes only while the answer streams.
+    expect(stripSentimentTags('Morning! <chuck', streaming: true), 'Morning!');
+    expect(stripSentimentTags('Sure [hap', streaming: true), 'Sure');
+    expect(stripSentimentTags('Morning! <chuck'), 'Morning! <chuck');
+  });
+
+  test('common HTML tags stay', () {
+    expect(
+      stripSentimentTags('It is <b>72°</b> <sigh> and <i>sunny</i>.'),
+      'It is <b>72°</b> and <i>sunny</i>.',
+    );
+    expect(
+      stripSentimentTags('<p>Line one<br>Line two</p> <laugh>'),
+      '<p>Line one<br>Line two</p>',
+    );
+    expect(stripSentimentTags('<a little pause> <s>'), '<a little pause> <s>');
+    // Starts like an HTML name but is not one.
+    expect(stripSentimentTags('<sigh> <bold> Okay.'), 'Okay.');
   });
 
   group('custom models on the kiosk', () {

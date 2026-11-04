@@ -18,7 +18,13 @@ import 'package:video_player/video_player.dart';
 import 'alarms_overlay.dart' show alarmTimeText;
 import '../managers/alarms/alarm_manager.dart';
 import 'alarm_ring_overlay.dart';
-import 'calendar_overlay.dart' show CalendarBands, CalendarScreen, calendarTime;
+import 'calendar_overlay.dart'
+    show
+        CalendarAvatarStack,
+        CalendarBands,
+        CalendarPaint,
+        CalendarScreen,
+        calendarTime;
 import '../managers/calendar/calendar_manager.dart';
 import '../managers/calendar/calendar_model.dart' as cal_model;
 import '../app_container.dart';
@@ -39,6 +45,7 @@ import '../managers/screensaver/immich_manager.dart'
         ImmichPairing,
         arrangeImmichPairs,
         immichFiltersActive,
+        immichMetadataShown,
         immichMetadataVisible,
         immichPairPhoto,
         immichPairingFor;
@@ -46,7 +53,6 @@ import '../managers/camera/models.dart'
     show CameraViewConfig, decodeCameraViewIds;
 import '../managers/device/haptics.dart';
 import '../managers/screensaver/photo_metadata.dart';
-import '../managers/screensaver/screensaver_manager.dart' show clockNightActive;
 import '../managers/screensaver/screensaver_widgets.dart';
 import '../managers/settings/definitions.dart' as defs;
 import '../managers/settings/settings_manager.dart';
@@ -87,13 +93,11 @@ class ScreensaverOverlay extends StatefulWidget {
 class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
   StreamSubscription<SettingChanged>? _widgetsSub;
 
-  /// Whether the Clock screensaver's Night mode holds (issue #391). Decided
-  /// here rather than in the clock face because the corner widgets, which
-  /// ride over the face from this overlay, take the night color too. Kept
-  /// as state, not derived per build: leaving night above the threshold
-  /// rather than at it needs the last decision (see [clockNightActive]).
-  bool _night = false;
-  StreamSubscription<LightLevelChanged>? _luxSub;
+  /// Whether the Clock screensaver's Night mode holds (issue #391), as the
+  /// screensaver manager decides it. Read here rather than in the clock
+  /// face because the corner widgets, which ride over the face from this
+  /// overlay, take the night color too.
+  bool get _night => container.screensaver.clockNight.value;
 
   AppContainer get container => widget.container;
 
@@ -101,6 +105,8 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
   void initState() {
     super.initState();
     container.screensaver.scheduleNowPlaying.addListener(_scheduleChanged);
+    container.screensaver.clockNight.addListener(_scheduleChanged);
+    container.screensaver.pluginTint.addListener(_scheduleChanged);
     // Editing the Widgets group while the screensaver shows (the remote
     // admin can) applies immediately: the widget list is read at build,
     // so a changed list needs this rebuild to mount or unmount overlays.
@@ -140,29 +146,16 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
       for (final metadata in photoMetadataDefs.values)
         for (final def in metadata.all) def.key,
     };
-    // The Night mode keys ride along so they can be tuned from the remote
-    // admin against the live face: the decision is remade, since the
-    // switch and the threshold are its inputs.
-    final night = {
-      defs.screensaverClockNight.key,
-      defs.screensaverClockNightLux.key,
+    // The Night mode colors ride along so they can be tuned from the
+    // remote admin against the live face. The manager remakes the decision
+    // itself when its switch or threshold moves.
+    live.addAll({
       defs.screensaverClockNightColor.key,
       defs.screensaverClockNightBgColor.key,
       defs.screensaverClockNightCardColor.key,
-    };
-    _widgetsSub = container.bus.on<SettingChanged>().listen((e) {
-      if (!mounted) return;
-      if (night.contains(e.key)) {
-        _night = _computeNight();
-        setState(() {});
-      } else if (live.contains(e.key)) {
-        setState(() {});
-      }
     });
-    _night = _computeNight();
-    _luxSub = container.bus.on<LightLevelChanged>().listen((_) {
-      final next = _computeNight();
-      if (next != _night && mounted) setState(() => _night = next);
+    _widgetsSub = container.bus.on<SettingChanged>().listen((e) {
+      if (mounted && live.contains(e.key)) setState(() {});
     });
   }
 
@@ -173,20 +166,10 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
   @override
   void dispose() {
     container.screensaver.scheduleNowPlaying.removeListener(_scheduleChanged);
+    container.screensaver.clockNight.removeListener(_scheduleChanged);
+    container.screensaver.pluginTint.removeListener(_scheduleChanged);
     _widgetsSub?.cancel();
-    _luxSub?.cancel();
     super.dispose();
-  }
-
-  bool _computeNight() {
-    final s = container.settings;
-    final d = container.device;
-    return clockNightActive(
-      previous: _night,
-      enabled: s.get(defs.screensaverClockNight) && d.hasLightSensor,
-      lux: d.lightLux,
-      threshold: s.get(defs.screensaverClockNightLux).toDouble(),
-    );
   }
 
   /// Whether Night mode clears the corner widgets off the Clock
@@ -198,14 +181,19 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
       container.settings.get(defs.screensaverClockNightHideWidgets);
 
   /// The color Night mode imposes on the corner widgets over the Clock
-  /// screensaver, or null: on any other view the widgets keep their own,
+  /// screensaver, or the tint a plugin screensaver asked for over itself
+  /// (issue #1299), or null: on any other view the widgets keep their own,
   /// Night mode being the clock's.
-  Color? _widgetNightColor(String view) => view == 'clock' && _night
-      ? _rgbOr(
-          container.settings.get(defs.screensaverClockNightColor),
-          const Color(0xFF822222),
-        )
-      : null;
+  Color? _widgetNightColor(String view) {
+    if (view == 'clock' && _night) {
+      return _rgbOr(
+        container.settings.get(defs.screensaverClockNightColor),
+        const Color(0xFF822222),
+      );
+    }
+    final tint = container.screensaver.pluginTint.value;
+    return tint != null && tint.mode == view ? Color(tint.color) : null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,14 +209,21 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
         final blackBare =
             view == 'black' &&
             container.settings.get(defs.screensaverBlackHideExtras);
-        return ValueListenableBuilder<bool>(
-          valueListenable: container.sendspin.fullscreenActive,
-          builder: (context, nowPlaying, child) {
+        return ListenableBuilder(
+          // An alarm on the screensaver keeps it: its music plays, but Now
+          // Playing stays behind until the alarm lets go.
+          listenable: Listenable.merge([
+            container.sendspin.fullscreenActive,
+            container.screensaver.alarmTakeover,
+          ]),
+          builder: (context, child) {
+            final nowPlaying = container.sendspin.fullscreenActive.value;
             final scheduled = container.screensaver.scheduleNowPlaying.value;
             final playing =
                 nowPlaying &&
                 container.settings.get(defs.sendspinFullscreen) &&
-                scheduled != false;
+                scheduled != false &&
+                container.screensaver.alarmTakeover.value == null;
             return Positioned.fill(
               child: _ScreensaverPlayerLayout(
                 container: container,
@@ -256,9 +251,17 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
               fit: StackFit.expand,
               children: [
                 switch (view) {
+                  // A touch renderer keeps its taps (issue #1282) and the
+                  // kiosk screen's raw pointer reports run the manager's
+                  // double-tap chain, as on the dashboard.
                   final mode when defs.isPluginScreensaver(mode) =>
-                    _Dismissable(
-                      container: container,
+                    ValueListenableBuilder(
+                      valueListenable: container.plugins.screensavers,
+                      builder: (context, _, child) => _Dismissable(
+                        container: container,
+                        enabled: !container.plugins.screensaverTouch(mode),
+                        child: child!,
+                      ),
                       child: UiScaleExempt(
                         child: PluginScreensaver(
                           container: container,
@@ -357,6 +360,12 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                     container: container,
                     child: const SizedBox.expand(),
                   ),
+                  // Dim beside a shared player: the page shows through,
+                  // with nothing over it.
+                  'dim' => _Dismissable(
+                    container: container,
+                    child: const SizedBox.expand(),
+                  ),
                   // 'black' and anything unexpected: the safe, opaque cover,
                   // carrying the At a Glance row when there is one — unless
                   // the active schedule entry withholds it for its hours,
@@ -392,6 +401,7 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                 // for the native modes, the page for the web ones.
                 if (!blackBare &&
                     !weatherUnset &&
+                    view != 'dim' &&
                     view != 'black' &&
                     view != 'clock' &&
                     view != 'weather_mood' &&
@@ -430,6 +440,7 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                               return _GlanceOverlay(
                                 container: container,
                                 narrow: narrow,
+                                night: _widgetNightColor(view),
                               );
                             }
                             // Once the panels have been measured, the row
@@ -442,6 +453,7 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                                     container: container,
                                     narrow: true,
                                     corners: footprint.values,
+                                    night: _widgetNightColor(view),
                                   ),
                             );
                           },
@@ -457,7 +469,7 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                 // which is why they hang off their own listenable: a
                 // boundary between two entries of the same mode changes
                 // nothing else this widget rebuilds on.
-                if (!blackBare && !weatherUnset)
+                if (!blackBare && !weatherUnset && view != 'dim')
                   _StepAside(
                     container: container,
                     child: ValueListenableBuilder<bool?>(
@@ -506,6 +518,14 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                                                   view,
                                                 ),
                                               ),
+                                              'forecast' =>
+                                                ForecastWidgetOverlay(
+                                                  container: container,
+                                                  spec: spec,
+                                                  nightColor: _widgetNightColor(
+                                                    view,
+                                                  ),
+                                                ),
                                               'battery' => BatteryWidgetOverlay(
                                                 container: container,
                                                 spec: spec,
@@ -615,7 +635,6 @@ class _ScreensaverPlayerLayout extends StatelessWidget {
           split &&
           player != null &&
           (landscape ? size.width >= 700 : size.height >= 700);
-      container.screensaver.setNowPlayingShared(shared);
       final full = Offset.zero & size;
       final Rect saverRect;
       final Rect playerRect;
@@ -640,6 +659,14 @@ class _ScreensaverPlayerLayout extends StatelessWidget {
         saverRect = full;
         playerRect = full;
       }
+      container.screensaver.setNowPlayingShared(
+        shared,
+        panel: !shared
+            ? EdgeInsets.zero
+            : landscape
+            ? EdgeInsets.only(right: playerRect.width)
+            : EdgeInsets.only(bottom: playerRect.height),
+      );
       return Stack(
         fit: StackFit.expand,
         children: [
@@ -650,7 +677,13 @@ class _ScreensaverPlayerLayout extends StatelessWidget {
               'screensaver-pane',
               PhotoFillOverride(
                 fill: shared && photoFill != 'default' ? photoFill : null,
+                // Opaque when shared: a clear pane (the dashboard with
+                // Double tap to dismiss) still takes the touch that
+                // dismisses, as every shared pane does.
                 child: Listener(
+                  behavior: shared
+                      ? HitTestBehavior.opaque
+                      : HitTestBehavior.deferToChild,
                   onPointerDown: shared
                       ? (_) => container.screensaver.notifyActivity(
                           'screensaver_touch',
@@ -753,10 +786,18 @@ class _SlideEdges extends StatelessWidget {
 /// Tap anywhere to wake. Used by the native views; the WebView reports its own
 /// taps over the JS bridge, since it swallows Flutter gestures.
 class _Dismissable extends StatelessWidget {
-  const _Dismissable({required this.container, required this.child});
+  const _Dismissable({
+    required this.container,
+    required this.child,
+    this.enabled = true,
+  });
 
   final AppContainer container;
   final Widget child;
+
+  /// Off while the child keeps its own taps. It stays in the tree so the
+  /// child is not rebuilt when that changes.
+  final bool enabled;
 
   /// 'tap', not 'touch': the kiosk screen's raw pointer Listener has
   /// already reported this finger on its way down, and this fires as it
@@ -765,7 +806,7 @@ class _Dismissable extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
     behavior: HitTestBehavior.opaque,
-    onTap: () => container.screensaver.notifyActivity('tap'),
+    onTap: enabled ? () => container.screensaver.notifyActivity('tap') : null,
     child: child,
   );
 }
@@ -1492,6 +1533,33 @@ class _ClockScreensaverState extends State<ClockScreensaver>
   return (bottom: max(inset, rise), maxWidth: width, narrow: false);
 }
 
+/// Which half of a side-by-side pair a caption belongs to.
+enum _CaptionHalf { left, right }
+
+/// Where a photo caption goes in an area [width] wide: its distance from
+/// the bottom edge and the widest it may run (issue #1290). [panel] is the
+/// measured size of the metadata panel in a bottom corner of the area,
+/// margins included, or null when no panel sits there.
+///
+/// The caption is centered, so the panel takes its width from both sides.
+/// When the room left still holds a readable line the caption keeps the
+/// bottom inset and wraps in that room. Otherwise it rises above the
+/// panel and takes the full width. Either way it never runs wider than a
+/// comfortable reading line, [scale] being the panel's Text scaling.
+@visibleForTesting
+({double bottom, double maxWidth}) captionPlacement({
+  required double width,
+  required double inset,
+  required double scale,
+  Size? panel,
+}) {
+  final line = min(width - 56, min(max(width * 0.6, 360 * scale), 640 * scale));
+  if (panel == null) return (bottom: inset, maxWidth: max(0.0, line));
+  final room = width - 2 * panel.width;
+  if (room >= 260 * scale) return (bottom: inset, maxWidth: min(line, room));
+  return (bottom: max(inset, panel.height), maxWidth: max(0.0, line));
+}
+
 /// The At a Glance row over the photo and web modes: bottom-pinned at the
 /// Clock screensaver's inset, sized by its rule, and never in the way of a
 /// touch. Its own widget so the overlay's build stays a list of layers.
@@ -1500,9 +1568,14 @@ class _GlanceOverlay extends StatelessWidget {
     required this.container,
     required this.narrow,
     this.corners = const [],
+    this.night,
   });
 
   final AppContainer container;
+
+  /// The color the row is drawn in alone, as Night mode draws it on the
+  /// clock: a plugin screensaver's tint. Null keeps its own colors.
+  final Color? night;
 
   /// Whether the mode's bottom corners are spoken for (the Immich
   /// metadata panels), so the row should wrap narrow instead of spreading
@@ -1531,14 +1604,25 @@ class _GlanceOverlay extends StatelessWidget {
           );
           return Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: bottom),
+            child: ValueListenableBuilder<double>(
+              // A photo caption owns the bottom center (issue #1290): the
+              // row stacks on top of it rather than over it.
+              valueListenable: container.screensaver.captionFootprint,
+              builder: (context, caption, child) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: caption > 0
+                      ? max(bottom, caption + 14 * scale)
+                      : bottom,
+                ),
+                child: child,
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: GlanceRow(
                   container: container,
                   scale: scale,
                   narrow: narrow,
+                  night: night,
                 ),
               ),
             ),
@@ -2088,8 +2172,9 @@ class _AlarmWidgetOverlayState extends State<AlarmWidgetOverlay> {
 }
 
 /// The family calendar's next events today in a corner: a dot in each
-/// event's calendar color (split for a shared one), the start time and the
-/// title. Empty once nothing more is on today, so the corner stays clear.
+/// event's calendar color (split for a shared one), the start time (or All
+/// day, those listed first) and the title. Empty once nothing more is on
+/// today, so the corner stays clear.
 /// A tap opens the calendar, the alarm widget's twin.
 class CalendarWidgetOverlay extends StatefulWidget {
   const CalendarWidgetOverlay({
@@ -2137,7 +2222,19 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
 
   void _watchToday() {
     final today = cal_model.dateOnly(DateTime.now());
-    _cal.watch(this, today, cal_model.addDays(today, 1));
+    _cal.watch(this, today, cal_model.addDays(today, _days));
+  }
+
+  @override
+  void didUpdateWidget(CalendarWidgetOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _watchToday();
+  }
+
+  /// How many days the widget looks ahead, today counting as one.
+  int get _days {
+    final days = (widget.spec.config['days'] as num?)?.toInt() ?? 1;
+    return upNextDayOptions.contains(days) ? days : 1;
   }
 
   @override
@@ -2171,6 +2268,8 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
               _cal.hidden.value,
             ),
             now,
+            allDay: true,
+            days: _days,
           )
           .take(count)
           .toList();
@@ -2197,15 +2296,25 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
             shadows: shadows,
           );
       final right = corner.x > 0;
-      final heading = Text(
-        l10n(context).calendarUpNext.toUpperCase(),
-        style: style(
-          textSize * .62,
-          alpha: .62,
-          weight: FontWeight.w600,
-        ).copyWith(letterSpacing: 1.2),
-      );
-      String when(cal_model.CalendarEvent e) => e.start.isAfter(now)
+      final headingStyle = style(
+        textSize * .62,
+        alpha: .62,
+        weight: FontWeight.w600,
+      ).copyWith(letterSpacing: 1.2);
+      // Each later day's events go under its name. Today's come first,
+      // with no heading.
+      final today = cal_model.dateOnly(now);
+      DateTime? dayOf(cal_model.CalendarEvent e) {
+        final day = cal_model.dateOnly(e.start);
+        return day.isAfter(today) ? day : null;
+      }
+
+      String dayName(DateTime day) => day == cal_model.addDays(today, 1)
+          ? l10n(context).calendarTomorrow
+          : weekdayName(day);
+      String when(cal_model.CalendarEvent e) => e.allDay
+          ? l10n(context).calendarAllDay
+          : e.start.isAfter(now)
           ? calendarTime(context, e.start)
           : l10n(context).calendarHappeningNow;
       // The times share the widest one's width, so the titles line up.
@@ -2224,22 +2333,60 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
             )..layout()).width,
           )
           .reduce(max);
+      // Each event's calendars as their people's pictures (the initial on
+      // the calendar's color without one), or the colored dot when the
+      // widget asks for it. Night mode keeps to the dots, so a bright
+      // picture does not glare out of the dimmed screen.
+      final dots =
+          widget.spec.config['dots'] == true || widget.nightColor != null;
+      final avatarSize = textSize * 1.1;
+      final avatarPaint = CalendarPaint(context, _cal, dark: true);
+      // The pictures' slot takes the widest stack, so the times line up.
+      final leadWidth = dots
+          ? textSize * .42
+          : avatarSize +
+                4 +
+                (avatarSize - 7) *
+                    (coming.map((e) => e.calendars.length).reduce(max) - 1);
+      Widget lead(cal_model.CalendarEvent e) => dots
+          ? SizedBox(
+              width: textSize * .42,
+              height: textSize * .42,
+              child: CustomPaint(
+                painter: CalendarBands([
+                  for (final id in e.calendars) _dotColor(id),
+                ], circle: true),
+              ),
+            )
+          : SizedBox(
+              width: leadWidth,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: CalendarAvatarStack(
+                  container: widget.container,
+                  entities: e.calendars,
+                  paint: avatarPaint,
+                  ring: const Color(0xFF1A1B1E),
+                  size: avatarSize,
+                ),
+              ),
+            );
       final rows = [
-        for (final e in coming)
+        for (final (i, e) in coming.indexed) ...[
+          if (dayOf(e) case final day?
+              when i == 0 || dayOf(coming[i - 1]) != day)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : textSize * .8),
+              child: Text(dayName(day).toUpperCase(), style: headingStyle),
+            ),
           Padding(
-            padding: EdgeInsets.only(top: textSize * .4),
+            padding: EdgeInsets.only(
+              top: i == 0 && dayOf(e) == null ? 0 : textSize * .4,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: textSize * .42,
-                  height: textSize * .42,
-                  child: CustomPaint(
-                    painter: CalendarBands([
-                      for (final id in e.calendars) _dotColor(id),
-                    ], circle: true),
-                  ),
-                ),
+                lead(e),
                 SizedBox(width: textSize * .55),
                 SizedBox(
                   width: timeWidth + 1,
@@ -2263,6 +2410,7 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
               ],
             ),
           ),
+        ],
       ];
       return Stack(
         fit: StackFit.expand,
@@ -2287,7 +2435,7 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
                     crossAxisAlignment: right
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
-                    children: [heading, ...rows],
+                    children: rows,
                   ),
                 ),
               ),
@@ -2700,7 +2848,8 @@ bool entityWidgetStateVisible(
 }
 
 /// A Home Assistant weather entity with a prominent temperature, a labeled
-/// apparent temperature and optional condition, humidity, wind and visibility.
+/// apparent temperature and optional condition, today's high and low,
+/// humidity, wind and visibility.
 class WeatherWidgetOverlay extends StatefulWidget {
   const WeatherWidgetOverlay({
     super.key,
@@ -2738,6 +2887,14 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
   /// the condition.
   String _forecastText = '';
 
+  /// The entity's daily forecast by local date, for today's high and low
+  /// (issue #1262). Empty when the integration has no daily forecast.
+  Map<DateTime, DayForecast> _daily = const {};
+
+  /// sun.sun's state, so no icon shows a sun after dark; null until it
+  /// reports, and then the local time decides.
+  String? _sun;
+
   /// Home Assistant's own translation of the weather conditions, keyed by
   /// condition, in the language the server is set to (issue #268). Empty on
   /// an English server and whenever the lookup fails, and then the built-in
@@ -2774,11 +2931,15 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
     // Cached in the manager once a socket brings them, so later
     // screensavers get them without another lookup.
     final live = await widget.container.homeAssistant.subscribeEntities(
-      [entity, ?_companion(entity)],
+      [entity, ?_companion(entity), 'sun.sun'],
       _onState,
       translationDomain: 'weather',
       onTranslations: (translated) {
         if (mounted) setState(() => _translated = translated);
+      },
+      forecastEntity: entity,
+      onForecast: (forecast) {
+        if (mounted) setState(() => _daily = parseForecast(forecast));
       },
     );
     if (!mounted) {
@@ -2810,6 +2971,10 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
     if (!mounted) return;
     setState(() {
       final s = state['state'];
+      if (entityId == 'sun.sun') {
+        if (s is String) _sun = s;
+        return;
+      }
       if (entityId.startsWith('sensor.')) {
         if (s is String) {
           _forecastText = (s == 'unavailable' || s == 'unknown') ? '' : s;
@@ -2839,6 +3004,7 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
       _attributes.clear();
       _condition = '';
       _forecastText = '';
+      _daily = const {};
       _haveData = false;
       unawaited(_open());
     }
@@ -2854,7 +3020,9 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
     super.dispose();
   }
 
-  bool _on(String key) => widget.spec.config[key] == true;
+  bool _on(String key, {bool orElse = false}) => widget.spec.config[key] is bool
+      ? widget.spec.config[key] == true
+      : orElse;
 
   num? _num(String key) {
     final value = _attributes[key];
@@ -2895,13 +3063,19 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
     // right corners trail so the icon column stays flush however long
     // the readings run.
     final right = corner.x > 0;
-    Widget detail(String value, IconData icon, {String? condition}) {
+    Widget detail(
+      String value,
+      IconData icon, {
+      String? condition,
+      bool night = false,
+    }) {
       final glyph = condition != null
           ? WeatherConditionIcon(
               condition,
               size: tempSize * .43,
               color: color.withValues(alpha: 0.85),
               shadows: shadows,
+              night: night,
             )
           : Icon(
               icon,
@@ -2927,9 +3101,19 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
       feelsLike: _on('feels_like'),
       feelsLikeOnly: _on('feels_like_only'),
     );
+    // The unit is already on the temperature right above, so the pair
+    // reads "31° / 24°", the way Home Assistant's forecast card writes it.
+    final today = _daily[cal_model.dateOnly(DateTime.now())];
+    final high = today?.high;
+    final low = today?.low;
     final humidity = _num('humidity');
     final wind = _num('wind_speed');
     final visibility = _num('visibility');
+    // On unless switched off, so entries saved before the switch existed
+    // get the colors too.
+    final colored =
+        _on('colored_icons', orElse: true) && widget.nightColor == null;
+    final night = weatherMoodNight(_sun, DateTime.now());
     // The place is named by hand (weather entities carry no city
     // attribute, and their names are integration names); left empty, the
     // line simply stays off.
@@ -2952,7 +3136,10 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
                   : _conditionLabel(_condition)),
           weatherConditionIcon(_condition),
           condition: _condition,
+          night: night,
         ),
+      if (_on('high_low') && high != null && low != null)
+        detail('${high.round()}° / ${low.round()}°', Icons.thermostat),
       if (_on('humidity') && humidity != null)
         detail('${humidity.round()}%', Icons.water_drop_outlined),
       if (_on('wind') && wind != null)
@@ -2970,22 +3157,61 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
           style: line(size: tempSize * .50, weight: FontWeight.w600, alpha: 1),
         ),
       if (temperature != null)
-        WeatherTemperature(
-          reading: temperature,
-          alignment: align,
-          secondaryStyle: line(size: tempSize * .40),
-          primaryStyle: TextStyle(
-            fontFamily: font.family,
-            color: color,
-            fontSize: tempSize,
-            fontWeight: font.weight ?? FontWeight.w400,
-            fontVariations: clockFontVariations(
-              font.opticalSize,
-              font.weight ?? FontWeight.w400,
-            ),
-            height: 1.0,
-            shadows: shadows,
-          ),
+        Builder(
+          builder: (context) {
+            // The current conditions beside the temperature, on the
+            // corner's outer edge like the detail lines' icons, centered on
+            // the temperature line. The Clock's Night mode keeps every
+            // widget in its one dim color, so the colors stand down there.
+            final icon = _condition.isEmpty
+                ? null
+                : SizedBox(
+                    height: tempSize,
+                    child: Center(
+                      child: colored
+                          ? ColoredWeatherConditionIcon(
+                              _condition,
+                              size: tempSize * 1.1,
+                              fallbackColor: color,
+                              night: night,
+                            )
+                          : WeatherConditionIcon(
+                              _condition,
+                              size: tempSize * .9,
+                              color: color,
+                              shadows: shadows,
+                              night: night,
+                            ),
+                    ),
+                  );
+            final reading = WeatherTemperature(
+              reading: temperature,
+              alignment: align,
+              secondaryStyle: line(size: tempSize * .40),
+              primaryStyle: TextStyle(
+                fontFamily: font.family,
+                color: color,
+                fontSize: tempSize,
+                fontWeight: font.weight ?? FontWeight.w400,
+                fontVariations: clockFontVariations(
+                  font.opticalSize,
+                  font.weight ?? FontWeight.w400,
+                ),
+                height: 1.0,
+                shadows: shadows,
+              ),
+            );
+            final gap = SizedBox(width: tempSize * .25);
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (icon != null && !right) ...[icon, gap],
+                reading,
+                if (icon != null && right) ...[gap, icon],
+              ],
+            );
+          },
         ),
       if (details.isNotEmpty)
         Column(
@@ -3016,6 +3242,312 @@ class _WeatherWidgetOverlayState extends State<WeatherWidgetOverlay> {
                     spacing: 6,
                     crossAxisAlignment: align,
                     children: lines,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The Weather forecast widget's rows: up to [days] days of [daily] in
+/// date order, from today when [includeToday] is set and from tomorrow
+/// otherwise. Days the integration does not forecast are simply missing,
+/// so a short forecast lists fewer rows.
+List<(DateTime, DayForecast)> forecastWidgetRows(
+  Map<DateTime, DayForecast> daily,
+  DateTime now, {
+  required int days,
+  required bool includeToday,
+}) {
+  final today = cal_model.dateOnly(now);
+  final first = includeToday ? today : cal_model.addDays(today, 1);
+  final dates = daily.keys.where((d) => !d.isBefore(first)).toList()..sort();
+  return [for (final d in dates.take(days)) (d, daily[d]!)];
+}
+
+/// The Weather forecast widget (issue #1277): the coming days of a weather
+/// entity's daily forecast, one row each with the day, the condition icon,
+/// the high and the low. The columns share the widest entry's width, so
+/// the icons and temperatures line up down the list. Fed over its own
+/// subscribe_entities socket, the Weather widget's pattern, which also
+/// brings the daily forecast.
+class ForecastWidgetOverlay extends StatefulWidget {
+  const ForecastWidgetOverlay({
+    super.key,
+    required this.container,
+    required this.spec,
+    this.nightColor,
+  });
+
+  final AppContainer container;
+  final ScreensaverWidget spec;
+
+  /// The Clock screensaver's night color while its Night mode holds
+  /// (issue #391), in place of the widget's own; null otherwise.
+  final Color? nightColor;
+
+  @override
+  State<ForecastWidgetOverlay> createState() => _ForecastWidgetOverlayState();
+}
+
+class _ForecastWidgetOverlayState extends State<ForecastWidgetOverlay> {
+  GlanceSubscription? _live;
+  Timer? _retry;
+  Timer? _shift;
+  Offset _offset = Offset.zero;
+
+  /// The entity's own state: an unavailable entity hides the widget
+  /// rather than leave a stale forecast up.
+  String _condition = '';
+  Map<DateTime, DayForecast> _daily = const {};
+
+  /// sun.sun's state, so today's row shows no sun after dark; null until
+  /// it reports, and then the local time decides.
+  String? _sun;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_open());
+    // The same slow OLED-protecting nudge the other widgets do. The tick
+    // also moves the list on to the next day after midnight.
+    _shift = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!widget.container.settings.get(defs.screensaverPixelShift)) {
+        setState(() {});
+        return;
+      }
+      final r = Random();
+      const max = 10.0;
+      setState(() {
+        _offset = Offset(
+          (r.nextDouble() * 2 - 1) * max,
+          (r.nextDouble() * 2 - 1) * max,
+        );
+      });
+    });
+  }
+
+  Future<void> _open() async {
+    final entity = '${widget.spec.config['entity'] ?? ''}';
+    if (entity.isEmpty) return;
+    final live = await widget.container.homeAssistant.subscribeEntities(
+      [entity, 'sun.sun'],
+      _onState,
+      forecastEntity: entity,
+      onForecast: (forecast) {
+        if (mounted) setState(() => _daily = parseForecast(forecast));
+      },
+    );
+    if (!mounted) {
+      unawaited(live?.close());
+      return;
+    }
+    if (live == null) {
+      // Home Assistant unreachable: keep what we last knew and try again
+      // shortly, the Weather widget's cadence.
+      _retry?.cancel();
+      _retry = Timer(const Duration(seconds: 20), () {
+        if (mounted) unawaited(_open());
+      });
+      return;
+    }
+    live.onClosed = () {
+      if (!mounted || _live != live) return;
+      _retry?.cancel();
+      _retry = Timer(const Duration(seconds: 5), () {
+        if (mounted) unawaited(_open());
+      });
+    };
+    _live = live;
+  }
+
+  void _onState(String entityId, Map<String, Object?> state) {
+    if (!mounted) return;
+    final s = state['state'];
+    if (s is! String) return;
+    setState(() {
+      if (entityId == 'sun.sun') {
+        _sun = s;
+      } else {
+        _condition = s;
+      }
+    });
+  }
+
+  // A live edit can repoint the widget at another entity; the element is
+  // reused in place, so the subscription has to follow by hand.
+  @override
+  void didUpdateWidget(ForecastWidgetOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ('${oldWidget.spec.config['entity']}' !=
+        '${widget.spec.config['entity']}') {
+      _retry?.cancel();
+      final live = _live;
+      _live = null;
+      if (live != null) unawaited(live.close());
+      _condition = '';
+      _daily = const {};
+      unawaited(_open());
+    }
+  }
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    _shift?.cancel();
+    final live = _live;
+    _live = null;
+    if (live != null) unawaited(live.close());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_condition == 'unavailable' || _condition == 'unknown') {
+      return const SizedBox.shrink();
+    }
+    final config = widget.spec.config;
+    final days = switch ((config['days'] as num?)?.toInt()) {
+      final d? when forecastDayOptions.contains(d) => d,
+      _ => 5,
+    };
+    final now = DateTime.now();
+    final rows = forecastWidgetRows(
+      _daily,
+      now,
+      days: days,
+      includeToday: config['today'] != false,
+    );
+    if (rows.isEmpty) return const SizedBox.shrink();
+    final corner = _cornerAlignment(widget.spec.position);
+    final color = widget.nightColor ?? _widgetRgb(config['color']);
+    final size = MediaQuery.of(context).size;
+    final scale = _widgetScale(widget.container, widget.spec);
+    final textSize = max(min(size.width, size.height) * 0.036, 24.0) * scale;
+    final font = _widgetFont(widget.container, widget.spec);
+    final shadows = _overlayTextShadows(widget.container);
+    TextStyle style({double alpha = 1, FontWeight? weight}) => TextStyle(
+      fontFamily: font.family,
+      color: color.withValues(alpha: alpha),
+      fontSize: textSize,
+      fontWeight: font.weight ?? weight ?? FontWeight.w400,
+      shadows: shadows,
+      height: 1.35,
+    );
+    final dayStyle = style(weight: FontWeight.w500);
+    final highStyle = style();
+    final lowStyle = style(alpha: .62);
+    // Every row, today's included, reads as its short weekday, the way a
+    // forecast card lists them.
+    String dayName(DateTime day) => shortWeekdayName(day);
+    // Today's row after dark shows no sun. Later days are daytime
+    // forecasts, so they keep their day icons.
+    final today = cal_model.dateOnly(now);
+    final night = weatherMoodNight(_sun, now);
+    String degrees(double? t) => t == null ? '' : '${t.round()}°';
+    // Each column takes its widest entry's width, so the list reads as a
+    // table whatever the day names and temperatures run to.
+    double widest(Iterable<String> texts, TextStyle style) => texts
+        .map(
+          (text) => (TextPainter(
+            text: TextSpan(
+              text: text,
+              style: DefaultTextStyle.of(context).style.merge(style),
+            ),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout()).width,
+        )
+        .reduce(max);
+    final dayWidth = widest(rows.map((r) => dayName(r.$1)), dayStyle) + 1;
+    final highWidth = widest(rows.map((r) => degrees(r.$2.high)), highStyle);
+    final lowWidth = widest(rows.map((r) => degrees(r.$2.low)), lowStyle);
+    // On unless switched off, so entries saved before the switch existed
+    // keep the colors.
+    final colored =
+        config['colored_icons'] != false && widget.nightColor == null;
+    final gap = SizedBox(width: textSize * .6);
+    Widget cell(String text, double width, TextStyle style, TextAlign align) =>
+        SizedBox(
+          width: width + 1,
+          child: Text(
+            text,
+            style: style,
+            textAlign: align,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        );
+
+    return IgnorePointer(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _cornerVignette(corner, widget.container),
+          Align(
+            alignment: corner,
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Transform.translate(
+                offset: _offset,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: corner,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: textSize * .2,
+                    children: [
+                      for (final (day, f) in rows)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            cell(
+                              dayName(day),
+                              dayWidth,
+                              dayStyle,
+                              TextAlign.start,
+                            ),
+                            gap,
+                            // The Clock's Night mode keeps every widget in
+                            // its one dim color, so the colors stand down.
+                            if (colored)
+                              ColoredWeatherConditionIcon(
+                                f.condition,
+                                size: textSize * 1.3,
+                                fallbackColor: color.withValues(alpha: .85),
+                                night: night && day == today,
+                              )
+                            else
+                              WeatherConditionIcon(
+                                f.condition,
+                                size: textSize * 1.15,
+                                color: color.withValues(alpha: .85),
+                                shadows: shadows,
+                                night: night && day == today,
+                              ),
+                            gap,
+                            cell(
+                              degrees(f.high),
+                              highWidth,
+                              highStyle,
+                              TextAlign.end,
+                            ),
+                            if (lowWidth > 0) ...[
+                              SizedBox(width: textSize * .45),
+                              cell(
+                                degrees(f.low),
+                                lowWidth,
+                                lowStyle,
+                                TextAlign.end,
+                              ),
+                            ],
+                          ],
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -3129,6 +3661,23 @@ class _ScreensaverWebViewState extends State<ScreensaverWebView> {
     }
   }
 
+  /// Video length applies to the Media deck's next video without a reload.
+  Future<void> _applyVideoLength() async {
+    if (widget.mode != 'media') return;
+    final length = widget.container.settings.get(
+      defs.screensaverMediaVideoLength,
+    );
+    try {
+      await _webView?.evaluateJavascript(
+        source:
+            'window.__ksVideoLength && '
+            'window.__ksVideoLength(${jsonEncode(length)})',
+      );
+    } catch (_) {
+      // A navigating renderer reads it from the config after its load.
+    }
+  }
+
   Future<void> _applyKiosk(InAppWebViewController controller) async {
     final settings = widget.container.settings;
     await controller.evaluateJavascript(
@@ -3198,6 +3747,9 @@ class _ScreensaverWebViewState extends State<ScreensaverWebView> {
           widget.container.settings.get(defs.screensaverMediaFill),
         );
         unawaited(_applyPhotoFill());
+      }
+      if (e.key == defs.screensaverMediaVideoLength.key) {
+        unawaited(_applyVideoLength());
       }
       final controller = _webView;
       if (controller == null) return;
@@ -3271,6 +3823,7 @@ class _ScreensaverWebViewState extends State<ScreensaverWebView> {
       'mediaIsFolder': s.get(defs.screensaverMediaIsFolder),
       'photoActive': _photoScreenOn,
       'mediaIntervalSeconds': s.get(defs.screensaverMediaInterval),
+      'mediaVideoLength': s.get(defs.screensaverMediaVideoLength),
       'mediaShuffle': s.get(defs.screensaverMediaShuffle),
       'mediaRecursive': s.get(defs.screensaverMediaRecursive),
       'mediaTransition': s.get(defs.screensaverMediaTransition),
@@ -3516,6 +4069,40 @@ Future<double?> _aspectOf(Uint8List bytes) => photoAspect(bytes);
 bool _videoShowing(VideoPlayerController? video) =>
     video != null && video.value.isInitialized;
 
+/// A video slide under Fill the screen (issue #1298), decided by the photo
+/// rule on the video's own shape. A video that covers is cropped to the
+/// edges; the rest keep their frame between black bars. A blurred backdrop
+/// like the photos get would blur every frame, so videos go without one.
+/// The crop only scales the frames the decoder already made, so it costs
+/// no extra memory.
+Widget _videoSlide(VideoPlayerController video, String fill, Size screen) {
+  final v = video.value;
+  final covers =
+      !v.size.isEmpty &&
+      screen.height > 0 &&
+      photoCovers(fill, v.aspectRatio, screen.width / screen.height);
+  if (!covers) {
+    return Center(
+      child: AspectRatio(aspectRatio: v.aspectRatio, child: VideoPlayer(video)),
+    );
+  }
+  return SizedBox.expand(
+    child: FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: v.size.width,
+        height: v.size.height,
+        child: VideoPlayer(video),
+      ),
+    ),
+  );
+}
+
+/// Whether a video slide stops once the seconds per photo run out instead
+/// of playing to its end (issue #1298).
+bool _videoFollowsInterval(String videoLength) => videoLength == 'interval';
+
 /// Screen-off preserves the slide and its remaining hold. In-flight reads
 /// finish, but decoding and committing a new slide wait for the panel. The
 /// native voice overlay holds it the same way: it shows a still of the
@@ -3634,7 +4221,8 @@ mixin _PhotoScreenState<T extends StatefulWidget> on State<T> {
 
 /// The Local Media screensaver: photos and videos from a folder on this
 /// device, no Home Assistant involved. Photos hold for the configured
-/// interval; videos play to their end (muted — a screensaver that suddenly
+/// interval; videos play to their end or for the same interval, as Video
+/// length says (muted — a screensaver that suddenly
 /// has a voice at 2am is a defect, not a feature). The listing is read once
 /// per activation: a screensaver session is short, and re-listing between
 /// slides would hitch exactly when nothing should.
@@ -3876,6 +4464,7 @@ class _LocalMediaScreensaverState extends State<LocalMediaScreensaver>
         });
         _retirePhoto(oldPhoto);
         await video.play();
+        _holdVideoForInterval(video);
       } catch (e) {
         // A codec the device lacks must not stall the slideshow. Skip past
         // `next` explicitly — _index never reached it, and retrying it
@@ -3923,30 +4512,50 @@ class _LocalMediaScreensaverState extends State<LocalMediaScreensaver>
         _image = photo.image;
       });
       _retirePhoto(oldPhoto);
-      final seconds = c.settings
-          .get(
-            _gallery
-                ? defs.screensaverGalleryInterval
-                : defs.screensaverLocalInterval,
-          )
-          .toInt()
-          .clamp(2, 3600);
       if (_files.length > 1) {
-        _timer = PausableTimer(
-          Duration(seconds: seconds),
-          _advance,
-          paused: !_awake,
-        );
+        _timer = PausableTimer(_interval, _advance, paused: !_awake);
         _prefetch(next + 1);
       }
     }
     _retire(old);
   }
 
+  Duration get _interval => Duration(
+    seconds: c.settings
+        .get(
+          _gallery
+              ? defs.screensaverGalleryInterval
+              : defs.screensaverLocalInterval,
+        )
+        .toInt()
+        .clamp(2, 3600),
+  );
+
+  /// With Video length on Same as photos, [video] gets the photo hold and
+  /// the slideshow moves on when it runs out or the video ends, whichever
+  /// comes first. The hold pauses with the screen like a photo's.
+  void _holdVideoForInterval(VideoPlayerController video) {
+    final length = c.settings.get(
+      _gallery
+          ? defs.screensaverGalleryVideoLength
+          : defs.screensaverLocalVideoLength,
+    );
+    if (!mounted || !identical(_video, video) || _files.length < 2) return;
+    if (!_videoFollowsInterval(length)) return;
+    _timer?.cancel();
+    _timer = PausableTimer(_interval, _advance, paused: !_awake);
+  }
+
   Future<void> _refreshPhoto() async {
     _prepared.clear();
     await _stepping;
-    if (mounted && _image != null) await _go(_index);
+    if (!mounted) return;
+    if (_image != null) {
+      await _go(_index);
+    } else if (_videoShowing(_video)) {
+      // A new fill reframes the playing video without restarting it.
+      setState(() {});
+    }
   }
 
   String get _fill => PhotoFillOverride.resolve(
@@ -4086,7 +4695,7 @@ class _LocalMediaScreensaverState extends State<LocalMediaScreensaver>
       // Fill the screen: photoCovers holds the rule, shared with the
       // Immich screensaver. A photo that keeps its frame gets the photo
       // itself, blurred and dimmed, as the backdrop instead of black bars.
-      // Videos always keep their frame, in every mode.
+      // Videos follow the same rule without the backdrop (_videoSlide).
       final fill = _fill;
       final fillWanted = !isVideoSlide && fill != 'off';
       final size = MediaQuery.of(context).size;
@@ -4095,12 +4704,7 @@ class _LocalMediaScreensaverState extends State<LocalMediaScreensaver>
           photoCovers(fill, _imageAspect, size.width / size.height);
       final Widget inner;
       if (isVideoSlide) {
-        inner = Center(
-          child: AspectRatio(
-            aspectRatio: video.value.aspectRatio,
-            child: VideoPlayer(video),
-          ),
-        );
+        inner = _videoSlide(video, fill, size);
       } else {
         Widget picture = Image(
           image: _image!,
@@ -4982,9 +5586,12 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
         _retirePhoto(oldPhoto);
         _retirePhoto(oldPairPhoto);
         // A warmed buffer for a slide we already passed would sit through
-        // the whole video for nothing.
+        // the whole video for nothing. Nothing is warmed for the next slide
+        // while a video plays either: its buffers and a decoded photo
+        // would share the heap (see ImmichManager.videoFits).
         _prepared.clear();
         await video.play();
+        _holdVideoForInterval(video);
       } catch (e) {
         c.log.warn('screensaver', 'immich video failed (${asset.id}): $e');
         await opened?.dispose();
@@ -5037,20 +5644,28 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
       _claimCorners();
       _retirePhoto(oldPhoto);
       _retirePhoto(oldPairPhoto);
-      final seconds = c.settings
-          .get(defs.screensaverImmichInterval)
-          .toInt()
-          .clamp(2, 3600);
       if (_assets.length > _span) {
-        _timer = PausableTimer(
-          Duration(seconds: seconds),
-          _advance,
-          paused: !_awake,
-        );
+        _timer = PausableTimer(_interval, _advance, paused: !_awake);
         _prefetch(next + _span);
       }
     }
     _retire(old);
+  }
+
+  Duration get _interval => Duration(
+    seconds: c.settings
+        .get(defs.screensaverImmichInterval)
+        .toInt()
+        .clamp(2, 3600),
+  );
+
+  /// See the Local Media state's [_holdVideoForInterval].
+  void _holdVideoForInterval(VideoPlayerController video) {
+    final length = c.settings.get(defs.screensaverImmichVideoLength);
+    if (!mounted || !identical(_video, video) || _assets.length < 2) return;
+    if (!_videoFollowsInterval(length)) return;
+    _timer?.cancel();
+    _timer = PausableTimer(_interval, _advance, paused: !_awake);
   }
 
   /// The photo that should share the screen with the one at [index], or
@@ -5074,7 +5689,7 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
     final candidate = (index + 1) % _assets.length;
     final asset = _assets[candidate];
     if (asset.isVideo) return null;
-    if (immichMetadataVisible(c.settings)) {
+    if (immichMetadataShown(c.settings)) {
       unawaited(c.immich.assetDetails(asset));
     }
     try {
@@ -5099,7 +5714,13 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
   Future<void> _refreshPhoto() async {
     _prepared.clear();
     await _stepping;
-    if (mounted && _image != null) await _go(_index);
+    if (!mounted) return;
+    if (_image != null) {
+      await _go(_index);
+    } else if (_videoShowing(_video)) {
+      // A new fill reframes the playing video without restarting it.
+      setState(() {});
+    }
   }
 
   Object _prepareKey(int index) => (
@@ -5195,7 +5816,7 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
     if (!_awake || _assets.length <= _span) return;
     final next = index % _assets.length;
     final asset = _assets[next];
-    if (immichMetadataVisible(c.settings)) {
+    if (immichMetadataShown(c.settings)) {
       unawaited(c.immich.assetDetails(asset));
     }
     if (asset.isVideo) return;
@@ -5360,12 +5981,19 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
   }
 
   /// The metadata panel for [asset], whose details the Immich server holds.
-  Widget _immichMetadata(ImmichAsset asset, {String? corner}) => _PhotoMetadata(
+  Widget _immichMetadata(
+    ImmichAsset asset, {
+    String? corner,
+    _CaptionHalf? captionHalf,
+    bool reportCaption = true,
+  }) => _PhotoMetadata(
     container: c,
     mode: 'immich',
     slide: asset.id,
     details: () => c.immich.assetDetails(asset),
     corner: corner,
+    captionHalf: captionHalf,
+    reportCaption: reportCaption,
   );
 
   @override
@@ -5395,11 +6023,13 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
       final size = MediaQuery.of(context).size;
       final Widget inner;
       if (isVideoSlide) {
-        inner = Center(
-          child: AspectRatio(
-            aspectRatio: video.value.aspectRatio,
-            child: VideoPlayer(video),
+        inner = _videoSlide(
+          video,
+          PhotoFillOverride.resolve(
+            context,
+            c.settings.get(defs.screensaverImmichFill),
           ),
+          size,
         );
       } else if (pairIndex == null) {
         inner = _photoBlock(
@@ -5469,7 +6099,7 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
         _problem == null &&
         _assets.isNotEmpty &&
         (_image != null || video != null) &&
-        immichMetadataVisible(c.settings);
+        immichMetadataShown(c.settings);
     final pairIndex = _pairIndex;
     return ColoredBox(
       color: Colors.black,
@@ -5490,6 +6120,9 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
                     // bottom corner is the middle of the screen: the photo
                     // keeps its details under it, and the screen's top
                     // corners stay the widgets'.
+                    // Its caption likewise sits over the seam, under its
+                    // own photo, and stays out of the At a Glance row's
+                    // reckoning since it is nowhere near the bottom.
                     Positioned(
                       left: 0,
                       top: 0,
@@ -5498,11 +6131,22 @@ class _ImmichScreensaverState extends State<ImmichScreensaver>
                       child: _immichMetadata(
                         _assets[_index],
                         corner: _pairCorners[0],
+                        reportCaption: false,
                       ),
                     )
                   else
-                    _immichMetadata(_assets[_index], corner: _pairCorners[0]),
-                  _immichMetadata(_assets[pairIndex], corner: _pairCorners[1]),
+                    _immichMetadata(
+                      _assets[_index],
+                      corner: _pairCorners[0],
+                      captionHalf: _CaptionHalf.left,
+                    ),
+                  _immichMetadata(
+                    _assets[pairIndex],
+                    corner: _pairCorners[1],
+                    captionHalf: _pairing == ImmichPairing.stacked
+                        ? null
+                        : _CaptionHalf.right,
+                  ),
                 ],
               ],
             )
@@ -5525,6 +6169,8 @@ class _PhotoMetadata extends StatefulWidget {
     required this.slide,
     required this.details,
     this.corner,
+    this.captionHalf,
+    this.reportCaption = true,
   });
 
   final AppContainer container;
@@ -5543,6 +6189,16 @@ class _PhotoMetadata extends StatefulWidget {
   /// step-past-a-widget search: a pair's two panels belong under their own
   /// photos, and the widgets give those corners up instead.
   final String? corner;
+
+  /// The half of the screen the caption centers in, for a pair side by
+  /// side, so each description sits under its own photo. Null centers it
+  /// across the whole area the panel is given.
+  final _CaptionHalf? captionHalf;
+
+  /// Whether the caption tells the At a Glance row how high it reaches.
+  /// Only a caption at the bottom of the screen is in the row's way: the
+  /// top photo of a stacked pair keeps its caption over the seam.
+  final bool reportCaption;
 
   @override
   State<_PhotoMetadata> createState() => _PhotoMetadataState();
@@ -5588,17 +6244,134 @@ class _PhotoMetadataState extends State<_PhotoMetadata> {
 
   @override
   Widget build(BuildContext context) {
-    final container = widget.container;
-    final forced = widget.corner;
-    if (forced != null) return _panel(_cornerAlignment(forced));
+    final settings = widget.container.settings;
     // Widgets own their corners: rather than stacking two panels into
     // one corner, the metadata steps to the first free one, and stands
     // down entirely on the (unlikely) fully claimed screen. The helper
     // is shared with the At a Glance row, which narrows when this
-    // settles in a bottom corner.
-    final spot = photoMetadataCorner(container.settings, widget.mode);
-    if (spot == null) return const SizedBox.shrink();
-    return _panel(_cornerAlignment(spot));
+    // settles in a bottom corner. A pair's corners are fixed instead.
+    final spot = !photoMetadataVisible(settings, widget.mode)
+        ? null
+        : widget.corner ?? photoMetadataCorner(settings, widget.mode);
+    final caption = photoCaptionOn(settings, widget.mode);
+    if (!caption) {
+      return spot == null
+          ? const SizedBox.shrink()
+          : _panel(_cornerAlignment(spot));
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (spot != null) _panel(_cornerAlignment(spot)),
+        _caption(spot),
+      ],
+    );
+  }
+
+  /// The caption: the photo's description centered at the bottom (issue
+  /// #1290), wrapped between the bottom corner panel and its mirror image
+  /// when two lines fit there, raised above the panel when they do not.
+  /// [panelCorner] is the corner this slide's panel sits in, null without
+  /// one.
+  Widget _caption(String? panelCorner) {
+    final container = widget.container;
+    final metadata = photoMetadataDefs[widget.mode]!;
+    final shadows = _overlayTextShadows(
+      container,
+      setting: metadata.textShadow,
+    );
+    final scale = container.settings.get(metadata.scale).toDouble() / 100;
+    final text = _details['description'];
+    final bottomPanel = panelCorner != null && panelCorner.startsWith('bottom_')
+        ? panelCorner
+        : null;
+    final half = widget.captionHalf;
+    return IgnorePointer(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedOpacity(
+            opacity: text == null ? 0 : 1,
+            duration: _fade,
+            child: _cornerVignette(
+              switch (half) {
+                null => Alignment.bottomCenter,
+                _CaptionHalf.left => const Alignment(-0.5, 1),
+                _CaptionHalf.right => const Alignment(0.5, 1),
+              },
+              container,
+              radius: 0.6,
+              def: metadata.vignette,
+            ),
+          ),
+          ValueListenableBuilder<Map<String, Size>>(
+            valueListenable: container.screensaver.metadataFootprint,
+            builder: (context, footprint, _) => LayoutBuilder(
+              builder: (context, constraints) {
+                final width = half == null
+                    ? constraints.maxWidth
+                    : constraints.maxWidth / 2;
+                final (:bottom, :maxWidth) = captionPlacement(
+                  width: width,
+                  // The panel's own margin, so a caption beside it
+                  // ends on the same line as the panel's last row.
+                  inset: 28,
+                  scale: scale,
+                  panel: bottomPanel == null ? null : footprint[bottomPanel],
+                );
+                final placed = Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: bottom),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: _ReportSize(
+                        onSize: widget.reportCaption && text != null
+                            ? (size) => container.screensaver
+                                  .reportCaptionFootprint(bottom + size.height)
+                            : null,
+                        child: AnimatedOpacity(
+                          opacity: _textVisible && text != null ? 1 : 0,
+                          duration: _fade,
+                          child: Text(
+                            text ?? '',
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'Rubik',
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontSize: 17 * scale,
+                              shadows: shadows,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+                if (half == null) return placed;
+                // Laid out inside its own half rather than aligned across
+                // the screen: an alignment matches the same fraction of
+                // the caption and the screen, so a wide caption would
+                // drift toward the middle and into its neighbor.
+                return Align(
+                  alignment: half == _CaptionHalf.left
+                      ? Alignment.centerLeft
+                      : Alignment.centerRight,
+                  child: SizedBox(
+                    width: width,
+                    height: constraints.maxHeight,
+                    child: placed,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// The panel itself, anchored to [corner].

@@ -177,6 +177,13 @@ class PluginManager extends Manager implements FleetPluginHost {
           '${entry.value['title']} (${installed.value.where((p) => p['id'] == entry.value['pluginId']).firstOrNull?['name'] ?? entry.value['pluginId']})',
   };
 
+  /// Whether [mode] is a native renderer published with touch: single taps
+  /// reach it and a double tap closes the screensaver (issue #1282).
+  bool screensaverTouch(String mode) {
+    final renderer = screensavers.value[mode];
+    return renderer?['view'] == true && renderer?['touch'] == true;
+  }
+
   /// Enabled plugins that offer a voice skin, by the Skin setting's value.
   /// A disabled plugin cannot draw its skin, so it is not offered.
   Map<String, String> get voiceSkinOptions => {
@@ -314,6 +321,10 @@ class PluginManager extends Manager implements FleetPluginHost {
   /// read and hold. Set by the app container before [init].
   PluginScreensaverModes? screensaverModes;
 
+  /// The screensaver's look plugins follow. Set by the app container
+  /// before [init].
+  PluginScreensaverFeed? screensaverFeed;
+
   /// The device camera for the camera and barcode capabilities. Set by the
   /// app container before [init].
   PluginCamera? camera;
@@ -441,6 +452,7 @@ class PluginManager extends Manager implements FleetPluginHost {
       ma: maSocket,
       voice: voice,
       screensaverModes: screensaverModes,
+      screensaver: screensaverFeed,
     );
     channel.setMethodCallHandler((call) async {
       if (_disposed) return null;

@@ -41,6 +41,7 @@ Configures the kiosk as a synchronized Music Assistant audio player. These setti
 | Preferred audio codec | FLAC | Selects between FLAC (lossless), Opus (efficient), or PCM (uncompressed). The server selects the final format based on device capabilities. |
 | Audio sync offset | 0 ms | Adjusts audio timing in milliseconds. Use negative values if local output lags behind other speakers in a group (e.g., when outputting to Bluetooth). Applies live. |
 | Adjust the group volume | on | While this device plays in a Music Assistant group, the Now Playing volume slider and mute button control the whole group, the way Music Assistant's own group slider does. So do the volume buttons with **Volume buttons control the player** on. Each room keeps its balance with the others. Off, they control only this device. Needs the Music Assistant page's server address and token. |
+| Control the device volume | off | Music Assistant sets the device's own volume, the one the hardware volume buttons change, instead of the media volume. The two then stay in step, and a button press shows up in Music Assistant. The media volume stays where you set it, so set it to 100% for the full range. The device volume also sets how loud the assistant, alarms and the intercom play, so turning music down in Music Assistant turns them down too. The Now Playing slider and mute button change the device volume as well. Mute from Music Assistant still mutes only the music. |
 
 Music Assistant includes native Sendspin support enabled by default, and players register automatically upon connection without requiring server side setup.
 
@@ -126,7 +127,7 @@ Configures direct integration with local Sonos hardware.
 | Setting | Default | Notes |
 | --- | --- | --- |
 | "Now Playing" instead of the screensaver | off | Enables the full screen media view as an idle screensaver replacement during active playback. |
-| Show alongside screensaver | on | Keeps the screensaver on the left and Now Playing on the right. Portrait screens stack the two views. Small screens keep the full screen player. |
+| Show alongside screensaver | off | Keeps the screensaver on the left and Now Playing on the right. Portrait screens stack the two views. Small screens keep the full screen player. |
 | Fill the screen | Always | Overrides photo filling while sharing the display with Now Playing. Default follows each screensaver's setting. Off, Smart and Always use the same rules as the photo screensavers. |
 | Override screensaver brightness | off | Uses normal brightness while Now Playing is shown alongside a screensaver, overriding its brightness and any scheduled brightness. |
 
@@ -233,7 +234,7 @@ In Kiosk Mode, visibility controls for the card follow the **Floating Player** s
 
 When enabled, the full screen "Now Playing" view activates during active playback as an idle screensaver replacement. It features blurred, full screen album artwork in the background, sharp centered artwork, and prominent title and artist typography. Track changes cross-fade smoothly.
 
-**Show alongside screensaver**, enabled by default under **Settings > Media Player > Now Playing > Screensaver**, lets you keep photos, clocks or other screensaver content visible while music plays. In landscape, the screensaver takes about two thirds of the display and Now Playing fills the right panel. In portrait, the screensaver fills the top half and the player fills the bottom half. Screens smaller than 700 logical pixels along the split direction keep the full screen player. The Dim screensaver uses a black panel beside Now Playing and keeps its configured dim level.
+**Show alongside screensaver**, under **Settings > Media Player > Now Playing > Screensaver**, lets you keep photos, clocks or other screensaver content visible while music plays. In landscape, the screensaver takes about two thirds of the display and Now Playing fills the right panel. In portrait, the screensaver fills the top half and the player fills the bottom half. Screens smaller than 700 logical pixels along the split direction keep the full screen player. The Home Assistant Dashboard and Dim screensavers keep the dashboard visible beside Now Playing and lay its cards out in the space the player leaves. Dim keeps its configured dim level.
 
 **Layout mode** under **Now Playing > User Interface** picks how the standalone view is arranged. It defaults to **Vertical** and is ignored while Now Playing is shown alongside a screensaver.
 

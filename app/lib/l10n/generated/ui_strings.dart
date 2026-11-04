@@ -578,6 +578,30 @@ abstract class UiStrings {
   /// **'Needs the Kiosk Satellite alarms blueprint and an LLM conversation agent in Home Assistant.'**
   String get alarmsVoiceHint;
 
+  /// Alarm detail row: music from the library to ring with instead of the tone. The tone rings if the music cannot play.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get alarmsMusic;
+
+  /// Value of the alarm Music row when no music is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get alarmsMusicNone;
+
+  /// Spoken label of the button that takes the music off an alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove music'**
+  String get alarmsMusicRemove;
+
+  /// Note under the alarm Music field in the remote admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings instead of the tone. The tone rings if the music cannot play.'**
+  String get alarmsMusicHint;
+
   /// Service description displayed by Android in its own language.
   ///
   /// In en, this message translates to:
@@ -1016,6 +1040,36 @@ abstract class UiStrings {
   /// **'Events shown'**
   String get calendarWidgetEvents;
 
+  /// How many days ahead the Up next widget lists events from. The options are Today, Today and tomorrow and Next 7 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days shown'**
+  String get calendarWidgetDays;
+
+  /// Days shown option: the Up next widget lists events from today and tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today and tomorrow'**
+  String get calendarWidgetTomorrow;
+
+  /// Days shown option: the Up next widget lists events from today and the 6 days after it.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 7 days'**
+  String get calendarWidgetWeek;
+
+  /// Switch. On, the Up next widget marks each event with a small dot in its calendar's color instead of the picture of the person the calendar belongs to.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored dots'**
+  String get calendarWidgetDots;
+
+  /// Help text under the Colored dots switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark events with their calendar\'s color instead of the person\'s picture.'**
+  String get calendarWidgetDotsHint;
+
   /// Heading of the group about managing the calendar by voice.
   ///
   /// In en, this message translates to:
@@ -1033,6 +1087,228 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Needs the Kiosk Satellite calendar blueprint and an LLM conversation agent in Home Assistant.'**
   String get calendarVoiceHint;
+
+  /// Button that opens the form for a new calendar event, and the form's heading.
+  ///
+  /// In en, this message translates to:
+  /// **'New event'**
+  String get calendarNewEvent;
+
+  /// Heading of the form that changes a calendar event.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit event'**
+  String get calendarEditEvent;
+
+  /// Label of the event's title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get calendarFieldTitle;
+
+  /// Placeholder in the empty title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a title'**
+  String get calendarFieldTitleHint;
+
+  /// Label of the row of calendars (one per person) the event goes on. Several can be picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendars'**
+  String get calendarFieldCalendars;
+
+  /// Note under the calendars when two or more are picked: the event is drawn once with its background split between the calendars' colors.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows once, split between their colors.'**
+  String get calendarFieldSharedHint;
+
+  /// Label of the event's start date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get calendarFieldStarts;
+
+  /// Label of the event's end date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get calendarFieldEnds;
+
+  /// Title of the dialog that picks the start time.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get calendarFieldStartTime;
+
+  /// Title of the dialog that picks the end time.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get calendarFieldEndTime;
+
+  /// Error under the dates when the end is before the start.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends before it starts.'**
+  String get calendarFieldEndsBeforeStart;
+
+  /// Label of the choice of how the event repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get calendarFieldRepeat;
+
+  /// A Repeat choice: the event happens once.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not repeat'**
+  String get calendarRepeatNever;
+
+  /// A Repeat choice: Monday to Friday.
+  ///
+  /// In en, this message translates to:
+  /// **'Every weekday'**
+  String get calendarRepeatWeekdays;
+
+  /// A Repeat choice: once a week on the start's weekday.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week on {weekday}'**
+  String calendarRepeatWeeklyOn(String weekday);
+
+  /// A Repeat choice: once a month on the start's day of the month.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month on day {day}'**
+  String calendarRepeatMonthlyOn(String day);
+
+  /// A Repeat choice: once a year on the start's date.
+  ///
+  /// In en, this message translates to:
+  /// **'Every year on {date}'**
+  String calendarRepeatYearlyOn(String date);
+
+  /// Label of the event's place field.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get calendarFieldLocation;
+
+  /// Placeholder in the empty location field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get calendarFieldLocationHint;
+
+  /// Label of the event's notes field.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get calendarFieldNotes;
+
+  /// Placeholder in the empty notes field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes'**
+  String get calendarFieldNotesHint;
+
+  /// Message after a new event is saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Event added'**
+  String get calendarEventAdded;
+
+  /// Message after changes to an event are saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved'**
+  String get calendarEventSaved;
+
+  /// Message after an event is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Event deleted'**
+  String get calendarEventDeleted;
+
+  /// Title of the error message when saving an event fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the event'**
+  String get calendarSaveFailed;
+
+  /// Title of the error message when deleting an event fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the event'**
+  String get calendarDeleteFailed;
+
+  /// Why an event could not be saved or deleted: the calendar takes no changes, like a holiday calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'{calendar} is read only.'**
+  String calendarEditReadOnly(String calendar);
+
+  /// Why an event could not be saved or deleted: it was changed or deleted somewhere else meanwhile.
+  ///
+  /// In en, this message translates to:
+  /// **'The event is no longer on {calendar}.'**
+  String calendarEditGone(String calendar);
+
+  /// Why an event could not be saved or deleted: the Home Assistant user the kiosk signs in as has no permission. Keep Home Assistant unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The kiosk\'s Home Assistant user may not change {calendar}.'**
+  String calendarEditNotAllowed(String calendar);
+
+  /// Title of the dialog that confirms deleting an event.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {title}?'**
+  String calendarDeleteTitle(String title);
+
+  /// Line in the delete dialog of an event on several calendars.
+  ///
+  /// In en, this message translates to:
+  /// **'It comes off every calendar it is on: {names}.'**
+  String calendarDeleteShared(String names);
+
+  /// Title of the dialog that asks which days of a repeating event a change covers.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes to {title}?'**
+  String calendarSaveRepeatTitle(String title);
+
+  /// Line in that dialog when the Repeat choice changed: it can only apply from this day on.
+  ///
+  /// In en, this message translates to:
+  /// **'The new repeat starts on this day.'**
+  String get calendarSaveRepeatFollowing;
+
+  /// Choice in the save and delete dialogs of a repeating event: only this day.
+  ///
+  /// In en, this message translates to:
+  /// **'This event'**
+  String get calendarScopeThis;
+
+  /// Choice in the save and delete dialogs of a repeating event: this day and every one after it.
+  ///
+  /// In en, this message translates to:
+  /// **'This and following events'**
+  String get calendarScopeFollowing;
+
+  /// Choice in the delete dialog of a repeating event: the whole series.
+  ///
+  /// In en, this message translates to:
+  /// **'All events'**
+  String get calendarScopeAll;
+
+  /// Heading of the settings that let people add, change and delete events on the kiosk's screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing'**
+  String get calendarEditingSection;
 
   /// Page title.
   ///
@@ -5349,6 +5625,12 @@ abstract class UiStrings {
   /// **'Show the source picker in the library. Turn off to keep the library on the source set above.'**
   String get settingLibrarySourcePickerDescription;
 
+  /// Setting description for Show speaker selection pill on the Music Library page: the pill that opens the Speakers sheet, where music plays.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the speaker picker at the top of the library.'**
+  String get settingLibrarySpeakerPillDescription;
+
   /// Grid density option: larger tiles, fewer in a row.
   ///
   /// In en, this message translates to:
@@ -5780,6 +6062,186 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Needs the Kiosk Satellite music blueprint and an LLM conversation agent in Home Assistant.'**
   String get libraryVoiceHint;
+
+  /// Title of the music picker, where music from the library is chosen for a feature such as an alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose music'**
+  String get musicPickerTitle;
+
+  /// Placeholder of the music picker search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search music'**
+  String get musicPickerSearchHint;
+
+  /// Heading of the music picker source menu: Music Assistant, Home Assistant or Sonos.
+  ///
+  /// In en, this message translates to:
+  /// **'Music from'**
+  String get musicPickerMusicFrom;
+
+  /// Heading of the music picker speaker menu: the speaker the music plays on.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays on'**
+  String get musicPickerPlaysOn;
+
+  /// Spoken label of the music picker source button.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {name}'**
+  String musicPickerSourceLabel(String name);
+
+  /// Spoken label of the music picker speaker button.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays on: {name}'**
+  String musicPickerSpeakerLabel(String name);
+
+  /// Music picker category of random picks, drawn again every time the music plays.
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get musicPickerRandom;
+
+  /// Note under the Random heading of the music picker.
+  ///
+  /// In en, this message translates to:
+  /// **'A new pick every time it plays'**
+  String get musicPickerRandomHint;
+
+  /// Random pick: a different track from the library each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Any track'**
+  String get musicPickerAnyTrack;
+
+  /// Random pick: a different favorite each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Any favorite'**
+  String get musicPickerAnyFavorite;
+
+  /// Random pick: a different playlist each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Any playlist'**
+  String get musicPickerAnyPlaylist;
+
+  /// Random pick: a different album each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Any album'**
+  String get musicPickerAnyAlbum;
+
+  /// Random pick: a different radio station each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Any radio station'**
+  String get musicPickerAnyStation;
+
+  /// Under a random pick in the music picker footer.
+  ///
+  /// In en, this message translates to:
+  /// **'A different one each time'**
+  String get musicPickerRandomEach;
+
+  /// Row at the top of an opened album: picks the album instead of one track.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole album'**
+  String get musicPickerWholeAlbum;
+
+  /// Row at the top of an opened playlist: picks the playlist instead of one track.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole playlist'**
+  String get musicPickerWholePlaylist;
+
+  /// Row at the top of an opened artist: picks the artist instead of one track.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything by {name}'**
+  String musicPickerWholeArtist(String name);
+
+  /// Row at the top of an opened folder: picks the folder instead of one file.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole folder'**
+  String get musicPickerWholeFolder;
+
+  /// Row at the top of an opened podcast or audiobook: picks all of it.
+  ///
+  /// In en, this message translates to:
+  /// **'All tracks'**
+  String get musicPickerAllTracks;
+
+  /// Switch in the music picker footer: plays the album, playlist or artist in random order.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get musicPickerShuffle;
+
+  /// Button in the music picker footer: plays the picked music on its speaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get musicPickerPreview;
+
+  /// Button in the music picker footer while the preview plays.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop preview'**
+  String get musicPickerStopPreview;
+
+  /// Toast when the music picker preview could not start.
+  ///
+  /// In en, this message translates to:
+  /// **'The music could not play'**
+  String get musicPickerPreviewFailed;
+
+  /// Music picker footer before anything is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing picked'**
+  String get musicPickerNothing;
+
+  /// Music picker footer before anything is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a track, album, playlist, artist or station'**
+  String get musicPickerNothingHint;
+
+  /// Note at the bottom of the music picker speaker menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing switches to this speaker while the music plays.'**
+  String get musicPickerFollowsNote;
+
+  /// Note at the bottom of the music picker speaker menu for the Sonos source.
+  ///
+  /// In en, this message translates to:
+  /// **'Sonos music plays on Sonos speakers only.'**
+  String get musicPickerSonosNote;
+
+  /// Music picker speaker button and menu when the source has no speaker.
+  ///
+  /// In en, this message translates to:
+  /// **'No speakers to play on'**
+  String get musicPickerNoSpeakers;
+
+  /// Spoken label of the button that opens an album, playlist, artist or folder in the music picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {title}'**
+  String musicPickerOpen(String title);
+
+  /// Kind of entry in the music picker: a folder of media.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get musicPickerKindFolder;
 
   /// Heading when the device has a network but the dashboard failed to load.
   ///
@@ -8398,6 +8860,18 @@ abstract class UiStrings {
   /// **'Plays at the alarm volume.'**
   String get settingAlarmsToneDescription;
 
+  /// Setting label: music from the library that alarms ring with instead of the tone, unless an alarm has its own or None.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm music'**
+  String get settingAlarmsMusicTitle;
+
+  /// Description of the Alarm music setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings instead of the tone. The tone rings if the music cannot play.'**
+  String get settingAlarmsMusicDescription;
+
   /// Setting label.
   ///
   /// In en, this message translates to:
@@ -8685,6 +9159,30 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Adds the forecast to each day.'**
   String get settingCalendarWeatherEntityDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow adding and editing events'**
+  String get settingCalendarAllowEditTitle;
+
+  /// Setting description. New event and Edit are the names of the buttons it adds.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds New event and Edit to the calendar.'**
+  String get settingCalendarAllowEditDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow deleting events'**
+  String get settingCalendarAllowDeleteTitle;
+
+  /// Setting description. Delete is the name of the button it adds.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds Delete to each event.'**
+  String get settingCalendarAllowDeleteDescription;
 
   /// Setting label.
   ///
@@ -12766,6 +13264,72 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'another package'**
   String get updateAnotherPackage;
+
+  /// Section heading on the Updates page, above the settings for Kiosk Satellite's own app updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk Satellite Updates'**
+  String get deviceKioskSatelliteUpdates;
+
+  /// Section heading on the Updates page, above the settings for Android's own system updates from the device maker.
+  ///
+  /// In en, this message translates to:
+  /// **'Android System Updates'**
+  String get deviceAndroidSystemUpdates;
+
+  /// Setting label. Picks when Android installs its own system updates and restarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Android updates'**
+  String get settingAndroidUpdatePolicyTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates to Android itself from the device maker, such as Google or Samsung. Kiosk mode hides the prompt to restart and install them.'**
+  String get settingAndroidUpdatePolicyDescription;
+
+  /// Option of Install Android updates: Android shows its own restart prompt, as it does without a policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask on the device'**
+  String get deviceAndroidUpdateAsk;
+
+  /// Option of Install Android updates: install and restart as soon as an update is ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Right away'**
+  String get deviceAndroidUpdateAutomatic;
+
+  /// Option of Install Android updates: install and restart only during a daily time window.
+  ///
+  /// In en, this message translates to:
+  /// **'In a time window'**
+  String get deviceAndroidUpdateWindowed;
+
+  /// Setting label. Start time of the daily window for installing Android updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Install from'**
+  String get settingAndroidUpdateWindowStartTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time the daily window for installing and restarting opens.'**
+  String get settingAndroidUpdateWindowStartDescription;
+
+  /// Setting label. End time of the daily window for installing Android updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Install until'**
+  String get settingAndroidUpdateWindowEndTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time the window closes. A window past midnight ends the next day.'**
+  String get settingAndroidUpdateWindowEndDescription;
 
   /// Language selector label.
   ///
@@ -17219,6 +17783,18 @@ abstract class UiStrings {
   /// **'While this device plays in a group, the volume slider sets the whole group\'s volume. Off, only this device\'s. Needs the Music Assistant connection.'**
   String get settingSendspinGroupVolumeDescription;
 
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Control the device volume'**
+  String get settingSendspinMasterVolumeTitle;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Music Assistant sets the volume the volume buttons change, instead of the media volume. Assistant sounds follow it too.'**
+  String get settingSendspinMasterVolumeDescription;
+
   /// Label or guidance in this section.
   ///
   /// In en, this message translates to:
@@ -18080,6 +18656,18 @@ abstract class UiStrings {
   /// Setting label.
   ///
   /// In en, this message translates to:
+  /// **'Echo cancellation method'**
+  String get settingMicEchoCancellationMethodTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic tests GTCRN while the kiosk plays sounds and switches to AEC3 if it leaves too much echo. Pick Automatic to test again.'**
+  String get settingMicEchoCancellationMethodDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
   /// **'Noise suppression'**
   String get settingMicNoiseSuppressionTitle;
 
@@ -18166,6 +18754,18 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Voice communication'**
   String get screenAudioCaptureVoiceCommunication;
+
+  /// Heading, choice, status or guidance shown in this group.
+  ///
+  /// In en, this message translates to:
+  /// **'GTCRN (detected)'**
+  String get screenAudioEchoMethodGtcrnDetected;
+
+  /// Heading, choice, status or guidance shown in this group.
+  ///
+  /// In en, this message translates to:
+  /// **'AEC3 (detected)'**
+  String get screenAudioEchoMethodAec3Detected;
 
   /// Heading, choice, status or guidance shown in this group.
   ///
@@ -20909,6 +21509,18 @@ abstract class UiStrings {
   /// **'Show the place the photo was taken.'**
   String get settingScreensaverImmichMetadataLocationDescription;
 
+  /// Setting label. The description written for the photo in Immich.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get settingScreensaverImmichMetadataDescriptionTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the photo\'s description at the bottom of the screen.'**
+  String get settingScreensaverImmichMetadataDescriptionDescription;
+
   /// Setting label.
   ///
   /// In en, this message translates to:
@@ -20992,12 +21604,6 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Seconds per image'**
   String get settingScreensaverImmichIntervalTitle;
-
-  /// Help below the setting.
-  ///
-  /// In en, this message translates to:
-  /// **'How long each image shows before the next. Videos play in full.'**
-  String get settingScreensaverImmichIntervalDescription;
 
   /// Setting label.
   ///
@@ -21329,6 +21935,42 @@ abstract class UiStrings {
   /// **'Always'**
   String get screensaverMediaFillAlways;
 
+  /// Setting label. Picks how long a video plays in a photo slideshow.
+  ///
+  /// In en, this message translates to:
+  /// **'Video length'**
+  String get settingScreensaverVideoLengthTitle;
+
+  /// Help below the setting.
+  ///
+  /// In en, this message translates to:
+  /// **'How long each video plays before the next.'**
+  String get settingScreensaverVideoLengthDescription;
+
+  /// Option of Video length: each video plays to its end.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole video'**
+  String get screensaverMediaVideoLengthFull;
+
+  /// Option of Video length: a video stops once the seconds per photo run out, like a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as photos'**
+  String get screensaverMediaVideoLengthInterval;
+
+  /// Help below the Seconds per image setting.
+  ///
+  /// In en, this message translates to:
+  /// **'How long each image shows before the next.'**
+  String get settingScreensaverImageIntervalDescription;
+
+  /// Help below the Seconds per photo setting.
+  ///
+  /// In en, this message translates to:
+  /// **'How long each photo shows before the next.'**
+  String get settingScreensaverPhotoIntervalDescription;
+
   /// Setting label.
   ///
   /// In en, this message translates to:
@@ -21346,12 +21988,6 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Seconds per photo'**
   String get settingScreensaverGalleryIntervalTitle;
-
-  /// Help below the setting.
-  ///
-  /// In en, this message translates to:
-  /// **'How long each photo shows before the next. Videos play in full.'**
-  String get settingScreensaverGalleryIntervalDescription;
 
   /// Setting label.
   ///
@@ -21472,12 +22108,6 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Seconds per image'**
   String get settingScreensaverMediaIntervalTitle;
-
-  /// Help below the setting.
-  ///
-  /// In en, this message translates to:
-  /// **'How long each image shows before the next. Videos play in full.'**
-  String get settingScreensaverMediaIntervalDescription;
 
   /// Setting label.
   ///
@@ -21724,12 +22354,6 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Seconds per photo'**
   String get settingScreensaverLocalIntervalTitle;
-
-  /// Help below the setting.
-  ///
-  /// In en, this message translates to:
-  /// **'How long each photo shows before the next. Videos play in full.'**
-  String get settingScreensaverLocalIntervalDescription;
 
   /// Setting label.
   ///
@@ -23162,6 +23786,54 @@ abstract class UiStrings {
   /// Label or guidance in this editor.
   ///
   /// In en, this message translates to:
+  /// **'High and low'**
+  String get screensaverOverlayHighLow;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s high and low temperatures.'**
+  String get screensaverOverlayHighLowHelp;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather forecast'**
+  String get screensaverOverlayForecastWidget;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Days shown'**
+  String get screensaverOverlayForecastDays;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Include today'**
+  String get screensaverOverlayForecastToday;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the list with today\'s forecast.'**
+  String get screensaverOverlayForecastTodayHelp;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored icons'**
+  String get screensaverOverlayForecastColored;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the weather icons in their own colors.'**
+  String get screensaverOverlayForecastColoredHelp;
+
+  /// Label or guidance in this editor.
+  ///
+  /// In en, this message translates to:
   /// **'Humidity'**
   String get screensaverOverlayHumidity;
 
@@ -23398,6 +24070,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'A battery widget in a corner of the screensaver: this device\'s own charge.'**
   String get searchBattery;
+
+  /// Search result title or summary for this section.
+  ///
+  /// In en, this message translates to:
+  /// **'A forecast widget in a corner of the screensaver: the coming days, with their highs and lows.'**
+  String get searchWeatherForecast;
 
   /// Search result title or summary for this section.
   ///

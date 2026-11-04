@@ -659,6 +659,25 @@ class VoiceManager extends Manager {
       )
       ..register(
         Command(
+          name: 'voiceRealtimeClear',
+          description:
+              'Clear a realtime provider: its key, endpoint, model, voice '
+              'and switches go back to their defaults and it leaves the '
+              'Assistant selects. A wake word it answered goes back to '
+              'Assist',
+          params: const {'provider': 'openai, xai or gemini'},
+          handler: (p) async {
+            final id = '${p['provider'] ?? ''}';
+            if (!RealtimeProvider.values.any((r) => r.id == id)) {
+              return const CommandResult.fail('unknown provider');
+            }
+            await realtimeClear(RealtimeProvider.byId(id));
+            return const CommandResult.ok();
+          },
+        ),
+      )
+      ..register(
+        Command(
           name: 'voicePreview',
           description:
               'Show the overlay with a sample answer for five seconds, in '
@@ -2322,6 +2341,7 @@ class VoiceManager extends Manager {
                 url: Uri.parse('$base/api/mcp'),
                 token: token,
                 deviceId: _deviceId,
+                deviceName: () => _settings.get(defs.deviceName),
               ),
               notFound: mcpMissing,
             ),
@@ -2434,6 +2454,30 @@ class VoiceManager extends Manager {
       'tools': tools,
       if (toolsError.isNotEmpty) 'toolsError': toolsError,
     };
+  }
+
+  /// Puts a provider back to Not configured: its key, endpoint, model,
+  /// voice and switches go back to their defaults and it leaves the
+  /// Assistant selects. A wake word it answered goes back to Assist.
+  Future<void> realtimeClear(RealtimeProvider provider) async {
+    final d = _realtimeDefs(provider);
+    _checkTimers[provider]?.cancel();
+    _checkFailed.remove(provider);
+    for (final def in [d.apiKey, d.endpoint, d.model, d.voice, ?d.reasoning]) {
+      await _settings.set(def, def.defaultValue, source: 'voice');
+    }
+    for (final def in [?d.search, ?d.xSearch, ?d.proactive]) {
+      await _settings.set(def, def.defaultValue, source: 'voice');
+    }
+    await _settings.set(d.validated, d.validated.defaultValue, source: 'voice');
+    for (final engine in [defs.voiceEngine1, defs.voiceEngine2]) {
+      if (_settings.get(engine) == provider.id) {
+        await _settings.set(engine, 'assist', source: 'voice');
+      }
+    }
+    _realtimeProblem(provider, null);
+    realtimeStatusRevision.value++;
+    log.info(name, 'realtime: ${provider.id} cleared');
   }
 
   /// Whether [config] gets a session: null when the provider takes it, the
@@ -2749,7 +2793,9 @@ class VoiceManager extends Manager {
         : next;
     if (next.visible) shown = shown.copyWith(assistant: _assistant);
     if (_settings.get(defs.voiceHideSentimentTags) && next.answer.isNotEmpty) {
-      shown = shown.copyWith(answer: stripSentimentTags(next.answer));
+      shown = shown.copyWith(
+        answer: stripSentimentTags(next.answer, streaming: next.streaming),
+      );
     }
     // Visible either way: the screensaver holds its screen off timer
     // under both, and what is under it pauses (see [underlayPaused]).

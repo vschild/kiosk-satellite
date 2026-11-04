@@ -186,19 +186,19 @@ Some light sensors stop reporting while the display is off. On those devices the
 
 ### Home Assistant Media
 
-Streams media served by Home Assistant's media browser, including single images, image folders, video files, or `camera.*` entities (which stream over WebRTC with an MJPEG fallback). **Media source** opens the picker. Selecting an image folder unlocks playlist controls (**Seconds per image**, **Shuffle**, **Include subfolders**, **Transition**, and **Tap edges to change slides**). Video assets play through to completion. Photos follow standard [Slideshow behavior](#slideshow-behavior) scaling rules, whereas videos and camera streams preserve their native aspect ratio.
+Streams media served by Home Assistant's media browser, including single images, image folders, video files, or `camera.*` entities (which stream over WebRTC with an MJPEG fallback). **Media source** opens the picker. Selecting an image folder unlocks playlist controls (**Seconds per image**, **Video length**, **Shuffle**, **Include subfolders**, **Transition** and **Tap edges to change slides**). Photos and videos follow the [Slideshow behavior](#slideshow-behavior) rules, while camera streams keep their native aspect ratio.
 
 **Show metadata** puts each photo's details in a corner, read from the photo's own EXIF. **Date taken** shows when it was taken and **Camera details** shows the camera model with the focal length, aperture and ISO. **Metadata position**, **Text drop shadow**, **Text scaling** and **Vignette strength** work as they do on Immich Media. Location is left out because turning GPS coordinates into a place name needs an online lookup service. The details come from JPEG photos. Videos and camera streams show none.
 
 ### Local Media
 
-Displays an image slideshow loaded from a local folder on the device. Configuration options include **Local folder** (selected on device or typed into the remote admin), **Seconds per photo**, **Shuffle**, **Include subfolders**, **Transition**, **Fill the screen**, and **Tap edges to change slides**.
+Displays an image slideshow loaded from a local folder on the device. Configuration options include **Local folder** (selected on device or typed into the remote admin), **Seconds per photo**, **Video length**, **Shuffle**, **Include subfolders**, **Transition**, **Fill the screen** and **Tap edges to change slides**.
 
 **Show metadata** puts each photo's details in a corner, read from the photo's own EXIF. **Date taken** shows when it was taken and **Camera details** shows the camera model with the focal length, aperture and ISO. **Metadata position**, **Text drop shadow**, **Text scaling** and **Vignette strength** work as they do on Immich Media. Location is left out because turning GPS coordinates into a place name needs an online lookup service. The details come from JPEG photos. Videos show none.
 
 ### Photo Gallery
 
-Operates similarly to Local Media, but selects files using the native system gallery picker. This avoids needing broad storage permissions. Selected images are stored locally to survive device reboots. Options include **Photos** selection, **Seconds per photo**, **Shuffle**, **Transition**, **Fill the screen**, and **Tap edges to change slides**.
+Operates similarly to Local Media, but selects files using the native system gallery picker. This avoids needing broad storage permissions. Selected images are stored locally to survive device reboots. Options include **Photos** selection, **Seconds per photo**, **Video length**, **Shuffle**, **Transition**, **Fill the screen** and **Tap edges to change slides**.
 
 ### Image URL
 
@@ -253,7 +253,7 @@ Photo slideshow modes (Home Assistant Media, Local Media, Photo Gallery, Image U
   | Smart | Crops up to roughly 25% along one axis to fill the display if the image aspect ratio is close to the panel's aspect ratio (covering standard 4:3 and 16:9 camera formats). Portrait and square photos retain their full frame over an enlarged, blurred, and dimmed copy of the image instead of black bars. |
   | Always | Scales the image to cover the display completely regardless of aspect ratio, cropping overflow. A 4:3 image on a 2:1 display loses approximately one-third of its vertical framing. |
 
-* **Videos** play muted to completion, overriding image interval timers. Unplayable video files are skipped automatically.
+* **Videos** play muted. **Video length** (Whole video by default) picks how long. Whole video plays each one to its end, and Same as photos stops it once the seconds per photo run out, or at its end if it is shorter. Videos follow **Fill the screen** too, but one that is not enlarged keeps black bars instead of the blurred backdrop. Unplayable video files are skipped automatically.
 * The slideshow playlist builds upon screensaver activation. Newly added files appear during the next screensaver launch rather than mid-session. Image URL has no playlist and fetches a new photo for every slide.
 * Images decode at the native panel resolution, and memory for previous slides is released immediately to prevent memory exhaustion on low-RAM devices.
 * **Tap edges to change slides** (on by default): A tap on the left or right fifth of the screen shows the previous or next slide and resets its full display interval. Taps on the middle three fifths dismiss the screensaver as usual. Each slideshow mode has its own switch on its settings page, and turning it off makes every tap dismiss again. Home Assistant Media offers it for image folders only, since a single image, video, or camera stream has nothing to step.
@@ -283,7 +283,7 @@ Renders over a soft vignette for legibility and supports pixel shift adjustments
 
 ### Weather
 
-Displays real-time weather data pulled from a Home Assistant `weather` entity over any mode except Calendar and Camera Streams. The widget layout displays top-to-bottom: location name, current temperature with units (e.g., "28°C"), condition text with a matching icon, humidity, wind speed, and visibility. Units are provided directly by the Home Assistant entity, and icons render in a monochrome style matching the widget color.
+Displays real-time weather data pulled from a Home Assistant `weather` entity over any mode except Calendar and Camera Streams. The widget layout displays top-to-bottom: location name, current temperature with units (e.g., "28°C") with an icon for the current conditions beside it, condition text with a matching icon, humidity, wind speed, and visibility. Units are provided directly by the Home Assistant entity, and the icons on the detail lines render in a monochrome style matching the widget color.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -294,8 +294,26 @@ Displays real-time weather data pulled from a Home Assistant `weather` entity ov
 | Feels like | Off | Displays apparent temperature alongside actual temperature (e.g., "30°C / 33°C"). Requires entity support. If rounded values match, only a single temperature displays. |
 | Feels like only | Off | Replaces the actual temperature reading with the apparent temperature. Takes priority over Feels like, and falls back to actual temperature if apparent data is missing. |
 | Location, Forecast, Humidity, Wind speed, Visibility | On | Individual toggles for each data line. Lines automatically hide if the source entity lacks that specific data point. |
+| Colored icons | On | Shows the conditions icon next to the temperature in its own colors. Turn it off to draw it in the widget color. While the Clock screensaver's Night mode is on, the icon always takes the night color. |
+
+The conditions icon sits on the corner's outer edge like the detail line icons: left of the temperature in a left corner and right of it in a right corner. Once the sun sets, sunny and partly cloudy show the moon instead of the sun. The kiosk reads that from Home Assistant's `sun.sun` entity, or from the local time (6 PM to 6 AM) when that entity is missing.
 
 Data updates automatically via a live Home Assistant subscription while the screensaver is active. The last received values persist through brief network drops. Forecast condition text utilizes Home Assistant's localized translations (e.g., a server set to Italian displays "Nebbia" instead of "Fog"). Translations are fetched once upon app launch.
+
+### Weather forecast
+
+Lists the coming days of a Home Assistant `weather` entity's daily forecast over any mode except Calendar and Camera Streams. Each row shows the day, an icon for the expected conditions, the high and the low, such as **Mon**, a sun icon, **68°** and **49°**. The columns line up down the list.
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Weather entity | None | Selected from Home Assistant. The widget remains hidden until an entity is assigned. |
+| Corner | First free corner | Displays in the first available corner. |
+| Color | White | Applies to the days and temperatures, and to the icons when **Colored icons** is off. |
+| Days shown | 5 | How many days it lists: 3, 5 or 7. If the integration forecasts fewer days, the widget lists the days it has. |
+| Include today | On | Starts the list with today. Turn it off to start with tomorrow, such as next to a **Weather** widget that already shows today. |
+| Colored icons | On | Shows the weather icons in their own colors. Turn it off to draw them in the widget color. While the Clock screensaver's Night mode is on, the icons always take the night color. |
+
+Once the sun sets, today's row shows the moon instead of the sun for sunny and partly cloudy, the same as the **Weather** widget. Later days keep their daytime icons. The forecast updates live while the screensaver runs. An entity whose integration has no daily forecast shows nothing, and the low column is left out when the integration only reports highs.
 
 ### Battery
 
@@ -321,13 +339,14 @@ Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours
 
 ### Up next
 
-Shows what is still to come today on the [calendar](calendar.md), over any mode except Calendar and Camera Streams: a dot in each event's calendar color, the start time and the title. Calendars hidden with their chips are left out. The corner stays empty once nothing else is on today. A tap on the widget opens the calendar on the Schedule view.
+Shows what is still to come today on the [calendar](calendar.md), over any mode except Calendar and Camera Streams: the picture of the person linked to each event's calendar, the start time and the title. A calendar with no person linked shows its initial on its color, and a shared event shows everyone on it. Calendars hidden with their chips are left out. The corner stays empty once nothing else is on today. A tap on the widget opens the calendar on the Schedule view.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Corner | First free corner | Displays in the first available corner. |
 | Color | White | Applies to the times and titles. |
 | Events shown | 3 | How many coming events it lists, 1 to 5. |
+| Colored dots | Off | Marks each event with a small dot in its calendar's color instead of the pictures. Night mode always uses the dots. |
 
 ### Entity
 

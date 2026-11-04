@@ -245,6 +245,13 @@ class EspEntitySurface {
           defs.screensaverScheduleEnabled,
         ),
         'hold_mode': ('Hold mode', 'mdi:pause-circle-outline', defs.haHoldMode),
+        // Rotation alone, unlike Hold mode: the screensaver and screen off
+        // still run while it is off (issue #1247).
+        'dashboard_rotation': (
+          'Dashboard rotation',
+          'mdi:view-carousel-outline',
+          defs.haRotationEnabled,
+        ),
         'camera_enabled': (
           'Camera enabled',
           'mdi:camera-outline',
@@ -1638,6 +1645,9 @@ class EspEntitySurface {
         {'name': 'audio_only', 'type': 'bool'},
       ],
     },
+    // Stops the announcement playing on this kiosk, if any, and one
+    // still fetching its audio. Answers whether one was playing.
+    {'name': 'announce_stop', 'supportsResponse': true, 'args': []},
     // Rings another kiosk from this one, the way the kiosk menu's Call a
     // kiosk sheet does, so a dashboard button or an automation can put a
     // call through (issue #549). The kiosk goes by its name or address:
@@ -1872,6 +1882,11 @@ class EspEntitySurface {
         if (!result.ok) throw StateError(result.error ?? 'refused');
         final data = result.data;
         return data is Map ? data.cast<String, Object?>() : const {};
+      case 'announce_stop':
+        final result = await commands.execute('announceStop', const {});
+        if (!result.ok) throw StateError(result.error ?? 'refused');
+        final data = result.data;
+        return data is Map ? data.cast<String, Object?>() : const {};
       case 'intercom_call':
         final result = await commands.execute('intercomCall', {
           'kiosk': '${args['kiosk'] ?? ''}',
@@ -1980,11 +1995,14 @@ class EspEntitySurface {
     );
     _subs.add(bus.on<ScreenStateChanged>().listen((_) => _sendScreen()));
     // Addresses change exactly at these transitions, and the minute poll
-    // would leave the IP sensors stale until it comes round. Deferred a
-    // moment so DHCP has settled by the time we look.
+    // would leave the IP sensors and the admin URL stale until it comes
+    // round. Deferred a moment so DHCP has settled by the time we look.
     _subs.add(
       bus.on<NetworkStateChanged>().listen((_) {
-        Timer(const Duration(seconds: 3), _sendIpAddresses);
+        Timer(const Duration(seconds: 3), () {
+          _sendIpAddresses();
+          _sendAdminUrl();
+        });
       }),
     );
     // A link coming up or going down, rather than the minute poll: a lock
@@ -2613,7 +2631,6 @@ class EspEntitySurface {
     if (alarm.ok && alarm.data is Map) {
       await _sendAlarm((alarm.data as Map).cast<String, Object?>());
     }
-    await _sendAdminUrl();
     await _sendLastLocation();
     await _sendPersonState();
     // Both states are seeded from the managers rather than assumed off:
@@ -3294,6 +3311,9 @@ class EspEntitySurface {
     lux ??= int.tryParse(_settings.internal('esphome_last_lux'));
     if (lux != null) _lux.offer(lux.round());
     await _sendIpAddresses();
+    // A start with no address yet skips the admin URL, and nothing else
+    // would send it once one turns up (issue #1251).
+    await _sendAdminUrl();
     final foreground = await commands.execute('foregroundApp', const {});
     if (foreground.ok && foreground.data is Map) {
       final pkg = (foreground.data as Map)['package'] as String?;

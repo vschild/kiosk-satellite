@@ -68,6 +68,7 @@ import 'managers/settings/echo_image_settings.dart';
 import 'managers/settings/headless_settings.dart';
 import 'managers/settings/provisioning.dart';
 import 'managers/settings/settings_manager.dart';
+import 'managers/update/android_update_policy_manager.dart';
 import 'managers/update/system_update_manager.dart';
 import 'managers/update/update_manager.dart';
 import 'managers/voice/voice_manager.dart';
@@ -165,6 +166,11 @@ class AppContainer {
     dlna = DlnaManager(bus, commands, log, settings);
     airplay = AirPlayManager(bus, commands, log, settings);
     btProxy = BtProxyManager(bus, commands, log, settings);
+    // Composition-root wiring: the gesture actions tell Home Assistant
+    // which kiosk ran them (issue #1259) by the device its ESPHome server
+    // is adopted as.
+    gestures.kioskDeviceId = () async =>
+        homeAssistant.esphomeDeviceId(await btProxy.identityMac());
     // Composition-root wiring: the opaque full-screen overlays report their
     // visibility so the dashboard WebView stops compositing underneath
     // them. The settings route reports from the UI, where its transition
@@ -195,6 +201,7 @@ class AppContainer {
           : null,
     );
     systemUpdate = SystemUpdateManager(bus, commands, log);
+    androidUpdates = AndroidUpdatePolicyManager(bus, commands, log, settings);
     // After homeAssistant: it reads states through it for the fallback.
     glance = GlanceManager(bus, commands, log, settings, homeAssistant);
     shizuku = ShizukuManager(bus, commands, log);
@@ -210,6 +217,14 @@ class AppContainer {
         hold: screensaver.setModeOverride,
         release: screensaver.clearModeOverride,
       )
+      ..screensaverFeed = PluginScreensaverFeed(
+        view: screensaver.activeView,
+        night: screensaver.clockNight,
+        nowPlaying: () => screensaver.nowPlayingShown,
+        settings: settings,
+        setTint: screensaver.setPluginTint,
+        clearTint: screensaver.clearPluginTint,
+      )
       ..camera = PluginCamera(
         motion: motion,
         commands: commands,
@@ -221,6 +236,7 @@ class AppContainer {
     // A snapshot binding the camera mid-scan would take it from the scanner.
     deviceCamera.scannerActive = () => motion.scannerHeld;
     settings.pluginScreensavers = () => plugins.screensaverOptions;
+    screensaver.pluginTouch = plugins.screensaverTouch;
     settings.pluginVoiceSkins = () => plugins.voiceSkinOptions;
     remote = RemoteManager(bus, commands, log, settings);
     fleet = FleetManager(bus, commands, log, settings);
@@ -250,11 +266,21 @@ class AppContainer {
       settings,
       nowPlaying: sendspin.nowPlaying,
     );
-    // The library is opaque and full screen too.
+    // The library is opaque and full screen too, and so are the calendar
+    // and Now Playing when it does not share the screen.
     musicLibrary.visible.addListener(
       () => browser.setCovered(
         'music library',
         covered: musicLibrary.visible.value,
+      ),
+    );
+    calendar.visible.addListener(
+      () => browser.setCovered('calendar', covered: calendar.visible.value),
+    );
+    screensaver.nowPlayingCovers.addListener(
+      () => browser.setCovered(
+        'now playing',
+        covered: screensaver.nowPlayingCovers.value,
       ),
     );
     voiceRequests = VoiceRequestsManager(bus, commands, log, settings);
@@ -333,6 +359,7 @@ class AppContainer {
   late final NotificationManager notifications;
   late final UpdateManager update;
   late final SystemUpdateManager systemUpdate;
+  late final AndroidUpdatePolicyManager androidUpdates;
   late final ShizukuManager shizuku;
   late final PluginManager plugins;
   late final RemoteManager remote;
@@ -410,6 +437,9 @@ class AppContainer {
     // Before btProxy too: its first catalog lists the Firmware entity only
     // once getSystemUpdateStatus says the image updates itself.
     systemUpdate,
+    // Before remote, whose first request reads the rows it hides on a
+    // device that is not the device owner.
+    androidUpdates,
     btProxy,
     files,
     glance,

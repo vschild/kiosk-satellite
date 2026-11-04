@@ -1024,6 +1024,58 @@
       ]
     }
   },
+  "alarmsMusic": "Музыка",
+  "@alarmsMusic": {
+    "context": "Alarms",
+    "description": "Alarm detail row: music from the library to ring with instead of the tone. The tone rings if the music cannot play.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm"
+      ]
+    }
+  },
+  "alarmsMusicNone": "Нет",
+  "@alarmsMusicNone": {
+    "context": "Alarms",
+    "description": "Value of the alarm Music row when no music is picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm"
+      ]
+    }
+  },
+  "alarmsMusicRemove": "Убрать музыку",
+  "@alarmsMusicRemove": {
+    "context": "Alarms",
+    "description": "Spoken label of the button that takes the music off an alarm.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm"
+      ]
+    }
+  },
+  "alarmsMusicHint": "Звучит вместо звука будильника. Если музыку не удастся воспроизвести, прозвучит звук будильника.",
+  "@alarmsMusicHint": {
+    "context": "Alarms",
+    "description": "Note under the alarm Music field in the remote admin.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm"
+      ]
+    }
+  },
   "androidAccessibilityHelp": "Закрывает шторку уведомлений и экран недавних приложений, когда они открываются, пока экран защищает режим киоска или режим блокировки. Kiosk Satellite не читает содержимое экрана.",
   "@androidAccessibilityHelp": {
     "context": "Android Settings > Accessibility > Kiosk Satellite",
@@ -1945,6 +1997,68 @@
       ]
     }
   },
+  "calendarWidgetDays": "Показано дней",
+  "@calendarWidgetDays": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "How many days ahead the Up next widget lists events from. The options are Today, Today and tomorrow and Next 7 days.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarWidgetTomorrow": "Сегодня и завтра",
+  "@calendarWidgetTomorrow": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "Days shown option: the Up next widget lists events from today and tomorrow.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarWidgetWeek": "Следующие 7 дней",
+  "@calendarWidgetWeek": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "Days shown option: the Up next widget lists events from today and the 6 days after it.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarWidgetDots": "Цветные точки",
+  "@calendarWidgetDots": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "Switch. On, the Up next widget marks each event with a small dot in its calendar's color instead of the picture of the person the calendar belongs to.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarWidgetDotsHint": "Отмечать события цветом их календаря вместо фото человека.",
+  "@calendarWidgetDotsHint": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "Help text under the Colored dots switch.",
+    "x-locations": {
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
   "calendarVoiceSection": "Голосовой календарь",
   "@calendarVoiceSection": {
     "context": "Settings > Calendar",
@@ -1975,6 +2089,433 @@
   "@calendarVoiceHint": {
     "context": "Settings > Calendar",
     "description": "Description under that row. Keep Kiosk Satellite and Home Assistant unchanged. A blueprint is a Home Assistant template for a script.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar"
+      ],
+      "remoteAdmin": [
+        "Calendar"
+      ]
+    }
+  },
+  "calendarNewEvent": "Новое событие",
+  "@calendarNewEvent": {
+    "context": "Calendar",
+    "description": "Button that opens the form for a new calendar event, and the form's heading.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEditEvent": "Изменить событие",
+  "@calendarEditEvent": {
+    "context": "Calendar event form",
+    "description": "Heading of the form that changes a calendar event.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldTitle": "Название",
+  "@calendarFieldTitle": {
+    "context": "Calendar event form",
+    "description": "Label of the event's title field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldTitleHint": "Добавьте название",
+  "@calendarFieldTitleHint": {
+    "context": "Calendar event form",
+    "description": "Placeholder in the empty title field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldCalendars": "Календари",
+  "@calendarFieldCalendars": {
+    "context": "Calendar event form",
+    "description": "Label of the row of calendars (one per person) the event goes on. Several can be picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldSharedHint": "Показывается один раз, разделено между их цветами.",
+  "@calendarFieldSharedHint": {
+    "context": "Calendar event form",
+    "description": "Note under the calendars when two or more are picked: the event is drawn once with its background split between the calendars' colors.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldStarts": "Начало",
+  "@calendarFieldStarts": {
+    "context": "Calendar event form",
+    "description": "Label of the event's start date and time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldEnds": "Конец",
+  "@calendarFieldEnds": {
+    "context": "Calendar event form",
+    "description": "Label of the event's end date and time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldStartTime": "Время начала",
+  "@calendarFieldStartTime": {
+    "context": "Calendar event form",
+    "description": "Title of the dialog that picks the start time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldEndTime": "Время окончания",
+  "@calendarFieldEndTime": {
+    "context": "Calendar event form",
+    "description": "Title of the dialog that picks the end time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldEndsBeforeStart": "Конец раньше начала.",
+  "@calendarFieldEndsBeforeStart": {
+    "context": "Calendar event form",
+    "description": "Error under the dates when the end is before the start.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldRepeat": "Повтор",
+  "@calendarFieldRepeat": {
+    "context": "Calendar event form",
+    "description": "Label of the choice of how the event repeats.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatNever": "Не повторяется",
+  "@calendarRepeatNever": {
+    "context": "Calendar event form",
+    "description": "A Repeat choice: the event happens once.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatWeekdays": "По будням",
+  "@calendarRepeatWeekdays": {
+    "context": "Calendar event form",
+    "description": "A Repeat choice: Monday to Friday.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarRepeatWeeklyOn": "Каждую неделю ({weekday})",
+  "@calendarRepeatWeeklyOn": {
+    "context": "Calendar event form",
+    "description": "A Repeat choice: once a week on the start's weekday.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "weekday": {
+        "type": "String",
+        "description": "A weekday name like Monday."
+      }
+    }
+  },
+  "calendarRepeatMonthlyOn": "Каждый месяц {day} числа",
+  "@calendarRepeatMonthlyOn": {
+    "context": "Calendar event form",
+    "description": "A Repeat choice: once a month on the start's day of the month.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "description": "A day of the month like 19."
+      }
+    }
+  },
+  "calendarRepeatYearlyOn": "Каждый год {date}",
+  "@calendarRepeatYearlyOn": {
+    "context": "Calendar event form",
+    "description": "A Repeat choice: once a year on the start's date.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "description": "A month and day like October 19."
+      }
+    }
+  },
+  "calendarFieldLocation": "Место",
+  "@calendarFieldLocation": {
+    "context": "Calendar event form",
+    "description": "Label of the event's place field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldLocationHint": "Добавьте место",
+  "@calendarFieldLocationHint": {
+    "context": "Calendar event form",
+    "description": "Placeholder in the empty location field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldNotes": "Заметки",
+  "@calendarFieldNotes": {
+    "context": "Calendar event form",
+    "description": "Label of the event's notes field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarFieldNotesHint": "Добавьте заметки",
+  "@calendarFieldNotesHint": {
+    "context": "Calendar event form",
+    "description": "Placeholder in the empty notes field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEventAdded": "Событие добавлено",
+  "@calendarEventAdded": {
+    "context": "Calendar event form",
+    "description": "Message after a new event is saved.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEventSaved": "Изменения сохранены",
+  "@calendarEventSaved": {
+    "context": "Calendar event form",
+    "description": "Message after changes to an event are saved.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEventDeleted": "Событие удалено",
+  "@calendarEventDeleted": {
+    "context": "Calendar event",
+    "description": "Message after an event is deleted.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarSaveFailed": "Не удалось сохранить событие",
+  "@calendarSaveFailed": {
+    "context": "Calendar event form",
+    "description": "Title of the error message when saving an event fails.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarDeleteFailed": "Не удалось удалить событие",
+  "@calendarDeleteFailed": {
+    "context": "Calendar event",
+    "description": "Title of the error message when deleting an event fails.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEditReadOnly": "{calendar} только для чтения.",
+  "@calendarEditReadOnly": {
+    "context": "Calendar event",
+    "description": "Why an event could not be saved or deleted: the calendar takes no changes, like a holiday calendar.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "calendar": {
+        "type": "String",
+        "description": "A calendar's name like Sam."
+      }
+    }
+  },
+  "calendarEditGone": "События больше нет в {calendar}.",
+  "@calendarEditGone": {
+    "context": "Calendar event",
+    "description": "Why an event could not be saved or deleted: it was changed or deleted somewhere else meanwhile.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "calendar": {
+        "type": "String",
+        "description": "A calendar's name like Sam."
+      }
+    }
+  },
+  "calendarEditNotAllowed": "Пользователю Home Assistant этого киоска нельзя изменять {calendar}.",
+  "@calendarEditNotAllowed": {
+    "context": "Calendar event",
+    "description": "Why an event could not be saved or deleted: the Home Assistant user the kiosk signs in as has no permission. Keep Home Assistant unchanged.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "calendar": {
+        "type": "String",
+        "description": "A calendar's name like Sam."
+      }
+    }
+  },
+  "calendarDeleteTitle": "Удалить {title}?",
+  "@calendarDeleteTitle": {
+    "context": "Calendar event",
+    "description": "Title of the dialog that confirms deleting an event.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "The event's title like Soccer practice."
+      }
+    }
+  },
+  "calendarDeleteShared": "Событие будет удалено из всех календарей, где оно есть: {names}.",
+  "@calendarDeleteShared": {
+    "context": "Calendar event",
+    "description": "Line in the delete dialog of an event on several calendars.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "names": {
+        "type": "String",
+        "description": "The calendars' names like Leo and Sam."
+      }
+    }
+  },
+  "calendarSaveRepeatTitle": "Сохранить изменения в {title}?",
+  "@calendarSaveRepeatTitle": {
+    "context": "Calendar event form",
+    "description": "Title of the dialog that asks which days of a repeating event a change covers.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    },
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "The event's title like Soccer practice."
+      }
+    }
+  },
+  "calendarSaveRepeatFollowing": "Новый повтор начинается с этого дня.",
+  "@calendarSaveRepeatFollowing": {
+    "context": "Calendar event form",
+    "description": "Line in that dialog when the Repeat choice changed: it can only apply from this day on.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarScopeThis": "Это событие",
+  "@calendarScopeThis": {
+    "context": "Calendar event",
+    "description": "Choice in the save and delete dialogs of a repeating event: only this day.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarScopeFollowing": "Это и следующие события",
+  "@calendarScopeFollowing": {
+    "context": "Calendar event",
+    "description": "Choice in the save and delete dialogs of a repeating event: this day and every one after it.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarScopeAll": "Все события",
+  "@calendarScopeAll": {
+    "context": "Calendar event",
+    "description": "Choice in the delete dialog of a repeating event: the whole series.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Calendar"
+      ]
+    }
+  },
+  "calendarEditingSection": "Редактирование",
+  "@calendarEditingSection": {
+    "context": "Settings > Calendar",
+    "description": "Heading of the settings that let people add, change and delete events on the kiosk's screen.",
     "x-locations": {
       "device": [
         "Settings > Calendar"
@@ -11555,6 +12096,19 @@
       ]
     }
   },
+  "settingLibrarySpeakerPillDescription": "Показывает выбор динамика вверху библиотеки.",
+  "@settingLibrarySpeakerPillDescription": {
+    "context": "Music Library",
+    "description": "Setting description for Show speaker selection pill on the Music Library page: the pill that opens the Speakers sheet, where music plays.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Music Library"
+      ],
+      "remoteAdmin": [
+        "Media Player > Music Library"
+      ]
+    }
+  },
   "libraryDensityComfortable": "Просторная",
   "@libraryDensityComfortable": {
     "context": "Music Library",
@@ -12354,6 +12908,420 @@
       ],
       "remoteAdmin": [
         "Media Player > Music Library"
+      ]
+    }
+  },
+  "musicPickerTitle": "Выбор музыки",
+  "@musicPickerTitle": {
+    "context": "Music picker",
+    "description": "Title of the music picker, where music from the library is chosen for a feature such as an alarm.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerSearchHint": "Поиск музыки",
+  "@musicPickerSearchHint": {
+    "context": "Music picker",
+    "description": "Placeholder of the music picker search field.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerMusicFrom": "Музыка из",
+  "@musicPickerMusicFrom": {
+    "context": "Music picker",
+    "description": "Heading of the music picker source menu: Music Assistant, Home Assistant or Sonos.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerPlaysOn": "Играет на",
+  "@musicPickerPlaysOn": {
+    "context": "Music picker",
+    "description": "Heading of the music picker speaker menu: the speaker the music plays on.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerSourceLabel": "Источник: {name}",
+  "@musicPickerSourceLabel": {
+    "context": "Music picker",
+    "description": "Spoken label of the music picker source button.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The source name, such as Music Assistant."
+      }
+    }
+  },
+  "musicPickerSpeakerLabel": "Играет на: {name}",
+  "@musicPickerSpeakerLabel": {
+    "context": "Music picker",
+    "description": "Spoken label of the music picker speaker button.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The speaker name."
+      }
+    }
+  },
+  "musicPickerRandom": "Случайно",
+  "@musicPickerRandom": {
+    "context": "Music picker",
+    "description": "Music picker category of random picks, drawn again every time the music plays.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerRandomHint": "Каждый раз новый выбор",
+  "@musicPickerRandomHint": {
+    "context": "Music picker",
+    "description": "Note under the Random heading of the music picker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAnyTrack": "Любой трек",
+  "@musicPickerAnyTrack": {
+    "context": "Music picker",
+    "description": "Random pick: a different track from the library each time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAnyFavorite": "Любое из избранного",
+  "@musicPickerAnyFavorite": {
+    "context": "Music picker",
+    "description": "Random pick: a different favorite each time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAnyPlaylist": "Любой плейлист",
+  "@musicPickerAnyPlaylist": {
+    "context": "Music picker",
+    "description": "Random pick: a different playlist each time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAnyAlbum": "Любой альбом",
+  "@musicPickerAnyAlbum": {
+    "context": "Music picker",
+    "description": "Random pick: a different album each time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAnyStation": "Любая радиостанция",
+  "@musicPickerAnyStation": {
+    "context": "Music picker",
+    "description": "Random pick: a different radio station each time.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerRandomEach": "Каждый раз другое",
+  "@musicPickerRandomEach": {
+    "context": "Music picker",
+    "description": "Under a random pick in the music picker footer.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerWholeAlbum": "Весь альбом",
+  "@musicPickerWholeAlbum": {
+    "context": "Music picker",
+    "description": "Row at the top of an opened album: picks the album instead of one track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerWholePlaylist": "Весь плейлист",
+  "@musicPickerWholePlaylist": {
+    "context": "Music picker",
+    "description": "Row at the top of an opened playlist: picks the playlist instead of one track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerWholeArtist": "Всё от {name}",
+  "@musicPickerWholeArtist": {
+    "context": "Music picker",
+    "description": "Row at the top of an opened artist: picks the artist instead of one track.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    },
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The artist name."
+      }
+    }
+  },
+  "musicPickerWholeFolder": "Вся папка",
+  "@musicPickerWholeFolder": {
+    "context": "Music picker",
+    "description": "Row at the top of an opened folder: picks the folder instead of one file.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerAllTracks": "Все треки",
+  "@musicPickerAllTracks": {
+    "context": "Music picker",
+    "description": "Row at the top of an opened podcast or audiobook: picks all of it.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerShuffle": "Перемешивание",
+  "@musicPickerShuffle": {
+    "context": "Music picker",
+    "description": "Switch in the music picker footer: plays the album, playlist or artist in random order.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerPreview": "Прослушать",
+  "@musicPickerPreview": {
+    "context": "Music picker",
+    "description": "Button in the music picker footer: plays the picked music on its speaker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerStopPreview": "Остановить прослушивание",
+  "@musicPickerStopPreview": {
+    "context": "Music picker",
+    "description": "Button in the music picker footer while the preview plays.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerPreviewFailed": "Не удалось воспроизвести музыку",
+  "@musicPickerPreviewFailed": {
+    "context": "Music picker",
+    "description": "Toast when the music picker preview could not start.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerNothing": "Ничего не выбрано",
+  "@musicPickerNothing": {
+    "context": "Music picker",
+    "description": "Music picker footer before anything is picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerNothingHint": "Выберите трек, альбом, плейлист, исполнителя или станцию",
+  "@musicPickerNothingHint": {
+    "context": "Music picker",
+    "description": "Music picker footer before anything is picked.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerFollowsNote": "«Сейчас играет» переключается на этот динамик, пока играет музыка.",
+  "@musicPickerFollowsNote": {
+    "context": "Music picker",
+    "description": "Note at the bottom of the music picker speaker menu.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerSonosNote": "Музыка Sonos играет только на динамиках Sonos.",
+  "@musicPickerSonosNote": {
+    "context": "Music picker",
+    "description": "Note at the bottom of the music picker speaker menu for the Sonos source.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerNoSpeakers": "Нет динамиков для воспроизведения",
+  "@musicPickerNoSpeakers": {
+    "context": "Music picker",
+    "description": "Music picker speaker button and menu when the source has no speaker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    }
+  },
+  "musicPickerOpen": "Открыть {title}",
+  "@musicPickerOpen": {
+    "context": "Music picker",
+    "description": "Spoken label of the button that opens an album, playlist, artist or folder in the music picker.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
+      ]
+    },
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "What opens."
+      }
+    }
+  },
+  "musicPickerKindFolder": "Папка",
+  "@musicPickerKindFolder": {
+    "context": "Music picker",
+    "description": "Kind of entry in the music picker: a folder of media.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Alarms > Alarm > Music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Set an alarm > Music"
       ]
     }
   },
@@ -17957,6 +18925,32 @@
       ]
     }
   },
+  "settingAlarmsMusicTitle": "Музыка будильника",
+  "@settingAlarmsMusicTitle": {
+    "context": "Settings > Alarms",
+    "description": "Setting label: music from the library that alarms ring with instead of the tone, unless an alarm has its own or None.",
+    "x-locations": {
+      "device": [
+        "Settings > Alarms > Alarm music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Alarm music"
+      ]
+    }
+  },
+  "settingAlarmsMusicDescription": "Звучит вместо звука будильника. Если музыку не удастся воспроизвести, прозвучит звук будильника.",
+  "@settingAlarmsMusicDescription": {
+    "context": "Settings > Alarms",
+    "description": "Description of the Alarm music setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Alarms > Alarm music"
+      ],
+      "remoteAdmin": [
+        "Alarms > Alarm music"
+      ]
+    }
+  },
   "settingAlarmsSnoozeMinutesTitle": "Длительность откладывания",
   "@settingAlarmsSnoozeMinutesTitle": {
     "context": "Settings > Alarms",
@@ -18575,6 +19569,58 @@
       ],
       "remoteAdmin": [
         "Calendar > Weather"
+      ]
+    }
+  },
+  "settingCalendarAllowEditTitle": "Разрешить добавлять и изменять события",
+  "@settingCalendarAllowEditTitle": {
+    "context": "Settings > Calendar > Editing",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Allow adding and editing events"
+      ],
+      "remoteAdmin": [
+        "Calendar > Allow adding and editing events"
+      ]
+    }
+  },
+  "settingCalendarAllowEditDescription": "Добавляет в календарь кнопки Новое событие и Изменить.",
+  "@settingCalendarAllowEditDescription": {
+    "context": "Settings > Calendar > Editing",
+    "description": "Setting description. New event and Edit are the names of the buttons it adds.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Allow adding and editing events"
+      ],
+      "remoteAdmin": [
+        "Calendar > Allow adding and editing events"
+      ]
+    }
+  },
+  "settingCalendarAllowDeleteTitle": "Разрешить удалять события",
+  "@settingCalendarAllowDeleteTitle": {
+    "context": "Settings > Calendar > Editing",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Allow deleting events"
+      ],
+      "remoteAdmin": [
+        "Calendar > Allow deleting events"
+      ]
+    }
+  },
+  "settingCalendarAllowDeleteDescription": "Добавляет к каждому событию кнопку Удалить.",
+  "@settingCalendarAllowDeleteDescription": {
+    "context": "Settings > Calendar > Editing",
+    "description": "Setting description. Delete is the name of the button it adds.",
+    "x-locations": {
+      "device": [
+        "Settings > Calendar > Allow deleting events"
+      ],
+      "remoteAdmin": [
+        "Calendar > Allow deleting events"
       ]
     }
   },
@@ -27537,6 +28583,149 @@
     "x-locations": {
       "remoteAdmin": [
         "Device > Updates > Install from file"
+      ]
+    }
+  },
+  "deviceKioskSatelliteUpdates": "Обновления Kiosk Satellite",
+  "@deviceKioskSatelliteUpdates": {
+    "context": "Settings:Device:Updates",
+    "description": "Section heading on the Updates page, above the settings for Kiosk Satellite's own app updates.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "deviceAndroidSystemUpdates": "Системные обновления Android",
+  "@deviceAndroidSystemUpdates": {
+    "context": "Settings:Device:Updates",
+    "description": "Section heading on the Updates page, above the settings for Android's own system updates from the device maker.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdatePolicyTitle": "Устанавливать обновления Android",
+  "@settingAndroidUpdatePolicyTitle": {
+    "context": "Settings:Device:Updates",
+    "description": "Setting label. Picks when Android installs its own system updates and restarts.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdatePolicyDescription": "Обновления самого Android от производителя устройства, например Google или Samsung. Режим киоска скрывает запрос на перезапуск для их установки.",
+  "@settingAndroidUpdatePolicyDescription": {
+    "context": "Settings:Device:Updates",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "deviceAndroidUpdateAsk": "Спрашивать на устройстве",
+  "@deviceAndroidUpdateAsk": {
+    "context": "Settings:Device:Updates",
+    "description": "Option of Install Android updates: Android shows its own restart prompt, as it does without a policy.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "deviceAndroidUpdateAutomatic": "Сразу",
+  "@deviceAndroidUpdateAutomatic": {
+    "context": "Settings:Device:Updates",
+    "description": "Option of Install Android updates: install and restart as soon as an update is ready.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "deviceAndroidUpdateWindowed": "В окне времени",
+  "@deviceAndroidUpdateWindowed": {
+    "context": "Settings:Device:Updates",
+    "description": "Option of Install Android updates: install and restart only during a daily time window.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdateWindowStartTitle": "Устанавливать с",
+  "@settingAndroidUpdateWindowStartTitle": {
+    "context": "Settings:Device:Updates",
+    "description": "Setting label. Start time of the daily window for installing Android updates.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdateWindowStartDescription": "Местное время начала ежедневного окна для установки и перезапуска.",
+  "@settingAndroidUpdateWindowStartDescription": {
+    "context": "Settings:Device:Updates",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdateWindowEndTitle": "Устанавливать до",
+  "@settingAndroidUpdateWindowEndTitle": {
+    "context": "Settings:Device:Updates",
+    "description": "Setting label. End time of the daily window for installing Android updates.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
+      ]
+    }
+  },
+  "settingAndroidUpdateWindowEndDescription": "Местное время окончания окна. Окно, переходящее через полночь, заканчивается на следующий день.",
+  "@settingAndroidUpdateWindowEndDescription": {
+    "context": "Settings:Device:Updates",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Device > Updates"
+      ],
+      "remoteAdmin": [
+        "Device > Updates"
       ]
     }
   },
@@ -37333,6 +38522,32 @@
       ]
     }
   },
+  "settingSendspinMasterVolumeTitle": "Управлять громкостью устройства",
+  "@settingSendspinMasterVolumeTitle": {
+    "context": "Settings > Media Player > Sendspin Player",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Sendspin Player"
+      ],
+      "remoteAdmin": [
+        "Media Player > Sendspin Player"
+      ]
+    }
+  },
+  "settingSendspinMasterVolumeDescription": "Music Assistant задаёт громкость, которую меняют кнопки громкости, вместо громкости медиа. Звуки ассистента тоже следуют за ней.",
+  "@settingSendspinMasterVolumeDescription": {
+    "context": "Settings > Media Player > Sendspin Player",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Media Player > Sendspin Player"
+      ],
+      "remoteAdmin": [
+        "Media Player > Sendspin Player"
+      ]
+    }
+  },
   "mediaSendspinPage": "Плеер Sendspin",
   "@mediaSendspinPage": {
     "context": "Settings > Media Player > Sendspin Player",
@@ -39197,6 +40412,32 @@
       ]
     }
   },
+  "settingMicEchoCancellationMethodTitle": "Метод подавления эха",
+  "@settingMicEchoCancellationMethodTitle": {
+    "context": "Settings:Screen & Audio:Microphone settings",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Microphone settings"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Microphone settings"
+      ]
+    }
+  },
+  "settingMicEchoCancellationMethodDescription": "Автоматически проверяет GTCRN, пока киоск воспроизводит звуки, и переключается на AEC3, если остаётся слишком много эха. Выберите «Автоматически», чтобы повторить проверку.",
+  "@settingMicEchoCancellationMethodDescription": {
+    "context": "Settings:Screen & Audio:Microphone settings",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Microphone settings"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Microphone settings"
+      ]
+    }
+  },
   "settingMicNoiseSuppressionTitle": "Подавление шума",
   "@settingMicNoiseSuppressionTitle": {
     "context": "Settings:Screen & Audio:Microphone settings",
@@ -39381,6 +40622,32 @@
   },
   "screenAudioCaptureVoiceCommunication": "Голосовая связь",
   "@screenAudioCaptureVoiceCommunication": {
+    "context": "Settings:Screen & Audio:Microphone settings",
+    "description": "Heading, choice, status or guidance shown in this group.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Microphone settings"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Microphone settings"
+      ]
+    }
+  },
+  "screenAudioEchoMethodGtcrnDetected": "GTCRN (определено)",
+  "@screenAudioEchoMethodGtcrnDetected": {
+    "context": "Settings:Screen & Audio:Microphone settings",
+    "description": "Heading, choice, status or guidance shown in this group.",
+    "x-locations": {
+      "device": [
+        "Settings > Screen & Audio > Microphone settings"
+      ],
+      "remoteAdmin": [
+        "Screen & Audio > Microphone settings"
+      ]
+    }
+  },
+  "screenAudioEchoMethodAec3Detected": "AEC3 (определено)",
+  "@screenAudioEchoMethodAec3Detected": {
     "context": "Settings:Screen & Audio:Microphone settings",
     "description": "Heading, choice, status or guidance shown in this group.",
     "x-locations": {
@@ -45055,6 +46322,32 @@
       ]
     }
   },
+  "settingScreensaverImmichMetadataDescriptionTitle": "Описание",
+  "@settingScreensaverImmichMetadataDescriptionTitle": {
+    "context": "Settings:Screensaver:Immich Media screensaver:Metadata",
+    "description": "Setting label. The description written for the photo in Immich.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Immich Media screensaver > Metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Immich Media screensaver > Metadata"
+      ]
+    }
+  },
+  "settingScreensaverImmichMetadataDescriptionDescription": "Показывать описание фото внизу экрана.",
+  "@settingScreensaverImmichMetadataDescriptionDescription": {
+    "context": "Settings:Screensaver:Immich Media screensaver:Metadata",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Immich Media screensaver > Metadata"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Immich Media screensaver > Metadata"
+      ]
+    }
+  },
   "settingScreensaverImmichMetadataPositionTitle": "Позиция метаданных",
   "@settingScreensaverImmichMetadataPositionTitle": {
     "context": "Settings:Screensaver:Immich Media screensaver:Metadata",
@@ -45228,19 +46521,6 @@
   "@settingScreensaverImmichIntervalTitle": {
     "context": "Settings:Screensaver:Immich Media screensaver:Slideshow",
     "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver > Immich Media screensaver > Slideshow"
-      ],
-      "remoteAdmin": [
-        "Screensaver > Immich Media screensaver > Slideshow"
-      ]
-    }
-  },
-  "settingScreensaverImmichIntervalDescription": "Как долго показывается каждое изображение до следующего. Видео проигрываются целиком.",
-  "@settingScreensaverImmichIntervalDescription": {
-    "context": "Settings:Screensaver:Immich Media screensaver:Slideshow",
-    "description": "Help below the setting.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Immich Media screensaver > Slideshow"
@@ -46063,6 +47343,112 @@
       ]
     }
   },
+  "settingScreensaverVideoLengthTitle": "Длительность видео",
+  "@settingScreensaverVideoLengthTitle": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Setting label. Picks how long a video plays in a photo slideshow.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Media screensaver",
+        "Settings > Screensaver > Local Media screensaver",
+        "Settings > Screensaver > Photo Gallery screensaver",
+        "Settings > Screensaver > Immich Media screensaver > Slideshow"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Media screensaver",
+        "Screensaver > Local Media screensaver",
+        "Screensaver > Photo Gallery screensaver",
+        "Screensaver > Immich Media screensaver > Slideshow"
+      ]
+    }
+  },
+  "settingScreensaverVideoLengthDescription": "Как долго проигрывается каждое видео до следующего.",
+  "@settingScreensaverVideoLengthDescription": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Help below the setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Media screensaver",
+        "Settings > Screensaver > Local Media screensaver",
+        "Settings > Screensaver > Photo Gallery screensaver",
+        "Settings > Screensaver > Immich Media screensaver > Slideshow"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Media screensaver",
+        "Screensaver > Local Media screensaver",
+        "Screensaver > Photo Gallery screensaver",
+        "Screensaver > Immich Media screensaver > Slideshow"
+      ]
+    }
+  },
+  "screensaverMediaVideoLengthFull": "Видео целиком",
+  "@screensaverMediaVideoLengthFull": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Option of Video length: each video plays to its end.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Media screensaver",
+        "Settings > Screensaver > Local Media screensaver",
+        "Settings > Screensaver > Photo Gallery screensaver",
+        "Settings > Screensaver > Immich Media screensaver > Slideshow"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Media screensaver",
+        "Screensaver > Local Media screensaver",
+        "Screensaver > Photo Gallery screensaver",
+        "Screensaver > Immich Media screensaver > Slideshow"
+      ]
+    }
+  },
+  "screensaverMediaVideoLengthInterval": "Как у фото",
+  "@screensaverMediaVideoLengthInterval": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Option of Video length: a video stops once the seconds per photo run out, like a photo.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Media screensaver",
+        "Settings > Screensaver > Local Media screensaver",
+        "Settings > Screensaver > Photo Gallery screensaver",
+        "Settings > Screensaver > Immich Media screensaver > Slideshow"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Media screensaver",
+        "Screensaver > Local Media screensaver",
+        "Screensaver > Photo Gallery screensaver",
+        "Screensaver > Immich Media screensaver > Slideshow"
+      ]
+    }
+  },
+  "settingScreensaverImageIntervalDescription": "Как долго показывается каждое изображение до следующего.",
+  "@settingScreensaverImageIntervalDescription": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Help below the Seconds per image setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Home Assistant Media screensaver",
+        "Settings > Screensaver > Immich Media screensaver > Slideshow"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Home Assistant Media screensaver",
+        "Screensaver > Immich Media screensaver > Slideshow"
+      ]
+    }
+  },
+  "settingScreensaverPhotoIntervalDescription": "Как долго показывается каждое фото до следующего.",
+  "@settingScreensaverPhotoIntervalDescription": {
+    "context": "Settings:Screensaver:Media slideshows",
+    "description": "Help below the Seconds per photo setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Local Media screensaver",
+        "Settings > Screensaver > Photo Gallery screensaver"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Local Media screensaver",
+        "Screensaver > Photo Gallery screensaver"
+      ]
+    }
+  },
   "settingScreensaverGalleryItemsTitle": "Фотографии",
   "@settingScreensaverGalleryItemsTitle": {
     "context": "Settings:Screensaver:Photo Gallery screensaver",
@@ -46093,19 +47479,6 @@
   "@settingScreensaverGalleryIntervalTitle": {
     "context": "Settings:Screensaver:Photo Gallery screensaver",
     "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver > Photo Gallery screensaver"
-      ],
-      "remoteAdmin": [
-        "Screensaver > Photo Gallery screensaver"
-      ]
-    }
-  },
-  "settingScreensaverGalleryIntervalDescription": "Как долго показывается каждое фото до следующего. Видео проигрываются целиком.",
-  "@settingScreensaverGalleryIntervalDescription": {
-    "context": "Settings:Screensaver:Photo Gallery screensaver",
-    "description": "Help below the setting.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Photo Gallery screensaver"
@@ -46382,19 +47755,6 @@
   "@settingScreensaverMediaIntervalTitle": {
     "context": "Settings:Screensaver:Home Assistant Media screensaver",
     "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver > Home Assistant Media screensaver"
-      ],
-      "remoteAdmin": [
-        "Screensaver > Home Assistant Media screensaver"
-      ]
-    }
-  },
-  "settingScreensaverMediaIntervalDescription": "Как долго показывается каждое изображение до следующего. Видео проигрываются целиком.",
-  "@settingScreensaverMediaIntervalDescription": {
-    "context": "Settings:Screensaver:Home Assistant Media screensaver",
-    "description": "Help below the setting.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Home Assistant Media screensaver"
@@ -46934,19 +48294,6 @@
   "@settingScreensaverLocalIntervalTitle": {
     "context": "Settings:Screensaver:Local Media screensaver",
     "description": "Setting label.",
-    "x-locations": {
-      "device": [
-        "Settings > Screensaver > Local Media screensaver"
-      ],
-      "remoteAdmin": [
-        "Screensaver > Local Media screensaver"
-      ]
-    }
-  },
-  "settingScreensaverLocalIntervalDescription": "Как долго показывается каждое фото до следующего. Видео проигрываются целиком.",
-  "@settingScreensaverLocalIntervalDescription": {
-    "context": "Settings:Screensaver:Local Media screensaver",
-    "description": "Help below the setting.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Local Media screensaver"
@@ -50078,6 +51425,110 @@
       ]
     }
   },
+  "screensaverOverlayHighLow": "Максимум и минимум",
+  "@screensaverOverlayHighLow": {
+    "context": "Settings > Screensaver > Widgets > Weather widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather widget"
+      ]
+    }
+  },
+  "screensaverOverlayHighLowHelp": "Максимальная и минимальная температура сегодня.",
+  "@screensaverOverlayHighLowHelp": {
+    "context": "Settings > Screensaver > Widgets > Weather widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastWidget": "Прогноз погоды",
+  "@screensaverOverlayForecastWidget": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastDays": "Показано дней",
+  "@screensaverOverlayForecastDays": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastToday": "Включать сегодня",
+  "@screensaverOverlayForecastToday": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastTodayHelp": "Начинать список с прогноза на сегодня.",
+  "@screensaverOverlayForecastTodayHelp": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastColored": "Цветные значки",
+  "@screensaverOverlayForecastColored": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
+  "screensaverOverlayForecastColoredHelp": "Показывать значки погоды в их собственных цветах.",
+  "@screensaverOverlayForecastColoredHelp": {
+    "context": "Settings > Screensaver > Widgets > Weather forecast widget",
+    "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Weather forecast widget"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Weather forecast widget"
+      ]
+    }
+  },
   "screensaverOverlayHumidity": "Влажность",
   "@screensaverOverlayHumidity": {
     "context": "Settings > Screensaver > Widgets > Weather widget",
@@ -50591,6 +52042,19 @@
   },
   "searchBattery": "Виджет батареи в углу заставки: заряд самого устройства.",
   "@searchBattery": {
+    "context": "Settings search > Screensaver",
+    "description": "Search result title or summary for this section.",
+    "x-locations": {
+      "device": [
+        "Settings search > Screensaver"
+      ],
+      "remoteAdmin": [
+        "Settings search > Screensaver"
+      ]
+    }
+  },
+  "searchWeatherForecast": "Виджет прогноза в углу заставки: ближайшие дни с максимальной и минимальной температурой.",
+  "@searchWeatherForecast": {
     "context": "Settings search > Screensaver",
     "description": "Search result title or summary for this section.",
     "x-locations": {

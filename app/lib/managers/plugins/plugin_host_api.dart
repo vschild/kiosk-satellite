@@ -50,6 +50,33 @@ class PluginScreensaverModes {
   final void Function(String owner) release;
 }
 
+/// What plugins follow of the screensaver's look: the view on screen, the
+/// Clock screensaver's Night mode decision and the settings that color it.
+class PluginScreensaverFeed {
+  const PluginScreensaverFeed({
+    required this.view,
+    required this.night,
+    required this.nowPlaying,
+    required this.settings,
+    this.setTint,
+    this.clearTint,
+  });
+
+  final ValueListenable<String?> view;
+  final ValueListenable<bool> night;
+
+  /// Tints the widgets over a plugin's own screensaver while it is on
+  /// screen, false when it is not. Null where nothing can be tinted.
+  final bool Function(String pluginId, int color)? setTint;
+
+  /// Drops a plugin's tint.
+  final void Function(String pluginId)? clearTint;
+
+  /// Whether Now Playing fills the screensaver, hiding the view under it.
+  final bool Function() nowPlaying;
+  final SettingsManager settings;
+}
+
 /// Explicit SDK 1 host surface. Registry additions do not expand plugin access.
 class PluginHostApi {
   PluginHostApi(
@@ -60,12 +87,16 @@ class PluginHostApi {
     this.ma,
     this.voice,
     this.screensaverModes,
+    this.screensaver,
   }) {
     _events = bus.stream.listen(_onEvent);
     ha?.emit = _onHaEvent;
     ma?.emit = _onMaEvent;
     voice?.view.addListener(_onVoice);
     voice?.level.addListener(_onVoiceLevel);
+    screensaver?.view.addListener(_onScreensaverAppearance);
+    screensaver?.night.addListener(_onScreensaverAppearance);
+    _screensaverAppearanceSent = jsonEncode(_screensaverAppearance());
   }
 
   final CommandRegistry commands;
@@ -84,6 +115,9 @@ class PluginHostApi {
 
   /// The screensaver mode, for sessions that declare screensaver.mode.
   final PluginScreensaverModes? screensaverModes;
+
+  /// The screensaver's look, for screensaver.appearance.
+  final PluginScreensaverFeed? screensaver;
   late final StreamSubscription<AppEvent> _events;
   final _sessions = <String, _HostSession>{};
   bool _disposed = false;
@@ -91,12 +125,14 @@ class PluginHostApi {
   String? _voiceTextSent;
   String _overlaySent = 'hidden';
   double _voiceLevelSent = 0;
+  String? _screensaverAppearanceSent;
 
   static const commandNames = [
     'getHostApi',
     'isScreensaverActive',
     'getScreensaverDue',
     'getScreensaverSuppressed',
+    'getScreensaverAppearance',
     'isScreenOn',
     'getBrightness',
     'getAmbientDisplay',
@@ -178,6 +214,14 @@ class PluginHostApi {
     'getScreensaverMode',
     'setScreensaverMode',
     'clearScreensaverMode',
+  ];
+
+  /// The corner widgets and At a Glance row over a plugin's own
+  /// screensaver, for sessions that declare the screensaver capability
+  /// (issue #1299). The tint ends when that screensaver leaves the screen.
+  static const screensaverTintCommandNames = [
+    'setScreensaverTint',
+    'clearScreensaverTint',
   ];
 
   static bool _volumeChannel(Map params) =>
@@ -292,6 +336,10 @@ class PluginHostApi {
         return keys({'dashboard'}) && path('dashboard');
       case 'setScreensaverMode':
         return params.length == 1 && text('mode');
+      case 'setScreensaverTint':
+        return params.length == 1 &&
+            text('color') &&
+            RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(params['color'] as String);
       case 'launchApp':
         return params.length == 1 &&
             text('package') &&
@@ -309,6 +357,7 @@ class PluginHostApi {
     'screensaver.state',
     'screensaver.countdown',
     'screensaver.view',
+    'screensaver.appearance',
     'screen.state',
     'screen.brightness',
     'screen.ambient',
@@ -428,7 +477,9 @@ class PluginHostApi {
               c == 'host.control' ||
               c == 'ha' ||
               c == 'ma' ||
-              c == 'screensaver.mode',
+              c == 'screensaver.mode' ||
+              // A renderer alone may tint the widgets over itself.
+              c == 'screensaver',
         )) {
       return;
     }
@@ -444,6 +495,7 @@ class PluginHostApi {
       canMa: capabilities.contains('ma'),
       canVoiceText: capabilities.contains('voice.text'),
       canScreensaverMode: capabilities.contains('screensaver.mode'),
+      canScreensaver: capabilities.contains('screensaver'),
     );
   }
 
@@ -464,6 +516,7 @@ class PluginHostApi {
     if (session.canScreensaverMode) {
       screensaverModes?.release(session.owner);
     }
+    if (session.canScreensaver) screensaver?.clearTint?.call(session.id);
   }
 
   static String? entityEventId(String event) {
@@ -543,6 +596,8 @@ class PluginHostApi {
                 voiceTextCommandNames.contains(name)) &&
             !(session.canScreensaverMode &&
                 screensaverModeCommandNames.contains(name)) &&
+            !(session.canScreensaver &&
+                screensaverTintCommandNames.contains(name)) &&
             !(session.canControl && isControl))) {
       return const CommandResult.fail(
         'Command is not available through this plugin session',
@@ -588,6 +643,8 @@ class PluginHostApi {
           if (session.canRead && session.canVoiceText) ...voiceTextCommandNames,
           if (session.canScreensaverMode && screensaverModes != null)
             ...screensaverModeCommandNames,
+          if (session.canScreensaver && screensaver?.setTint != null)
+            ...screensaverTintCommandNames,
           if (session.canControl) ...controlNames,
         ],
         'events': [
@@ -596,6 +653,36 @@ class PluginHostApi {
           if (session.canRead && session.canVoiceText) ...voiceTextEventNames,
         ],
       }).toJson();
+    }
+    if (name == 'getScreensaverAppearance') {
+      final appearance = _screensaverAppearance();
+      return appearance == null
+          ? const CommandResult.fail(
+              'KS could not complete this command. The feature may be unavailable.',
+            ).toJson()
+          : CommandResult.ok(appearance).toJson();
+    }
+    if (screensaverTintCommandNames.contains(name)) {
+      final set = screensaver?.setTint;
+      final clear = screensaver?.clearTint;
+      if (set == null || clear == null) {
+        return const CommandResult.fail(
+          'KS could not complete this command. The feature may be unavailable.',
+        ).toJson();
+      }
+      if (name == 'clearScreensaverTint') {
+        clear(session.id);
+        return const CommandResult.ok().toJson();
+      }
+      final rgb = int.parse(
+        (params['color'] as String).substring(1),
+        radix: 16,
+      );
+      return set(session.id, 0xFF000000 | rgb)
+          ? const CommandResult.ok().toJson()
+          : const CommandResult.fail(
+              'None of this plugin\'s screensavers is on screen',
+            ).toJson();
     }
     if (name == 'getVoiceAppearance') {
       final appearance = _appearance();
@@ -1198,6 +1285,59 @@ class PluginHostApi {
     };
   }
 
+  /// The screensaver's look as plugins follow it: the view, whether the
+  /// Clock screensaver wears its Night mode colors and those colors as
+  /// ARGB, null outside Night mode. The card color is the flip clock's
+  /// alone. Night mode never shows under Now Playing, which hides the face.
+  Map<String, Object?>? _screensaverAppearance() {
+    final feed = screensaver;
+    if (feed == null) return null;
+    final view = feed.view.value;
+    final night = view == 'clock' && feed.night.value && !feed.nowPlaying();
+    final s = feed.settings;
+    int color(defs.SettingDef<String> def) =>
+        _argb(s.get(def)) ?? _argb(def.defaultValue)!;
+    return {
+      'view': view,
+      'night': night,
+      'textColor': night ? color(defs.screensaverClockNightColor) : null,
+      'backgroundColor': night
+          ? color(defs.screensaverClockNightBgColor)
+          : null,
+      'cardColor': night && s.get(defs.screensaverClockStyle) == 'flip'
+          ? color(defs.screensaverClockNightCardColor)
+          : null,
+      'widgetsHidden': night && s.get(defs.screensaverClockNightHideWidgets),
+    };
+  }
+
+  /// An opaque ARGB color from an "r,g,b" setting, as the clock face
+  /// reads it, or null for a malformed one.
+  static int? _argb(String raw) {
+    final parts = raw.split(',').map((p) => int.tryParse(p.trim())).toList();
+    if (parts.length != 3 || parts.any((p) => p == null)) return null;
+    return 0xFF000000 |
+        (parts[0]! & 0xFF) << 16 |
+        (parts[1]! & 0xFF) << 8 |
+        (parts[2]! & 0xFF);
+  }
+
+  void _onScreensaverAppearance() {
+    final appearance = _screensaverAppearance();
+    if (appearance == null) return;
+    final value = jsonEncode(appearance);
+    if (value == _screensaverAppearanceSent) return;
+    _screensaverAppearanceSent = value;
+    for (final session in _sessions.values) {
+      if (!session.subscriptions.contains('screensaver.appearance')) continue;
+      session.pending['screensaver.appearance'] = {
+        ...appearance,
+        'time': DateTime.now().toUtc().toIso8601String(),
+      };
+      _schedule(session);
+    }
+  }
+
   /// The level the reactive bar follows: the voice while listening, the
   /// answer while speaking, 0 while the assistant thinks, the wake chime
   /// plays, nothing shows or Reactive activity bar is off.
@@ -1234,6 +1374,16 @@ class PluginHostApi {
   }
 
   void _onEvent(AppEvent event) {
+    if ((event is FullscreenViewChanged && event.view == 'nowPlaying') ||
+        (event is SettingChanged &&
+            (event.key == defs.screensaverClockNightColor.key ||
+                event.key == defs.screensaverClockNightBgColor.key ||
+                event.key == defs.screensaverClockNightCardColor.key ||
+                event.key == defs.screensaverClockNightHideWidgets.key ||
+                event.key == defs.screensaverClockStyle.key))) {
+      _onScreensaverAppearance();
+      return;
+    }
     if (event is SettingChanged &&
         (event.key == defs.voiceTheme.key ||
             event.key == defs.voiceBackgroundOpacity.key ||
@@ -1372,6 +1522,8 @@ class PluginHostApi {
     _sessions.clear();
     voice?.view.removeListener(_onVoice);
     voice?.level.removeListener(_onVoiceLevel);
+    screensaver?.view.removeListener(_onScreensaverAppearance);
+    screensaver?.night.removeListener(_onScreensaverAppearance);
     await _events.cancel();
   }
 
@@ -1393,6 +1545,7 @@ class _HostSession {
     this.canMa = false,
     this.canVoiceText = false,
     this.canScreensaverMode = false,
+    this.canScreensaver = false,
   });
 
   /// Home Assistant and Music Assistant events waiting for a slow plugin.
@@ -1406,6 +1559,10 @@ class _HostSession {
   final bool canMa;
   final bool canVoiceText;
   final bool canScreensaverMode;
+
+  /// The plugin publishes screensavers, so it may tint the widgets over
+  /// its own.
+  final bool canScreensaver;
   final String id;
   final String token;
   String get owner => '$id:$token';

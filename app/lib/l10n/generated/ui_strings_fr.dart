@@ -278,6 +278,19 @@ class UiStringsFr extends UiStrings {
       'Nécessite le blueprint d\'alarmes de Kiosk Satellite et un agent de conversation LLM dans Home Assistant.';
 
   @override
+  String get alarmsMusic => 'Musique';
+
+  @override
+  String get alarmsMusicNone => 'Aucune';
+
+  @override
+  String get alarmsMusicRemove => 'Retirer la musique';
+
+  @override
+  String get alarmsMusicHint =>
+      'Se joue à la place de la sonnerie. Si la musique ne peut pas être lue, la sonnerie retentit.';
+
+  @override
   String get androidAccessibilityHelp =>
       'Ferme le panneau de notifications et l\'écran des applications récentes chaque fois qu\'ils s\'ouvrent tant que le mode Kiosque ou le mode Verrouillage protège l\'écran. Kiosk Satellite ne lit aucun contenu d\'écran.';
 
@@ -522,6 +535,22 @@ class UiStringsFr extends UiStrings {
   String get calendarWidgetEvents => 'Événements affichés';
 
   @override
+  String get calendarWidgetDays => 'Jours affichés';
+
+  @override
+  String get calendarWidgetTomorrow => 'Aujourd\'hui et demain';
+
+  @override
+  String get calendarWidgetWeek => '7 prochains jours';
+
+  @override
+  String get calendarWidgetDots => 'Points de couleur';
+
+  @override
+  String get calendarWidgetDotsHint =>
+      'Marque les événements avec la couleur de leur calendrier au lieu de la photo de la personne.';
+
+  @override
   String get calendarVoiceSection => 'Calendrier vocal';
 
   @override
@@ -530,6 +559,137 @@ class UiStringsFr extends UiStrings {
   @override
   String get calendarVoiceHint =>
       'Nécessite le blueprint de calendrier de Kiosk Satellite et un agent de conversation LLM dans Home Assistant.';
+
+  @override
+  String get calendarNewEvent => 'Nouvel événement';
+
+  @override
+  String get calendarEditEvent => 'Modifier l’événement';
+
+  @override
+  String get calendarFieldTitle => 'Titre';
+
+  @override
+  String get calendarFieldTitleHint => 'Ajouter un titre';
+
+  @override
+  String get calendarFieldCalendars => 'Calendriers';
+
+  @override
+  String get calendarFieldSharedHint =>
+      'S’affiche une fois, partagé entre leurs couleurs.';
+
+  @override
+  String get calendarFieldStarts => 'Début';
+
+  @override
+  String get calendarFieldEnds => 'Fin';
+
+  @override
+  String get calendarFieldStartTime => 'Heure de début';
+
+  @override
+  String get calendarFieldEndTime => 'Heure de fin';
+
+  @override
+  String get calendarFieldEndsBeforeStart => 'La fin est avant le début.';
+
+  @override
+  String get calendarFieldRepeat => 'Répéter';
+
+  @override
+  String get calendarRepeatNever => 'Ne se répète pas';
+
+  @override
+  String get calendarRepeatWeekdays => 'Tous les jours de la semaine';
+
+  @override
+  String calendarRepeatWeeklyOn(String weekday) {
+    return 'Chaque semaine le $weekday';
+  }
+
+  @override
+  String calendarRepeatMonthlyOn(String day) {
+    return 'Chaque mois le $day';
+  }
+
+  @override
+  String calendarRepeatYearlyOn(String date) {
+    return 'Chaque année le $date';
+  }
+
+  @override
+  String get calendarFieldLocation => 'Lieu';
+
+  @override
+  String get calendarFieldLocationHint => 'Ajouter un lieu';
+
+  @override
+  String get calendarFieldNotes => 'Notes';
+
+  @override
+  String get calendarFieldNotesHint => 'Ajouter des notes';
+
+  @override
+  String get calendarEventAdded => 'Événement ajouté';
+
+  @override
+  String get calendarEventSaved => 'Modifications enregistrées';
+
+  @override
+  String get calendarEventDeleted => 'Événement supprimé';
+
+  @override
+  String get calendarSaveFailed => 'Impossible d’enregistrer l’événement';
+
+  @override
+  String get calendarDeleteFailed => 'Impossible de supprimer l’événement';
+
+  @override
+  String calendarEditReadOnly(String calendar) {
+    return '$calendar est en lecture seule.';
+  }
+
+  @override
+  String calendarEditGone(String calendar) {
+    return 'L’événement n’est plus dans $calendar.';
+  }
+
+  @override
+  String calendarEditNotAllowed(String calendar) {
+    return 'L’utilisateur Home Assistant du kiosque ne peut pas modifier $calendar.';
+  }
+
+  @override
+  String calendarDeleteTitle(String title) {
+    return 'Supprimer $title ?';
+  }
+
+  @override
+  String calendarDeleteShared(String names) {
+    return 'Il est retiré de tous les calendriers où il figure : $names.';
+  }
+
+  @override
+  String calendarSaveRepeatTitle(String title) {
+    return 'Enregistrer les modifications de $title ?';
+  }
+
+  @override
+  String get calendarSaveRepeatFollowing =>
+      'La nouvelle répétition commence ce jour-là.';
+
+  @override
+  String get calendarScopeThis => 'Cet événement';
+
+  @override
+  String get calendarScopeFollowing => 'Cet événement et les suivants';
+
+  @override
+  String get calendarScopeAll => 'Tous les événements';
+
+  @override
+  String get calendarEditingSection => 'Modification';
 
   @override
   String get cameraViewerTitle => 'Vue caméra';
@@ -3019,6 +3179,10 @@ class UiStringsFr extends UiStrings {
       'Affiche le choix de la source dans la bibliothèque. Désactivez-le pour garder la bibliothèque sur la source choisie plus haut.';
 
   @override
+  String get settingLibrarySpeakerPillDescription =>
+      'Affiche le choix de l’enceinte en haut de la bibliothèque.';
+
+  @override
   String get libraryDensityComfortable => 'Confortable';
 
   @override
@@ -3254,6 +3418,107 @@ class UiStringsFr extends UiStrings {
   @override
   String get libraryVoiceHint =>
       'Nécessite le blueprint de musique de Kiosk Satellite et un agent de conversation LLM dans Home Assistant.';
+
+  @override
+  String get musicPickerTitle => 'Choisir la musique';
+
+  @override
+  String get musicPickerSearchHint => 'Rechercher de la musique';
+
+  @override
+  String get musicPickerMusicFrom => 'Musique depuis';
+
+  @override
+  String get musicPickerPlaysOn => 'Diffuser sur';
+
+  @override
+  String musicPickerSourceLabel(String name) {
+    return 'Source : $name';
+  }
+
+  @override
+  String musicPickerSpeakerLabel(String name) {
+    return 'Diffuser sur : $name';
+  }
+
+  @override
+  String get musicPickerRandom => 'Aléatoire';
+
+  @override
+  String get musicPickerRandomHint => 'Un nouveau choix à chaque lecture';
+
+  @override
+  String get musicPickerAnyTrack => 'N\'importe quel titre';
+
+  @override
+  String get musicPickerAnyFavorite => 'N\'importe quel favori';
+
+  @override
+  String get musicPickerAnyPlaylist => 'N\'importe quelle playlist';
+
+  @override
+  String get musicPickerAnyAlbum => 'N\'importe quel album';
+
+  @override
+  String get musicPickerAnyStation => 'N\'importe quelle station de radio';
+
+  @override
+  String get musicPickerRandomEach => 'Différent à chaque fois';
+
+  @override
+  String get musicPickerWholeAlbum => 'Album entier';
+
+  @override
+  String get musicPickerWholePlaylist => 'Playlist entière';
+
+  @override
+  String musicPickerWholeArtist(String name) {
+    return 'Tout de $name';
+  }
+
+  @override
+  String get musicPickerWholeFolder => 'Dossier entier';
+
+  @override
+  String get musicPickerAllTracks => 'Tous les titres';
+
+  @override
+  String get musicPickerShuffle => 'Lecture aléatoire';
+
+  @override
+  String get musicPickerPreview => 'Écouter';
+
+  @override
+  String get musicPickerStopPreview => 'Arrêter l\'écoute';
+
+  @override
+  String get musicPickerPreviewFailed => 'La musique n\'a pas pu être lue';
+
+  @override
+  String get musicPickerNothing => 'Rien de choisi';
+
+  @override
+  String get musicPickerNothingHint =>
+      'Choisissez un titre, un album, une playlist, un artiste ou une station';
+
+  @override
+  String get musicPickerFollowsNote =>
+      'Lecture en cours passe sur cette enceinte pendant la musique.';
+
+  @override
+  String get musicPickerSonosNote =>
+      'La musique Sonos se lit uniquement sur les enceintes Sonos.';
+
+  @override
+  String get musicPickerNoSpeakers => 'Aucune enceinte disponible';
+
+  @override
+  String musicPickerOpen(String title) {
+    return 'Ouvrir $title';
+  }
+
+  @override
+  String get musicPickerKindFolder => 'Dossier';
 
   @override
   String get offlineDashboard => 'Tableau de bord indisponible';
@@ -4825,6 +5090,13 @@ class UiStringsFr extends UiStrings {
   String get settingAlarmsToneDescription => 'Jouée au volume des alarmes.';
 
   @override
+  String get settingAlarmsMusicTitle => 'Musique d\'alarme';
+
+  @override
+  String get settingAlarmsMusicDescription =>
+      'Se joue à la place de la sonnerie. Si la musique ne peut pas être lue, la sonnerie retentit.';
+
+  @override
   String get settingAlarmsSnoozeMinutesTitle => 'Durée du report';
 
   @override
@@ -4995,6 +5267,22 @@ class UiStringsFr extends UiStrings {
   @override
   String get settingCalendarWeatherEntityDescription =>
       'Ajoute la prévision à chaque jour.';
+
+  @override
+  String get settingCalendarAllowEditTitle =>
+      'Autoriser l’ajout et la modification d’événements';
+
+  @override
+  String get settingCalendarAllowEditDescription =>
+      'Ajoute Nouvel événement et Modifier au calendrier.';
+
+  @override
+  String get settingCalendarAllowDeleteTitle =>
+      'Autoriser la suppression d’événements';
+
+  @override
+  String get settingCalendarAllowDeleteDescription =>
+      'Ajoute Supprimer à chaque événement.';
 
   @override
   String get settingCalendarIdleCloseMinutesTitle =>
@@ -7412,6 +7700,43 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get updateAnotherPackage => 'un autre package';
+
+  @override
+  String get deviceKioskSatelliteUpdates => 'Mises à jour de Kiosk Satellite';
+
+  @override
+  String get deviceAndroidSystemUpdates => 'Mises à jour système Android';
+
+  @override
+  String get settingAndroidUpdatePolicyTitle =>
+      'Installer les mises à jour Android';
+
+  @override
+  String get settingAndroidUpdatePolicyDescription =>
+      'Mises à jour d\'Android fournies par le fabricant de l\'appareil, comme Google ou Samsung. Le mode kiosque masque l\'invite de redémarrage qui les installe.';
+
+  @override
+  String get deviceAndroidUpdateAsk => 'Demander sur l\'appareil';
+
+  @override
+  String get deviceAndroidUpdateAutomatic => 'Immédiatement';
+
+  @override
+  String get deviceAndroidUpdateWindowed => 'Dans une plage horaire';
+
+  @override
+  String get settingAndroidUpdateWindowStartTitle => 'Installer à partir de';
+
+  @override
+  String get settingAndroidUpdateWindowStartDescription =>
+      'Heure locale de début de la plage quotidienne d\'installation et de redémarrage.';
+
+  @override
+  String get settingAndroidUpdateWindowEndTitle => 'Installer jusqu\'à';
+
+  @override
+  String get settingAndroidUpdateWindowEndDescription =>
+      'Heure locale de fin de la plage. Une plage qui passe minuit se termine le lendemain.';
 
   @override
   String get settingUiLanguageTitle => 'Langue';
@@ -10047,6 +10372,14 @@ class UiStringsFr extends UiStrings {
       'Tant que cet appareil joue au sein d\'un groupe, le curseur de volume règle le volume de tout le groupe. Si l\'option est désactivée, seul le volume de cet appareil est modifié. Nécessite la connexion à Music Assistant.';
 
   @override
+  String get settingSendspinMasterVolumeTitle =>
+      'Contrôler le volume de l\'appareil';
+
+  @override
+  String get settingSendspinMasterVolumeDescription =>
+      'Music Assistant règle le volume que modifient les boutons de volume, au lieu du volume multimédia. Les sons de l\'assistant le suivent aussi.';
+
+  @override
   String get mediaSendspinPage => 'Lecteur Sendspin';
 
   @override
@@ -10537,6 +10870,14 @@ class UiStringsFr extends UiStrings {
       'Retire du microphone les sons émis par le kiosque pour que ni le mot de réveil ni l\'assistant ne les entendent. Laissez-la activée, sauf si un microphone qui annule lui-même son écho sonne moins bien avec elle.';
 
   @override
+  String get settingMicEchoCancellationMethodTitle =>
+      'Méthode d\'annulation d\'écho';
+
+  @override
+  String get settingMicEchoCancellationMethodDescription =>
+      'Automatique teste GTCRN pendant que le kiosque joue des sons et passe à AEC3 s\'il laisse trop d\'écho. Choisissez Automatique pour refaire le test.';
+
+  @override
   String get settingMicNoiseSuppressionTitle => 'Réduction du bruit';
 
   @override
@@ -10586,6 +10927,12 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get screenAudioCaptureVoiceCommunication => 'Communication vocale';
+
+  @override
+  String get screenAudioEchoMethodGtcrnDetected => 'GTCRN (détecté)';
+
+  @override
+  String get screenAudioEchoMethodAec3Detected => 'AEC3 (détecté)';
 
   @override
   String get screenAudioDownmix => 'Sous-mixage (par défaut)';
@@ -12192,6 +12539,13 @@ class UiStringsFr extends UiStrings {
       'Afficher l\'endroit où la photo a été prise.';
 
   @override
+  String get settingScreensaverImmichMetadataDescriptionTitle => 'Description';
+
+  @override
+  String get settingScreensaverImmichMetadataDescriptionDescription =>
+      'Afficher la description de la photo en bas de l\'écran.';
+
+  @override
   String get settingScreensaverImmichMetadataPositionTitle =>
       'Position des métadonnées';
 
@@ -12240,10 +12594,6 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get settingScreensaverImmichIntervalTitle => 'Secondes par image';
-
-  @override
-  String get settingScreensaverImmichIntervalDescription =>
-      'Durée d\'affichage de chaque image avant la suivante. Les vidéos sont lues en entier.';
 
   @override
   String get settingScreensaverImmichShuffleTitle => 'Aléatoire';
@@ -12452,6 +12802,27 @@ class UiStringsFr extends UiStrings {
   String get screensaverMediaFillAlways => 'Toujours';
 
   @override
+  String get settingScreensaverVideoLengthTitle => 'Durée des vidéos';
+
+  @override
+  String get settingScreensaverVideoLengthDescription =>
+      'Durée de lecture de chaque vidéo avant la suivante.';
+
+  @override
+  String get screensaverMediaVideoLengthFull => 'Vidéo entière';
+
+  @override
+  String get screensaverMediaVideoLengthInterval => 'Comme les photos';
+
+  @override
+  String get settingScreensaverImageIntervalDescription =>
+      'Durée d\'affichage de chaque image avant la suivante.';
+
+  @override
+  String get settingScreensaverPhotoIntervalDescription =>
+      'Durée d\'affichage de chaque photo avant la suivante.';
+
+  @override
   String get settingScreensaverGalleryItemsTitle => 'Photos';
 
   @override
@@ -12460,10 +12831,6 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get settingScreensaverGalleryIntervalTitle => 'Secondes par photo';
-
-  @override
-  String get settingScreensaverGalleryIntervalDescription =>
-      'Durée d\'affichage de chaque photo avant la suivante. Les vidéos sont lues en entier.';
 
   @override
   String get settingScreensaverGalleryShuffleTitle => 'Aléatoire';
@@ -12538,10 +12905,6 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get settingScreensaverMediaIntervalTitle => 'Secondes par image';
-
-  @override
-  String get settingScreensaverMediaIntervalDescription =>
-      'Durée d\'affichage de chaque image avant la suivante. Les vidéos sont lues en entier.';
 
   @override
   String get settingScreensaverMediaShuffleTitle => 'Aléatoire';
@@ -12691,10 +13054,6 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get settingScreensaverLocalIntervalTitle => 'Secondes par photo';
-
-  @override
-  String get settingScreensaverLocalIntervalDescription =>
-      'Durée d\'affichage de chaque photo avant la suivante. Les vidéos sont lues en entier.';
 
   @override
   String get settingScreensaverLocalShuffleTitle => 'Aléatoire';
@@ -13530,6 +13889,33 @@ class UiStringsFr extends UiStrings {
       'Les conditions météo, avec l\'icône correspondante.';
 
   @override
+  String get screensaverOverlayHighLow => 'Max. et min.';
+
+  @override
+  String get screensaverOverlayHighLowHelp =>
+      'Les températures maximale et minimale du jour.';
+
+  @override
+  String get screensaverOverlayForecastWidget => 'Prévisions météo';
+
+  @override
+  String get screensaverOverlayForecastDays => 'Jours affichés';
+
+  @override
+  String get screensaverOverlayForecastToday => 'Inclure aujourd\'hui';
+
+  @override
+  String get screensaverOverlayForecastTodayHelp =>
+      'Commence la liste par les prévisions du jour.';
+
+  @override
+  String get screensaverOverlayForecastColored => 'Icônes en couleur';
+
+  @override
+  String get screensaverOverlayForecastColoredHelp =>
+      'Affiche les icônes météo dans leurs propres couleurs.';
+
+  @override
   String get screensaverOverlayHumidity => 'Humidité';
 
   @override
@@ -13676,6 +14062,10 @@ class UiStringsFr extends UiStrings {
   @override
   String get searchBattery =>
       'Un widget batterie dans un coin de l\'économiseur d\'écran : la charge de cet appareil.';
+
+  @override
+  String get searchWeatherForecast =>
+      'Un widget de prévisions dans un coin de l\'économiseur d\'écran : les prochains jours, avec leurs maximales et minimales.';
 
   @override
   String get searchPersonPermission =>

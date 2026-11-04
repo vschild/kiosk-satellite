@@ -162,7 +162,8 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
           (e.key == defs.librarySquareArtwork.key ||
               e.key == defs.libraryGridDensity.key ||
               e.key == defs.libraryTextScale.key ||
-              e.key == defs.librarySourcePicker.key)) {
+              e.key == defs.librarySourcePicker.key ||
+              e.key == defs.librarySpeakerPill.key)) {
         setState(() {});
       }
     });
@@ -630,6 +631,10 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   bool get _switchesSource =>
       _showsSource && c.musicLibrary.available.length > 1;
 
+  /// Whether the header carries the speaker pill, which Show speaker
+  /// selection pill can turn off.
+  bool get _showsSpeakerPill => c.settings.get(defs.librarySpeakerPill);
+
   Future<void> _pickSource() async {
     final s = l10n(context);
     final keys = c.musicLibrary.available;
@@ -860,8 +865,10 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                               else
                                 const Spacer(),
                               const SizedBox(width: 12),
-                              _speakerPill(height: 44),
-                              const SizedBox(width: 4),
+                              if (_showsSpeakerPill) ...[
+                                _speakerPill(height: 44),
+                                const SizedBox(width: 4),
+                              ],
                               _closeButton(size: 28),
                             ],
                           ),
@@ -1118,7 +1125,7 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
                 else
                   const Spacer(),
                 const SizedBox(width: 8),
-                _speakerPill(height: 40, maxWidth: 260),
+                if (_showsSpeakerPill) _speakerPill(height: 40, maxWidth: 260),
                 _closeButton(),
               ],
             ),
@@ -1261,41 +1268,51 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
         ),
         if (_queueOpen) Expanded(child: _queuePanel()),
         if (!_queueOpen) ...[
-          SizedBox(
-            height: 56,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(_stack.isEmpty ? 16 : 6, 0, 16, 0),
-              child: Row(
-                children: [
-                  if (_stack.isNotEmpty) ...[
-                    _backButton(),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: _speakerPill(height: 40),
-                      ),
-                    ),
-                  ] else if (searching) ...[
-                    Expanded(child: _searchField(48)),
-                    const SizedBox(width: 8),
-                    _speakerPill(height: 40, iconOnly: true),
-                  ] else ...[
-                    if (_switchesSource) ...[
-                      Flexible(child: _sourcePill()),
-                      const SizedBox(width: 8),
+          // Nothing left for the row on the top level with neither pill.
+          if (_stack.isNotEmpty ||
+              searching ||
+              _switchesSource ||
+              _showsSpeakerPill)
+            SizedBox(
+              height: 56,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(_stack.isEmpty ? 16 : 6, 0, 16, 0),
+                child: Row(
+                  children: [
+                    if (_stack.isNotEmpty) ...[
+                      _backButton(),
+                      if (_showsSpeakerPill) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: _speakerPill(height: 40),
+                          ),
+                        ),
+                      ],
+                    ] else if (searching) ...[
+                      Expanded(child: _searchField(48)),
+                      if (_showsSpeakerPill) ...[
+                        const SizedBox(width: 8),
+                        _speakerPill(height: 40, iconOnly: true),
+                      ],
+                    ] else ...[
+                      if (_switchesSource) ...[
+                        Flexible(child: _sourcePill()),
+                        const SizedBox(width: 8),
+                      ],
+                      if (_showsSpeakerPill)
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: _speakerPill(height: 40),
+                          ),
+                        ),
                     ],
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: _speakerPill(height: 40),
-                      ),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
-          ),
           if (searching) _searchChips(const EdgeInsets.fromLTRB(16, 2, 16, 12)),
           if (_place.nav == 'library' && _stack.isEmpty)
             _categoryBar(const EdgeInsets.fromLTRB(16, 2, 16, 12)),
@@ -2981,7 +2998,7 @@ class _GenreTile extends StatelessWidget {
                 right: -height * 0.12,
                 bottom: -height * 0.18,
                 child: Icon(
-                  genreIcon(item.title),
+                  genreIconFor(item),
                   size: height * 1.05,
                   color: scheme.onSecondaryContainer.withValues(alpha: .22),
                 ),
@@ -2990,15 +3007,22 @@ class _GenreTile extends StatelessWidget {
                 left: 16,
                 right: height,
                 bottom: compact ? 10 : 14,
-                child: Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: compact ? 15 : 18,
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSecondaryContainer,
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final style = TextStyle(
+                      fontSize: compact ? 15 : 18,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onSecondaryContainer,
+                    );
+                    return Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: style.copyWith(
+                        fontSize: _wordFit(context, style, box.maxWidth),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -3006,6 +3030,33 @@ class _GenreTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// The font size at which the name's widest word fits on one line of
+  /// [width], so a long translated name such as Elektronisch shrinks
+  /// instead of breaking in the middle of the word. Never below two thirds
+  /// of the tile's size.
+  double _wordFit(BuildContext context, TextStyle style, double width) {
+    final size = style.fontSize!;
+    final painter = TextPainter(
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    );
+    var widest = 0.0;
+    for (final word in item.title.split(RegExp(r'\s+'))) {
+      painter
+        ..text = TextSpan(
+          text: word,
+          style: DefaultTextStyle.of(context).style.merge(style),
+        )
+        ..layout();
+      widest = math.max(widest, painter.width);
+    }
+    painter.dispose();
+    if (widest <= width) return size;
+    // A little under the exact ratio: widths do not scale quite linearly.
+    return math.max(size * 2 / 3, size * width / widest * 0.97);
   }
 }
 
@@ -3187,6 +3238,16 @@ IconData genreIcon(String name) {
   };
 }
 
+/// A genre's icon from its English name. Music Assistant translates a
+/// genre's name into the app's language but keeps its sort name in English,
+/// and [genreIcon] matches English words.
+IconData genreIconFor(LibraryItem item) => switch (item.raw) {
+  {'sort_name': final String english} when english.isNotEmpty => genreIcon(
+    english,
+  ),
+  _ => genreIcon(item.title),
+};
+
 /// Music Assistant's provider logos are SVG.
 bool _isSvg(Uint8List bytes) {
   final head = String.fromCharCodes(
@@ -3290,7 +3351,7 @@ class _LibraryArtState extends State<LibraryArt> {
             ? ColoredBox(
                 color: scheme.secondaryContainer,
                 child: Icon(
-                  genreIcon(widget.item.title),
+                  genreIconFor(widget.item),
                   size: widget.size * 0.46,
                   color: scheme.onSecondaryContainer,
                 ),
@@ -3537,8 +3598,12 @@ class _MiniPlayerState extends State<_MiniPlayer> {
     }
   }
 
+  /// On a layer of its own: the elapsed time moves every second, and the
+  /// page around it has nothing to redraw for it.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => RepaintBoundary(child: _bar(context));
+
+  Widget _bar(BuildContext context) {
     final s = l10n(context);
     final scheme = Theme.of(context).colorScheme;
     final layout = widget.layout;

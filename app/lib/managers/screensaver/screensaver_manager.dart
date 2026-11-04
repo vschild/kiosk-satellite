@@ -145,10 +145,10 @@ Map<String, Object?>? activeScheduleEntry(
 /// reading hovering on the line from flickering the color back and forth:
 /// the sensor's native damper spaces events out, it does not steady them.
 /// A null [lux] is a sensor that has not spoken and has no persisted last
-/// reading, which cannot claim the room is dark. The clock face and Turn
-/// screen off at night (issue #1060) both decide with it, from the same
-/// reading, so the screen only goes off under a face already wearing its
-/// night colors.
+/// reading, which cannot claim the room is dark. The screensaver manager
+/// decides once for the clock face, Turn screen off at night (issue #1060)
+/// and plugins, so the screen only goes off under a face already wearing
+/// its night colors.
 bool clockNightActive({
   required bool previous,
   required bool enabled,
@@ -200,6 +200,10 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
 
   static double? _noLightReading() => null;
 
+  /// Whether the plugin renderer behind a mode takes taps (issue #1282).
+  /// Wired at the composition root, like the settings' plugin lookups.
+  bool Function(String mode) pluginTouch = (_) => false;
+
   final SettingsManager _settings;
 
   @override
@@ -231,9 +235,36 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   final Duration _nightTurnOffUnit;
   Timer? _nightTimer;
 
-  /// Night mode's decision as the face makes it, kept between sessions so
-  /// the band above the threshold holds the same way for both.
-  bool _night = false;
+  /// Night mode's decision, kept between sessions so the band above the
+  /// threshold holds. The clock face, its corner widgets and plugins
+  /// (screensaver.appearance) all follow this one decision.
+  final clockNight = ValueNotifier<bool>(false);
+
+  /// The color a plugin screensaver asked its corner widgets and At a
+  /// Glance row to wear (issue #1299), drawn the way Night mode's color is
+  /// on the clock. It belongs to the plugin screensaver that was on screen
+  /// when the plugin asked and ends once that one leaves the screen, so a
+  /// plugin that never clears it cannot tint any other screensaver.
+  final pluginTint = ValueNotifier<({String mode, int color})?>(null);
+
+  /// Tints the widgets over [pluginId]'s screensaver. False when none of
+  /// that plugin's screensavers is on screen.
+  bool setPluginTint(String pluginId, int color) {
+    final view = activeView.value;
+    if (!defs.isPluginScreensaver(view) || view!.split(':')[1] != pluginId) {
+      return false;
+    }
+    pluginTint.value = (mode: view, color: color);
+    return true;
+  }
+
+  /// Drops [pluginId]'s tint. Another plugin's stays.
+  void clearPluginTint(String pluginId) {
+    final tint = pluginTint.value;
+    if (tint != null && tint.mode.split(':')[1] == pluginId) {
+      pluginTint.value = null;
+    }
+  }
 
   /// The dark panel or black screen in this session is Night mode's, so
   /// the room brightening may undo it. A panel turned off by hand or by
@@ -261,15 +292,15 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// a dark screen while the room is dark under the Clock screensaver, and
   /// light the clock again once it is not.
   void _reviewNight() {
-    _night = clockNightActive(
-      previous: _night,
+    clockNight.value = clockNightActive(
+      previous: clockNight.value,
       enabled: _settings.get(defs.screensaverClockNight),
       lux: _lightReading(),
       threshold: _settings.get(defs.screensaverClockNightLux).toDouble(),
     );
     final minutes = _settings.get(defs.screensaverClockNightTurnOffMinutes);
     final wanted =
-        _active && _night && _effectiveMode == 'clock' && minutes > 0;
+        _active && clockNight.value && _effectiveMode == 'clock' && minutes > 0;
     if (!wanted) {
       _nightTimer?.cancel();
       _nightTimer = null;
@@ -442,9 +473,9 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   final renderPaused = ValueNotifier<bool>(false);
 
   /// Views that cost next to nothing to draw, left live around the docked
-  /// overlay. The Home Assistant Dashboard view is a clear layer over the
-  /// dashboard, which pauses on its own.
-  static const _cheapUnderDock = {null, 'black', 'clock', 'dashboard'};
+  /// overlay. The Home Assistant Dashboard and Dim views are clear layers
+  /// over the dashboard, which pauses on its own.
+  static const _cheapUnderDock = {null, 'black', 'clock', 'dashboard', 'dim'};
 
   bool get _nativeVoice =>
       _settings.get(defs.voiceRuntime) == 'native' &&
@@ -459,9 +490,10 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// The visual overlay the UI should render, or null for none.
   ///
   /// One of 'blank' | 'black' | 'clock' | 'media' | 'website' | ... Dim
-  /// only lowers the backlight, so this stays null there. 'dashboard' is
-  /// a clear layer over the dashboard itself, there to take the tap that
-  /// dismisses it and to carry the widgets.
+  /// only lowers the backlight, so this stays null there, unless a shared
+  /// Now Playing panel needs a slot: then it is 'dim', a bare clear layer.
+  /// 'dashboard' is a clear layer over the dashboard itself, there to take
+  /// the tap that dismisses it and to carry the widgets.
   final ValueNotifier<String?> activeView = ValueNotifier(null);
 
   /// The view the Home Assistant Dashboard mode put on the page this
@@ -506,19 +538,48 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   bool _nowPlayingShared = false;
   bool get nowPlayingShared => _nowPlayingShared && _nowPlayingTakeover;
 
+  /// The edges the shared Now Playing panel covers, as the layout last
+  /// reported them.
+  EdgeInsets _nowPlayingPanel = EdgeInsets.zero;
+
+  /// The room the shared Now Playing panel takes from the page beside it
+  /// under the Home Assistant Dashboard and Dim modes, for the kiosk
+  /// screen to keep the dashboard clear of (issue #1268): the page lays
+  /// itself out in what is left instead of under the panel. Zero
+  /// otherwise.
+  final pageReserve = ValueNotifier<EdgeInsets>(EdgeInsets.zero);
+
+  void _syncPageReserve() {
+    final view = activeView.value;
+    pageReserve.value =
+        _active && nowPlayingShared && (view == 'dashboard' || view == 'dim')
+        ? _nowPlayingPanel
+        : EdgeInsets.zero;
+  }
+
   bool get _nowPlayingNormalBrightness =>
       _nowPlayingTakeover &&
       (!nowPlayingShared ||
           _settings.get(defs.sendspinFullscreenOverrideBrightness));
 
-  void setNowPlayingShared(bool shared) {
-    if (!_active || _nowPlayingShared == shared) return;
+  void setNowPlayingShared(bool shared, {EdgeInsets panel = EdgeInsets.zero}) {
+    if (!_active) return;
+    if (_nowPlayingShared == shared) {
+      // A rotation moves the panel without changing the layout.
+      if (panel != _nowPlayingPanel) {
+        _nowPlayingPanel = panel;
+        unawaited(Future<void>.microtask(_syncPageReserve));
+      }
+      return;
+    }
+    _nowPlayingPanel = panel;
     _nowPlayingShared = shared;
     _tapChainStart = null;
     // Layout reports during build. Apply brightness after that frame's
     // synchronous work so view notifications cannot rebuild its ancestors.
     unawaited(
       Future<void>.microtask(() async {
+        _syncNowPlayingCovers();
         if (_active) await _applyVisuals();
       }),
     );
@@ -526,14 +587,18 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
 
   /// Whether dismissal currently takes two taps: the website and Home
   /// Assistant Dashboard screensavers offer the option (their pages are
-  /// the only things a single tap could talk to, discussion #1069), and
-  /// never while the Sendspin now-playing view has taken the slot over.
-  /// That view is ours, not a page.
+  /// the only things a single tap could talk to, discussion #1069), a
+  /// plugin renderer published with touch always takes it (issue #1282),
+  /// and never while the Sendspin now-playing view has taken the slot
+  /// over. That view is ours, not a page.
   bool get _doubleTapToDismiss =>
       (!_nowPlayingTakeover &&
           switch (activeView.value) {
             'website' => _settings.get(defs.screensaverWebsiteDoubleTap),
             'dashboard' => _settings.get(defs.screensaverDashboardDoubleTap),
+            final mode? when defs.isPluginScreensaver(mode) => pluginTouch(
+              mode,
+            ),
             _ => false,
           }) ||
       (_nowPlayingHoldsTouch &&
@@ -594,6 +659,8 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       _resetIdleTimer();
       if (!_paused) unawaited(_restoreAfterInteraction());
     });
+    // An alarm on the screensaver puts Now Playing behind it.
+    alarmTakeover.addListener(_syncNowPlayingCovers);
     bus.on<AssistOverlayVisibility>().listen((event) {
       // Paused under the full screen overlay, and docked when it is one
       // that costs: a still of Weather Mood or a slideshow shows around
@@ -741,8 +808,18 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     // answers to, session or not: between sessions it only keeps the
     // decision in step with the face's.
     bus.on<LightLevelChanged>().listen((_) => _reviewNight());
+    // The last known reading stands until the sensor speaks, so the face
+    // starts in the colors it left off in.
+    _reviewNight();
     bus.on<NotificationsChanged>().listen((e) {
       unawaited(_onNotificationsChanged(e.showing));
+    });
+    // The player handed back after an alarm's music: Now Playing may show
+    // again if the player it follows plays.
+    bus.on<SettingChanged>().listen((e) {
+      if (e.key != defs.sendspinHandoff.key || !_active) return;
+      _syncNowPlayingShown();
+      unawaited(_applyVisuals());
     });
     bus.on<SendspinNowPlayingChanged>().listen((e) {
       final startedPlaying = e.playing && !_sendspinPlaying;
@@ -770,6 +847,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       // voice turn, another app in front, lockdown). A voice turn or page
       // interaction only defers it: the launch runs once they end.
       if (startedPlaying &&
+          !_alarmOnTop &&
           allowsNowPlaying &&
           _settings.get(defs.sendspinFullscreen) &&
           _settings.get(defs.sendspinFullscreenOnPlay)) {
@@ -1628,7 +1706,16 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       !_blanked &&
       _sendspinNowPlaying &&
       _settings.get(defs.sendspinFullscreen) &&
-      allowsNowPlaying;
+      allowsNowPlaying &&
+      !_alarmOnTop;
+
+  /// An alarm owns the screen: one shows on this screensaver, or the
+  /// followed player is lent to an alarm's music or the music picker's
+  /// preview. Now Playing stays behind it, since the music is the
+  /// alarm's, and comes back once the alarm lets go.
+  bool get _alarmOnTop =>
+      alarmTakeover.value != null ||
+      _settings.get(defs.sendspinHandoff).trim().isNotEmpty;
 
   /// An Off schedule suppresses both the shared and standalone player.
   bool get allowsNowPlaying => _scheduleEntry?['now_playing'] != false;
@@ -1781,6 +1868,17 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   final ValueNotifier<Map<String, Size>> metadataFootprint = ValueNotifier(
     const {},
   );
+
+  /// How far above the bottom edge the photo caption reaches, measured
+  /// after layout, so the At a Glance row rises above it (issue #1290).
+  /// Zero without a caption. Like [metadataFootprint] it only grows while
+  /// the screensaver runs, so the row does not hop with every slide.
+  final ValueNotifier<double> captionFootprint = ValueNotifier(0);
+
+  /// Records how far the caption reaches, keeping the highest seen.
+  void reportCaptionFootprint(double top) {
+    if (top > captionFootprint.value) captionFootprint.value = top;
+  }
 
   /// The photo the Home Assistant Media page shows, as its media id and the
   /// URL it was loaded from, so the metadata panel drawn over the page can
@@ -2422,16 +2520,40 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
   /// coverage can flip mid-session (a schedule boundary swapping Dim for a
   /// content mode, music starting under Dim).
   void _setView(String? view) {
+    // A plugin's tint goes with its screensaver. The black screen-off
+    // cover in the same session keeps it for when the view comes back.
+    final tint = pluginTint.value;
+    if (tint != null && view != tint.mode && view != 'blank') {
+      pluginTint.value = null;
+    }
     activeView.value = view;
     bus.publish(ScreensaverViewChanged(view: view));
     _syncNowPlayingShown();
+    _syncPageReserve();
   }
 
   /// Whether the Now Playing view is on screen, as the screensaver overlay
   /// draws it: a session with a visible view that the takeover fills.
   bool _nowPlayingShown = false;
+  bool get nowPlayingShown => _nowPlayingShown;
+
+  /// Now Playing fills the whole screen: shown and not sharing it with the
+  /// screensaver. The dashboard and the pages over it are out of sight, so
+  /// the kiosk screen leaves them out of the frame.
+  final nowPlayingCovers = ValueNotifier<bool>(false);
+
+  void _syncNowPlayingCovers() {
+    final view = activeView.value;
+    nowPlayingCovers.value =
+        _active &&
+        view != null &&
+        view != 'blank' &&
+        _nowPlayingTakeover &&
+        !_nowPlayingShared;
+  }
 
   void _syncNowPlayingShown() {
+    _syncNowPlayingCovers();
     final view = activeView.value;
     final shown = view != null && view != 'blank' && _nowPlayingTakeover;
     if (shown == _nowPlayingShown) return;
@@ -2451,6 +2573,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     // Playing, an alarm letting go, a wake) is a moment Night mode's
     // countdown may need to start or stop.
     _reviewNight();
+    _syncNowPlayingCovers();
     final mode = _effectiveMode;
     // A running session whose mode becomes Android's screensaver steps
     // aside: stop restores the dashboard, then the dream covers it. An
@@ -2509,9 +2632,13 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       if (!_active) return;
     }
     if (_nowPlayingNormalBrightness) {
-      // A non-null view gives the override a slot to render into ('dim'
-      // and 'dashboard' show the page itself), at full brightness.
-      _setView((mode == 'dim' || mode == 'dashboard') ? 'black' : mode);
+      // A non-null view gives the override a slot to render into, at full
+      // brightness. 'dim' and 'dashboard' show the page itself beside a
+      // shared panel and give way to black under a full-screen one.
+      _setView(switch (mode) {
+        'dim' || 'dashboard' when !nowPlayingShared => 'black',
+        _ => mode,
+      });
       if (_savedBrightness != null) {
         await commands.execute('setBrightness', {
           'level': _savedBrightness,
@@ -2532,7 +2659,9 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
       case 'dim':
         // Backlight only — no overlay. stop() restores the saved level.
         // A scheduled brightness wins over the configured dim level.
-        _setView(nowPlayingShared ? 'black' : null);
+        // Beside a shared player the 'dim' view is a clear layer that
+        // gives the player its slot and leaves the page showing.
+        _setView(nowPlayingShared ? 'dim' : null);
         final dim =
             _scheduleBrightness ??
             _settings.get(defs.screensaverDimLevel).toDouble();
@@ -2558,10 +2687,9 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
         // clock / media / website: a lit overlay showing content, at normal
         // brightness unless the separate screensaver brightness — or the
         // active schedule entry — asks for its own level (a clock that must
-        // not glow all night). The dashboard gives way to black beside a
-        // shared player, as Dim does: its view is laid out for the whole
-        // screen.
-        _setView(mode == 'dashboard' && nowPlayingShared ? 'black' : mode);
+        // not glow all night). Beside a shared player the dashboard keeps
+        // showing, laid out in the room the panel leaves (pageReserve).
+        _setView(mode);
         if (_contentDimEnabled(mode)) {
           final level =
               _scheduleBrightness ??
@@ -2648,6 +2776,11 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     alarmTakeover.value = null;
     renderPaused.value = false;
     _nowPlayingShared = false;
+    // Before the thaw below, which a covering Now Playing would hold off.
+    _syncNowPlayingCovers();
+    // The page takes its full width back while the overlay still covers
+    // it, not after the dismissal has shown it squeezed.
+    _syncPageReserve();
     _tapChainStart = null;
     _screenOffTimer?.cancel();
     _screenOffTimer = null;
@@ -2690,6 +2823,7 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     weatherChipsHeight.value = 0;
     modeControlsShown.value = false;
     metadataFootprint.value = const {};
+    captionFootprint.value = 0;
     mediaSlide.value = null;
     _slides = null;
     bus.publish(const ScreensaverStateChanged(active: false));
@@ -2769,6 +2903,9 @@ class ScreensaverManager extends Manager with WidgetsBindingObserver {
     _screenOffTimer?.cancel();
     _nightTimer?.cancel();
     activeView.dispose();
+    pageReserve.dispose();
+    clockNight.dispose();
+    pluginTint.dispose();
     dashboardShowing.dispose();
     scheduleNowPlaying.dispose();
     modeOverride.dispose();

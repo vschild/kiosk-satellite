@@ -66,12 +66,12 @@ When Home Assistant runs the integration, onboarding offers the same migration i
 | | Talk right after the wake word | Skips the wake sound and keeps what you say right after the wake word. |
 | | Follow-up delay, Chime before a follow-up | A pause and a chime before listening for the answer to a question. |
 | | Play sounds on, Play as | Where answers and chimes play. See [below](#play-sounds-on-a-media-player). |
-| Realtime | Providers | A row per provider with its status. **Configure** opens its API key, model, voice and endpoint, plus **Reasoning effort** for OpenAI and Gemini, xAI's **Web Search** and **X Search** switches and Gemini's **Google Search** and **Ignore talk not meant for it** switches, and **Save & Validate** stores them once the provider connects. |
+| Realtime | Providers | A row per provider with its status. **Configure** opens its API key, model, voice and endpoint, plus **Reasoning effort** for OpenAI and Gemini, xAI's **Web Search** and **X Search** switches and Gemini's **Google Search** and **Ignore talk not meant for it** switches, and **Save & Validate** stores them once the provider connects. **Clear** removes them. |
 | | Instructions, End after silence, Speech speed, Session duration, Talk over answers, Talk over sensitivity | How the conversation behaves, sounds, ends and carries over, for every provider. |
 | | Tools | What the model can control. See [Realtime conversations](#realtime-conversations). |
 | Wake Word | Wake word engine | vsWakeWord (default), microWakeWord or openWakeWord. All models ship with the app. The Echo Dot, Echo Show 5 and Echo Show 8 images also offer Amazon's engine. See [Wake Word](echo-dot.md#wake-word) in the Echo Dot docs. |
 | | Wake word 1 and 2 | Home Assistant's selects. Wake word 2 is answered by Assistant 2. |
-| | Wake word sensitivity, Fine-tune sensitivity, Wake word noise gate | How easily the wake word triggers. **Fine-tune sensitivity** adjusts it in smaller steps on each kiosk, from -10 to +10, and 0 keeps the sensitivity as picked. Raise it if you often have to repeat the wake word and lower it if the kiosk wakes by mistake. The stop word has its own fine-tune below. The noise gate skips inference while the room is quiet to save CPU. |
+| | Wake word sensitivity, Fine-tune sensitivity, Wake word noise gate | How easily the wake word triggers. **Fine-tune sensitivity** adjusts it in smaller steps on each kiosk, from -10 to +10, and 0 keeps the sensitivity as picked. Raise it if you often have to repeat the wake word and lower it if the kiosk wakes by mistake. The stop word has its own fine-tune below. While the kiosk plays music or another sound of its own with echo cancellation on, the wake word takes half a sensitivity step less, and the app log notes each change. The noise gate skips inference while the room is quiet to save CPU. |
 | | Stop word interruption | Say "stop" to cut off an answer, a timer alert or an announcement. It also closes a result panel. |
 | | Fine-tune stop word sensitivity | Shown while **Stop word interruption** is on. Adjusts the stop word sensitivity in smaller steps on each kiosk, from -10 to +10, and 0 keeps the sensitivity as picked. Raise it if you often have to repeat "stop" and lower it if answers stop by mistake. |
 | | Wake Word Arbitration | When several kiosks hear the wake word, only the closest one answers. See [Wake word arbitration](#wake-word-arbitration). |
@@ -111,7 +111,7 @@ A wake word answered by a realtime provider starts a conversation with a speech 
 2. Tap **Save & Validate**. The kiosk connects once with those settings and saves them only if the provider accepts the connection. Otherwise the dialog stays open and shows the error. The provider's row then reads **Connection validated**, or shows what went wrong with the connection or the Home Assistant tools.
 3. Under **Assistant**, pick the provider (for example **OpenAI Realtime**) for **Assistant 1** or **Assistant 2**. Each wake word can use a different provider or keep its pipeline.
 
-**Model** and **Voice** list what each provider offers. With your key, the kiosk asks the provider for them (OpenAI's and Gemini's realtime models, xAI's voices). Through a relay it shows the ones built in. A provider whose key or endpoint changed outside its dialog, for example through a settings import, reads **Not validated** until you save it again. Until then its wake word answers with its Home Assistant pipeline.
+**Model** and **Voice** list what each provider offers. With your key, the kiosk asks the provider for them (OpenAI's and Gemini's realtime models, xAI's voices). Through a relay it shows the ones built in. A provider whose key or endpoint changed outside its dialog, for example through a settings import, reads **Not validated** until you save it again. Until then its wake word answers with its Home Assistant pipeline. To stop using a provider, open its dialog and tap **Clear**. Its key and settings are removed, its row reads **Not configured** and a wake word it answered goes back to its Home Assistant pipeline.
 
 **Getting a Gemini API key.** Sign in to [Google AI Studio](https://aistudio.google.com/apikey) with a Google account, click **Create API key**, pick or create a Google Cloud project and copy the key into the Gemini provider's **API key**. The free tier covers the Live models with lower rate limits, so you can try realtime conversations without a billing account. Google may use what is sent on the free tier to improve its products. Turn on billing for the project to lift the limits and keep your conversations out of that. **Model** defaults to `gemini-3.8-live`.
 
@@ -119,7 +119,7 @@ A wake word answered by a realtime provider starts a conversation with a speech 
 
 **Which room.** Each conversation starts with the kiosk's name and its area in Home Assistant, so "turn on the lights" means the lights in the kiosk's area unless you name another one. Set the area on the kiosk's device in Home Assistant. The Assist satellite entity stays idle during a conversation, so automations that need to know which kiosk is talking should check the kiosk's [Voice Satellite](#home-assistant-entities-and-actions) sensor.
 
-**Which kiosk ran a script.** Every script the model runs gets the kiosk's Home Assistant device ID in a `ks_device_id` variable. The script does not need a field for it, so one script can act on whichever kiosk asked:
+**Which kiosk ran a script.** Every script the model runs gets the kiosk's Home Assistant device ID in a `ks_device_id` variable and its **Device name** in `ks_device_name`. The script does not need fields for them, so one script can act on whichever kiosk asked:
 
 ```yaml
 sequence:
@@ -128,7 +128,7 @@ sequence:
       message: "Asked from {{ device_attr(ks_device_id, 'name') }} in {{ area_name(ks_device_id) }}"
 ```
 
-If a script declares a `ks_device_id` field, the kiosk hides it from the model and fills it in. This works only with **Tools** on **Home Assistant**.
+If a script declares a `ks_device_id` or `ks_device_name` field, the kiosk hides it from the model and fills it in. [Gestures](gestures.md#which-kiosk-ran-it) pass the same two variables. This works only with **Tools** on **Home Assistant**.
 
 **Picking up where you left off.** **Session duration** keeps what was said for 30 minutes up to 12 hours and gives it to the next conversation, so you can refer back to something after a conversation ended. Older exchanges are dropped, and nothing is kept across an app restart.
 
