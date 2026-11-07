@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:kiosk_satellite/core/command_registry.dart';
 import 'package:kiosk_satellite/core/event_bus.dart';
 import 'package:kiosk_satellite/core/events.dart';
@@ -403,8 +405,7 @@ void main() {
 
   group('Home Assistant events', () {
     List<String> fired() => [
-      for (final e in haEvents)
-        '${e.data['event_type']} ${e.data['alarm_id']}',
+      for (final e in haEvents) '${e.data['event_type']} ${e.data['alarm_id']}',
     ];
 
     test('a ring, a snooze and a stop each fire one', () async {
@@ -542,6 +543,83 @@ void main() {
       );
     });
 
+    test('fills the hour, the minute and the date', () async {
+      await build([
+        {
+          ...daily('07:00'),
+          'phrase':
+              '{hour} {minute} {dayofmonth} {month} {year}, {date}, {day}',
+        },
+      ]);
+      expect(
+        alarms.phraseFor(
+          alarms.alarms.value.single,
+          DateTime(2026, 10, 2, 19, 5),
+        ),
+        '7 5 2 October 2026, October 2, 2026, Friday',
+      );
+    });
+
+    test('{hour} reads 12 at midnight on an AM/PM clock', () async {
+      await build([
+        {...daily('00:00'), 'phrase': '{hour}'},
+      ]);
+      expect(
+        alarms.phraseFor(alarms.alarms.value.single, DateTime(2026, 10, 2)),
+        '12',
+      );
+    });
+
+    test('asks Home Assistant for the name only when it is used', () async {
+      await build([
+        {...daily('07:00'), 'phrase': 'Good morning {name}!'},
+      ]);
+      var asked = 0;
+      final named = AlarmManager(
+        bus,
+        registry,
+        Logger(),
+        settings,
+        clock: () => now,
+        userName: () async {
+          asked++;
+          return 'Sam';
+        },
+      );
+      final alarm = alarms.alarms.value.single;
+      expect(
+        await named.spokenPhrase(alarm, DateTime(2026, 10, 2, 7)),
+        'Good morning Sam!',
+      );
+      expect(asked, 1);
+      await named.spokenPhrase(
+        alarm.copyWith(phrase: "It's {time}"),
+        DateTime(2026, 10, 2, 7),
+      );
+      expect(asked, 1);
+    });
+
+    test('a failed name lookup says the phrase without it', () async {
+      await build([
+        {...daily('07:00'), 'phrase': 'Good morning {name}!'},
+      ]);
+      final named = AlarmManager(
+        bus,
+        registry,
+        Logger(),
+        settings,
+        clock: () => now,
+        userName: () async => throw StateError('offline'),
+      );
+      expect(
+        await named.spokenPhrase(
+          alarms.alarms.value.single,
+          DateTime(2026, 10, 2, 7),
+        ),
+        'Good morning!',
+      );
+    });
+
     test("an alarm's own phrase wins over the default", () async {
       now = DateTime(2026, 10, 2, 9);
       await build([
@@ -550,6 +628,43 @@ void main() {
       expect(
         alarms.phraseFor(alarms.alarms.value.single, DateTime(2026, 10, 2, 7)),
         'Happy Friday, Gym',
+      );
+    });
+
+    test('{time} and {hour} follow the alarms 24-hour clock', () async {
+      final evening = DateTime(2026, 10, 2, 19, 5);
+      await build(
+        [
+          {...daily('19:05'), 'phrase': '{time} {hour}'},
+        ],
+        extra: {'ks.alarms.clock_24h': true},
+      );
+      expect(alarms.phraseFor(alarms.alarms.value.single, evening), '19:05 19');
+      await settings.set(defs.alarmsClock24h, false);
+      expect(
+        alarms.phraseFor(alarms.alarms.value.single, evening),
+        '7:05 PM 7',
+      );
+    });
+
+    test('an AM/PM clock says AM/PM in a 24-hour language', () async {
+      await initializeDateFormatting();
+      await build(
+        [
+          {...daily('19:05'), 'phrase': '{time}'},
+        ],
+        extra: {'ks.alarms.clock_24h': false},
+      );
+      // With plain spaces, which every text to speech engine reads.
+      expect(
+        Intl.withLocale(
+          'es',
+          () => alarms.phraseFor(
+            alarms.alarms.value.single,
+            DateTime(2026, 10, 2, 19, 5),
+          ),
+        ),
+        '7:05 p. m.',
       );
     });
 

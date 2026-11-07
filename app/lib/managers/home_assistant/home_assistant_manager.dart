@@ -1203,7 +1203,7 @@ class HomeAssistantManager extends Manager {
       final external = externalPageNavPath(start, customPages);
       if (external != null) return external;
     }
-    final path = navPathOfUri(uri);
+    final path = landingPathOfUri(uri);
     return path.isEmpty ? null : path;
   }
 
@@ -1423,7 +1423,7 @@ class HomeAssistantManager extends Manager {
     if (page.contains('://')) return externalPageNavPath(page, customPages);
     if (!page.startsWith('/')) return null;
     final uri = Uri.tryParse(page);
-    final path = uri == null ? '' : navPathOfUri(uri);
+    final path = uri == null ? '' : landingPathOfUri(uri);
     return path.isEmpty ? null : path;
   }
 
@@ -1561,9 +1561,13 @@ class HomeAssistantManager extends Manager {
   var route = '/' + ${jsonEncode(viewRoute(viewPath))};
   var rest = path.substring(route.length);
   // A child view is not the dashboard root requested by Go to home (#496).
-  // A path with a query or fragment is there only when they match too.
+  // A path with a query or fragment is there only when they match too, and
+  // one without a fragment is not there while the page has one: that is an
+  // open popup, which going home closes (#1311).
   if (location.pathname === route &&
-      (!rest || location.search + location.hash === rest)) return 'already';
+      (rest ? location.search + location.hash === rest : !location.hash)) {
+    return 'already';
+  }
   // Around the URL Filter's check (urlFilterJs).
   (history.__ksPushState || history.pushState).call(history, null, '', path);
   window.dispatchEvent(new CustomEvent('location-changed'));

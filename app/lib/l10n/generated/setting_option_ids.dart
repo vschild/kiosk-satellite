@@ -533,6 +533,11 @@ const settingOptionMessageIds = <String, Map<String, String>>{
     "comfortable": "libraryDensityComfortable",
     "standard": "libraryDensityStandard",
     "compact": "libraryDensityCompact"
+  },
+  "intercom.video_quality": {
+    "low": "intercomOptionVideoLow",
+    "medium": "intercomOptionVideoMedium",
+    "high": "intercomOptionVideoHigh"
   }
 };
 const settingPlaceholderMessageIds = <String, String>{

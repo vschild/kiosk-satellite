@@ -764,6 +764,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingScreensaverCameraMuteTitle",
     "description": "settingScreensaverCameraMuteDescription",
   },
+  "screensaver.widgets_enabled": {
+    "title": "settingScreensaverWidgetsEnabledTitle",
+    "description": "settingScreensaverWidgetsEnabledDescription",
+  },
   "screensaver.widgets": {
     "title": "settingScreensaverWidgetsTitle",
     "description": "settingScreensaverWidgetsDescription",
@@ -1324,6 +1328,10 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingIntercomAnswerModeTitle",
     "description": "settingIntercomAnswerModeDescription",
   },
+  "intercom.auto_answer_camera": {
+    "title": "settingIntercomAutoAnswerCameraTitle",
+    "description": "settingIntercomAutoAnswerCameraDescription",
+  },
   "intercom.ring_seconds": {
     "title": "settingIntercomRingSecondsTitle",
     "description": "settingIntercomRingSecondsDescription",
@@ -1830,7 +1838,7 @@ const settingMessageIds = <String, Map<String, String>>{
   },
   "voice.seamless_wake": {
     "title": "settingVoiceSeamlessWakeTitle",
-    "description": "settingVoiceSeamlessWakeDescription",
+    "description": "settingVoiceSeamlessWakeAssistDescription",
   },
   "voice.followup_delay_ms": {
     "title": "settingVoiceFollowupDelayTitle",
@@ -2003,6 +2011,10 @@ const settingMessageIds = <String, Map<String, String>>{
   "screensaver.weather_alarm_takeover": {
     "title": "settingScreensaverWeatherAlarmTakeoverTitle",
     "description": "settingScreensaverWeatherAlarmTakeoverDescription",
+  },
+  "alarms.clock_24h": {
+    "title": "settingScreensaverClock24hTitle",
+    "description": "settingScreensaverClock24hDescription",
   },
   "alarms.volume": {
     "title": "settingAlarmsVolumeTitle",
@@ -2404,13 +2416,25 @@ const settingMessageIds = <String, Map<String, String>>{
     "title": "settingCalendarDefaultViewTitle",
     "description": "settingCalendarDefaultViewDescription",
   },
+  "calendar.clock_24h": {
+    "title": "settingScreensaverClock24hTitle",
+    "description": "settingScreensaverClock24hDescription",
+  },
   "calendar.week_start": {
     "title": "settingCalendarWeekStartTitle",
-    "description": "settingCalendarWeekStartDescription",
+    "description": "settingCalendarWeekStartAppLanguageDescription",
   },
   "calendar.weather_entity": {
     "title": "settingCalendarWeatherEntityTitle",
     "description": "settingCalendarWeatherEntityDescription",
+  },
+  "calendar.allow_edit": {
+    "title": "settingCalendarAllowEditTitle",
+    "description": "settingCalendarAllowEditDescription",
+  },
+  "calendar.allow_delete": {
+    "title": "settingCalendarAllowDeleteTitle",
+    "description": "settingCalendarAllowDeleteDescription",
   },
   "calendar.menu": {
     "title": "settingShowInKioskMenuTitle",
@@ -2579,5 +2603,13 @@ const settingMessageIds = <String, Map<String, String>>{
   "library.text_scale": {
     "title": "settingSendspinFullscreenTextScaleTitle",
     "description": "settingLibraryTextScaleDescription",
+  },
+  "intercom.video": {
+    "title": "settingIntercomVideoTitle",
+    "description": "settingIntercomVideoDescription",
+  },
+  "intercom.video_quality": {
+    "title": "settingIntercomVideoQualityTitle",
+    "description": "settingIntercomVideoQualityDescription",
   },
 };

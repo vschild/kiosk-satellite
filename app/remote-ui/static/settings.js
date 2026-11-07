@@ -313,9 +313,10 @@ async function flushSettingsUpdates() {
       }
     }
     // Hang up call when pressing this button reveals Hang up button while
-    // ringing in its own card (issue #991), in place like the switches
-    // above.
-    if (!shapeChanged && setting.key === 'intercom.hangup_key') {
+    // ringing in its own card (issue #991), Video calls reveals Video
+    // quality and both Video calls and Answer mode gate Answer with camera
+    // on, in place like the switches above.
+    if (!shapeChanged && ['intercom.hangup_key', 'intercom.video', 'intercom.answer_mode'].includes(setting.key)) {
       const byKey = Object.fromEntries(state.settings.map(s => [s.key, s]));
       if ((!rows.length && !depSatisfied(setting, byKey)) || (rows.length
           && rows.every(row => row.updateSetting?.() && syncGatedRows(setting.key, row)))) {
@@ -398,7 +399,7 @@ async function flushSettingsUpdates() {
     // A replaced generic input cannot stand in for a custom picker.
     if (shapeChanged || hasDependants || layoutSettings.has(setting.key)) {
       rebuild = true;
-    } else if (['sendspin.player', 'sendspin.player_name'].includes(setting.key)) {
+    } else if (['sendspin.player', 'sendspin.player_name', 'sendspin.kept_for'].includes(setting.key)) {
       updatePlayerRow();
     } else if (!rows.length || rows.some(row => !row.updateSetting?.())) {
       rebuild = true;
@@ -2501,6 +2502,8 @@ kioskText('Lockdown Mode makes the dashboard non-interactive, arms every ' +
             try {
               const u = new URL(byKey['browser.start_url']?.value || '');
               homePath = u.pathname.replace(/^\/+|\/+$/g, '') || null;
+              // A hash in the start URL is a popup, which the return opens.
+              if (homePath && u.hash) homePath += u.search + u.hash;
             } catch (_) {}
             const note = document.createElement('div');
             note.className = 'row';

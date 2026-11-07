@@ -263,8 +263,8 @@ class UiStringsFr extends UiStrings {
   String get alarmsPhrase => 'Phrase';
 
   @override
-  String alarmsPhraseHint(String label, String time, String day) {
-    return '$label, $time et $day sont remplacés par le libellé, l\'heure et le jour de l\'alarme.';
+  String alarmsPhraseVariables(String variables) {
+    return 'Variables disponibles : $variables';
   }
 
   @override
@@ -542,6 +542,10 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get calendarWidgetWeek => '7 prochains jours';
+
+  @override
+  String get calendarWidgetAllDay =>
+      'Afficher les événements sur toute la journée';
 
   @override
   String get calendarWidgetDots => 'Points de couleur';
@@ -2735,6 +2739,11 @@ class UiStringsFr extends UiStrings {
   String get intercomCalling => 'Appel en cours…';
 
   @override
+  String intercomAnswersWithCameraIn(String seconds) {
+    return 'Caméra activée dans $seconds s';
+  }
+
+  @override
   String intercomAnswersIn(String seconds) {
     return 'Réponse dans $seconds s';
   }
@@ -2839,6 +2848,37 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get intercomEndCall => 'Terminer l\'appel';
+
+  @override
+  String get intercomVoiceCall => 'Appel vocal';
+
+  @override
+  String get intercomVideoCall => 'Appel vidéo';
+
+  @override
+  String get intercomVoiceOnly => 'Voix seule';
+
+  @override
+  String get intercomVideoAnswer => 'Vidéo';
+
+  @override
+  String get intercomSwitchCamera => 'Changer de caméra';
+
+  @override
+  String get intercomCameraButton => 'Caméra';
+
+  @override
+  String get intercomCameraOff => 'Caméra désactivée';
+
+  @override
+  String get intercomYourCameraOff => 'Votre caméra est désactivée';
+
+  @override
+  String get intercomVideoReconnecting => 'Reconnexion de la vidéo…';
+
+  @override
+  String get intercomCameraOffNotice =>
+      'La caméra est désactivée. Ce kiosque peut afficher la vidéo, mais pas l\'envoyer.';
 
   @override
   String get intercomCallFailed => 'Impossible d\'appeler';
@@ -4695,6 +4735,16 @@ class UiStringsFr extends UiStrings {
   String get overviewSystemUpdate => 'Mise à jour du système disponible';
 
   @override
+  String overviewPluginUpdate(String name) {
+    return 'Mise à jour de $name disponible';
+  }
+
+  @override
+  String overviewPluginUpdateHelp(String version) {
+    return 'La version $version est prête à être vérifiée et installée.';
+  }
+
+  @override
   String overviewSystemImageUpdateHelp(String version) {
     return 'La version $version de l\'image système est prête à être installée. L\'appareil redémarre deux fois pour l\'installer.';
   }
@@ -5258,8 +5308,8 @@ class UiStringsFr extends UiStrings {
   String get settingCalendarWeekStartTitle => 'La semaine commence le';
 
   @override
-  String get settingCalendarWeekStartDescription =>
-      'Suit la langue de l\'appareil, sauf choix contraire.';
+  String get settingCalendarWeekStartAppLanguageDescription =>
+      'Suit la langue de l\'application, sauf choix contraire.';
 
   @override
   String get settingCalendarWeatherEntityTitle => 'Météo';
@@ -9297,6 +9347,40 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get intercomTalkSection => 'Conversation';
+
+  @override
+  String get settingIntercomVideoTitle => 'Appels vidéo';
+
+  @override
+  String get settingIntercomVideoDescription =>
+      'Envoie et affiche la vidéo pendant les appels.';
+
+  @override
+  String get settingIntercomVideoQualityTitle => 'Qualité vidéo';
+
+  @override
+  String get settingIntercomVideoQualityDescription =>
+      'Une qualité supérieure utilise plus de CPU.';
+
+  @override
+  String get intercomOptionVideoLow => 'Basse';
+
+  @override
+  String get intercomOptionVideoMedium => 'Moyenne';
+
+  @override
+  String get intercomOptionVideoHigh => 'Haute';
+
+  @override
+  String get intercomVideoSection => 'Vidéo';
+
+  @override
+  String get settingIntercomAutoAnswerCameraTitle =>
+      'Répondre avec la caméra activée';
+
+  @override
+  String get settingIntercomAutoAnswerCameraDescription =>
+      'Les appels vidéo pris automatiquement s\'ouvrent avec la caméra activée.';
 
   @override
   String get settingKioskAllowDrawerTitle =>
@@ -13930,6 +14014,14 @@ class UiStringsFr extends UiStrings {
   }
 
   @override
+  String get settingScreensaverWidgetsEnabledTitle =>
+      'Activer les widgets de l\'économiseur d\'écran';
+
+  @override
+  String get settingScreensaverWidgetsEnabledDescription =>
+      'Petites superpositions dans les coins de l\'économiseur d\'écran.';
+
+  @override
   String get settingScreensaverWidgetsTitle => 'Widgets';
 
   @override
@@ -13976,6 +14068,9 @@ class UiStringsFr extends UiStrings {
 
   @override
   String get screensaverOverlayWidgetsEmpty => 'Pas encore de widgets';
+
+  @override
+  String get screensaverOverlayShow => 'Afficher ce widget';
 
   @override
   String get screensaverOverlayRemove => 'Supprimer le widget';
@@ -14235,8 +14330,8 @@ class UiStringsFr extends UiStrings {
       'Parler juste après le mot de réveil';
 
   @override
-  String get settingVoiceSeamlessWakeDescription =>
-      'Ignore le son de réveil et garde ce que vous dites juste après le mot de réveil.';
+  String get settingVoiceSeamlessWakeAssistDescription =>
+      'Ignore le son de réveil et garde ce que vous dites juste après le mot de réveil. Uniquement pour les pipelines Assist, pas pour les conversations en temps réel.';
 
   @override
   String get settingVoiceFollowupDelayTitle => 'Délai avant le suivi';

@@ -958,10 +958,10 @@
       ]
     }
   },
-  "alarmsPhraseHint": "{label}, {time} et {day} sont remplacés par le libellé, l'heure et le jour de l'alarme.",
-  "@alarmsPhraseHint": {
+  "alarmsPhraseVariables": "Variables disponibles : {variables}",
+  "@alarmsPhraseVariables": {
     "context": "Alarm details",
-    "description": "Hint under the phrase text box. The three placeholders are shown to the user literally, in braces, and must not be translated.",
+    "description": "Hint under the phrase text box. {variables} is a list of words in braces, like {label}, {time}, which the user types as they are.",
     "x-locations": {
       "device": [
         "Kiosk menu > Alarms > an alarm"
@@ -971,17 +971,9 @@
       ]
     },
     "placeholders": {
-      "label": {
+      "variables": {
         "type": "String",
-        "description": "The literal text {label}."
-      },
-      "time": {
-        "type": "String",
-        "description": "The literal text {time}."
-      },
-      "day": {
-        "type": "String",
-        "description": "The literal text {day}."
+        "description": "The variables, in braces and separated by commas."
       }
     }
   },
@@ -2027,6 +2019,19 @@
   "@calendarWidgetWeek": {
     "context": "Screensaver > Widgets > Up next",
     "description": "Days shown option: the Up next widget lists events from today and the 6 days after it.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets > Up next"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets > Up next"
+      ]
+    }
+  },
+  "calendarWidgetAllDay": "Afficher les événements sur toute la journée",
+  "@calendarWidgetAllDay": {
+    "context": "Screensaver > Widgets > Up next",
+    "description": "Switch. Off, the Up next widget lists only events with a start time and leaves out events that last the whole day, such as holidays.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Widgets > Up next"
@@ -10436,6 +10441,22 @@
       ]
     }
   },
+  "intercomAnswersWithCameraIn": "Caméra activée dans {seconds} s",
+  "@intercomAnswersWithCameraIn": {
+    "context": "Intercom call controls",
+    "description": "Countdown on a ringing video call that opens on its own with this kiosk's camera on.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    },
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "intercomAnswersIn": "Réponse dans {seconds} s",
   "@intercomAnswersIn": {
     "context": "Intercom call controls",
@@ -10801,6 +10822,116 @@
     "x-locations": {
       "remoteAdmin": [
         "Intercom > Active call"
+      ]
+    }
+  },
+  "intercomVoiceCall": "Appel vocal",
+  "@intercomVoiceCall": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomVideoCall": "Appel vidéo",
+  "@intercomVideoCall": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomVoiceOnly": "Voix seule",
+  "@intercomVoiceOnly": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomVideoAnswer": "Vidéo",
+  "@intercomVideoAnswer": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomSwitchCamera": "Changer de caméra",
+  "@intercomSwitchCamera": {
+    "context": "Intercom call controls",
+    "description": "Button that moves a video call between the front and back camera.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomCameraButton": "Caméra",
+  "@intercomCameraButton": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomCameraOff": "Caméra désactivée",
+  "@intercomCameraOff": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomYourCameraOff": "Votre caméra est désactivée",
+  "@intercomYourCameraOff": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomVideoReconnecting": "Reconnexion de la vidéo…",
+  "@intercomVideoReconnecting": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
+      ]
+    }
+  },
+  "intercomCameraOffNotice": "La caméra est désactivée. Ce kiosque peut afficher la vidéo, mais pas l'envoyer.",
+  "@intercomCameraOffNotice": {
+    "context": "Intercom call controls",
+    "description": "Label or guidance in this section.",
+    "x-locations": {
+      "device": [
+        "Kiosk menu > Intercom > Call a kiosk",
+        "Active intercom call overlay"
       ]
     }
   },
@@ -17599,6 +17730,38 @@
       ]
     }
   },
+  "overviewPluginUpdate": "Mise à jour de {name} disponible",
+  "@overviewPluginUpdate": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "A newer release of an installed plugin. The name is the plugin's own name.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewPluginUpdateHelp": "La version {version} est prête à être vérifiée et installée.",
+  "@overviewPluginUpdateHelp": {
+    "context": "Remote admin > Overview > Needs attention",
+    "description": "Under a plugin's update notice. Update opens a review of the release before it installs.",
+    "x-locations": {
+      "device": [],
+      "remoteAdmin": [
+        "Overview > Needs attention"
+      ]
+    },
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "overviewSystemImageUpdateHelp": "La version {version} de l'image système est prête à être installée. L'appareil redémarre deux fois pour l'installer.",
   "@overviewSystemImageUpdateHelp": {
     "context": "Remote admin > Overview > Needs attention",
@@ -19533,8 +19696,8 @@
       ]
     }
   },
-  "settingCalendarWeekStartDescription": "Suit la langue de l'appareil, sauf choix contraire.",
-  "@settingCalendarWeekStartDescription": {
+  "settingCalendarWeekStartAppLanguageDescription": "Suit la langue de l'application, sauf choix contraire.",
+  "@settingCalendarWeekStartAppLanguageDescription": {
     "context": "Settings > Calendar > Display",
     "description": "Setting description.",
     "x-locations": {
@@ -34645,6 +34808,136 @@
       ],
       "remoteAdmin": [
         "Intercom > Talk"
+      ]
+    }
+  },
+  "settingIntercomVideoTitle": "Appels vidéo",
+  "@settingIntercomVideoTitle": {
+    "context": "Settings > Intercom > Video",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "settingIntercomVideoDescription": "Envoie et affiche la vidéo pendant les appels.",
+  "@settingIntercomVideoDescription": {
+    "context": "Settings > Intercom > Video",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "settingIntercomVideoQualityTitle": "Qualité vidéo",
+  "@settingIntercomVideoQualityTitle": {
+    "context": "Settings > Intercom > Video",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "settingIntercomVideoQualityDescription": "Une qualité supérieure utilise plus de CPU.",
+  "@settingIntercomVideoQualityDescription": {
+    "context": "Settings > Intercom > Video",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "intercomOptionVideoLow": "Basse",
+  "@intercomOptionVideoLow": {
+    "context": "Settings > Intercom > Video",
+    "description": "Visible option. Its stored value stays unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "intercomOptionVideoMedium": "Moyenne",
+  "@intercomOptionVideoMedium": {
+    "context": "Settings > Intercom > Video",
+    "description": "Visible option. Its stored value stays unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "intercomOptionVideoHigh": "Haute",
+  "@intercomOptionVideoHigh": {
+    "context": "Settings > Intercom > Video",
+    "description": "Visible option. Its stored value stays unchanged.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "intercomVideoSection": "Vidéo",
+  "@intercomVideoSection": {
+    "context": "Settings > Intercom > Video",
+    "description": "Section heading.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Video"
+      ],
+      "remoteAdmin": [
+        "Intercom > Video"
+      ]
+    }
+  },
+  "settingIntercomAutoAnswerCameraTitle": "Répondre avec la caméra activée",
+  "@settingIntercomAutoAnswerCameraTitle": {
+    "context": "Settings > Intercom > Answer",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Answer"
+      ],
+      "remoteAdmin": [
+        "Intercom > Answer"
+      ]
+    }
+  },
+  "settingIntercomAutoAnswerCameraDescription": "Les appels vidéo pris automatiquement s'ouvrent avec la caméra activée.",
+  "@settingIntercomAutoAnswerCameraDescription": {
+    "context": "Settings > Intercom > Answer",
+    "description": "Setting description.",
+    "x-locations": {
+      "device": [
+        "Settings > Intercom > Answer"
+      ],
+      "remoteAdmin": [
+        "Intercom > Answer"
       ]
     }
   },
@@ -51579,6 +51872,32 @@
       }
     }
   },
+  "settingScreensaverWidgetsEnabledTitle": "Activer les widgets de l'économiseur d'écran",
+  "@settingScreensaverWidgetsEnabledTitle": {
+    "context": "Settings > Screensaver > Widgets",
+    "description": "Setting label.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets"
+      ]
+    }
+  },
+  "settingScreensaverWidgetsEnabledDescription": "Petites superpositions dans les coins de l'économiseur d'écran.",
+  "@settingScreensaverWidgetsEnabledDescription": {
+    "context": "Settings > Screensaver > Widgets",
+    "description": "Help below this setting.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets"
+      ]
+    }
+  },
   "settingScreensaverWidgetsTitle": "Widgets",
   "@settingScreensaverWidgetsTitle": {
     "context": "Settings > Screensaver > Widgets",
@@ -51739,6 +52058,19 @@
   "@screensaverOverlayWidgetsEmpty": {
     "context": "Settings > Screensaver > Widgets",
     "description": "Label or guidance in this editor.",
+    "x-locations": {
+      "device": [
+        "Settings > Screensaver > Widgets"
+      ],
+      "remoteAdmin": [
+        "Screensaver > Widgets"
+      ]
+    }
+  },
+  "screensaverOverlayShow": "Afficher ce widget",
+  "@screensaverOverlayShow": {
+    "context": "Settings > Screensaver > Widgets",
+    "description": "Tooltip on the switch that shows or hides one widget in the list.",
     "x-locations": {
       "device": [
         "Settings > Screensaver > Widgets"
@@ -52455,8 +52787,8 @@
     "context": "Settings > Voice Satellite > Assistant",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },
-  "settingVoiceSeamlessWakeDescription": "Ignore le son de réveil et garde ce que vous dites juste après le mot de réveil.",
-  "@settingVoiceSeamlessWakeDescription": {
+  "settingVoiceSeamlessWakeAssistDescription": "Ignore le son de réveil et garde ce que vous dites juste après le mot de réveil. Uniquement pour les pipelines Assist, pas pour les conversations en temps réel.",
+  "@settingVoiceSeamlessWakeAssistDescription": {
     "context": "Settings > Voice Satellite > Assistant",
     "description": "Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged."
   },

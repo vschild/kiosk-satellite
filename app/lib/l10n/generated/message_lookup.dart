@@ -139,6 +139,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'calendarWidgetDays' => strings.calendarWidgetDays,
       'calendarWidgetTomorrow' => strings.calendarWidgetTomorrow,
       'calendarWidgetWeek' => strings.calendarWidgetWeek,
+      'calendarWidgetAllDay' => strings.calendarWidgetAllDay,
       'calendarWidgetDots' => strings.calendarWidgetDots,
       'calendarWidgetDotsHint' => strings.calendarWidgetDotsHint,
       'calendarVoiceSection' => strings.calendarVoiceSection,
@@ -726,6 +727,16 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'intercomPlaying' => strings.intercomPlaying,
       'intercomAKiosk' => strings.intercomAKiosk,
       'intercomEndCall' => strings.intercomEndCall,
+      'intercomVoiceCall' => strings.intercomVoiceCall,
+      'intercomVideoCall' => strings.intercomVideoCall,
+      'intercomVoiceOnly' => strings.intercomVoiceOnly,
+      'intercomVideoAnswer' => strings.intercomVideoAnswer,
+      'intercomSwitchCamera' => strings.intercomSwitchCamera,
+      'intercomCameraButton' => strings.intercomCameraButton,
+      'intercomCameraOff' => strings.intercomCameraOff,
+      'intercomYourCameraOff' => strings.intercomYourCameraOff,
+      'intercomVideoReconnecting' => strings.intercomVideoReconnecting,
+      'intercomCameraOffNotice' => strings.intercomCameraOffNotice,
       'intercomCallFailed' => strings.intercomCallFailed,
       'intercomKeyFailed' => strings.intercomKeyFailed,
       'intercomBroadcastFailed' => strings.intercomBroadcastFailed,
@@ -1427,8 +1438,8 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'settingCalendarDefaultViewDescription' =>
         strings.settingCalendarDefaultViewDescription,
       'settingCalendarWeekStartTitle' => strings.settingCalendarWeekStartTitle,
-      'settingCalendarWeekStartDescription' =>
-        strings.settingCalendarWeekStartDescription,
+      'settingCalendarWeekStartAppLanguageDescription' =>
+        strings.settingCalendarWeekStartAppLanguageDescription,
       'settingCalendarWeatherEntityTitle' =>
         strings.settingCalendarWeatherEntityTitle,
       'settingCalendarWeatherEntityDescription' =>
@@ -2694,6 +2705,21 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'intercomOptionHangupRingingIgnore' =>
         strings.intercomOptionHangupRingingIgnore,
       'intercomTalkSection' => strings.intercomTalkSection,
+      'settingIntercomVideoTitle' => strings.settingIntercomVideoTitle,
+      'settingIntercomVideoDescription' =>
+        strings.settingIntercomVideoDescription,
+      'settingIntercomVideoQualityTitle' =>
+        strings.settingIntercomVideoQualityTitle,
+      'settingIntercomVideoQualityDescription' =>
+        strings.settingIntercomVideoQualityDescription,
+      'intercomOptionVideoLow' => strings.intercomOptionVideoLow,
+      'intercomOptionVideoMedium' => strings.intercomOptionVideoMedium,
+      'intercomOptionVideoHigh' => strings.intercomOptionVideoHigh,
+      'intercomVideoSection' => strings.intercomVideoSection,
+      'settingIntercomAutoAnswerCameraTitle' =>
+        strings.settingIntercomAutoAnswerCameraTitle,
+      'settingIntercomAutoAnswerCameraDescription' =>
+        strings.settingIntercomAutoAnswerCameraDescription,
       'settingKioskAllowDrawerTitle' => strings.settingKioskAllowDrawerTitle,
       'settingKioskAllowDrawerDescription' =>
         strings.settingKioskAllowDrawerDescription,
@@ -4681,6 +4707,10 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'screensaverOverlayHumidity' => strings.screensaverOverlayHumidity,
       'screensaverOverlayWind' => strings.screensaverOverlayWind,
       'screensaverOverlayVisibility' => strings.screensaverOverlayVisibility,
+      'settingScreensaverWidgetsEnabledTitle' =>
+        strings.settingScreensaverWidgetsEnabledTitle,
+      'settingScreensaverWidgetsEnabledDescription' =>
+        strings.settingScreensaverWidgetsEnabledDescription,
       'settingScreensaverWidgetsTitle' =>
         strings.settingScreensaverWidgetsTitle,
       'settingScreensaverWidgetsDescription' =>
@@ -4707,6 +4737,7 @@ String messageById(UiStrings strings, String? id, String fallback) =>
         strings.settingScreensaverVignetteStrengthDescription,
       'screensaverOverlayWidgetsEmpty' =>
         strings.screensaverOverlayWidgetsEmpty,
+      'screensaverOverlayShow' => strings.screensaverOverlayShow,
       'screensaverOverlayRemove' => strings.screensaverOverlayRemove,
       'screensaverOverlayAdd' => strings.screensaverOverlayAdd,
       'screensaverOverlayAddHelp' => strings.screensaverOverlayAddHelp,
@@ -4782,8 +4813,8 @@ String messageById(UiStrings strings, String? id, String fallback) =>
       'voiceThisKiosk' => strings.voiceThisKiosk,
       'voiceSelectFailed' => strings.voiceSelectFailed,
       'settingVoiceSeamlessWakeTitle' => strings.settingVoiceSeamlessWakeTitle,
-      'settingVoiceSeamlessWakeDescription' =>
-        strings.settingVoiceSeamlessWakeDescription,
+      'settingVoiceSeamlessWakeAssistDescription' =>
+        strings.settingVoiceSeamlessWakeAssistDescription,
       'settingVoiceFollowupDelayTitle' =>
         strings.settingVoiceFollowupDelayTitle,
       'settingVoiceFollowupDelayDescription' =>

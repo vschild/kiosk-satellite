@@ -554,11 +554,11 @@ abstract class UiStrings {
   /// **'Phrase'**
   String get alarmsPhrase;
 
-  /// Hint under the phrase text box. The three placeholders are shown to the user literally, in braces, and must not be translated.
+  /// Hint under the phrase text box. {variables} is a list of words in braces, like {label}, {time}, which the user types as they are.
   ///
   /// In en, this message translates to:
-  /// **'{label}, {time} and {day} become the alarm\'s label, time and day.'**
-  String alarmsPhraseHint(String label, String time, String day);
+  /// **'Available variables: {variables}'**
+  String alarmsPhraseVariables(String variables);
 
   /// Heading of the group about setting alarms by voice.
   ///
@@ -1057,6 +1057,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Next 7 days'**
   String get calendarWidgetWeek;
+
+  /// Switch. Off, the Up next widget lists only events with a start time and leaves out events that last the whole day, such as holidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all-day events'**
+  String get calendarWidgetAllDay;
 
   /// Switch. On, the Up next widget marks each event with a small dot in its calendar's color instead of the picture of the person the calendar belongs to.
   ///
@@ -4821,6 +4827,12 @@ abstract class UiStrings {
   /// **'Calling…'**
   String get intercomCalling;
 
+  /// Countdown on a ringing video call that opens on its own with this kiosk's camera on.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera on in {seconds} s'**
+  String intercomAnswersWithCameraIn(String seconds);
+
   /// Label or guidance in this section.
   ///
   /// In en, this message translates to:
@@ -4994,6 +5006,66 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'End call'**
   String get intercomEndCall;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice call'**
+  String get intercomVoiceCall;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Video call'**
+  String get intercomVideoCall;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice only'**
+  String get intercomVoiceOnly;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get intercomVideoAnswer;
+
+  /// Button that moves a video call between the front and back camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get intercomSwitchCamera;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get intercomCameraButton;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera off'**
+  String get intercomCameraOff;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Your camera is off'**
+  String get intercomYourCameraOff;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'Video reconnecting…'**
+  String get intercomVideoReconnecting;
+
+  /// Label or guidance in this section.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is off. This kiosk can show video but not send it.'**
+  String get intercomCameraOffNotice;
 
   /// Label or guidance in this section.
   ///
@@ -8200,6 +8272,18 @@ abstract class UiStrings {
   /// **'System update available'**
   String get overviewSystemUpdate;
 
+  /// A newer release of an installed plugin. The name is the plugin's own name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} update available'**
+  String overviewPluginUpdate(String name);
+
+  /// Under a plugin's update notice. Update opens a review of the release before it installs.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is ready to review and install.'**
+  String overviewPluginUpdateHelp(String version);
+
   /// Translate the interface text. Keep external names, versions and technical details unchanged.
   ///
   /// In en, this message translates to:
@@ -9145,8 +9229,8 @@ abstract class UiStrings {
   /// Setting description.
   ///
   /// In en, this message translates to:
-  /// **'Follows the device language unless set.'**
-  String get settingCalendarWeekStartDescription;
+  /// **'Follows the app language unless set.'**
+  String get settingCalendarWeekStartAppLanguageDescription;
 
   /// Setting label.
   ///
@@ -15994,6 +16078,66 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'Talk'**
   String get intercomTalkSection;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Video calls'**
+  String get settingIntercomVideoTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Send and show video in calls.'**
+  String get settingIntercomVideoDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Video quality'**
+  String get settingIntercomVideoQualityTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher quality uses more CPU.'**
+  String get settingIntercomVideoQualityDescription;
+
+  /// Visible option. Its stored value stays unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get intercomOptionVideoLow;
+
+  /// Visible option. Its stored value stays unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get intercomOptionVideoMedium;
+
+  /// Visible option. Its stored value stays unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get intercomOptionVideoHigh;
+
+  /// Section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get intercomVideoSection;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer with camera on'**
+  String get settingIntercomAutoAnswerCameraTitle;
+
+  /// Setting description.
+  ///
+  /// In en, this message translates to:
+  /// **'Video calls answered automatically open with the camera on.'**
+  String get settingIntercomAutoAnswerCameraDescription;
 
   /// Setting label.
   ///
@@ -23858,6 +24002,18 @@ abstract class UiStrings {
   /// Setting label.
   ///
   /// In en, this message translates to:
+  /// **'Enable screensaver widgets'**
+  String get settingScreensaverWidgetsEnabledTitle;
+
+  /// Help below this setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Small overlays in the corners of the screensaver.'**
+  String get settingScreensaverWidgetsEnabledDescription;
+
+  /// Setting label.
+  ///
+  /// In en, this message translates to:
   /// **'Widgets'**
   String get settingScreensaverWidgetsTitle;
 
@@ -23932,6 +24088,12 @@ abstract class UiStrings {
   /// In en, this message translates to:
   /// **'No widgets yet'**
   String get screensaverOverlayWidgetsEmpty;
+
+  /// Tooltip on the switch that shows or hides one widget in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this widget'**
+  String get screensaverOverlayShow;
 
   /// Label or guidance in this editor.
   ///
@@ -24374,8 +24536,8 @@ abstract class UiStrings {
   /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
   ///
   /// In en, this message translates to:
-  /// **'Skip the wake sound and keep what you say right after the wake word.'**
-  String get settingVoiceSeamlessWakeDescription;
+  /// **'Skip the wake sound and keep what you say right after the wake word. Only for Assist pipelines, not realtime conversations.'**
+  String get settingVoiceSeamlessWakeAssistDescription;
 
   /// Translate the visible label or help. Keep Voice Satellite, Kiosk Satellite, Home Assistant, ESPHome, HACS and model names unchanged.
   ///

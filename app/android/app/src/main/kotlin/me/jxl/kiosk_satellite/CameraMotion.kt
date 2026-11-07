@@ -362,6 +362,12 @@ class CameraMotion(
     private var boundRtsp = false
     private var boundRtspServer: CameraRtspServer? = null
     private var boundVideoConfig: Map<*, *>? = null
+
+    /** The size, rate and bitrate an intercom call asked for, null when no
+     *  call is sending. Dart stops RTSP for the length of such a call, but a
+     *  session handing over can briefly have both on one encoder. */
+    private var boundIntercom: Map<*, *>? = null
+    private val boundVideo: Boolean get() = boundRtsp || boundIntercom != null
     private var cancelPending: Runnable? = null
     private var boundArguments: Map<*, *>? = null
     private var disposed = false
@@ -862,12 +868,15 @@ class CameraMotion(
         cancelPending = null
         val args = arguments as? Map<*, *>
         val wantsRtsp = args?.get("rtsp") == true && rtsp?.demand == true
-        val canReuse = boundRtsp && wantsRtsp && boundCamera != null && boundRtspServer === rtsp &&
-            boundVideoConfig == rtspConfig &&
+        val wantsIntercom = args?.get("intercom") as? Map<*, *>
+        val sameRtsp = boundRtsp && wantsRtsp && boundRtspServer === rtsp && boundVideoConfig == rtspConfig
+        val sameIntercom = !boundRtsp && !wantsRtsp && boundIntercom != null && boundIntercom == wantsIntercom
+        val canReuse = (sameRtsp || sameIntercom) && boundCamera != null &&
             listOf("camera", "snapshotWidth", "snapshotHeight", "plugin").all { boundArguments?.get(it) == args?.get(it) }
         if (!canReuse) releaseCamera()
         boundArguments = args
         boundRtsp = wantsRtsp
+        boundIntercom = wantsIntercom
         boundRtspServer = if (wantsRtsp) rtsp else null
         boundVideoConfig = if (wantsRtsp) rtspConfig else null
         activeSink = sink
@@ -984,16 +993,34 @@ class CameraMotion(
 
     private fun retryRtsp(facing: CameraSelector, sink: EventChannel.EventSink, reason: String): Boolean {
         val id = captureCameraId ?: return false
-        if (!boundRtsp || !capturePolicy.advance(id)) return false
+        if (!boundVideo || !capturePolicy.advance(id)) return false
+        val wasRtsp = boundRtsp
+        val intercom = boundIntercom
         val server = boundRtspServer
         Log.w(TAG, "RTSP camera $id retry with capture fallback ${capturePolicy.level(id)}: $reason")
         CameraDiagnostics.record(diagnosticSession, "fallback", "camera=$id, next=${capturePolicy.level(id)}: $reason")
         releaseCamera(keepPendingRtspClients = capturePolicy.level(id) < 3)
-        boundRtsp = true
+        boundRtsp = wasRtsp
         boundRtspServer = server
+        boundIntercom = intercom
         activeFacing = facing
         start(facing, sink)
         return true
+    }
+
+    /** A new session for a call's video, at the shape the device turned to. */
+    private fun restartIntercomVideo(boundSession: Int) {
+        mainHandler.post {
+            val intercom = boundIntercom
+            val facing = activeFacing
+            val sink = activeSink
+            if (session != boundSession || intercom == null || facing == null || sink == null) return@post
+            CameraDiagnostics.record(diagnosticSession, "video restart", "the display turned during a call")
+            releaseCamera()
+            boundIntercom = intercom
+            activeFacing = facing
+            start(facing, sink)
+        }
     }
 
     private fun bindCamera(facing: CameraSelector, sink: EventChannel.EventSink, mySession: Int) {
@@ -1056,13 +1083,15 @@ class CameraMotion(
             val cameraId = Camera2CameraInfo.from(cameraInfo).cameraId
             captureCameraId = cameraId
             CameraDiagnostics.record(diagnosticId, "camera inventory", cameraInventory(context))
-            if (boundRtsp && capturePolicy.level(cameraId) >= 3) {
+            if (boundVideo && capturePolicy.level(cameraId) >= 3) {
                 CameraDiagnostics.record(diagnosticId, "RTSP exhausted", "camera=$cameraId, continuing with detection and snapshots")
-                rtsp?.fail("This camera could not start RTSP after trying simpler capture configurations. " +
+                if (boundRtsp) rtsp?.fail("This camera could not start RTSP after trying simpler capture configurations. " +
                     "Motion detection and snapshots remain available.")
+                if (boundIntercom != null) IntercomVideoHub.fail("This camera could not start video.")
                 boundRtsp = false
+                boundIntercom = null
             }
-            val captureLevel = if (boundRtsp) capturePolicy.level(cameraId) else 0
+            val captureLevel = if (boundVideo) capturePolicy.level(cameraId) else 0
             val pluginSize = pluginFrames
             val includeAnalysis = !boundRtsp || rtspConfig["analysis"] != false || pluginSize != null
 
@@ -1073,18 +1102,22 @@ class CameraMotion(
             // because people see those frames directly.
             // A plugin holding the camera gets the size it asked for, or
             // the larger one the other legs need.
+            // So does a camera that takes its stills from these frames.
+            val jpegHung = deviceCamera?.jpegHung(cameraId) == true
             val legSize =
                 if (captureLevel >= 2) Size(320, 240)
-                else if (palmsWanted || previewWanted || boundRtsp) Size(640, 480) else Size(320, 240)
-            val analysisSize =
-                if (pluginSize != null && captureLevel < 2 && pluginSize.width * pluginSize.height > legSize.width * legSize.height) pluginSize
-                else legSize
+                else if (palmsWanted || previewWanted || boundVideo) Size(640, 480) else Size(320, 240)
+            val analysisSize = listOfNotNull(
+                legSize,
+                pluginSize?.takeIf { captureLevel < 2 },
+                snapshotTarget?.takeIf { jpegHung && includeAnalysis && captureLevel < 2 },
+            ).maxBy { it.width * it.height }
             val resolution = streamAnalysisResolutionSelector(analysisSize)
 
             val analysisBuilder = ImageAnalysis.Builder()
                 .setResolutionSelector(resolution)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            if (boundRtsp) applyStreamingExposure(analysisBuilder, cameraProvider, selector)
+            if (boundVideo) applyStreamingExposure(analysisBuilder, cameraProvider, selector)
             else applyLowLightExposure(analysisBuilder, cameraProvider, selector)
             val imageAnalysis = analysisBuilder.build()
             var firstFrame = true
@@ -1109,11 +1142,12 @@ class CameraMotion(
             analysis = if (includeAnalysis) imageAnalysis else null
 
             val videoServer = if (boundRtsp) rtsp else null
-            val videoPreview = videoServer?.let { server ->
-                val height = if (captureLevel >= 2) 480 else (rtspConfig["height"] as? Number)?.toInt() ?: 480
-                val width = if (captureLevel >= 2) 640 else (rtspConfig["width"] as? Number)?.toInt() ?: 640
-                val fps = (rtspConfig["fps"] as? Number)?.toInt()?.coerceIn(5, 30) ?: 10
-                val bitrate = (rtspConfig["bitrate"] as? Number)?.toInt()?.coerceIn(100_000, 8_000_000) ?: 500_000
+            val videoConfig = if (videoServer != null) rtspConfig else boundIntercom
+            val videoPreview = videoConfig?.let { config ->
+                val height = if (captureLevel >= 2) 480 else (config["height"] as? Number)?.toInt() ?: 480
+                val width = if (captureLevel >= 2) 640 else (config["width"] as? Number)?.toInt() ?: 640
+                val fps = (config["fps"] as? Number)?.toInt()?.coerceIn(5, 30) ?: 10
+                val bitrate = (config["bitrate"] as? Number)?.toInt()?.coerceIn(100_000, 8_000_000) ?: 500_000
                 fun displayRotation(): Int = try {
                     @Suppress("DEPRECATION")
                     (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
@@ -1162,6 +1196,18 @@ class CameraMotion(
                                     info.hasCameraTransform())
                                 val existing = prepared
                                 if (existing != null) {
+                                    // An encoder's size is fixed, so a turned
+                                    // device would send bars around its picture.
+                                    // A call can take the short gap of a new
+                                    // session. RTSP viewers keep their stream.
+                                    val (turnedWidth, turnedHeight) = transform.outputDimensions(
+                                        request.resolution.width, request.resolution.height)
+                                    val size = existing.outputSize
+                                    if (videoServer == null && size != null &&
+                                        (size.width != turnedWidth || size.height != turnedHeight)) {
+                                        restartIntercomVideo(mySession)
+                                        return@setTransformationInfoListener
+                                    }
                                     existing.updateTransform(transform)
                                     return@setTransformationInfoListener
                                 }
@@ -1169,16 +1215,23 @@ class CameraMotion(
                                 if (preparing) return@setTransformationInfoListener
                                 preparing = true
                                 val encoder = CameraRtspEncoder(fps, bitrate,
-                                    { units -> if (session == mySession) server.config(units) },
+                                    { units -> if (session == mySession) {
+                                        videoServer?.config(units)
+                                        IntercomVideoHub.config(units)
+                                    } },
                                     { units, time -> if (session == mySession) {
                                         if (!includeAnalysis) lastFrameAtMs = SystemClock.elapsedRealtime()
-                                        server.frame(units, time)
+                                        videoServer?.frame(units, time)
+                                        IntercomVideoHub.frame(units, time)
                                     } },
                                     diagnosticSession = diagnosticId,
                                     overlayContext = context.applicationContext,
-                                    dateTime = rtspConfig["dateTime"] == true,
+                                    dateTime = videoServer != null && rtspConfig["dateTime"] == true,
                                     dateTimeBackground = rtspConfig["dateTimeBackground"] == true) { message ->
-                                    mainHandler.post { if (session == mySession) server.fail(message) }
+                                    mainHandler.post { if (session == mySession) {
+                                        videoServer?.fail(message)
+                                        IntercomVideoHub.fail(message)
+                                    } }
                                 }
                                 // Creating the codec is a binder call into the
                                 // media codec service, which held the main
@@ -1199,7 +1252,10 @@ class CameraMotion(
                                             if (!finished) finishRequest()
                                             CameraDiagnostics.record(diagnosticId, "video surface failure",
                                                 "requested=${width}x$height, actual=${request.resolution}", true, e)
-                                            if (session == mySession) server.fail(e.message ?: "H.264 video encoding unavailable.")
+                                            if (session == mySession) {
+                                                videoServer?.fail(e.message ?: "H.264 video encoding unavailable.")
+                                                IntercomVideoHub.fail(e.message ?: "H.264 video encoding unavailable.")
+                                            }
                                             return@execute
                                         }
                                         if (finished || session != mySession) {
@@ -1210,10 +1266,12 @@ class CameraMotion(
                                         }
                                         prepared = encoder
                                         rtspEncoder = encoder
+                                        IntercomVideoHub.attach(encoder)
                                         if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = encoder::snapshot
                                         latestTransform?.takeIf { it != transform }?.let(encoder::updateTransform)
                                         request.provideSurface(surface, executor) {
                                             finishRequest()
+                                            IntercomVideoHub.detach(encoder)
                                             if (rtspEncoder === encoder) {
                                                 rtspEncoder = null
                                                 if (!includeAnalysis) deviceCamera?.sharedVideoSnapshot = null
@@ -1230,7 +1288,7 @@ class CameraMotion(
             val owner = CameraLifecycle().also { lifecycle = it }
             // Pre-bound so a snapshot never reconfigures this session (an
             // AE resettle would read as motion and wake the screensaver).
-            val imageCapture = deviceCamera?.takeIf { captureLevel == 0 && includeAnalysis }?.let {
+            val imageCapture = deviceCamera?.takeIf { captureLevel == 0 && includeAnalysis && !jpegHung }?.let {
                 val target = snapshotTarget
                 if (target != null) it.buildCapture(target) else it.buildCapture()
             }
@@ -1264,6 +1322,7 @@ class CameraMotion(
                     cameraProvider.bindToLifecycle(owner, selector, imageAnalysis)
                 }
                 boundCamera = camera
+                deviceCamera?.sharedCaptureCamera = camera.cameraInfo
                 deviceCamera?.sharedAnalysis = includeAnalysis && deviceCamera?.sharedCapture == null
                 deviceCamera?.sharedDiagnosticSession = diagnosticId
                 CameraDiagnostics.record(diagnosticId, "bound", "camera=$cameraId, fallback=$captureLevel, " +
@@ -1374,14 +1433,18 @@ class CameraMotion(
                 if (power.isInteractive) {
                     Log.w(TAG, "no frames for ${quiet / 1000}s with the screen on; reopening")
                     CameraDiagnostics.record(diagnosticSession, "frame timeout", "screenOn=true, noFramesMs=$quiet", true)
-                    val facing = activeFacing
-                    if (facing != null && retryRtsp(facing, sink, "no camera frames")) return@Runnable
-                    sink.error(
-                        "camera",
-                        "the camera opened but delivered no frames for " +
-                            "${quiet / 1000}s",
-                        null,
-                    )
+                    val reopen = reopen@{
+                        if (session != mySession) return@reopen
+                        val facing = activeFacing
+                        if (facing != null && retryRtsp(facing, sink, "no camera frames")) return@reopen
+                        sink.error(
+                            "camera",
+                            "the camera opened but delivered no frames for " +
+                                "${quiet / 1000}s",
+                            null,
+                        )
+                    }
+                    if (deviceCamera?.abortStalledJpeg(lastFrameAtMs, reopen) != true) reopen()
                 } else {
                     Log.w(
                         TAG,
@@ -1891,7 +1954,7 @@ class CameraMotion(
      * rate pinned low and only surrenders the oscillation freedom.
      */
     private fun onExposureHunt(boundSession: Int) {
-        if (session != boundSession || aeLevel >= 2 || boundRtsp) return
+        if (session != boundSession || aeLevel >= 2 || boundVideo) return
         val facing = activeFacing ?: return
         val sink = activeSink ?: return
         aeLevel++
@@ -2049,7 +2112,7 @@ class CameraMotion(
             val info = selector.filter(provider.availableCameraInfos).first()
             val ranges = Camera2CameraInfo.from(info).getCameraCharacteristic(
                 CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: return
-            val target = (rtspConfig["fps"] as? Number)?.toInt()?.coerceIn(5, 30) ?: 10
+            val target = streamingFps()
             val selected = streamingFpsRange(ranges.map { it.lower..it.upper }, target) ?: return
             Camera2Interop.Extender(builder).setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
                 android.util.Range(selected.first, selected.last))
@@ -2059,12 +2122,18 @@ class CameraMotion(
     }
 
     @OptIn(ExperimentalCamera2Interop::class)
+    /** The rate of whatever the encoder serves: a call rides RTSP's when both run. */
+    private fun streamingFps(): Int {
+        val config = if (boundRtsp) rtspConfig else boundIntercom ?: rtspConfig
+        return (config["fps"] as? Number)?.toInt()?.coerceIn(5, 30) ?: 10
+    }
+
     private fun applyStreamingExposure(builder: ImageAnalysis.Builder, cameraProvider: ProcessCameraProvider, selector: CameraSelector) {
         try {
             val info = selector.filter(cameraProvider.availableCameraInfos).first()
             val ranges = Camera2CameraInfo.from(info).getCameraCharacteristic(
                 CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: return
-            val target = (rtspConfig["fps"] as? Number)?.toInt()?.coerceIn(5, 30) ?: 10
+            val target = streamingFps()
             val selected = streamingFpsRange(ranges.map { it.lower..it.upper }, target) ?: return
             val range = android.util.Range(selected.first, selected.last)
             Camera2Interop.Extender(builder).setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, range)
@@ -2118,7 +2187,7 @@ class CameraMotion(
         // Dart re-listens when motion policy changes. Allow that round trip
         // to reuse the live video surface and encoder without a recording gap.
         cancelPending?.let { mainHandler.removeCallbacks(it) }
-        cancelPending = Runnable { releaseCamera() }.also { mainHandler.postDelayed(it, if (boundRtsp) 250L else 0L) }
+        cancelPending = Runnable { releaseCamera() }.also { mainHandler.postDelayed(it, if (boundVideo) 250L else 0L) }
     }
 
     private fun releaseCamera(keepPendingRtspClients: Boolean = false) {
@@ -2149,6 +2218,7 @@ class CameraMotion(
         boundRtsp = false
         boundRtspServer = null
         boundVideoConfig = null
+        boundIntercom = null
     }
 
     fun dispose() {

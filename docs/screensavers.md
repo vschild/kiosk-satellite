@@ -142,7 +142,7 @@ The screensaver has to be switched on in Android settings. Some devices also onl
 
 ### Clock
 
-Renders a full screen clock with four selectable styles via **Style**: **Digital Clock**, **Flip Clock** (split-flap cards), **Roller Clock** (rolling digits styled after the Lenovo Smart Clock 2) or **Hand Clock** (a dial with hands, ticks and numbers). Date formats adapt automatically to the device's system language.
+Renders a full screen clock with four selectable styles via **Style**: **Digital Clock**, **Flip Clock** (split-flap cards), **Roller Clock** (rolling digits styled after the Lenovo Smart Clock 2) or **Hand Clock** (a dial with hands, ticks and numbers). Dates use the app language set under **Device > User Interface > Language**.
 
 | Setting | Notes |
 | --- | --- |
@@ -263,6 +263,8 @@ Photo slideshow modes (Home Assistant Media, Local Media, Photo Gallery, Image U
 
 Widgets are small status overlays anchored to display corners, configured within the **Widgets** section of screensaver settings. Each widget claims one of the four display corners (limited to one widget per corner) and includes individual customization options. Widgets overlay all compatible screensaver modes, but are suppressed in Black mode when **Hide all extras** is enabled. 
 
+**Enable screensaver widgets**, on by default, shows or hides all widgets at once and keeps the list as it is. Each widget in the list also has its own switch beside the delete button. A widget that is off stays in the list and keeps its corner there, but it does not show on the screensaver and the photo metadata overlay can use that corner. Widgets stay hidden while **Enable screensaver widgets** is off, even under a [schedule](#schedule) entry that sets **Widgets** to on. Home Assistant can flip the same switch with the [ESPHome](esphome.md) **Screensaver widgets** entity.
+
 Every widget has its own **Scale** slider (-50% to +50%) in its editor, which sizes that widget relative to the others. The **Global widget scaling** slider (50% to 200%) then scales all of them together for the display, keeping their relative sizes, and previews live while the screensaver is running. Widgets draw in Rubik unless the **Global font family** and **Global font weight** rows say otherwise, with the same choices as the Clock screensaver's Font Family and Font weight rows. Each widget's editor has its own **Font family** and **Font weight** pickers, Default following the global rows, so one widget can wear the clock's face while the rest stay in Rubik. When running over the Clock screensaver in Night mode, all active widgets inherit the clock's **Night color** to maintain low light levels. **Text drop shadow**, enabled by default, adds a defined shadow beneath widget text. Turn it off for text without a shadow. Changes preview live. Widgets render over a soft dark vignette to ensure text readability against bright background images. The **Vignette strength** slider (0% to 100%, 40% default) adjusts vignette opacity with live previewing. Setting this to 0% removes shading entirely for a clean frame look.
 
 Widgets hold corner priority over the photo metadata overlay of Immich Media, Home Assistant Media, Local Media and Image URL. If a widget claims a corner, the overlay automatically moves to the next available corner. However, when Immich displays a side-by-side portrait pair, both bottom corners are reserved for photo details, temporarily hiding any widgets assigned to those corners until the next single slide displays. A stacked landscape pair only reserves the bottom corner on the overlay's side, since the top photo's details sit at the bottom of its own half, so the top corners stay free.
@@ -330,7 +332,7 @@ Reads hardware battery state directly from Android rather than a Home Assistant 
 
 ### Next alarm
 
-Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours, and the snooze while one runs, over any mode except Calendar and Camera Streams. The corner stays empty the rest of the time. A tap on the widget opens the alarm list.
+Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours, and the snooze while one runs, over any mode except Calendar and Camera Streams. The corner stays empty the rest of the time. A tap on the widget opens the alarm list. Times follow **Settings > Alarms > 24-hour clock**.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -339,13 +341,15 @@ Shows the next [alarm](alarms.md) set on the kiosk when it rings within 24 hours
 
 ### Up next
 
-Shows what is still to come today on the [calendar](calendar.md), over any mode except Calendar and Camera Streams: the picture of the person linked to each event's calendar, the start time and the title. A calendar with no person linked shows its initial on its color, and a shared event shows everyone on it. Calendars hidden with their chips are left out. The corner stays empty once nothing else is on today. A tap on the widget opens the calendar on the Schedule view.
+Shows what is still to come on the [calendar](calendar.md), over any mode except Calendar and Camera Streams: the picture of the person linked to each event's calendar, the start time and the title. A calendar with no person linked shows its initial on its color, and a shared event shows everyone on it. Calendars hidden with their chips are left out. The corner stays empty once nothing else is on in the days shown. A tap on the widget opens the calendar on the Schedule view. Times follow **Settings > Calendar > 24-hour clock**.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Corner | First free corner | Displays in the first available corner. |
 | Color | White | Applies to the times and titles. |
 | Events shown | 3 | How many coming events it lists, 1 to 5. |
+| Days shown | Today | How far ahead it looks: Today, Today and tomorrow or Next 7 days. |
+| Show all-day events | On | Turn this off to list only events with a start time. |
 | Colored dots | Off | Marks each event with a small dot in its calendar's color instead of the pictures. Night mode always uses the dots. |
 
 ### Entity
@@ -471,7 +475,7 @@ Proximity Detection uses the device's physical proximity sensor instead of the c
 * **Only when screen is off**: Keeps the visible screensaver up when something approaches. Once the display turns off, a new approach dismisses the screensaver and wakes the dashboard. Requires Dismiss on proximity.
 * **Postpone screensaver on proximity**: Monitors the sensor between screensaver sessions, resetting the idle timeout clock while an object remains close. Requires Dismiss on proximity. Proximity sensing incurs virtually zero power overhead as it relies on hardware interrupt lines.
 
-Proximity sensing requires no camera permissions and functions in complete darkness. However, hardware availability is limited: most kiosk-class tablets (such as Galaxy Tab devices, Fire tablets, and Echo Show hardware) lack physical proximity sensors. On unsupported devices, this setting appears disabled. While modern smartphones include proximity sensors, many use virtual "palm proximity" software sensors designed for phone calls that only trigger on direct screen contact. The settings page displays the reported sensor hardware name: physical infrared or time-of-flight sensors (such as STK3310, VCNL4040, or TMD2755) support hover detection at a few centimeters, whereas virtual "palm" or "touch" sensors do not. Some wall panels, such as the Sonoff NSPanel Pro, report a raw reading that rises as something comes closer instead of a distance. Kiosk Satellite recognizes these and treats a clear rise over the resting reading as an approach, which on the NSPanel Pro reaches about 20 cm.
+Proximity sensing requires no camera permissions and functions in complete darkness. However, hardware availability is limited: most kiosk-class tablets (such as Galaxy Tab devices, Fire tablets, and Echo Show hardware) lack physical proximity sensors. On unsupported devices, this setting appears disabled. While modern smartphones include proximity sensors, many use virtual "palm proximity" software sensors designed for phone calls that only trigger on direct screen contact. The settings page displays the reported sensor hardware name: physical infrared or time-of-flight sensors (such as STK3310, VCNL4040, or TMD2755) support hover detection at a few centimeters, whereas virtual "palm" or "touch" sensors do not. Some devices, such as the Sonoff NSPanel Pro and the Lenovo Smart Clock, report a raw reading that rises as something comes closer instead of a distance. Kiosk Satellite recognizes these and treats a clear rise over the resting reading as an approach, which on the NSPanel Pro reaches about 20 cm.
 
 Objects resting on the sensor when monitoring begins do not trigger an approach event, preventing tablet cases or mounts from causing continuous wake loops. While an object remains near the sensor, presence checks repeat every few seconds to hold off screensaver activation when Postpone is enabled. Repeat checks do not trigger wake events; only initial approach events dismiss the screensaver. Under [Lockdown Mode](kiosk.md), proximity events will neither dismiss nor postpone screensavers.
 
@@ -516,7 +520,7 @@ Touch interactions instantly dismiss the screensaver and reset the idle clock. T
 
 While a screensaver obscures the web page, the **Pause dashboard during screensaver** optimization (enabled by default) completely halts web view rendering. This produces the majority of screensaver power and thermal savings (see benchmark details in [Optimizations](optimizations.md)). Dim and Home Assistant Dashboard are the exceptions, as the dashboard remains visible.
 
-Automated dashboard view rotation pauses while a screensaver is active, resuming from its current position when dismissed. Conversely, the **Return to home dashboard view** timer continues running quietly behind screensavers, ensuring the kiosk resets to the primary home dashboard view overnight without illuminating the display. Under the Home Assistant Dashboard screensaver that return happens when the screensaver ends. Now Playing can land somewhere else with its [After dismissing](sendspin.md#full-screen-now-playing) setting.
+Automated dashboard view rotation pauses while a screensaver is active, resuming from its current position when dismissed. Conversely, the **Return to home dashboard view** timer continues running quietly behind screensavers, ensuring the kiosk resets to the primary home dashboard view overnight without illuminating the display. If the start URL has a hash, such as a Bubble Card popup address, the return lands on that view with the popup open. Under the Home Assistant Dashboard screensaver that return happens when the screensaver ends. Now Playing can land somewhere else with its [After dismissing](sendspin.md#full-screen-now-playing) setting.
 
 When using the Voice Satellite integration on the dashboard, the **Turn off the Voice Satellite screensaver** setting (enabled by default in Voice Satellite settings) automatically disables the web integration's internal screensaver to prevent software conflicts.
 

@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../core/command_registry.dart';
 import '../../core/events.dart';
+import '../../core/locale_dates.dart';
 import '../../core/manager.dart';
 import '../home_assistant/ha_tts.dart';
 import '../music_library/music_pick.dart';
@@ -17,6 +18,7 @@ import '../screensaver/screensaver_manager.dart'
     show currentScreensaverScheduleEntry;
 import '../settings/definitions.dart' as defs;
 import '../settings/settings_manager.dart';
+import '../voice/ha_socket.dart';
 import 'alarm_model.dart';
 import 'alarm_requests.dart';
 
@@ -131,12 +133,14 @@ class AlarmManager extends Manager {
     this._settings, {
     DateTime Function()? clock,
     MethodChannel? channel,
+    this._userName,
   }) : _clock = clock ?? DateTime.now,
        _channel = channel ?? const MethodChannel('kiosk_satellite/alarms');
 
   final SettingsManager _settings;
   final DateTime Function() _clock;
   final MethodChannel _channel;
+  final Future<String> Function()? _userName;
 
   /// The mode a plugin holds the screensaver on, which wins over the
   /// schedule and the setting. Set by the app container.
@@ -821,14 +825,83 @@ class AlarmManager extends Manager {
   int get _easeMs =>
       (_settings.get(defs.alarmsEaseInSeconds).toDouble() * 1000).round();
 
-  /// What [alarm] says ringing at [at]: its own phrase or the default, with
-  /// {label}, {time} and {day} in the device's language.
-  String phraseFor(Alarm alarm, DateTime at) => fillAlarmPhrase(
-    alarm.phrase.isEmpty ? _settings.get(defs.alarmsPhrase) : alarm.phrase,
-    label: alarm.label,
-    time: _safeFormat((l) => DateFormat.jm(l), at),
-    day: _safeFormat((l) => DateFormat.EEEE(l), at),
+  /// The phrase [alarm] fills in: its own or the default.
+  String _template(Alarm alarm) =>
+      alarm.phrase.isEmpty ? _settings.get(defs.alarmsPhrase) : alarm.phrase;
+
+  /// What [alarm] says ringing at [at], in the device's language. [userName]
+  /// fills {name}.
+  String phraseFor(Alarm alarm, DateTime at, {String userName = ''}) =>
+      fillAlarmPhrase(
+        _template(alarm),
+        label: alarm.label,
+        name: userName,
+        time: _spokenTime(at),
+        hour: _spokenHour(at),
+        minute: '${at.minute}',
+        date: _safeFormat((l) => DateFormat.yMMMMd(l), at),
+        day: _safeFormat((l) => DateFormat.EEEE(l), at),
+        dayOfMonth: '${at.day}',
+        month: _safeFormat((l) => DateFormat.MMMM(l), at),
+        year: '${at.year}',
+      );
+
+  /// [phraseFor] with the Home Assistant user's name, asked for only when
+  /// the phrase uses it.
+  Future<String> spokenPhrase(Alarm alarm, DateTime at) async => phraseFor(
+    alarm,
+    at,
+    userName: _template(alarm).contains('{name}') ? await _askUserName() : '',
   );
+
+  /// Who the kiosk's token belongs to, or blank when Home Assistant does
+  /// not say in time: the phrase then goes without the name.
+  Future<String> _askUserName() async {
+    try {
+      return await (_userName ?? _haUserName)().timeout(
+        const Duration(seconds: 5),
+      );
+    } catch (e) {
+      log.warn(name, 'no Home Assistant user name for the phrase: $e');
+      return '';
+    }
+  }
+
+  /// A socket for this one question, so a kiosk that never says {name}
+  /// holds no connection for it.
+  Future<String> _haUserName() async {
+    final socket = HaSocket(
+      baseUrl: () => _settings.get(defs.haUrl),
+      token: () => _settings.get(defs.haToken),
+    );
+    try {
+      final user = await socket.request({'type': 'auth/current_user'});
+      return user is Map ? '${user['name'] ?? ''}' : '';
+    } finally {
+      await socket.close();
+    }
+  }
+
+  bool get _use24h => _settings.get(defs.alarmsClock24h);
+
+  /// The time on the clock Settings > Alarms > 24-hour clock picks: 19:00,
+  /// or 7:00 PM.
+  String _spokenTime(DateTime at) {
+    String out;
+    try {
+      out = (_use24h ? DateFormat.Hm() : twelveHourFormat()).format(at);
+    } catch (_) {
+      out = DateFormat(_use24h ? 'HH:mm' : 'h:mm a', 'en_US').format(at);
+    }
+    return _plainSpaces(out);
+  }
+
+  /// The hour the way {time} reads it, so 7 at 19:00 on an AM/PM clock.
+  String _spokenHour(DateTime at) {
+    if (_use24h) return '${at.hour}';
+    final hour = at.hour % 12;
+    return '${hour == 0 ? 12 : hour}';
+  }
 
   /// Plain spaces: intl puts a narrow no-break one before AM, which a
   /// text to speech engine may read out or trip on.
@@ -839,15 +912,18 @@ class AlarmManager extends Manager {
     } catch (_) {
       out = make('en_US').format(t);
     }
-    return out.replaceAll(RegExp('[\u00a0\u202f]'), ' ');
+    return _plainSpaces(out);
   }
+
+  static String _plainSpaces(String s) =>
+      s.replaceAll(RegExp('[\u00a0\u202f]'), ' ');
 
   /// Has Home Assistant say the phrase and hands the audio to the ring,
   /// which plays it after every second pass of the tone. The tone rings
   /// from the first second either way: a slow or missing Home Assistant
   /// only costs the words.
   Future<void> _speakRing(Alarm alarm, DateTime at, int gen) async {
-    final text = phraseFor(alarm, at);
+    final text = await spokenPhrase(alarm, at);
     if (text.isEmpty) return;
     final engine = _settings.get(defs.alarmsTtsEngine).trim();
     // A language or voice only goes with an engine picked by name.
