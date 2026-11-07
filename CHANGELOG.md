@@ -4,12 +4,105 @@ All notable changes to Kiosk Satellite are documented here. Full release notes f
 
 ## Unreleased
 
+### Changed
+- **Talk right after the wake word only applies to Assist pipelines.** With it on, a realtime conversation skipped the wake sound and sent what was said right after the wake word, which could carry the end of the wake word along ("So, what time is it?"). Realtime conversations now always start after the wake sound when Play chimes is on.
+
+### Fixed
+- **The calendar editing settings follow the app language.** Settings > Calendar > Allow adding and editing events and Allow deleting events showed their labels and hints in English in every language, on the kiosk and in remote administration.
+- **No reply to the echo of a realtime answer.** Right after an answer stopped playing, its echo could still reach the microphone. An OpenAI conversation could take that for the user and reply, often with something nobody asked for. Speech that starts in that moment now has to be as loud as talking over an answer. xAI and Gemini conversations already worked this way. The app log now shows where each stretch of speech starts and stops against the end of the last answer, and when the provider heard no words.
+
+## v2026.11.11 - 2026-11-07
+
+### Added
+- **24-hour clock for the calendar and alarms.** Settings > Calendar > 24-hour clock picks 24-hour times or AM/PM for the calendar and the Up next widget. Settings > Alarms > 24-hour clock does the same for the alarm list, the time wheel, the ringing screen, the next alarm widget, the remote administration's alarms page and `{time}` and `{hour}` in the spoken phrase. Both used to follow Android's clock setting, which is where they start. With them off, times use AM/PM in every language, including the ones that write 24-hour times by default. With the alarms on AM/PM, the time picker in remote administration takes the hour from 1 to 12 with an AM or PM choice, as the kiosk's wheel does.
+
+### Changed
+- **Dates and numbers follow the app language.** The clock screensavers, Weather Mood, calendar, alarms, photo details, wake word activations, Celestial, the camera stream date and time and the remote administration's file and chart dates used the Android language. They now use the language set under Device > User Interface > Language. If the Android language is the same language, its region is kept, so English on a British device still shows day first dates and starts the week on Monday in the calendar and alarms. The calendar's Week starts on hint now says it follows the app language.
+- **Talk right after the wake word says it only covers Assist pipelines (#1336).** The hint now says that the setting has no effect on realtime conversations, where speech right after the wake word can still be cut off while the connection opens.
+
+### Fixed
+- **The alarm details fit a tablet in portrait.** The time now sits above the details on a screen narrower than 900 points, so Repeat reads on one line with all seven days beside it. Before, Repeat wrapped one letter per line and the last day was cut off.
+- **The alarm time wheel keeps its hour when the clock changes.** If the clock switched between 12 and 24 hours while the wheel was open, the hour wheel jumped to a different hour, such as 10 instead of 23.
+- **A rare crash when the Sendspin player stops or restarts.** Stopping the player closed its server socket twice. If a file had been opened on the same number in between, it was closed too and the app crashed. This could happen when an alarm with music stopped, when the player was turned off and when its settings changed.
+- **The Weather Mood condition icon shows when rain starts.** If the weather changed to rain or heavy rain with the screensaver up, the conditions chip could show an empty circle or the previous rain icon until the temperature next changed.
+
+## v2026.11.10 - 2026-11-06
+
+### Added
+- **Plugins can tell when Now Playing is on screen (#1335).** `getScreensaverAppearance` and the `screensaver.appearance` event now include `nowPlaying`, which is true while the player is on screen, including a paused player and a shared layout. `nowPlayingShared` is true while the screensaver stays in sight beside the player. A plugin drawn over the screensaver can now get out of the way of the player. Music playing with no player on screen leaves both false.
+
+### Fixed
+- **Plugins follow Night mode beside a shared player.** `getScreensaverAppearance` and `screensaver.appearance` reported `night` as false under any Now Playing player, even when the Clock screensaver showed its Night mode colors in a shared layout. `night` is now false only when the player fills the screen.
+- **A followed Music Assistant group keeps this device online (#1334).** Selecting a Music Assistant group with this device in it took the device's Sendspin player offline, which left the group with a member that could not play. The Sendspin player now stays online and plays with the group while the floating player and Now Playing follow the group. Selecting any other player still takes it offline.
+- **This device's own Music Assistant player is found on every server (#1334).** A player with a hash id and a different name in Music Assistant was not recognized as this device, so the speaker group menu had nothing to read and the device's own player was offered as a player to follow.
+
+## v2026.11.9 - 2026-11-06
+
+### Added
+- **Plugin update notices (#1324).** Plugin updates are now checked a minute after the app starts and every 12 hours. A plugin with a newer release shows its new version in Plugin Manager and gets a row under **Needs attention** on the remote admin Overview. **Update** opens the usual review. Plugin updates never install automatically.
+
+### Changed
+- **Video calls show more of the picture.** The call buttons now fade out with the kiosk's name 3 seconds after a call connects. Tap the screen to bring them back. They stay on screen while a call rings and while **Hold to talk** is held.
+- **Video calls use a black background.** The area around the picture is now black in every theme.
+- **Crash reports can show a thread leak.** A small number of installs run out of threads and crash in a loop, and the reports could not show why. A report now samples up to 2,048 threads instead of 256 and includes the leading letters of any thread name shared by 8 or more threads. Other names stay grouped as other, and no address or URL in a thread name is sent.
+
+### Fixed
+- **Plugin overlays no longer vanish after a restart with the screen off (#1328).** If a plugin restarted while the screen was off, its overlay could stay at one pixel and disappear with no error until the plugin was restarted again. The same could happen on a lit screen if the restart fell between two frames. Native plugin screensavers had the same problem and could keep showing the view from the stopped plugin. A new plugin session now always builds a new view.
+- **Search no longer leaves a plugin's settings page marked as open.** If you searched in the remote admin from a plugin's page, the plugin was still told its page was open while the results covered it.
+- **Going home keeps a popup hash in the start URL (#1327).** Since 2026.11.8, **Return to home dashboard view** and the screensaver closed a popup named by the start URL, such as a Bubble Card popup, and never opened it. Both now land on the view with its hash, as the **Dashboard** menu entry does. **Last view** in Now Playing and the return from the Home Assistant Dashboard screensaver bring back a popup that was open. A start URL with no hash works as before.
+- **Streamed answers no longer start over after a pause (#1323).** If a conversation agent spoke a short sentence and then ran a tool for more than 8 seconds, the sentence played twice before the answer. The sentence now plays once, right away and in full, and the answer follows when it is ready.
+- **Video calls no longer crash on Android 9 and older.** If the other kiosk's camera turned off or the call ended before the first frame of video arrived, the app crashed. The same could happen with the self view.
+- **A crash on the microphone thread with software echo cancellation.** The app could crash when a sound stopped playing at the exact moment the microphone read the list of active players.
+- **A rare graphics driver crash on OpenGL ES devices (#921).** When a drawing surface was replaced while a dashboard was on screen, a buffer could be created with no graphics context and crash the app on a later frame. Seen on a Meta Portal Go and a Xiaomi Pad 5. The context is now released as soon as the old surface is gone.
+- **Updates no longer leave a Meta Portal without its sensors and mic.** On Android 10 with Kiosk Satellite as the home app, an update could leave the app running with no working light sensor or microphone and with the Kiosk Satellite Service stopped until the next restart. The device's other launcher now shows during a silent update and Kiosk Satellite reopens when the install finishes. If the problem still happens, for example after an install over adb, the app restarts once.
+
+## v2026.11.8 - 2026-11-05
+
+### Added
+- **More variables for spoken alarm phrases (#1309).** A phrase can now use `{name}`, `{hour}`, `{minute}`, `{date}`, `{dayofmonth}`, `{month}` and `{year}`, so a phrase can avoid a time or date that a text to speech engine reads badly. `{name}` is the Home Assistant user the kiosk's token belongs to. `{day}` is still the day of the week, so existing phrases say the same thing. The hint under the Phrase box lists every variable.
+- **Hide all-day events on the Up next widget (#1312).** The widget has a new **Show all-day events** switch, on by default. Turn it off to list only events with a start time, so holidays and other all-day entries do not take up the widget's slots.
+- **Answer video calls automatically with the camera on.** The new **Answer with camera on** switch, off by default, appears under **Answer mode** when **Answer automatically** is picked. A call from a kiosk with its camera on then opens with the camera on, and the countdown says so. Voice calls stay voice only, pressing **Voice only** during the countdown keeps the camera off and Fleet Management never syncs the switch.
+- **Switch camera in a video call.** On a device with a front and a back camera, **Switch camera** now appears under the kiosk's name and call time after a tap on the screen. The next call starts on the camera picked in settings.
+
+### Changed
+- **The README mentions video calls.** The Intercom entry now covers voice and video calls.
+- **Dashboard filtering narrows auto-entities by fixed attributes (#1314).** An include that tests `device_class`, `unit_of_measurement` or `state_class` now limits the entities a view watches, the same way `domain` does. A battery list with `domain: sensor` and `device_class: battery` no longer watches every sensor, and a view with only one of these attributes no longer runs unfiltered. A helper that gets one of these attributes later is picked up on its own.
+
+### Fixed
+- **Proximity detection works on the Lenovo Smart Clock (#1315).** Its sensor reports raw counts that rise as something comes closer, so **Dismiss on proximity** and **Postpone screensaver on proximity** never saw an approach. A clear rise over the resting reading now counts as one, as on the NSPanel Pro.
+- **The Bluetooth proxy recovers from a late scan registration (#1310).** On Android 8.0 to 9, one scan registration that answered after Android's 2 second limit left the proxy relaying nothing until Bluetooth was toggled or the device rebooted. The app also restarted the adapter only once per run. The adapter now restarts if a scan goes silent after a registration failure. On Android 12L and older, a restart that brought advertisements back can repeat after 30 minutes. If registration gets slow on Android 8.0 to 9, scan sessions rotate every 30 minutes instead of every 2 minutes until it speeds up. Devices that register on time keep the 2 minute rotation.
+- **auto-entities filters match the same entities as the card.** With **Filter dashboard updates** on, some auto-entities cards stopped updating because the filter matched rules more narrowly than the card does. An `integration` rule made in the visual editor saves a config entry, which the filter did not recognize. A `label` rule now also matches labels on an entity's device and label names. Every rule now accepts the same globs and regular expressions as the card. A rule value the filter cannot resolve, such as a comparison, leaves the view unfiltered.
+- **A dashboard with a hash in its URL recovers after an outage (#1311).** A reload of a URL with a hash, such as a Bubble Card popup address, did nothing, so the dashboard stayed on Home Assistant's "Unable to connect" screen until the app restarted. The kiosk's outage repair, the Retry button, pull to refresh with cache clearing, **Clear web cache** and a page's own `location.reload()` now all reload the page. A load of the same hash URL from the loadUrl command or an automation is now a reload too, as it already was for a URL with no hash.
+- **Going home closes a popup (#1311).** A dashboard view with a hash in the page's URL no longer counts as the same view when the requested path has no hash. Going home, rotation and the ESPHome view select now close an open popup, such as a Bubble Card popup, without reloading the page.
+
+## v2026.11.7 - 2026-11-05
+
+### Added
+- **Video calls on the intercom.** Intercom calls can now carry video. Press the new video button on the roster to call with your camera on. **Video calls** under **Settings, Intercom** is on by default, and sending also needs **Enable camera**. The person at the other kiosk sees you while the call rings and can answer with **Voice only** or **Video**. A **Camera** button turns the camera on or off during any call. The picture from the other kiosk fills the screen with the controls over it, and the kiosk's name and the call's length hide after 3 seconds until you tap the screen or press a button. Answer automatically, hardware buttons, Home Assistant and the remote admin never turn the camera on. Turn a kiosk during a call and its picture restarts at the new shape. RTSP and ONVIF streaming stop while the camera sends in a call and start again afterward. Video goes straight between the kiosks over the intercom's own key and encryption. A decoder that cannot start is released, so a failed start holds no memory.
+- **Turn screensaver widgets off.** Each widget in the list on the **Widgets** page now has a switch beside its delete button, and **Enable screensaver widgets**, on by default, hides them all at once without changing the list. A new **Screensaver widgets** ESPHome switch does the same from Home Assistant. A widget that is off also frees its corner for the photo metadata overlay. See [Widgets](https://github.com/jxlarrea/kiosk-satellite/blob/main/docs/screensavers.md#widgets).
+
+### Changed
+- **Calling from the roster uses buttons.** Each kiosk on the Call a kiosk screen now has a call button instead of the whole row being the target, so a stray tap no longer starts a call.
+
+### Fixed
+- **Sendspin corrects a drifting clock.** The Sendspin player corrected timing by one audio frame per chunk, about 225 parts per million on FLAC and 830 on PCM. A device whose clock ran further from the server's than that reached the 5 ms limit every few seconds and skipped with a short gap. The correction now grows with the error, up to 16 frames per chunk spread through the chunk, so a drifting device plays without skips and stays in step with its group. Devices with an accurate clock are unchanged (#1300).
+
+## v2026.11.6 - 2026-11-04
+
 ### Added
 - **Pick how long screensaver videos play.** A new **Video length** row on the Immich Media, Home Assistant Media, Local Media and Photo Gallery screensaver pages, on the kiosk and in the remote admin. **Whole video** (the default, as before) plays each video to its end. **Same as photos** stops a video once its seconds per photo run out, or at its end if it is shorter, so a long clip no longer holds the screen for minutes. Nothing more is buffered or kept in memory either way (#1298).
 - **Plugin screensavers can tint the widgets.** A new `setScreensaverTint` plugin command draws the corner widgets and At a Glance row over a plugin's screensaver in one color, the way the Clock screensaver's Night mode does, for example when the room goes dark. `clearScreensaverTint` gives them their own colors back. The tint belongs to the screensaver on screen when the plugin set it and ends once that screensaver leaves the screen, so a plugin that never clears it cannot tint the Clock, another plugin's screensaver or even its own other ones. Only the `screensaver` capability is needed (#1299).
 
+### Changed
+- **Home Assistant connecting no longer takes a camera snapshot.** The Camera entity needs one frame to become available after Home Assistant connects. That frame used to be a real capture, so a picture landed in Home Assistant on every start and reconnect, even with **Disable snapshots on detection** on. It is now a black frame and the camera stays closed. Fetching the picture in Home Assistant, such as from a dashboard card, still captures a real frame.
+- **The voice overlay leaves more room for the answer on short screens (#1306).** The command now stays on one line with its line breaks removed and ends with an ellipsis if it does not fit. Above 100%, **Text size** grows the command and tool lines at half the rate of the answer. On an Echo Show 5 this shows about one more line of the answer.
+
 ### Fixed
+- **A camera that never answers a JPEG capture no longer stays broken (#1304).** On some camera drivers, such as the SHIELD Tablet's on LineageOS 15.1, a JPEG snapshot never finished and closing the camera then hung until the device restarted. The first snapshot after each start set it off, so motion detection, snapshots and RTSP stopped working on every boot. When a capture goes unanswered, Kiosk Satellite now aborts it, stops requesting JPEGs from that camera and takes snapshots from its analysis frames at the **Snapshot resolution**. If the abort does not free the camera, one restart of the device does.
+- **Echo Shows no longer crash showing album art or photos.** On devices where Impeller draws with OpenGL ES, such as the Echo Show 8 with its Mali-T720 and the Portal Go, Impeller shrank cover art and photos on the GPU. On the Echo Show 8 that step could fail, mostly in the seconds after the app starts with music playing, and Impeller then closed the whole app. These devices now decode a JPEG cover or photo straight at the reduced size its decoder supports, so Impeller has nothing to shrink, and shrink other images, queue thumbnails and app icons on the CPU first. Photos keep their EXIF orientation and transparent images keep their edges. On an Echo Show 5 this costs about the same CPU and memory as before. Devices that draw with Vulkan or the Legacy renderer are unchanged.
+- **The Music Library shows the playing track's cover.** The player at the bottom of the Music Library and the playing row of its Queue showed a music note instead of the cover Now Playing shows, whenever that cover came from the music stream itself, from another app or from AirPlay. They now load it the way Now Playing does.
 - **Videos follow Fill the screen.** Videos in the photo slideshows always kept their frame between black bars, whatever **Fill the screen** said. They now follow the same rule as photos: **Smart** crops a video shaped close to the screen to the edges and **Always** crops every video. A video that is not enlarged keeps its black bars instead of the blurred backdrop photos get, since blurring every frame would cost too much on a kiosk (#1298).
+- **Updates no longer use up storage until the next reboot.** On Android 11 and older, with Kiosk Satellite set as the home app, the old APK could stay on disk after an update until the device restarted, so devices with little storage eventually ran out of space and updates failed. Android kept trying to restart the home app during its own update and each try drew a starting window. Kiosk Satellite no longer asks those Android versions for one. Space already lost comes back with one reboot.
 
 ## v2026.11.5 - 2026-11-04
 

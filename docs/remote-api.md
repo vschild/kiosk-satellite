@@ -144,7 +144,7 @@ is administrable here by construction.
 | `/api/update/upload` | POST | Take in a Kiosk Satellite APK as the raw request body, for a kiosk that can reach neither GitHub nor a custom repository. The kiosk reads package, version and build out of it and refuses another package, an older build or a file its cache cannot hold twice. Answers `{version, buildNumber, size, currentVersion, currentBuild}`. Nothing installs until `installUploadedApk` is called; `getUpdateStatus` reports the waiting file under `uploaded` and `installing` while the hand-off runs, then the outcome in `lastOutcome`. See [Updates](updates.md#installing-an-uploaded-apk) |
 | `/api/fleet/identity`, `/api/fleet/invite`, `/api/fleet/invite/<nonce>` | GET, POST, GET | Fleet Management's public face, for a kiosk with no token here: who this kiosk is, an invitation to follow (answered on the kiosk screen or with `fleetAccept` and `fleetDecline` in its remote admin) and what became of one. See [Fleet Management](fleet.md) |
 | `/api/fleet/status`, `/api/fleet/apply`, `/api/fleet/leave`, `/api/fleet/roster` | GET, POST, POST, POST | The follower's side of the fleet: opened by the fleet token a follower mints on accepting, which is good for these, `getUpdateStatus`, `checkUpdateNow`, `installUpdate`, `/api/update/upload` and `installUploadedApk` and nothing else, only while it names this kiosk's leader |
-| `/api/intercom/identity`, `/api/intercom/call`, `/api/intercom/call/<id>`, `/api/intercom/audio/<id>` | GET, POST, POST, WebSocket | The [intercom's](intercom.md#remote-api) wire between kiosks: who this kiosk is (public), a call or broadcast coming in, the answer going back and the voice socket. All but the identity carry a token signed with the shared intercom key, never an admin token |
+| `/api/intercom/identity`, `/api/intercom/call`, `/api/intercom/call/<id>`, `/api/intercom/audio/<id>`, `/api/intercom/video/<id>` | GET, POST, POST, WebSocket, WebSocket | The [intercom's](intercom.md#remote-api) wire between kiosks: who this kiosk is (public), a call or broadcast coming in, the answer going back and the voice socket. All but the identity carry a token signed with the shared intercom key, never an admin token |
 | `/api/logs` | GET | Recent app log ring buffer |
 | `/api/console` | GET | Current WebView JS console buffer |
 
@@ -339,7 +339,7 @@ esbuild, on the first run. Run `npm run build` from `app/` by hand before
 server serves the page at `/` and the files at `/static/<name>`, gzipped
 for browsers that accept it and discovered from the asset manifest, so
 adding a module is just adding the file. Tabs: Overview (a Needs attention card for an update
-to install, a missing grant a switched-on feature needs, a lost Home
+to install, a plugin update to review, a missing grant a switched-on feature needs, a lost Home
 Assistant connection or a stopped wake word engine, hidden while there is
 nothing; the screenshot with a badge while the panel is dark, on the
 screensaver, showing Now Playing, the intercom or a camera view, taken again

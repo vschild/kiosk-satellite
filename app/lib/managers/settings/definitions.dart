@@ -1975,6 +1975,21 @@ const cornerLabels = {
 // screensaver_widgets.dart for the shape). Replaces the mini clock settings
 // below, which migrate into a clock entry on startup.
 
+// Hides every widget and keeps the list, so an automation can clear the
+// screen and bring the same widgets back. Each entry's own switch (its
+// enabled key) works under this one, and a schedule entry's Widgets
+// override cannot turn widgets on while this is off.
+const screensaverWidgetsEnabled = SettingDef<bool>(
+  key: 'screensaver.widgets_enabled',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Enable screensaver widgets',
+  description: 'Small overlays in the corners of the screensaver.',
+  category: 'Screensaver',
+  section: 'Widgets',
+  subpage: 'Widgets',
+);
+
 const screensaverWidgets = SettingDef<String>(
   key: 'screensaver.widgets',
   type: SettingType.string,
@@ -6959,7 +6974,8 @@ const voiceSeamlessWake = SettingDef<bool>(
   defaultValue: false,
   title: 'Talk right after the wake word',
   description:
-      'Skip the wake sound and keep what you say right after the wake word.',
+      'Skip the wake sound and keep what you say right after the wake word. '
+      'Only for Assist pipelines, not realtime conversations.',
   category: 'Voice Satellite',
   subpage: 'Assistant',
   section: 'Wake word and command',
@@ -9661,6 +9677,20 @@ const sendspinPlayerActive = SettingDef<bool>(
   perDevice: true,
 );
 
+/// The followed Music Assistant player whose group this device plays in, so
+/// the local player stays on under that pick (issue #1334). Kept by the
+/// manager and read by the warning under the Player row on both surfaces.
+const sendspinKeptFor = SettingDef<String>(
+  key: 'sendspin.kept_for',
+  type: SettingType.string,
+  defaultValue: '',
+  title: 'Sendspin player kept on for',
+  description: 'Internal: the followed group this device plays in.',
+  category: 'Sendspin',
+  hidden: true,
+  perDevice: true,
+);
+
 /// Where the kiosk menu's Music Assistant row had its own switch. A link to
 /// Drawer menu items now (issue #1194), which decides every row.
 const sendspinMaShortcut = SettingDef<bool>(
@@ -11548,6 +11578,23 @@ const intercomAnswerMode = SettingDef<String>(
   dependsOn: 'intercom.enabled',
 );
 
+/// Opt in to the one case where the camera goes on with nobody tapping: a
+/// call that opens on its own, from a caller with their camera on. Each
+/// kiosk decides for its own room, so it never travels with a fleet.
+const intercomAutoAnswerCamera = SettingDef<bool>(
+  key: 'intercom.auto_answer_camera',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: 'Answer with camera on',
+  description: 'Video calls answered automatically open with the camera on.',
+  category: 'Intercom',
+  section: 'Answer',
+  perDevice: true,
+  dependsOn: 'intercom.answer_mode',
+  dependsOnValue: 'auto',
+  alsoDependsOn: 'intercom.video',
+);
+
 const intercomRingSeconds = SettingDef<String>(
   key: 'intercom.ring_seconds',
   type: SettingType.select,
@@ -11605,6 +11652,33 @@ const intercomTalkMode = SettingDef<String>(
   options: ['ptt', 'handsfree'],
   optionLabels: {'ptt': 'Push to talk', 'handsfree': 'Hands free'},
   dependsOn: 'intercom.enabled',
+);
+
+/// Whether calls on this kiosk carry video. Sending also needs Enable
+/// camera, and the camera only goes on with a tap at the kiosk or through
+/// [intercomAutoAnswerCamera].
+const intercomVideo = SettingDef<bool>(
+  key: 'intercom.video',
+  type: SettingType.boolean,
+  defaultValue: true,
+  title: 'Video calls',
+  description: 'Send and show video in calls.',
+  category: 'Intercom',
+  section: 'Video',
+  dependsOn: 'intercom.enabled',
+);
+
+const intercomVideoQuality = SettingDef<String>(
+  key: 'intercom.video_quality',
+  type: SettingType.select,
+  defaultValue: 'medium',
+  title: 'Video quality',
+  description: 'Higher quality uses more CPU.',
+  category: 'Intercom',
+  section: 'Video',
+  options: ['low', 'medium', 'high'],
+  optionLabels: {'low': 'Low', 'medium': 'Medium', 'high': 'High'},
+  dependsOn: 'intercom.video',
 );
 
 /// Minutes a live call or announcement may run before this kiosk hangs
@@ -11750,6 +11824,18 @@ const alarmsMenu = SettingDef<bool>(
   description: 'Choose the items the drawer menu shows and their order.',
   category: 'Alarms',
   linksTo: 'ui.drawer_items',
+);
+
+/// Alarm times in 24 hours or with AM/PM, on the alarm screens, the
+/// ringing screen, the next alarm widget and the spoken phrase. Seeded once
+/// from Android's clock (see SettingsManager.init).
+const alarmsClock24h = SettingDef<bool>(
+  key: 'alarms.clock_24h',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: '24-hour clock',
+  description: 'Show a 24-hour time instead of AM/PM.',
+  category: 'Alarms',
 );
 
 /// The alarm stream is set to this share of its range while an alarm
@@ -11940,7 +12026,8 @@ const alarmsPhrase = SettingDef<String>(
   defaultValue: "It's {time}. {label}",
   title: 'Phrase',
   description:
-      "{label}, {time} and {day} become the alarm's label, time and day.",
+      'Available variables: {label}, {name}, {time}, {hour}, {minute}, {date}, '
+      '{day}, {dayofmonth}, {month}, {year}',
   category: 'Alarms',
   section: 'Defaults',
 );
@@ -12017,13 +12104,13 @@ const calendarDefaultView = SettingDef<String>(
 );
 
 /// The first day of the week and month views. The language default is the
-/// one the device's language uses.
+/// one the app's language uses.
 const calendarWeekStart = SettingDef<String>(
   key: 'calendar.week_start',
   type: SettingType.select,
   defaultValue: 'locale',
   title: 'Week starts on',
-  description: 'Follows the device language unless set.',
+  description: 'Follows the app language unless set.',
   category: 'Calendar',
   section: 'Display',
   options: ['locale', 'sunday', 'monday', 'saturday'],
@@ -12033,6 +12120,20 @@ const calendarWeekStart = SettingDef<String>(
     'monday': 'Monday',
     'saturday': 'Saturday',
   },
+);
+
+/// Calendar times in 24 hours or with AM/PM, the calendar's own choice
+/// rather than Android's clock. Seeded once from Android's clock (see
+/// SettingsManager.init) so an update keeps what the calendar showed.
+/// Covers the Up next widget too.
+const calendarClock24h = SettingDef<bool>(
+  key: 'calendar.clock_24h',
+  type: SettingType.boolean,
+  defaultValue: false,
+  title: '24-hour clock',
+  description: 'Show a 24-hour time instead of AM/PM.',
+  category: 'Calendar',
+  section: 'Display',
 );
 
 /// The weather entity whose daily forecast goes on each day's header.
@@ -13783,6 +13884,7 @@ const List<SettingDef<Object>> allSettings = [
   screensaverCalendarView,
   // The Widgets group: corner overlays riding over the mode panels above,
   // so it sits between them and the other overlay group, At a Glance.
+  screensaverWidgetsEnabled,
   screensaverWidgets,
   screensaverWidgetScale,
   screensaverWidgetFont,
@@ -14067,6 +14169,7 @@ const List<SettingDef<Object>> allSettings = [
   voiceTimerPosition,
   sendspinClientId,
   sendspinPlayerActive,
+  sendspinKeptFor,
   sendspinLocalPlayerName,
   dlnaEnabled,
   dlnaAudioBackground,
@@ -14159,6 +14262,7 @@ const List<SettingDef<Object>> allSettings = [
   intercomKey,
   intercomMenu,
   intercomAnswerMode,
+  intercomAutoAnswerCamera,
   intercomRingSeconds,
   intercomRingSound,
   intercomAcceptAnnouncements,
@@ -14166,10 +14270,13 @@ const List<SettingDef<Object>> allSettings = [
   intercomMaxCallMinutes,
   intercomHangupKey,
   intercomHangupKeyRinging,
+  intercomVideo,
+  intercomVideoQuality,
   intercomTls,
   alarmsList,
   alarmsRuntime,
   alarmsMenu,
+  alarmsClock24h,
   alarmsVolume,
   alarmsEaseIn,
   alarmsEaseInSeconds,
@@ -14186,6 +14293,7 @@ const List<SettingDef<Object>> allSettings = [
   calendarHidden,
   calendarDefaultView,
   calendarWeekStart,
+  calendarClock24h,
   calendarWeatherEntity,
   calendarAllowEdit,
   calendarAllowDelete,

@@ -59,6 +59,10 @@
 ///      beside the value, issue #912) and color ("r,g,b" icon and text
 ///      color). A blank value hides the whole widget, vignette
 ///      included (issue #691).
+/// - enabled: false keeps the entry in the list without drawing it. It
+///   gives up its corner on the screensaver, but still holds it in the
+///   list: one widget per corner counts the entries that are off too.
+///   Missing reads as true, and true is left out of the stored JSON.
 /// - config: the type's own settings; missing keys read as the type's
 ///   defaults, so entries survive new keys being added. Every type also
 ///   carries scale, this widget's own size correction in percent from
@@ -75,23 +79,25 @@ library;
 
 import 'dart:convert';
 
-import '../settings/definitions.dart'
-    show cornerOptions, fontFamilyOptions, fontWeightOptions;
+import '../settings/settings_manager.dart';
 
 class ScreensaverWidget {
   const ScreensaverWidget({
     required this.position,
     required this.type,
     required this.config,
+    this.enabled = true,
   });
 
   final String position;
   final String type;
   final Map<String, Object?> config;
+  final bool enabled;
 
   Map<String, Object?> toJson() => {
     'position': position,
     'type': type,
+    if (!enabled) 'enabled': false,
     'config': config,
   };
 }
@@ -174,7 +180,9 @@ Map<String, Object?> screensaverWidgetDefaults(String type) => switch (type) {
   },
   // The family calendar's next events, up to [count], over [days] days
   // starting today, each marked with its calendars' pictures, or with a
-  // dot in their colors when [dots] is on (issue #1285).
+  // dot in their colors when [dots] is on (issue #1285). [all_day] off
+  // lists only timed events (issue #1312). A widget saved before it reads
+  // as on.
   'calendar' => {
     'color': '250,250,250',
     'scale': screensaverWidgetScaleDefault,
@@ -182,6 +190,7 @@ Map<String, Object?> screensaverWidgetDefaults(String type) => switch (type) {
     'font_weight': screensaverWidgetFontDefault,
     'count': 3,
     'days': 1,
+    'all_day': true,
     'dots': false,
   },
   'entity' => {
@@ -302,6 +311,7 @@ List<ScreensaverWidget> decodeScreensaverWidgets(String json) {
           config: config is Map
               ? config.map((k, v) => MapEntry('$k', v))
               : screensaverWidgetDefaults(type),
+          enabled: entry['enabled'] != false,
         ),
       );
     }
@@ -310,6 +320,20 @@ List<ScreensaverWidget> decodeScreensaverWidgets(String json) {
   }
   return out;
 }
+
+/// The widgets that draw on the screensaver: none with Enable screensaver
+/// widgets off, otherwise every entry left on. Anything that asks which
+/// corners are taken reads this list, so a widget that is off frees its
+/// corner.
+List<ScreensaverWidget> activeScreensaverWidgets(SettingsManager settings) =>
+    settings.get(screensaverWidgetsEnabled)
+    ? [
+        for (final w in decodeScreensaverWidgets(
+          settings.get(screensaverWidgets),
+        ))
+          if (w.enabled) w,
+      ]
+    : const [];
 
 /// Encode for storage, in corner order so the stored list (and every list
 /// rendered from it) reads top-left to bottom-right.

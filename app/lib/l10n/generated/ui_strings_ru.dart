@@ -262,8 +262,8 @@ class UiStringsRu extends UiStrings {
   String get alarmsPhrase => 'Фраза';
 
   @override
-  String alarmsPhraseHint(String label, String time, String day) {
-    return '$label, $time и $day заменяются на название, время и день будильника.';
+  String alarmsPhraseVariables(String variables) {
+    return 'Доступные переменные: $variables';
   }
 
   @override
@@ -541,6 +541,9 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get calendarWidgetWeek => 'Следующие 7 дней';
+
+  @override
+  String get calendarWidgetAllDay => 'Показывать события на весь день';
 
   @override
   String get calendarWidgetDots => 'Цветные точки';
@@ -2723,6 +2726,11 @@ class UiStringsRu extends UiStrings {
   String get intercomCalling => 'Вызов…';
 
   @override
+  String intercomAnswersWithCameraIn(String seconds) {
+    return 'Камера включится через $seconds с';
+  }
+
+  @override
   String intercomAnswersIn(String seconds) {
     return 'Ответит через $seconds с';
   }
@@ -2829,6 +2837,37 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get intercomEndCall => 'Завершить звонок';
+
+  @override
+  String get intercomVoiceCall => 'Голосовой звонок';
+
+  @override
+  String get intercomVideoCall => 'Видеозвонок';
+
+  @override
+  String get intercomVoiceOnly => 'Только голос';
+
+  @override
+  String get intercomVideoAnswer => 'Видео';
+
+  @override
+  String get intercomSwitchCamera => 'Переключить камеру';
+
+  @override
+  String get intercomCameraButton => 'Камера';
+
+  @override
+  String get intercomCameraOff => 'Камера выключена';
+
+  @override
+  String get intercomYourCameraOff => 'Ваша камера выключена';
+
+  @override
+  String get intercomVideoReconnecting => 'Восстановление видео…';
+
+  @override
+  String get intercomCameraOffNotice =>
+      'Камера выключена. Этот киоск может показывать видео, но не отправлять его.';
 
   @override
   String get intercomCallFailed => 'Не удалось позвонить';
@@ -4659,6 +4698,16 @@ class UiStringsRu extends UiStrings {
   String get overviewSystemUpdate => 'Доступно обновление системы';
 
   @override
+  String overviewPluginUpdate(String name) {
+    return 'Доступно обновление $name';
+  }
+
+  @override
+  String overviewPluginUpdateHelp(String version) {
+    return 'Версия $version готова к просмотру и установке.';
+  }
+
+  @override
   String overviewSystemImageUpdateHelp(String version) {
     return 'Версия $version образа системы готова к установке. Для этого устройство дважды перезагрузится.';
   }
@@ -5221,8 +5270,8 @@ class UiStringsRu extends UiStrings {
   String get settingCalendarWeekStartTitle => 'Неделя начинается с';
 
   @override
-  String get settingCalendarWeekStartDescription =>
-      'Как в языке устройства, если не задано иное.';
+  String get settingCalendarWeekStartAppLanguageDescription =>
+      'Как в языке приложения, если не задано иное.';
 
   @override
   String get settingCalendarWeatherEntityTitle => 'Погода';
@@ -9209,6 +9258,40 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get intercomTalkSection => 'Разговор';
+
+  @override
+  String get settingIntercomVideoTitle => 'Видеозвонки';
+
+  @override
+  String get settingIntercomVideoDescription =>
+      'Отправляет и показывает видео во время звонков.';
+
+  @override
+  String get settingIntercomVideoQualityTitle => 'Качество видео';
+
+  @override
+  String get settingIntercomVideoQualityDescription =>
+      'Более высокое качество сильнее нагружает процессор.';
+
+  @override
+  String get intercomOptionVideoLow => 'Низкое';
+
+  @override
+  String get intercomOptionVideoMedium => 'Среднее';
+
+  @override
+  String get intercomOptionVideoHigh => 'Высокое';
+
+  @override
+  String get intercomVideoSection => 'Видео';
+
+  @override
+  String get settingIntercomAutoAnswerCameraTitle =>
+      'Отвечать с включенной камерой';
+
+  @override
+  String get settingIntercomAutoAnswerCameraDescription =>
+      'Видеозвонки с автоответом открываются с включенной камерой.';
 
   @override
   String get settingKioskAllowDrawerTitle => 'Разрешить меню быстрых действий';
@@ -13763,6 +13846,14 @@ class UiStringsRu extends UiStrings {
   }
 
   @override
+  String get settingScreensaverWidgetsEnabledTitle =>
+      'Включить виджеты заставки';
+
+  @override
+  String get settingScreensaverWidgetsEnabledDescription =>
+      'Маленькие наложения в углах заставки.';
+
+  @override
   String get settingScreensaverWidgetsTitle => 'Виджеты';
 
   @override
@@ -13807,6 +13898,9 @@ class UiStringsRu extends UiStrings {
 
   @override
   String get screensaverOverlayWidgetsEmpty => 'Виджетов пока нет';
+
+  @override
+  String get screensaverOverlayShow => 'Показывать этот виджет';
 
   @override
   String get screensaverOverlayRemove => 'Убрать виджет';
@@ -14057,8 +14151,8 @@ class UiStringsRu extends UiStrings {
       'Говорить сразу после слова пробуждения';
 
   @override
-  String get settingVoiceSeamlessWakeDescription =>
-      'Пропускать звук пробуждения и ловить сказанное сразу после слова пробуждения.';
+  String get settingVoiceSeamlessWakeAssistDescription =>
+      'Пропускать звук пробуждения и ловить сказанное сразу после слова пробуждения. Только для конвейеров Assist, не для разговоров в реальном времени.';
 
   @override
   String get settingVoiceFollowupDelayTitle => 'Задержка уточнения';

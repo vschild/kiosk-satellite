@@ -4,6 +4,7 @@ import 'core/command_registry.dart';
 import 'core/event_bus.dart';
 import 'core/events.dart';
 import 'core/headless.dart';
+import 'core/locale_dates.dart';
 import 'core/logging.dart';
 import 'core/manager.dart';
 import 'managers/plugins/plugin_camera.dart';
@@ -221,6 +222,7 @@ class AppContainer {
         view: screensaver.activeView,
         night: screensaver.clockNight,
         nowPlaying: () => screensaver.nowPlayingShown,
+        nowPlayingShared: () => screensaver.nowPlayingShared,
         settings: settings,
         setTint: screensaver.setPluginTint,
         clearTint: screensaver.clearPluginTint,
@@ -265,6 +267,7 @@ class AppContainer {
       log,
       settings,
       nowPlaying: sendspin.nowPlaying,
+      playerArtwork: sendspin.loadArtwork,
     );
     // The library is opaque and full screen too, and so are the calendar
     // and Now Playing when it does not share the screen.
@@ -281,6 +284,12 @@ class AppContainer {
       () => browser.setCovered(
         'now playing',
         covered: screensaver.nowPlayingCovers.value,
+      ),
+    );
+    intercom.videoOnScreen.addListener(
+      () => browser.setCovered(
+        'intercom video',
+        covered: intercom.videoOnScreen.value,
       ),
     );
     voiceRequests = VoiceRequestsManager(bus, commands, log, settings);
@@ -477,6 +486,14 @@ class AppContainer {
 
   Future<void> init() async {
     await settings.init();
+    // Dates and numbers follow the app's language, not Android's. First on
+    // the bus, so a language change lands before any listener formats.
+    applyAppDateLanguage(settings.get(uiLanguage));
+    bus.on<SettingChanged>().listen((e) {
+      if (e.key == uiLanguage.key) {
+        applyAppDateLanguage(settings.get(uiLanguage));
+      }
+    });
     // An Echo image's first start: before the provisioning below, which
     // may override it, and before any manager reads its settings.
     await EchoDefaults(settings, log).apply();

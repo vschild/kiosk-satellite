@@ -18,6 +18,7 @@ import 'package:video_player/video_player.dart';
 import 'alarms_overlay.dart' show alarmTimeText;
 import '../managers/alarms/alarm_manager.dart';
 import 'alarm_ring_overlay.dart';
+import 'clock_setting.dart';
 import 'calendar_overlay.dart'
     show
         CalendarAvatarStack,
@@ -117,6 +118,7 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
     // read at build by the overlay row the photo and web modes carry.
     final live = {
       defs.screensaverWidgets.key,
+      defs.screensaverWidgetsEnabled.key,
       defs.screensaverWeatherEntity.key,
       defs.screensaverWeatherPreview.key,
       defs.screensaverWeatherBar.key,
@@ -493,10 +495,8 @@ class _ScreensaverOverlayState extends State<ScreensaverOverlay> {
                                       if ((scheduled ?? true) &&
                                           !_widgetsNightHidden(view))
                                         for (final spec
-                                            in decodeScreensaverWidgets(
-                                              container.settings.get(
-                                                defs.screensaverWidgets,
-                                              ),
+                                            in activeScreensaverWidgets(
+                                              container.settings,
                                             ))
                                           if (screensaverWidgetAllowedOnMode(
                                                 spec.type,
@@ -2083,8 +2083,15 @@ class _AlarmWidgetOverlayState extends State<AlarmWidgetOverlay> {
     super.dispose();
   }
 
+  // Times follow Settings > Alarms > 24-hour clock.
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<AlarmStatus>(
+  Widget build(BuildContext context) => ClockSetting(
+    container: widget.container,
+    setting: defs.alarmsClock24h,
+    child: Builder(builder: _alarm),
+  );
+
+  Widget _alarm(BuildContext context) => ValueListenableBuilder<AlarmStatus>(
     valueListenable: widget.container.alarms.status,
     builder: (context, status, _) {
       final now = DateTime.now();
@@ -2252,8 +2259,15 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
     return Color.lerp(base, Colors.white, .3)!;
   }
 
+  // Times follow Settings > Calendar > 24-hour clock.
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
+  Widget build(BuildContext context) => ClockSetting(
+    container: widget.container,
+    setting: defs.calendarClock24h,
+    child: Builder(builder: _upNext),
+  );
+
+  Widget _upNext(BuildContext context) => ListenableBuilder(
     listenable: Listenable.merge([_cal.snapshot, _cal.hidden, _cal.calendars]),
     builder: (context, _) {
       final now = DateTime.now();
@@ -2268,7 +2282,7 @@ class _CalendarWidgetOverlayState extends State<CalendarWidgetOverlay> {
               _cal.hidden.value,
             ),
             now,
-            allDay: true,
+            allDay: widget.spec.config['all_day'] != false,
             days: _days,
           )
           .take(count)

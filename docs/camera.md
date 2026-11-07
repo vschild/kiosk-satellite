@@ -30,8 +30,10 @@ A frame is captured and published to the Camera entity under the following condi
 * **On demand:** When you press the **Take camera snapshot** button in Home Assistant, or **Take snapshot** in the remote admin.
 * **On an interval:** If **Continuous snapshots** is turned on.
 * **On motion:** Once per motion session, unless **Disable snapshots on detection** is turned on. When motion is detected, it captures a single frame upon arrival, rather than a continuous stream of frames while someone stands there.
-* **When requested:** Whenever Home Assistant explicitly asks the camera entity for a picture, ensuring a dashboard card or a system restart never returns a blank image.
+* **When requested:** Whenever Home Assistant asks the camera entity for a picture, such as when a dashboard card or the entity's more-info dialog shows it.
 * **On a camera switch:** When you change **Camera** between front and back, so the entity shows what the new camera sees.
+
+When Home Assistant connects, it needs one frame to mark the Camera entity available. KS sends a black frame without opening the camera, so the entity stays black until something requests a snapshot.
 
 **Disable snapshots on detection** applies to automatic detection captures only. It leaves detection running and does not remove previously captured images. Continuous snapshots, Home Assistant image requests, manual snapshots and RTSP streaming have their own controls.
 
@@ -177,11 +179,13 @@ To display the RTSP video in Home Assistant, add the [Generic Camera integration
 
 ## Sharing the Camera
 
-Android gives one session camera access at a time. Motion detection, snapshots and RTSP share that session so taking a snapshot does not reopen the camera or reset exposure.
+Android gives one session camera access at a time. Motion detection, snapshots and RTSP share that session so taking a snapshot does not reopen the camera or reset exposure. RTSP and ONVIF streaming stop while the camera sends in an [intercom video call](intercom.md#video-calls) and start again afterward.
 
 Plugins with the `camera` capability receive frames from the same session. One plugin holds the camera at a time, and motion detection and the other camera features keep running while it does. A plugin with the `barcode` capability opens a full screen scanner that takes the camera for itself. Motion detection, face detection, hand gestures and RTSP pause while it is open, and snapshots fail. They resume when it closes. Both capabilities need **Enable camera** on. See [Camera and barcodes](https://github.com/jxlarrea/kiosk-satellite-plugins/blob/main/docs/camera.md) in the plugin SDK.
 
 A few extremely low end devices cannot run motion analysis and JPEG capture in the same session. On those devices, motion wins, and snapshots will report the camera as busy while motion is running. If another app entirely is holding the camera open, captures will fail until that app lets go.
+
+Some camera drivers never answer a JPEG capture and can leave the camera unusable until the device restarts. If a capture goes unanswered, KS stops requesting JPEGs from that camera and takes snapshots from its analysis frames instead. Restart the device if the camera still does not work. The rule stays until the system is updated.
 
 ## Hardware Notes
 

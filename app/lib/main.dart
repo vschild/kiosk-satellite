@@ -13,7 +13,6 @@ import 'core/events.dart';
 import 'core/frame_watchdog.dart';
 import 'core/headless.dart';
 import 'core/ha_http_overrides.dart';
-import 'core/locale_dates.dart';
 import 'core/user_authorities.dart';
 import 'managers/kiosk/kiosk_manager.dart'
     show hidesNavigationBar, hidesStatusBar;
@@ -22,6 +21,7 @@ import 'managers/settings/settings_manager.dart';
 import 'managers/wake_word/pryon/pryon_catalog.dart';
 import 'ui/key_nav.dart';
 import 'ui/kiosk_screen.dart';
+import 'ui/resized_image.dart';
 import 'ui/ui_scale.dart';
 import 'ui/setup_screen.dart';
 import 'ui/theme.dart';
@@ -38,9 +38,9 @@ Future<void> main() async {
   // themselves as they leave); 32MB is generous for all of it.
   PaintingBinding.instance.imageCache.maximumSizeBytes = 32 << 20;
 
-  // Date strings (clock screensaver, photo metadata) follow the device's
-  // locale (issue #108).
-  await initLocaleDates();
+  // Before any image decodes: whether resized images must be scaled on the
+  // CPU instead of by Impeller's OpenGL ES blit.
+  await GpuResize.init();
 
   // Before the container: managers read it while they start.
   await Headless.detect();

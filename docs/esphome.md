@@ -109,6 +109,7 @@ Every item in this list corresponds directly to a kiosk setting. They are fully 
 | **RTSP Streaming** | switch | Enables or disables the RTSP server using the saved stream settings. Requires physical camera hardware. Camera enabled and Android camera permission must also be on. Changes sync with the local and remote settings pages without reconnecting ESPHome. |
 | **Screensaver proximity detection** | switch | Requires a physical proximity sensor. |
 | **Screensaver schedule** | switch | Turns [scheduled screensavers](screensavers.md#schedule) on or off, the same as **Enable scheduled screensavers** on the device. The times themselves are set on the device. |
+| **Screensaver widgets** | switch | Shows or hides all [screensaver widgets](screensavers.md#widgets), the same as **Enable screensaver widgets** on the device. A running screensaver updates right away and the widget list stays as it is. |
 | **Intercom enabled** | switch | The [intercom's](intercom.md) master switch. Its state sensors and the answer mode appear while it is on. |
 | **Voice Satellite auto start** | switch | Voice Satellite integration on the dashboard only. Controls whether the voice engine starts automatically with the dashboard. This allows an automation to delay voice services on slower devices that need all their processing power for the initial dashboard load. Requires a bound satellite. |
 | **Theme** | select | Options are Auto, Light, or Dark. Selecting Light or Dark forcibly pins the dashboard theme, overriding both the on device schedule and the app theme sync for as long as it is active. If theme sync is enabled, pinning the theme will flip the app's internal screens as well. |
@@ -585,6 +586,8 @@ If half of the required permissions are missing, the symptoms are clear: the pro
 * A robust watchdog monitors the feed and automatically restarts the scan if advertisements suddenly stop arriving. A normal home containing any BLE devices is never completely silent for long. This is essential for some chipsets (particularly MediaTek) that are known to silently stall after several hours of continuous scanning.
 * Toggling Bluetooth off and on, flipping airplane mode, or a total crash of the Bluetooth stack will automatically suspend the proxy. It instantly resumes function the moment the adapter comes back online.
 * Scan restarts are carefully budgeted to stay under Android's strict, silent throttle limit of 5 starts per 30 seconds.
+* If Android repeatedly fails to register a scan, the Bluetooth adapter restarts to clear the stack. This is possible on Android 12L and older. After a restart that brought advertisements back, another can follow after 30 minutes if the problem returns. Each restart drops the proxy's active connections.
+* On Android 8.0 to 9, one scan registration that answers after Android's 2 second limit leaves the scan running with no advertisements and no error until the adapter restarts. The adapter now restarts if a scan goes silent after such a failure. If registration gets slow on these versions, scan sessions rotate every 30 minutes instead of every 2 minutes until it speeds up.
 * Any half open sockets left lingering by a Home Assistant restart or a messy Wi-Fi roam are actively detected and cleaned up within seconds.
 * The scanning process reliably survives the screen turning off.
 
